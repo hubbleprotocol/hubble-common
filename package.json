@@ -2,6 +2,10 @@
   "name": "@hubbleprotocol/hubble-common",
   "description": "Hubble Protocol common packages and utilities",
   "private": true,
+  "scripts": {
+    "bootstrap": "lerna bootstrap --hoist",
+    "publish": "lerna publish"
+  },
   "devDependencies": {
     "@types/node": "^17.0.17",
     "lerna": "^4.0.0",
