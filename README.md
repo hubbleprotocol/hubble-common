@@ -18,8 +18,14 @@ Versioning and publishing is done automatically (detects changes if any).
 Currently deployment is done manually:
 
 ```shell
+# login to npm account with @hubbleprotocol organization publish permissions
+npm login  
+ 
+# install dependencies
 cd hubble-common
 npm install
+
+# publish packages that have new changes
 npm run publish
 ```
 
