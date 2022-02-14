@@ -31,7 +31,7 @@ Dependencies required:
 - `@solana/web3.js`,
 - `@hubbleprotocol/hubble-config`.
 
-Use borrowing IDL with Anchor to get the borrowing market state (using readonly wallet):
+Use borrowing IDL with Anchor to get the borrowing market state (using readonly wallet): 
 
 ```js
 import { Connection, Keypair, PublicKey, clusterApiUrl } from '@solana/web3.js';
