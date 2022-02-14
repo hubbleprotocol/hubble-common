@@ -23,7 +23,7 @@
   "bugs": {
     "url": "https://github.com/hubbleprotocol/hubble-common/issues"
   },
-  "homepage": "https://github.com/hubbleprotocol/hubble-common#readme",
+  "homepage": "https://github.com/hubbleprotocol/hubble-common/blob/master/packages/hubble-config",
   "dependencies": {
     "@solana/web3.js": "^1.34.0"
   },
