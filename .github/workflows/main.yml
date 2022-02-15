@@ -37,7 +37,7 @@ jobs:
         git config --global user.name "ci@$GITHUB_ACTOR"
 
     - name: Install dependencies
-      run: lerna bootstrap --ci
+      run: npm ci
 
     - name: Publish
       run: |
