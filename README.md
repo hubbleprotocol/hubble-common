@@ -14,23 +14,11 @@ Hubble common NPM packages.
 ## Deployment
 
 We use [lernajs](https://lerna.js.org/) for monorepo package management and publishing. 
-Versioning and publishing is done automatically (detects changes if any).
+Versioning and publishing is done automatically (detects changes if any) by Lerna.
 
-Currently deployment is done manually:
+Currently, deployment is done automatically by GitHub Action. 
+Everything that gets pushed to `master` branch will be automatically checked for changes and deployed (if needed).
 
-```shell
-# login to npm account with @hubbleprotocol organization publish permissions
-npm login  
- 
-# install dependencies
-cd hubble-common
-npm install
-
-# publish packages that have new changes
-npm run publish
-```
-
-In the future `master` branch will have an automated GitHub action that will deploy to npm.
 
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
