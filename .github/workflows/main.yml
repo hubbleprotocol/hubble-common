@@ -41,4 +41,5 @@ jobs:
 
     - name: Publish
       run: |
-        lerna publish --yes --no-verify-access --conventional-commits 
+        lerna version patch
+        lerna publish --yes --no-verify-access 

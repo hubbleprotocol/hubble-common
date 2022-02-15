@@ -2,8 +2,5 @@
   "packages": [
     "packages/*"
   ],
-  "version": "1.0.12",
-  "ignoreChanges": [
-    "**/CHANGELOG.md"
-  ]
+  "version": "1.0.12"
 }
