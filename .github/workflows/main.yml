@@ -41,4 +41,4 @@ jobs:
 
     - name: Publish
       run: |
-        lerna publish --yes
+        lerna publish --yes --no-verify-access
