@@ -41,5 +41,5 @@ jobs:
 
     - name: Publish
       run: |
-        lerna version patch
+        lerna version patch --yes
         lerna publish --yes --no-verify-access 
