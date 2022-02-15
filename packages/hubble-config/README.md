@@ -1,6 +1,6 @@
 # Hubble Config
 
-Hubble config is a public registry/configuration with Solana public keys that are used by Hubble.
+Hubble config is a public registry/configuration with Solana public keys that are used by [Hubble Protocol](https://hubbleprotocol.io).
 
 ## Install
 
