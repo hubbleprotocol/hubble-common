@@ -20,8 +20,9 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2
       with:
-          submodules: recursive
-          token: ${{ secrets.GITHUB_TOKEN }}
+        fetch-depth: 0
+        submodules: recursive
+        token: ${{ secrets.GITHUB_TOKEN }}
 
     # 2. setup .npmrc which uses NODE_AUTH_TOKEN
     - name: Setup .npmrc file for publish

@@ -8,6 +8,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    name: Build NPM packages
     steps:
 
     # 1. provide Personal Access Token for checkout@v2
