@@ -1,0 +1,33 @@
+{
+  "name": "@hubbleprotocol/hubble-sdk",
+  "description": "Hubble Protocol client SDK",
+  "main": "dist/index.js",
+  "version": "1.0.17",
+  "scripts": {
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hubbleprotocol/hubble-common.git"
+  },
+  "keywords": [
+    "hubble",
+    "hubbleprotocol",
+    "common",
+    "sdk",
+    "client"
+  ],
+  "author": "Hubble Protocol",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/hubbleprotocol/hubble-common/issues"
+  },
+  "homepage": "https://github.com/hubbleprotocol/hubble-common/blob/master/packages/hubble-sdk",
+  "dependencies": {
+    "@solana/web3.js": "^1.34.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
