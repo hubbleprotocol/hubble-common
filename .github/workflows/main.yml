@@ -39,6 +39,9 @@ jobs:
     - name: Install dependencies
       run: npm ci
 
+    - name: Build packages
+      run: lerna run build
+
     - name: Publish
       run: |
         lerna publish --yes --no-verify-access patch
