@@ -1,10 +1,10 @@
-# Hubble Common
+# Hubble Common 🛰
 
 Hubble common NPM packages.
 
 ## Packages
 
-![Publish NPM packages](https://github.com/hubbleprotocol/hubble-common/actions/workflows/main.yml/badge.svg)
+![Publish NPM packages](https://github.com/hubbleprotocol/hubble-common/actions/workflows/publish_packages.yml/badge.svg)
 
 | Package                         | Description                        | Docs                                         | Version                                                                                                                           |
 |---------------------------------|------------------------------------|----------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
