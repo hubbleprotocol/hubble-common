@@ -2,7 +2,7 @@
   "name": "@hubbleprotocol/hubble-config",
   "description": "Hubble Protocol configuration",
   "main": "dist/index.js",
-  "version": "1.0.15",
+  "version": "1.0.16",
   "scripts": {
     "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
