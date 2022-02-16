@@ -2,9 +2,9 @@
 
 Hubble common NPM packages.
 
-[![lerna](https://img.shields.io/badge/maintained%20with-lerna-cc00ff.svg)](https://lerna.js.org/)
-
 ## Packages
+
+![Publish NPM packages](https://github.com/hubbleprotocol/hubble-common/actions/workflows/main.yml/badge.svg)
 
 | Package                         | Description                        | Docs                                         | Version                                                                                                                           |
 |---------------------------------|------------------------------------|----------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
@@ -13,8 +13,12 @@ Hubble common NPM packages.
 
 ## Deployment
 
+[![lerna](https://img.shields.io/badge/maintained%20with-lerna-cc00ff.svg)](https://lerna.js.org/)
+
 We use [lernajs](https://lerna.js.org/) for monorepo package management and publishing. 
 Versioning and publishing is done automatically (detects changes if any) by Lerna.
+
+
 
 Currently, deployment is done automatically by GitHub Action. 
 Everything that gets pushed to `master` branch will be automatically checked for changes and deployed (if needed).
