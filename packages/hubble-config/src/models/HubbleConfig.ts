@@ -1,7 +1,7 @@
 import { BorrowingConfig } from './BorrowingConfig';
-import { SolanaEnvironment } from './SolanaEnvironment';
+import { SolanaCluster } from './SolanaCluster';
 
 export type HubbleConfig = {
-  env: SolanaEnvironment;
+  cluster: SolanaCluster;
   borrowing: BorrowingConfig;
 };
