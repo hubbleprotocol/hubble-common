@@ -4,7 +4,7 @@ Hubble common NPM packages.
 
 ## Packages
 
-![Publish NPM packages](https://github.com/hubbleprotocol/hubble-common/actions/workflows/publish_packages.yml/badge.svg)
+![Release packages](https://github.com/hubbleprotocol/hubble-common/actions/workflows/release_packages.yml/badge.svg)
 
 | Package                         | Description                        | Docs                                         | Version                                                                                                                           |
 |---------------------------------|------------------------------------|----------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
