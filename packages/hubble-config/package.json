@@ -2,10 +2,11 @@
   "name": "@hubbleprotocol/hubble-config",
   "description": "Hubble Protocol configuration",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "version": "1.0.17",
   "scripts": {
     "build": "tsc",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build:watch": "tsc -w"
   },
   "repository": {
     "type": "git",
