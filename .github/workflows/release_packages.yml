@@ -10,7 +10,8 @@ on:
         default: patch
 
 jobs:
-  release-packages:
+  build:
+    name: 'build, test, release'
     runs-on: ubuntu-latest
     env:
       # NPM automation token (skips 2FA)
