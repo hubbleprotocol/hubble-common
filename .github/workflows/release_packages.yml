@@ -10,7 +10,7 @@ on:
         default: patch
 
 jobs:
-  build:
+  release-packages:
     name: 'build, test, release'
     runs-on: ubuntu-latest
     env:
