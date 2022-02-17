@@ -18,7 +18,7 @@ Hubble common NPM packages.
 We use [lernajs](https://lerna.js.org/) for monorepo package management and publishing. 
 Versioning and publishing is done automatically (detects changes if any) by Lerna.
 
-Currently, deployment is done manually by using a GitHub Action called [Release NPM packages](./.github/.workflows/release_packages.yml). You can only deploy from the `master` branch and can either specify a specific new version number or increase it by specifying `patch` (default), `minor` or `major` to the action input.
+Currently, deployment is done manually by using a GitHub Action called [Release NPM packages](./.github/workflows/release_packages.yml). You can only deploy from the `master` branch and can either specify a specific new version number or increase it by specifying `patch` (default), `minor` or `major` to the action input. You may run the action from [here](https://github.com/hubbleprotocol/hubble-common/actions/workflows/release_packages.yml).
 
 
 ## Contributing
