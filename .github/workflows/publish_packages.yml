@@ -15,7 +15,6 @@ jobs:
     env:
       # NPM automation token (skips 2FA)
       NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
 
     - name: Master-branch check
@@ -31,7 +30,7 @@ jobs:
       with:
         fetch-depth: 0
         submodules: recursive
-        token: $GH_TOKEN
+        token: ${{ secrets.GITHUB_TOKEN }}
 
     # 2. setup .npmrc which uses NODE_AUTH_TOKEN
     - name: Setup .npmrc file for publish
@@ -41,11 +40,11 @@ jobs:
         registry-url: 'https://registry.npmjs.org'
 
     # 3. configure git user used to push tag
-    - name: Configure Git User
-      run: |
-        git config --global user.email "github-actions[bot]@users.noreply@github.com"
-        git config --global user.name "github-actions[bot]"
-        git remote set-url origin "https://$GITHUB_ACTOR:$GH_TOKEN@github.com/$GITHUB_REPOSITORY.git"
+#    - name: Configure Git User
+#      run: |
+#        git config --global user.email "github-actions[bot]@users.noreply@github.com"
+#        git config --global user.name "github-actions[bot]"
+#        git remote set-url origin "https://$GITHUB_ACTOR:$GH_TOKEN@github.com/$GITHUB_REPOSITORY.git"
 
     - name: Install dependencies
       run: | 
