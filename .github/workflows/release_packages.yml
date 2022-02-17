@@ -40,7 +40,7 @@ jobs:
         node-version: '16'
         registry-url: 'https://registry.npmjs.org'
 
-     3. configure git user used to push tag
+#     3. configure git user used to push tag
     - name: Configure Git User
       run: |
         git config --global user.email "github-actions[bot]@users.noreply@github.com"
