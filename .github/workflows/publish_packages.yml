@@ -45,6 +45,9 @@ jobs:
     - name: Build packages
       run: lerna run build
 
+    - name: Test packages
+      run: npm test
+
     - name: Publish
       run: |
         lerna publish --yes --no-verify-access patch
