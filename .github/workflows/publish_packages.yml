@@ -15,7 +15,14 @@ jobs:
     env:
       # NPM automation token (skips 2FA)
       NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
+
+    - name: Master-branch check
+      run: |
+        echo "Must be on master branch to publish packages."
+        exit 1
+      if: github.ref != 'refs/heads/master'
 
     # 1. provide Personal Access Token for checkout@v2
     # GITHUB_TOKEN (personal access token) always exists in repositories, does not have to be explicitly added
@@ -24,7 +31,7 @@ jobs:
       with:
         fetch-depth: 0
         submodules: recursive
-        token: ${{ secrets.GITHUB_TOKEN }}
+        token: $GH_TOKEN
 
     # 2. setup .npmrc which uses NODE_AUTH_TOKEN
     - name: Setup .npmrc file for publish
@@ -38,6 +45,7 @@ jobs:
       run: |
         git config --global user.email "github-actions[bot]@users.noreply@github.com"
         git config --global user.name "github-actions[bot]"
+        git remote set-url origin "https://$GITHUB_ACTOR:$GH_TOKEN@github.com/$GITHUB_REPOSITORY.git"
 
     - name: Install dependencies
       run: | 
