@@ -1,9 +1,9 @@
-import { HubbleConfig } from '../models/HubbleConfig';
+import { HubbleConfig } from '../models';
 import { PublicKey } from '@solana/web3.js';
 
 export const HUBBLE_CONFIGS: HubbleConfig[] = [
   {
-    env: 'mainnet-beta',
+    cluster: 'mainnet-beta',
     borrowing: {
       programId: new PublicKey('HubbLeXBb7qyLHt3x7gvYaRrxQmmgExb7fCJgDqFuB6T'),
       accounts: {
@@ -153,7 +153,7 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
     },
   },
   {
-    env: 'testnet',
+    cluster: 'testnet',
     borrowing: {
       programId: new PublicKey('6JbR96VWfG5P2eFCBPRDFenw6poqGP7RoA4vqx5tNBJf'),
       accounts: {
@@ -236,7 +236,7 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
     },
   },
   {
-    env: 'devnet',
+    cluster: 'devnet',
     borrowing: {
       programId: new PublicKey('m9P5MBXVg33N5cWuHPd4YctGhKy3p6iDdHr7Ro2YRgr'),
       accounts: {
@@ -386,7 +386,7 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
     },
   },
   {
-    env: 'localnet',
+    cluster: 'localnet',
     borrowing: {
       programId: new PublicKey('FAZuPmWCvPzVoSXudtMvixiGNGKyEuKvfEuJh3i6NkXu'),
       accounts: {
