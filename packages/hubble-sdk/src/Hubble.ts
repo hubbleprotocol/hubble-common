@@ -1,11 +1,12 @@
 import { getConfigByCluster, HubbleConfig, SolanaCluster } from '@hubbleprotocol/hubble-config';
-import { Connection } from '@solana/web3.js';
+import { Connection, PublicKey } from '@solana/web3.js';
 import StakingPoolState from './models/StakingPoolState';
 import StabilityPoolState from './models/StabilityPoolState';
 import BorrowingMarketState from './models/BorrowingMarketState';
 import { Idl, Program, Provider } from '@project-serum/anchor';
 import { BORROWING_IDL } from '@hubbleprotocol/hubble-idl';
 import { getReadOnlyWallet } from './utils';
+import UserStakingState from './models/UserStakingState';
 
 export default class Hubble {
   private _cluster: SolanaCluster;
@@ -40,15 +41,21 @@ export default class Hubble {
     ) as Promise<BorrowingMarketState>;
   }
 
-  async getTreasuryVault() {
-    // const acccountBalance = await this._provider.connection.getTokenAccountBalance(
-    //   this._config.borrowing.accounts.treasuryVault!
-    // );
-    // return acccountBalance.value;
-  }
-
-  async getHbbTokenSupply() {
-    // const tokenSupply = await this._provider.connection.getTokenSupply(this._config.borrowing.accounts.mint.HBB);
-    // return tokenSupply.value;
+  /**
+   * Get user's staking state
+   * @param user Base58 encoded Public Key of the user
+   */
+  async getUserStakingState(user: PublicKey | string) {
+    const userStakingStates = (
+      await this._borrowingProgram.account.userStakingState.all([
+        {
+          memcmp: {
+            bytes: user instanceof PublicKey ? user.toBase58() : user,
+            offset: 49,
+          },
+        },
+      ])
+    ).map((x) => x.account as UserStakingState);
+    return userStakingStates[0] ?? [];
   }
 }
