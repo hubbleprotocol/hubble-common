@@ -1,10 +1,12 @@
+import Decimal from 'decimal.js';
+
 type StabilityTokenMap = {
-  sol: number;
-  eth: number;
-  btc: number;
-  srm: number;
-  ray: number;
-  ftt: number;
-  hbb: number;
+  sol: Decimal;
+  eth: Decimal;
+  btc: Decimal;
+  srm: Decimal;
+  ray: Decimal;
+  ftt: Decimal;
+  hbb: Decimal;
 };
 export default StabilityTokenMap;

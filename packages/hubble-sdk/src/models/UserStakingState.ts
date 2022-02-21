@@ -1,13 +1,13 @@
 import { PublicKey } from '@solana/web3.js';
-import { BN } from '@project-serum/anchor';
+import Decimal from 'decimal.js';
 
 type UserStakingState = {
   version: number;
-  userId: BN;
+  userId: Decimal;
   stakingPoolState: PublicKey;
   owner: PublicKey;
-  userStake: BN;
-  rewardsTally: BN;
+  userStake: Decimal;
+  rewardsTally: Decimal;
 };
 
 export default UserStakingState;

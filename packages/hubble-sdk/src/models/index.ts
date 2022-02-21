@@ -1,4 +1,3 @@
-export * from './Account';
 export * from './BorrowingMarketState';
 export * from './CollateralAmounts';
 export * from './CollateralTotals';
@@ -8,4 +7,3 @@ export * from './StabilityProviderState';
 export * from './StabilityTokenMap';
 export * from './StakingPoolState';
 export * from './UserMetadata';
-export * from './UserVault';

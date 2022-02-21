@@ -1,31 +1,31 @@
 import { PublicKey } from '@solana/web3.js';
-import { BN } from '@project-serum/anchor';
 import CollateralAmounts from './CollateralAmounts';
+import Decimal from 'decimal.js';
 
 type BorrowingMarketState = {
   version: number;
   initialMarketOwner: PublicKey;
   redemptionsQueue: PublicKey;
+  redemption_candidates_queue: PublicKey;
   stablecoinMint: PublicKey;
   stablecoinMintAuthority: PublicKey;
   stablecoinMintSeed: number;
   hbbMint: PublicKey;
   hbbMintAuthority: PublicKey;
   hbbMintSeed: number;
-  numUsers: BN;
-  numActiveUsers: BN;
-  stablecoinBorrowed: number;
+  numUsers: Decimal;
+  numActiveUsers: Decimal;
+  stablecoinBorrowed: Decimal;
   depositedCollateral: CollateralAmounts;
   inactiveCollateral: CollateralAmounts;
-  bootstrapPeriodTimestamp: number;
   baseRateBps: number;
-  lastFeeEvent: number;
-  redistributedStablecoin: number;
-  totalStake: number;
+  lastFeeEvent: Decimal;
+  redistributedStablecoin: Decimal;
+  totalStake: Decimal;
   collateralRewardPerToken: CollateralAmounts;
-  stablecoinRewardPerToken: number;
-  totalStakeSnapshot: number;
-  borrowedStablecoinSnapshot: number;
+  stablecoinRewardPerToken: Decimal;
+  totalStakeSnapshot: Decimal;
+  borrowedStablecoinSnapshot: Decimal;
 };
 
 export default BorrowingMarketState;

@@ -1,22 +1,21 @@
 import { PublicKey } from '@solana/web3.js';
 import CollateralAmounts from './CollateralAmounts';
+import Decimal from 'decimal.js';
 
 type UserMetadata = {
-  status: number;
-  depositedCollateral: CollateralAmounts;
-  inactiveCollateral: CollateralAmounts;
   version: number;
-  userId: number;
+  status: number;
+  userId: Decimal;
+  metadataPk: PublicKey;
   owner: PublicKey;
   borrowingMarketState: PublicKey;
-  metadataPk: PublicKey;
-  stablecoinAta: PublicKey;
-  borrowedStablecoin: number;
-  userCollateralRewardPerToken: CollateralAmounts;
-  userStablecoinRewardPerToken: number;
-  userStake: number;
 
-  collateralRatio: number;
-  collateralValue: number;
+  inactiveCollateral: CollateralAmounts;
+  depositedCollateral: CollateralAmounts;
+  borrowedStablecoin: Decimal;
+
+  userStake: Decimal;
+  userCollateralRewardPerToken: CollateralAmounts;
+  userStablecoinRewardPerToken: Decimal;
 };
 export default UserMetadata;

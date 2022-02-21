@@ -1,10 +1,12 @@
+import Decimal from 'decimal.js';
+
 type CollateralAmounts = {
-  sol: number;
-  eth: number;
-  btc: number;
-  srm: number;
-  ray: number;
-  ftt: number;
-  msol: number;
+  sol: Decimal;
+  eth: Decimal;
+  btc: Decimal;
+  srm: Decimal;
+  ray: Decimal;
+  ftt: Decimal;
+  msol: Decimal;
 };
 export default CollateralAmounts;

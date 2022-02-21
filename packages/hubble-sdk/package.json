@@ -30,7 +30,8 @@
     "@hubbleprotocol/hubble-config": "^1.0.18",
     "@hubbleprotocol/hubble-idl": "^1.0.18",
     "@project-serum/serum": "^0.13.61",
-    "@project-serum/anchor": "^0.21.0"
+    "@project-serum/anchor": "^0.21.0",
+    "decimal.js": "^10.3.1"
   },
   "publishConfig": {
     "access": "public"

@@ -1,24 +1,28 @@
 import { PublicKey } from '@solana/web3.js';
-import { BN } from '@project-serum/anchor';
+import Decimal from 'decimal.js';
 
 type StakingPoolState = {
   // Borrowing market the pool belongs to
   borrowingMarketState: PublicKey;
+
   // Metadata used for analytics
-  totalDistributedRewards: number;
-  rewardsNotYetClaimed: number;
+  totalDistributedRewards: Decimal;
+  rewardsNotYetClaimed: Decimal;
+
   // Data used to calculate the rewards of the user
   version: number;
-  numUsers: BN;
-  totalUsersProvidingStability: number;
-  totalStake: number;
-  rewardPerToken: number;
-  prevRewardLoss: number;
+  numUsers: Decimal;
+  totalUsersProvidingStability: Decimal;
+  totalStake: Decimal;
+  rewardPerToken: Decimal;
+  prevRewardLoss: Decimal;
 
   stakingVault: PublicKey;
   stakingVaultAuthority: PublicKey;
   stakingVaultSeed: number;
 
   treasuryVault: PublicKey;
+  treasuryVaultAuthority: PublicKey;
+  treasuryVaultSeed: number;
 };
 export default StakingPoolState;

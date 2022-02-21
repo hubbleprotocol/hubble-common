@@ -1,10 +1,11 @@
 import StabilityTokenMap from './StabilityTokenMap';
+import Decimal from 'decimal.js';
 
 type DepositSnapshot = {
   sum: StabilityTokenMap;
-  product: number;
-  scale: number;
-  epoch: number;
+  product: Decimal;
+  scale: Decimal;
+  epoch: Decimal;
   enabled: boolean;
 };
 export default DepositSnapshot;

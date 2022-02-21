@@ -1,9 +1,10 @@
 import { SupportedToken } from '../constants';
+import Decimal from 'decimal.js';
 
 type CollateralTotals = {
-  deposited: number;
-  inactive: number;
-  price: number;
+  deposited: Decimal;
+  inactive: Decimal;
+  price: Decimal;
   token: SupportedToken;
 };
 
