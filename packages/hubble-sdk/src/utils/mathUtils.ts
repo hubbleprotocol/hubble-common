@@ -91,6 +91,11 @@ export const addCollateralAmounts = (first: CollateralAmounts, second: Collatera
   };
 };
 
+/**
+ * Calculate pending rewards debt
+ * @param market
+ * @param user
+ */
 const calculatePendingDebt = (market: BorrowingMarketState, user: UserMetadata): Decimal => {
   const diffStableRpt = market.stablecoinRewardPerToken.minus(user.userStablecoinRewardPerToken);
   return user.status !== 1 || diffStableRpt.isZero()
@@ -98,6 +103,11 @@ const calculatePendingDebt = (market: BorrowingMarketState, user: UserMetadata):
     : diffStableRpt.mul(user.userStake).div(DECIMAL_FACTOR);
 };
 
+/**
+ * Calculate the user's total debt (borrowed stablecoin + pending rewards)
+ * @param user
+ * @param market
+ */
 export function calculateUserDebt(user: UserMetadata, market: BorrowingMarketState) {
   const pendingDebt = calculatePendingDebt(market, user);
   return user.borrowedStablecoin.add(pendingDebt).dividedBy(STABLECOIN_DECIMALS);
