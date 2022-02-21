@@ -5,7 +5,7 @@ describe('Hubble SDK Tests', () => {
   let connection: Connection;
 
   beforeAll(() => {
-    connection = new Connection(clusterApiUrl('devnet'));
+    connection = new Connection(clusterApiUrl('mainnet-beta'));
   });
 
   test('should throw on invalid cluster', () => {
@@ -42,5 +42,12 @@ describe('Hubble SDK Tests', () => {
   //   const sdk = new Hubble('devnet', connection);
   //   const sth = await sdk.getUserStakingState('9y7uLMUMW6EiRwH1aJFSp9Zka7dVx2JdZKA3858u6YHT');
   //   expect(sth).not.toBeNull();
+  // });
+
+  // test('should get devnet user stability pool state', async () => {
+  //   const sdk = new Hubble('mainnet-beta', connection);
+  //   const userStabilityState = await sdk.getUserStabilityProviderState('9y7uLMUMW6EiRwH1aJFSp9Zka7dVx2JdZKA3858u6YHT');
+  //   console.log(userStabilityState);
+  //   expect(userStabilityState).not.toBeNull();
   // });
 });
