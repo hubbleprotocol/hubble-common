@@ -20,7 +20,7 @@ import Loan from './models/Loan';
 import { HBB_DECIMALS, STABLECOIN_DECIMALS } from './constants';
 import Decimal from 'decimal.js';
 
-export default class Hubble {
+export class Hubble {
   private _cluster: SolanaCluster;
   private _connection: Connection;
   private readonly _config: HubbleConfig;
@@ -225,3 +225,5 @@ export default class Hubble {
     return stakingState.userStake.dividedBy(HBB_DECIMALS);
   }
 }
+
+export default Hubble;

@@ -7,3 +7,5 @@ export * from './StabilityProviderState';
 export * from './StabilityTokenMap';
 export * from './StakingPoolState';
 export * from './UserMetadata';
+export * from './UserStakingState';
+export * from './Loan';

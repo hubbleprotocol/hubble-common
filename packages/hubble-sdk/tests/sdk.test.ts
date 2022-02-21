@@ -1,8 +1,8 @@
-import Hubble from '../dist/Hubble';
 import { clusterApiUrl, Connection } from '@solana/web3.js';
 import { HBB_DECIMALS } from '../src/constants';
 import { BN } from '@project-serum/anchor';
 import Decimal from 'decimal.js';
+import Hubble from '../src/Hubble';
 
 describe('Hubble SDK Tests', () => {
   // let connection: Connection;
