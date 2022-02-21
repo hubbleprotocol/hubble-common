@@ -10,6 +10,8 @@ Hubble common NPM packages.
 |---------------------------------|------------------------------------|----------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
 | `@hubbleprotocol/hubble-config` | Hubble Solana config (public keys) | [README](./packages/hubble-config/README.md) | [![npm](https://img.shields.io/npm/v/@hubbleprotocol/hubble-config)](https://www.npmjs.com/package/@hubbleprotocol/hubble-config) |
 | `@hubbleprotocol/hubble-idl`    | Hubble IDL for Anchor              | [README](./packages/hubble-idl/README.md)    | [![npm](https://img.shields.io/npm/v/@hubbleprotocol/hubble-idl)](https://www.npmjs.com/package/@hubbleprotocol/hubble-idl)       |
+| `@hubbleprotocol/hubble-sdk`    | Hubble Protocol client SDK         | [README](./packages/hubble-sdk/README.md)    | [![npm](https://img.shields.io/npm/v/@hubbleprotocol/hubble-sdk)](https://www.npmjs.com/package/@hubbleprotocol/hubble-sdk)       |
+
 
 ## Deployment
 
