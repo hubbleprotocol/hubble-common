@@ -5,10 +5,10 @@ import { BN } from '@project-serum/anchor';
 import Decimal from 'decimal.js';
 
 describe('Hubble SDK Tests', () => {
-  let connection: Connection;
+  // let connection: Connection;
 
   beforeAll(() => {
-    connection = new Connection(clusterApiUrl('mainnet-beta'));
+    // connection = new Connection(clusterApiUrl('devnet'));
   });
 
   test('should throw on invalid cluster', () => {
@@ -24,7 +24,8 @@ describe('Hubble SDK Tests', () => {
     expect(init).toThrow(Error);
   });
 
-  //TODO: replace with localnet and setup integration tests...
+  //TODO: replace with localnet below and setup integration tests...
+
   // test('should get staking pool', async () => {
   //   const sdk = new Hubble('devnet', connection);
   //   const pool: StakingPoolState = await sdk.getStakingPoolState();
@@ -76,9 +77,9 @@ describe('Hubble SDK Tests', () => {
   //   expect(depositedUsdh).not.toBeNull();
   // });
   //
-  test('should get user loans', async () => {
-    const sdk = new Hubble('mainnet-beta', connection);
-    const loans = await sdk.getUserLoans('9y7uLMUMW6EiRwH1aJFSp9Zka7dVx2JdZKA3858u6YHT');
-    console.log('loans : ', loans);
-  });
+  // test('should get user loans', async () => {
+  //   const sdk = new Hubble('mainnet-beta', connection);
+  //   const loans = await sdk.getUserLoans('9y7uLMUMW6EiRwH1aJFSp9Zka7dVx2JdZKA3858u6YHT');
+  //   console.log('loans : ', loans);
+  // });
 });
