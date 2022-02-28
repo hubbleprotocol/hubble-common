@@ -96,7 +96,7 @@ export const addCollateralAmounts = (first: CollateralAmounts, second: Collatera
  * @param market
  * @param user
  */
-const calculatePendingDebt = (market: BorrowingMarketState, user: UserMetadata): Decimal => {
+const getPendingDebt = (market: BorrowingMarketState, user: UserMetadata): Decimal => {
   const diffStableRpt = market.stablecoinRewardPerToken.minus(user.userStablecoinRewardPerToken);
   return user.status !== 1 || diffStableRpt.isZero()
     ? new Decimal(0)
@@ -104,11 +104,103 @@ const calculatePendingDebt = (market: BorrowingMarketState, user: UserMetadata):
 };
 
 /**
- * Calculate the user's total debt (borrowed stablecoin + pending rewards)
+ * Calculate pending rewards debt
+ * @param market
+ * @param user
+ */
+const getPendingCollateral = (market: BorrowingMarketState, user: UserMetadata): CollateralAmounts => {
+  const diffCollRpt = sub(market.collateralRewardPerToken, user.userCollateralRewardPerToken);
+  return user.status !== 1 || isZero(diffCollRpt)
+    ? zeroCollateral()
+    : mulFrac(diffCollRpt, user.userStake, DECIMAL_FACTOR);
+};
+
+/**
+ * Calculate the user's total USDH debt (borrowed stablecoin + pending rewards)
  * @param user
  * @param market
  */
-export function calculateUserDebt(user: UserMetadata, market: BorrowingMarketState) {
-  const pendingDebt = calculatePendingDebt(market, user);
+export function calculateTotalDebt(user: UserMetadata, market: BorrowingMarketState) {
+  const pendingDebt = getPendingDebt(market, user);
   return user.borrowedStablecoin.add(pendingDebt).dividedBy(STABLECOIN_DECIMALS);
+}
+
+/**
+ * Calculate the user's total collateral debt (collateral + pending rewards)
+ * @param user
+ * @param market
+ */
+export function calculateTotalCollateral(user: UserMetadata, market: BorrowingMarketState) {
+  const pendingCollateral = getPendingCollateral(market, user);
+  const collateral = addCollateralAmounts(
+    lamportsToDecimal(user.depositedCollateral),
+    lamportsToDecimal(user.inactiveCollateral)
+  );
+  return addCollateralAmounts(pendingCollateral, collateral);
+}
+
+/**
+ * Subtract collateral amounts
+ * @param left
+ * @param right
+ */
+export function sub(left: CollateralAmounts, right: CollateralAmounts): CollateralAmounts {
+  return {
+    sol: left.sol.minus(right.sol),
+    btc: left.btc.minus(right.btc),
+    eth: left.eth.minus(right.eth),
+    ftt: left.ftt.minus(right.ftt),
+    ray: left.ray.minus(right.ray),
+    srm: left.srm.minus(right.srm),
+    msol: left.msol.minus(right.msol),
+  };
+}
+
+/**
+ * Returns true if all collateral amounts equal zero
+ * @param coll
+ */
+export function isZero(coll: CollateralAmounts): boolean {
+  return (
+    coll.sol.isZero() &&
+    coll.btc.isZero() &&
+    coll.eth.isZero() &&
+    coll.ftt.isZero() &&
+    coll.ray.isZero() &&
+    coll.srm.isZero() &&
+    coll.msol.isZero()
+  );
+}
+
+/**
+ * Create new collateral amounts with 0 collateral
+ */
+export function zeroCollateral(): CollateralAmounts {
+  return {
+    sol: new Decimal(0),
+    btc: new Decimal(0),
+    eth: new Decimal(0),
+    ftt: new Decimal(0),
+    ray: new Decimal(0),
+    srm: new Decimal(0),
+    msol: new Decimal(0),
+  };
+}
+
+/**
+ Transforms collateral amounts multiplying by the fraction
+ * @param coll
+ * @param numerator
+ * @param denominator
+ */
+export function mulFrac(coll: CollateralAmounts, numerator: Decimal, denominator: Decimal): CollateralAmounts {
+  return {
+    sol: new Decimal(coll.sol).div(denominator).mul(numerator),
+    btc: new Decimal(coll.btc).div(denominator).mul(numerator),
+    eth: new Decimal(coll.eth).div(denominator).mul(numerator),
+    ftt: new Decimal(coll.ftt).div(denominator).mul(numerator),
+    ray: new Decimal(coll.ray).div(denominator).mul(numerator),
+    srm: new Decimal(coll.srm).div(denominator).mul(numerator),
+    msol: new Decimal(coll.msol).div(denominator).mul(numerator),
+  };
 }
