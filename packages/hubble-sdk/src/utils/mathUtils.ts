@@ -96,7 +96,7 @@ export const addCollateralAmounts = (first: CollateralAmounts, second: Collatera
  * @param market
  * @param user
  */
-const getPendingUsdhDebt = (market: BorrowingMarketState, user: UserMetadata): Decimal => {
+const getPendingDebt = (market: BorrowingMarketState, user: UserMetadata): Decimal => {
   const diffStableRpt = market.stablecoinRewardPerToken.minus(user.userStablecoinRewardPerToken);
   return user.status !== 1 || diffStableRpt.isZero()
     ? new Decimal(0)
@@ -108,7 +108,7 @@ const getPendingUsdhDebt = (market: BorrowingMarketState, user: UserMetadata): D
  * @param market
  * @param user
  */
-const getPendingCollateralDebt = (market: BorrowingMarketState, user: UserMetadata): CollateralAmounts => {
+const getPendingCollateral = (market: BorrowingMarketState, user: UserMetadata): CollateralAmounts => {
   const diffCollRpt = sub(market.collateralRewardPerToken, user.userCollateralRewardPerToken);
   return user.status !== 1 || isZero(diffCollRpt)
     ? zeroCollateral()
@@ -120,8 +120,8 @@ const getPendingCollateralDebt = (market: BorrowingMarketState, user: UserMetada
  * @param user
  * @param market
  */
-export function calculateUsdhDebt(user: UserMetadata, market: BorrowingMarketState) {
-  const pendingDebt = getPendingUsdhDebt(market, user);
+export function calculateTotalDebt(user: UserMetadata, market: BorrowingMarketState) {
+  const pendingDebt = getPendingDebt(market, user);
   return user.borrowedStablecoin.add(pendingDebt).dividedBy(STABLECOIN_DECIMALS);
 }
 
@@ -130,8 +130,8 @@ export function calculateUsdhDebt(user: UserMetadata, market: BorrowingMarketSta
  * @param user
  * @param market
  */
-export function calculateCollateralDebt(user: UserMetadata, market: BorrowingMarketState) {
-  const pendingCollateral = getPendingCollateralDebt(market, user);
+export function calculateTotalCollateral(user: UserMetadata, market: BorrowingMarketState) {
+  const pendingCollateral = getPendingCollateral(market, user);
   const collateral = addCollateralAmounts(
     lamportsToDecimal(user.depositedCollateral),
     lamportsToDecimal(user.inactiveCollateral)
