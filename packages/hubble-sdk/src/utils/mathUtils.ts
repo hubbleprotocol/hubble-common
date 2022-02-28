@@ -139,6 +139,11 @@ export function calculateCollateralDebt(user: UserMetadata, market: BorrowingMar
   return addCollateralAmounts(pendingCollateral, collateral);
 }
 
+/**
+ * Subtract collateral amounts
+ * @param left
+ * @param right
+ */
 export function sub(left: CollateralAmounts, right: CollateralAmounts): CollateralAmounts {
   return {
     sol: left.sol.minus(right.sol),
@@ -151,6 +156,10 @@ export function sub(left: CollateralAmounts, right: CollateralAmounts): Collater
   };
 }
 
+/**
+ * Returns true if all collateral amounts equal zero
+ * @param coll
+ */
 export function isZero(coll: CollateralAmounts): boolean {
   return (
     coll.sol.isZero() &&
@@ -163,6 +172,9 @@ export function isZero(coll: CollateralAmounts): boolean {
   );
 }
 
+/**
+ * Create new collateral amounts with 0 collateral
+ */
 export function zeroCollateral(): CollateralAmounts {
   return {
     sol: new Decimal(0),
@@ -175,6 +187,12 @@ export function zeroCollateral(): CollateralAmounts {
   };
 }
 
+/**
+ Transforms collateral amounts multiplying by the fraction
+ * @param coll
+ * @param numerator
+ * @param denominator
+ */
 export function mulFrac(coll: CollateralAmounts, numerator: Decimal, denominator: Decimal): CollateralAmounts {
   return {
     sol: new Decimal(coll.sol).div(denominator).mul(numerator),
