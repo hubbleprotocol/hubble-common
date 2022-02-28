@@ -6,12 +6,11 @@ import BorrowingMarketState from './models/BorrowingMarketState';
 import { Idl, Program, Provider } from '@project-serum/anchor';
 import { BORROWING_IDL } from '@hubbleprotocol/hubble-idl';
 import {
-  addCollateralAmounts,
   calculateStabilityProvided,
   getReadOnlyWallet,
-  calculateUserDebt,
-  lamportsToDecimal,
+  calculateUsdhDebt,
   replaceBigNumberWithDecimal,
+  calculateCollateralDebt,
 } from './utils';
 import UserStakingState from './models/UserStakingState';
 import StabilityProviderState from './models/StabilityProviderState';
@@ -193,11 +192,8 @@ export class Hubble {
     for (const userVault of userVaults) {
       if (userVault.borrowedStablecoin.greaterThan(0)) {
         loans.push({
-          usdhDebt: calculateUserDebt(userVault, borrowingMarketState),
-          collateral: addCollateralAmounts(
-            lamportsToDecimal(userVault.depositedCollateral),
-            lamportsToDecimal(userVault.inactiveCollateral)
-          ),
+          usdhDebt: calculateUsdhDebt(userVault, borrowingMarketState),
+          collateral: calculateCollateralDebt(userVault, borrowingMarketState),
         });
       }
     }

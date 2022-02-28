@@ -7,9 +7,9 @@ import Hubble from '../src/Hubble';
 describe('Hubble SDK Tests', () => {
   // let connection: Connection;
 
-  beforeAll(() => {
-    // connection = new Connection(clusterApiUrl('devnet'));
-  });
+  // beforeAll(() => {
+  //   connection = new Connection(clusterApiUrl('devnet'));
+  // });
 
   test('should throw on invalid cluster', () => {
     const cluster = 'invalid-clusters';
@@ -78,7 +78,7 @@ describe('Hubble SDK Tests', () => {
   // });
   //
   // test('should get user loans', async () => {
-  //   const sdk = new Hubble('mainnet-beta', connection);
+  //   const sdk = new Hubble('devnet', connection);
   //   const loans = await sdk.getUserLoans('9y7uLMUMW6EiRwH1aJFSp9Zka7dVx2JdZKA3858u6YHT');
   //   console.log('loans : ', loans);
   // });
