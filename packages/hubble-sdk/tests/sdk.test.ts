@@ -6,7 +6,7 @@ import Hubble from '../src/Hubble';
 
 describe('Hubble SDK Tests', () => {
   // let connection: Connection;
-
+  //
   // beforeAll(() => {
   //   connection = new Connection(clusterApiUrl('devnet'));
   // });
@@ -81,5 +81,40 @@ describe('Hubble SDK Tests', () => {
   //   const sdk = new Hubble('devnet', connection);
   //   const loans = await sdk.getUserLoans('9y7uLMUMW6EiRwH1aJFSp9Zka7dVx2JdZKA3858u6YHT');
   //   console.log('loans : ', loans);
+  // });
+
+  // test('should get all stability providers', async () => {
+  //   const sdk = new Hubble('devnet', connection);
+  //   const stabilityProviderStates = await sdk.getStabilityProviders();
+  //   expect(stabilityProviderStates.length).toBeGreaterThan(0);
+  //   console.log(stabilityProviderStates.length);
+  // });
+
+  // test('should get all user metadatas', async () => {
+  //   const sdk = new Hubble('devnet', connection);
+  //   const userVaults = await sdk.getAllUserMetadatas();
+  //   expect(userVaults.length).toBeGreaterThan(0);
+  //   console.log(userVaults.length);
+  // });
+
+  // test('should get all HBB token accounts', async () => {
+  //   const sdk = new Hubble('devnet', connection);
+  //   const userVaults = await sdk.getHbbTokenAccounts();
+  //   expect(userVaults.length).toBeGreaterThan(0);
+  //   console.log(userVaults.length);
+  // });
+
+  // test('should get treasury vault', async () => {
+  //   const sdk = new Hubble('devnet', connection);
+  //   const treasuryVault = await sdk.getTreasuryVault();
+  //   console.log(treasuryVault);
+  //   expect(treasuryVault.isZero()).toBeFalsy();
+  // });
+
+  // test('should get HBB circulating supply', async () => {
+  //   const sdk = new Hubble('devnet', connection);
+  //   const circulatingSupply = await sdk.getHbbCirculatingSupply();
+  //   console.log(circulatingSupply);
+  //   expect(circulatingSupply.isZero()).toBeFalsy();
   // });
 });
