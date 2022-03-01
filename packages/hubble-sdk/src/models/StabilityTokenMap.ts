@@ -1,6 +1,6 @@
 import Decimal from 'decimal.js';
 
-type StabilityTokenMap = {
+export type StabilityTokenMap = {
   sol: Decimal;
   eth: Decimal;
   btc: Decimal;

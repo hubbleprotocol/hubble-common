@@ -2,7 +2,7 @@ import { PublicKey } from '@solana/web3.js';
 import CollateralAmounts from './CollateralAmounts';
 import Decimal from 'decimal.js';
 
-type UserMetadata = {
+export type UserMetadata = {
   version: number;
   status: number;
   userId: Decimal;

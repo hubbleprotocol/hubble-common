@@ -3,7 +3,7 @@ import StabilityTokenMap from './StabilityTokenMap';
 import DepositSnapshot from './DepositSnapshot';
 import Decimal from 'decimal.js';
 
-type StabilityProviderState = {
+export type StabilityProviderState = {
   version: number;
   stabilityPoolState: PublicKey;
   owner: PublicKey;

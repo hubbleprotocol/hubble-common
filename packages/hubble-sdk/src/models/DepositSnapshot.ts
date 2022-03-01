@@ -1,7 +1,7 @@
 import StabilityTokenMap from './StabilityTokenMap';
 import Decimal from 'decimal.js';
 
-type DepositSnapshot = {
+export type DepositSnapshot = {
   sum: StabilityTokenMap;
   product: Decimal;
   scale: Decimal;

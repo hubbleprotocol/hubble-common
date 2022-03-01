@@ -1,6 +1,6 @@
 import Decimal from 'decimal.js';
 
-type CollateralAmounts = {
+export type CollateralAmounts = {
   sol: Decimal;
   eth: Decimal;
   btc: Decimal;

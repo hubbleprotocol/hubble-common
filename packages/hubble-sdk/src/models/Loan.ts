@@ -1,7 +1,7 @@
 import Decimal from 'decimal.js';
 import CollateralAmounts from './CollateralAmounts';
 
-type Loan = {
+export type Loan = {
   usdhDebt: Decimal;
   collateral: CollateralAmounts;
 };

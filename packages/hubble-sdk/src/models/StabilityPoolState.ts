@@ -2,7 +2,7 @@ import { PublicKey } from '@solana/web3.js';
 import StabilityTokenMap from './StabilityTokenMap';
 import Decimal from 'decimal.js';
 
-type StabilityPoolState = {
+export type StabilityPoolState = {
   borrowingMarketState: PublicKey;
 
   epochToScaleToSum: PublicKey;

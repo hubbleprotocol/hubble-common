@@ -1,7 +1,7 @@
 import { PublicKey } from '@solana/web3.js';
 import Decimal from 'decimal.js';
 
-type UserStakingState = {
+export type UserStakingState = {
   version: number;
   userId: Decimal;
   stakingPoolState: PublicKey;
