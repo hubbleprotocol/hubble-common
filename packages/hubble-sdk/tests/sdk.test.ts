@@ -5,11 +5,11 @@ import Decimal from 'decimal.js';
 import Hubble from '../src/Hubble';
 
 describe('Hubble SDK Tests', () => {
-  let connection: Connection;
-
-  beforeAll(() => {
-    connection = new Connection(clusterApiUrl('devnet'));
-  });
+  // let connection: Connection;
+  //
+  // beforeAll(() => {
+  //   connection = new Connection(clusterApiUrl('devnet'));
+  // });
 
   test('should throw on invalid cluster', () => {
     const cluster = 'invalid-clusters';
