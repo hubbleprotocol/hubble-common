@@ -18,7 +18,7 @@ Importing the `Hubble` SDK class:
 
 ```js
 // For ESM
-import Hubble from "@hubbleprotocol/hubble-sdk";
+import {Hubble} from "@hubbleprotocol/hubble-sdk";
 
 // For CommonJS
 const hubble = require("@hubbleprotocol/hubble-sdk");
@@ -27,7 +27,7 @@ const hubble = require("@hubbleprotocol/hubble-sdk");
 Using the `Hubble` SDK class:
 
 ```js
-import Hubble from "@hubbleprotocol/hubble-sdk";
+import {Hubble} from "@hubbleprotocol/hubble-sdk";
 import { clusterApiUrl, Connection } from '@solana/web3.js';
 
 // Initialize solana web3 connection
@@ -45,7 +45,7 @@ const stakedHbb = await hubble.getUserStakedHbb(pubKey);
 const loans = await hubble.getUserLoans(pubKey);
 
 // Get the amount of stablecoin (USDH) user has deposited in the stability pool
-const usdh = await hubble.getUserUsdhInStabilityPool('9y7uLMUMW6EiRwH1aJFSp9Zka7dVx2JdZKA3858u6YHT');
+const usdh = await hubble.getUserUsdhInStabilityPool(pubKey);
 
 // Get various on-chain data from the Hubble borrowing program
 // This is the raw data that has not been converted yet (everything is in the lamports format)
