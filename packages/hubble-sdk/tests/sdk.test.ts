@@ -71,6 +71,15 @@ describe('Hubble SDK Tests', () => {
   //   console.log('staked hbb: ', stakedHbb);
   // });
 
+  // test('should handle user without anything gracefully', async () => {
+  //   const sdk = new Hubble('devnet', connection);
+  //   const stakedHbb = await sdk.getUserStakedHbb('AVkV2ntoMaCZB6mWcHpk3HoyLiPpXu2pQJeKekGiadNm');
+  //   expect(stakedHbb).toBeUndefined();
+  //
+  //   const stability = await sdk.getUserUsdhInStabilityPool('AVkV2ntoMaCZB6mWcHpk3HoyLiPpXu2pQJeKekGiadNm');
+  //   expect(stability).toBeUndefined();
+  // });
+
   // test('should get user deposited usdh in stability pool', async () => {
   //   const sdk = new Hubble('mainnet-beta', connection);
   //   const depositedUsdh = await sdk.getUserUsdhInStabilityPool('9y7uLMUMW6EiRwH1aJFSp9Zka7dVx2JdZKA3858u6YHT');

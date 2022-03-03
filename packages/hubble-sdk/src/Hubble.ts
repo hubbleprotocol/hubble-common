@@ -84,8 +84,9 @@ export class Hubble {
    * Get user's staking state (staking stats).
    * @param user Base58 encoded Public Key of the user
    * @return on-chain {@link UserStakingState} from the borrowing program for the specific user with numbers as lamports
+   * or undefined if user has never used Hubble before or authorized HBB staking
    */
-  async getUserStakingState(user: PublicKey | string): Promise<UserStakingState> {
+  async getUserStakingState(user: PublicKey | string): Promise<UserStakingState | undefined> {
     const userStakingStates = (
       await this._borrowingProgram.account.userStakingState.all([
         {
@@ -102,7 +103,7 @@ export class Hubble {
         },
       ])
     ).map((x) => replaceBigNumberWithDecimal(x.account as UserStakingState));
-    return userStakingStates[0] ?? [];
+    return userStakingStates[0];
   }
 
   /**
@@ -121,9 +122,10 @@ export class Hubble {
   /**
    * Get user's stability provider state (stability pool stats).
    * @param user Base58 encoded Public Key of the user
-   * @return on-chain {@link StabilityProviderState} from the borrowing program for the specific user with numbers as lamports
+   * @return on-chain {@link StabilityProviderState} from the borrowing program for the specific user with numbers as lamports.
+   * Returns undefined if this user has never used Hubble Stability pool before and does not exist in Hubble on-chain data
    */
-  async getUserStabilityProviderState(user: PublicKey | string): Promise<StabilityProviderState> {
+  async getUserStabilityProviderState(user: PublicKey | string): Promise<StabilityProviderState | undefined> {
     const stabilityProviderStates = (
       await this._borrowingProgram.account.stabilityProviderState.all([
         {
@@ -140,7 +142,7 @@ export class Hubble {
         },
       ])
     ).map((x) => Hubble.stabilityProviderStateToDecimals(x.account as StabilityProviderState));
-    return stabilityProviderStates[0] ?? [];
+    return stabilityProviderStates[0];
   }
 
   /**
@@ -222,6 +224,9 @@ export class Hubble {
   async getUserLoans(user: PublicKey | string): Promise<Loan[]> {
     const loans: Loan[] = [];
     const userVaults = await this.getUserMetadatas(user);
+    if (userVaults.length === 0) {
+      return [];
+    }
     const borrowingMarketState = await this.getBorrowingMarketState();
     for (const userVault of userVaults) {
       if (userVault.borrowedStablecoin.greaterThan(0)) {
@@ -237,22 +242,30 @@ export class Hubble {
   /**
    * Get user's deposited stablecoin (USDH) in the stability pool.
    * @param user Base58 encoded Public Key of the user
-   * @return Deposited stablecoin (USDH) in decimal format
+   * @return Deposited stablecoin (USDH) in decimal format or
+   * undefined if user has never used Hubble before or authorized stability pool deposits
    */
-  async getUserUsdhInStabilityPool(user: PublicKey | string): Promise<Decimal> {
+  async getUserUsdhInStabilityPool(user: PublicKey | string): Promise<Decimal | undefined> {
     const provider = await this.getUserStabilityProviderState(user);
-    const pool = await this.getStabilityPoolState();
-    return calculateStabilityProvided(pool, provider).dividedBy(STABLECOIN_DECIMALS);
+    if (provider) {
+      const pool = await this.getStabilityPoolState();
+      return calculateStabilityProvided(pool, provider).dividedBy(STABLECOIN_DECIMALS);
+    }
+    return undefined;
   }
 
   /**
    * Get the amount of staked HBB of a specific user.
    * @param user Base58 encoded Public Key of the user
-   * @return HBB staked in decimal format
+   * @return HBB staked in decimal format or
+   * undefined if user has never used Hubble before or authorized HBB staking
    */
-  async getUserStakedHbb(user: PublicKey | string): Promise<Decimal> {
+  async getUserStakedHbb(user: PublicKey | string): Promise<Decimal | undefined> {
     const stakingState = await this.getUserStakingState(user);
-    return stakingState.userStake.dividedBy(HBB_DECIMALS);
+    if (stakingState) {
+      return stakingState.userStake.dividedBy(HBB_DECIMALS);
+    }
+    return undefined;
   }
 
   /**

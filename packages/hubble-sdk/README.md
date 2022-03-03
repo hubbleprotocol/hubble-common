@@ -47,15 +47,23 @@ const loans = await hubble.getUserLoans(pubKey);
 // Get the amount of stablecoin (USDH) user has deposited in the stability pool
 const usdh = await hubble.getUserUsdhInStabilityPool(pubKey);
 
+// Get Hubble's treasury vault value
+const treasuryVault = await hubble.getTreasuryVault();
+
+// Get circulating supply of HBB token
+const circulatingSupply = await hubble.getHbbCirculatingSupply();
+
 // Get various on-chain data from the Hubble borrowing program
 // This is the raw data that has not been converted yet (everything is in the lamports format)
 const stakingPoolState = await hubble.getStakingPoolState();
 const stabilityPoolState = await hubble.getStabilityPoolState();
 const marketState = await hubble.getBorrowingMarketState();
+const allUserMetadatas = await hubble.getAllUserMetadatas(); //user metadatas = user's loans
+const hbbTokenAccounts = await hubble.getHbbTokenAccounts();
 
 // Get various user-specific on-chain data 
 // This is the raw data that has not been converted yet (everything is in the lamports format)
 const userStakingState = await hubble.getUserStakingState(pubKey);
 const userStabilityProviderState = await hubble.getUserStabilityProviderState(pubKey);
-const userMetadatas = await hubble.getUserMetadatas(pubKey);
+const userMetadatas = await hubble.getUserMetadatas(pubKey); //user metadatas = user's loans
 ```
