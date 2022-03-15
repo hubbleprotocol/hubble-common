@@ -13,6 +13,72 @@
         {
           "name": "borrowingMarketState",
           "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "globalConfig",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "oracleMappings",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "redemptionsQueue",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "redemptionCandidatesQueue",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "stablecoinMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "hbbMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "clock",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "initializeBorrowingMarketOld",
+      "accounts": [
+        {
+          "name": "initialMarketOwner",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "borrowingMarketState",
+          "isMut": true,
           "isSigner": true
         },
         {
@@ -42,6 +108,233 @@
         },
         {
           "name": "hbbMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "clock",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "migrateBorrowingMarket",
+      "accounts": [
+        {
+          "name": "initialMarketOwner",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "borrowingMarketState",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "borrowingMarketStateOld",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "globalConfig",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "oracleMappings",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "borrowingVaults",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "borrowingVaultsNew",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "stabilityPoolState",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "stakingPoolState",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "redemptionsQueue",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "redemptionCandidatesQueue",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "stablecoinMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "hbbMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "clock",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "migrateBorrowingMarketUsers",
+      "accounts": [
+        {
+          "name": "initialMarketOwner",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "borrowingMarketState",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "userMetadata1",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userMetadata2",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userMetadata3",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userMetadata4",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userMetadata5",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userMetadata6",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userMetadata7",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userMetadata8",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userMetadata9",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userMetadata10",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userMetadata11",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userMetadata12",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userMetadata13",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userMetadata14",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userMetadata15",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userMetadata16",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userMetadata17",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userMetadata18",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userMetadata19",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userMetadata20",
           "isMut": true,
           "isSigner": false
         },
@@ -173,6 +466,106 @@
         }
       ],
       "args": []
+    },
+    {
+      "name": "initializeCollateralVaultsNew",
+      "accounts": [
+        {
+          "name": "initialMarketOwner",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "borrowingMarketState",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "stabilityPoolState",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "borrowingFeesVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "burningVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "stablecoinStabilityPoolVault",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "borrowingVaults",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "addNewVault",
+      "accounts": [
+        {
+          "name": "initialMarketOwner",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "borrowingMarketState",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "borrowingVaults",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "newVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "newMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "mintId",
+          "type": "u8"
+        },
+        {
+          "name": "setVaultToPda",
+          "type": "bool"
+        },
+        {
+          "name": "vaultIsForLiquidationRewards",
+          "type": "bool"
+        }
+      ]
     },
     {
       "name": "updateGlobalConfig",
@@ -315,6 +708,11 @@
           "isSigner": false
         },
         {
+          "name": "borrowingVaultsV2",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "userMetadata",
           "isMut": true,
           "isSigner": false
@@ -327,46 +725,6 @@
         {
           "name": "collateralTo",
           "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "oracleMappings",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "pythSolPriceInfo",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "pythEthPriceInfo",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "pythBtcPriceInfo",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "pythSrmPriceInfo",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "pythRayPriceInfo",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "pythFttPriceInfo",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "pythMsolPriceInfo",
-          "isMut": false,
           "isSigner": false
         },
         {
@@ -406,6 +764,11 @@
         },
         {
           "name": "borrowingVaults",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "borrowingVaultsV2",
           "isMut": false,
           "isSigner": false
         },
@@ -522,6 +885,11 @@
         },
         {
           "name": "borrowingVaults",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "borrowingVaultsV2",
           "isMut": false,
           "isSigner": false
         },
@@ -655,6 +1023,11 @@
           "isSigner": false
         },
         {
+          "name": "borrowingVaultsV2",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "userMetadata",
           "isMut": true,
           "isSigner": false
@@ -717,6 +1090,11 @@
         },
         {
           "name": "borrowingVaults",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "borrowingVaultsV2",
           "isMut": false,
           "isSigner": false
         },
@@ -963,6 +1341,11 @@
           "isSigner": false
         },
         {
+          "name": "borrowingVaultsV2",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
           "name": "epochToScaleToSum",
           "isMut": true,
           "isSigner": false
@@ -1026,6 +1409,11 @@
         {
           "name": "stabilityVaults",
           "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "borrowingVaultsV2",
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -1106,6 +1494,11 @@
         },
         {
           "name": "borrowingVaults",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "borrowingVaultsV2",
           "isMut": false,
           "isSigner": false
         },
@@ -1216,6 +1609,11 @@
           "isSigner": false
         },
         {
+          "name": "borrowingVaultsV2",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "stabilityPoolState",
           "isMut": true,
           "isSigner": false
@@ -1312,6 +1710,11 @@
           "isSigner": false
         },
         {
+          "name": "borrowingVaultsV2",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "stabilityPoolState",
           "isMut": true,
           "isSigner": false
@@ -1384,6 +1787,11 @@
         },
         {
           "name": "borrowingVaults",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "borrowingVaultsV2",
           "isMut": false,
           "isSigner": false
         },
@@ -1485,7 +1893,7 @@
         },
         {
           "name": "borrowingMarketState",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -1541,6 +1949,11 @@
         },
         {
           "name": "borrowingVaults",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "borrowingVaultsV2",
           "isMut": false,
           "isSigner": false
         },
@@ -1734,7 +2147,17 @@
           "isSigner": false
         },
         {
+          "name": "globalConfig",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "borrowingVaults",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "borrowingVaultsV2",
           "isMut": false,
           "isSigner": false
         },
@@ -1790,7 +2213,17 @@
           "isSigner": false
         },
         {
+          "name": "globalConfig",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "borrowingVaults",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "borrowingVaultsV2",
           "isMut": false,
           "isSigner": false
         },
@@ -1942,7 +2375,7 @@
           "isSigner": false
         },
         {
-          "name": "borrowingVaults",
+          "name": "borrowingVaultsV2",
           "isMut": false,
           "isSigner": false
         },
@@ -2143,6 +2576,11 @@
         },
         {
           "name": "borrowingVaults",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "borrowingVaultsV2",
           "isMut": false,
           "isSigner": false
         },
@@ -2459,6 +2897,10 @@
             "type": "bool"
           },
           {
+            "name": "useLegacyBorrowingVaults",
+            "type": "u64"
+          },
+          {
             "name": "padding1",
             "type": {
               "array": [
@@ -2472,7 +2914,7 @@
             "type": {
               "array": [
                 "u128",
-                32
+                31
               ]
             }
           },
@@ -2481,7 +2923,7 @@
             "type": {
               "array": [
                 "u8",
-                7
+                15
               ]
             }
           }
@@ -2490,6 +2932,157 @@
     },
     {
       "name": "BorrowingMarketState",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "version",
+            "type": "u64"
+          },
+          {
+            "name": "initialMarketOwner",
+            "type": "publicKey"
+          },
+          {
+            "name": "redemptionsQueue",
+            "type": "publicKey"
+          },
+          {
+            "name": "redemptionCandidatesQueue",
+            "type": "publicKey"
+          },
+          {
+            "name": "stablecoinMint",
+            "type": "publicKey"
+          },
+          {
+            "name": "stablecoinMintAuthority",
+            "type": "publicKey"
+          },
+          {
+            "name": "stablecoinMintSeed",
+            "type": "u64"
+          },
+          {
+            "name": "hbbMint",
+            "type": "publicKey"
+          },
+          {
+            "name": "hbbMintAuthority",
+            "type": "publicKey"
+          },
+          {
+            "name": "hbbMintSeed",
+            "type": "u64"
+          },
+          {
+            "name": "numUsers",
+            "type": "u64"
+          },
+          {
+            "name": "numActiveUsers",
+            "type": "u64"
+          },
+          {
+            "name": "stablecoinBorrowed",
+            "type": "u64"
+          },
+          {
+            "name": "depositedCollateral",
+            "type": {
+              "defined": "MarketCollateralAmounts"
+            }
+          },
+          {
+            "name": "reserved1",
+            "type": {
+              "array": [
+                "u64",
+                16
+              ]
+            }
+          },
+          {
+            "name": "reserved2",
+            "type": {
+              "array": [
+                "u64",
+                512
+              ]
+            }
+          },
+          {
+            "name": "inactiveCollateral",
+            "type": {
+              "defined": "MarketCollateralAmounts"
+            }
+          },
+          {
+            "name": "reserved3",
+            "type": {
+              "array": [
+                "u64",
+                16
+              ]
+            }
+          },
+          {
+            "name": "reserved4",
+            "type": {
+              "array": [
+                "u64",
+                512
+              ]
+            }
+          },
+          {
+            "name": "baseRateBps",
+            "type": "u64"
+          },
+          {
+            "name": "lastFeeEvent",
+            "type": "u64"
+          },
+          {
+            "name": "redistributedStablecoin",
+            "type": "u64"
+          },
+          {
+            "name": "totalStake",
+            "type": "u64"
+          },
+          {
+            "name": "collateralRewardPerToken",
+            "type": {
+              "defined": "TokenMap"
+            }
+          },
+          {
+            "name": "stablecoinRewardPerToken",
+            "type": "u128"
+          },
+          {
+            "name": "totalStakeSnapshot",
+            "type": "u64"
+          },
+          {
+            "name": "borrowedStablecoinSnapshot",
+            "type": "u64"
+          },
+          {
+            "name": "reserved",
+            "type": {
+              "array": [
+                "u64",
+                1024
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "BorrowingMarketStateOld",
       "type": {
         "kind": "struct",
         "fields": [
@@ -2548,13 +3141,13 @@
           {
             "name": "depositedCollateral",
             "type": {
-              "defined": "CollateralAmounts"
+              "defined": "UserCollateralAmounts"
             }
           },
           {
             "name": "inactiveCollateral",
             "type": {
-              "defined": "CollateralAmounts"
+              "defined": "UserCollateralAmounts"
             }
           },
           {
@@ -2702,6 +3295,119 @@
               "array": [
                 "u64",
                 10
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "BorrowingVaultsNew",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "borrowingMarketState",
+            "type": "publicKey"
+          },
+          {
+            "name": "stabilityPoolState",
+            "type": "publicKey"
+          },
+          {
+            "name": "burningVault",
+            "type": "publicKey"
+          },
+          {
+            "name": "burningVaultAuthority",
+            "type": "publicKey"
+          },
+          {
+            "name": "burningVaultSeed",
+            "type": "u64"
+          },
+          {
+            "name": "borrowingFeesVault",
+            "type": "publicKey"
+          },
+          {
+            "name": "borrowingFeesVaultAuthority",
+            "type": "publicKey"
+          },
+          {
+            "name": "borrowingFeesVaultSeed",
+            "type": "u64"
+          },
+          {
+            "name": "collateralVaults",
+            "type": {
+              "array": [
+                "publicKey",
+                500
+              ]
+            }
+          },
+          {
+            "name": "collateralMints",
+            "type": {
+              "array": [
+                "publicKey",
+                500
+              ]
+            }
+          },
+          {
+            "name": "liquidationRewardsVaults",
+            "type": {
+              "array": [
+                "publicKey",
+                32
+              ]
+            }
+          },
+          {
+            "name": "liquidationRewardsMints",
+            "type": {
+              "array": [
+                "publicKey",
+                32
+              ]
+            }
+          },
+          {
+            "name": "stablecoinStabilityPoolVault",
+            "type": "publicKey"
+          },
+          {
+            "name": "stablecoinStabilityPoolVaultAuthority",
+            "type": "publicKey"
+          },
+          {
+            "name": "stablecoinStabilityPoolVaultSeed",
+            "type": "u64"
+          },
+          {
+            "name": "liquidationRewardsVaultAuthority",
+            "type": "publicKey"
+          },
+          {
+            "name": "liquidationRewardsVaultSeed",
+            "type": "u64"
+          },
+          {
+            "name": "collateralVaultsAuthority",
+            "type": "publicKey"
+          },
+          {
+            "name": "collateralVaultsSeed",
+            "type": "u64"
+          },
+          {
+            "name": "padding",
+            "type": {
+              "array": [
+                "u64",
+                500
               ]
             }
           }
@@ -2954,13 +3660,13 @@
           {
             "name": "inactiveCollateral",
             "type": {
-              "defined": "CollateralAmounts"
+              "defined": "UserCollateralAmounts"
             }
           },
           {
             "name": "depositedCollateral",
             "type": {
-              "defined": "CollateralAmounts"
+              "defined": "UserCollateralAmounts"
             }
           },
           {
@@ -3390,19 +4096,19 @@
           {
             "name": "collateralGainToLiquidator",
             "type": {
-              "defined": "CollateralAmounts"
+              "defined": "UserCollateralAmounts"
             }
           },
           {
             "name": "collateralGainToClearer",
             "type": {
-              "defined": "CollateralAmounts"
+              "defined": "UserCollateralAmounts"
             }
           },
           {
             "name": "collateralGainToStabilityPool",
             "type": {
-              "defined": "CollateralAmounts"
+              "defined": "UserCollateralAmounts"
             }
           }
         ]
@@ -3578,7 +4284,43 @@
       }
     },
     {
-      "name": "CollateralAmounts",
+      "name": "MarketCollateralAmounts",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "sol",
+            "type": "u64"
+          },
+          {
+            "name": "eth",
+            "type": "u64"
+          },
+          {
+            "name": "btc",
+            "type": "u64"
+          },
+          {
+            "name": "srm",
+            "type": "u64"
+          },
+          {
+            "name": "ray",
+            "type": "u64"
+          },
+          {
+            "name": "ftt",
+            "type": "u64"
+          },
+          {
+            "name": "msol",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "UserCollateralAmounts",
       "type": {
         "kind": "struct",
         "fields": [
@@ -3941,7 +4683,34 @@
             "name": "UseIssuancePerMinute"
           },
           {
+            "name": "UseLegacyBorrowingVaults"
+          },
+          {
             "name": "OracleProgramId"
+          }
+        ]
+      }
+    },
+    {
+      "name": "CollateralAmounts",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Market",
+            "fields": [
+              {
+                "defined": "&'aMarketCollateralAmounts"
+              }
+            ]
+          },
+          {
+            "name": "User",
+            "fields": [
+              {
+                "defined": "&'aUserCollateralAmounts"
+              }
+            ]
           }
         ]
       }
@@ -4433,7 +5202,7 @@
     },
     {
       "code": 6062,
-      "name": "ZeroSwap",
+      "name": "NoSwapExecuted",
       "msg": "Serum DEX transaction didn't execute the swap function"
     },
     {
