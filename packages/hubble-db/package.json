@@ -1,0 +1,32 @@
+{
+  "name": "@hubbleprotocol/hubble-db",
+  "description": "Hubble Protocol database models",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "version": "1.0.25",
+  "scripts": {
+    "build": "tsc",
+    "build:watch": "tsc -w"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hubbleprotocol/hubble-common.git"
+  },
+  "keywords": [
+    "hubble",
+    "hubbleprotocol",
+    "common",
+    "db",
+    "database",
+    "models"
+  ],
+  "author": "Hubble Protocol",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/hubbleprotocol/hubble-common/issues"
+  },
+  "homepage": "https://github.com/hubbleprotocol/hubble-common/blob/master/packages/hubble-db",
+  "publishConfig": {
+    "access": "public"
+  }
+}
