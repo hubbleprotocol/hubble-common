@@ -217,6 +217,26 @@ export class Hubble {
   }
 
   /**
+   * Get all Hubble user metadatas (borrowing state, debt, collateral stats...) and include raw JSON RPC responses in the return value.
+   * @return list of on-chain {@link UserMetadata} from the borrowing program for the specific user with numbers as lamports
+   */
+  async getAllUserMetadatasIncludeJsonResponse(): Promise<{ userMetadata: UserMetadata; jsonResponse: string }[]> {
+    return (
+      await this._borrowingProgram.account.userMetadata.all([
+        {
+          memcmp: {
+            bytes: this._config.borrowing.accounts.borrowingMarketState.toBase58(),
+            offset: 82, // 8 (account discriminator for usermetadata) + 1 (version u8) + 1 (status u8) + 8 (user_id u64) + 32 (metadata_pk pubkey [u8, 32]) + 32 (owner pubkey)
+          },
+        },
+      ])
+    ).map((x) => ({
+      userMetadata: Hubble.userMetadataToDecimals(x.account as UserMetadata),
+      jsonResponse: JSON.stringify(x.account),
+    }));
+  }
+
+  /**
    * Get user's loans. Fetches all {@link UserMetadata} of the specified user and converts it to a human-friendly list of {@link Loan}.
    * @param user Base58 encoded Public Key of the user
    * @return User's loans with already converted on-chain data (from lamports to decimal values)

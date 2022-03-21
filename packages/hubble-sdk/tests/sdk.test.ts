@@ -8,7 +8,7 @@ describe('Hubble SDK Tests', () => {
   // let connection: Connection;
   //
   // beforeAll(() => {
-  //   connection = new Connection(clusterApiUrl('devnet'));
+  //   connection = new Connect.ion(clusterApiUrl('devnet'));
   // });
 
   test('should throw on invalid cluster', () => {
@@ -104,6 +104,13 @@ describe('Hubble SDK Tests', () => {
   //   const userVaults = await sdk.getAllUserMetadatas();
   //   expect(userVaults.length).toBeGreaterThan(0);
   //   console.log(userVaults.length);
+  // });
+
+  // test('should get all user metadatas with json', async () => {
+  //   const sdk = new Hubble('devnet', connection);
+  //   const userVaults = await sdk.getAllUserMetadatasIncludeJsonResponse();
+  //   expect(userVaults.length).toBeGreaterThan(0);
+  //   console.log(userVaults);
   // });
 
   // test('should get all HBB token accounts', async () => {
