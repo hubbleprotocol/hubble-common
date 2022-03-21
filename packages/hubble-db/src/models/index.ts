@@ -1,13 +1,11 @@
 export * from './ClusterEntity';
 export * from './CollateralEntity';
-export * from './LoanCollateralEntity';
 export * from './LoanEntity';
 export * from './OwnerEntity';
 export * from './TokenEntity';
 
 export const CLUSTER_TABLE: string = 'cluster';
 export const COLLATERAL_TABLE: string = 'collateral';
-export const LOAN_COLLATERAL_TABLE: string = 'loan_collateral';
 export const LOAN_TABLE: string = 'loan';
 export const OWNER_TABLE: string = 'owner';
 export const TOKEN_TABLE: string = 'token';
