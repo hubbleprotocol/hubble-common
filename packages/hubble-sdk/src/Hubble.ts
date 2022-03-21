@@ -18,6 +18,7 @@ import UserMetadata from './models/UserMetadata';
 import Loan from './models/Loan';
 import { HBB_DECIMALS, STABLECOIN_DECIMALS } from './constants';
 import Decimal from 'decimal.js';
+import UserMetadataWithJson from './models/UserMetadataWithJson';
 
 export class Hubble {
   private _cluster: SolanaCluster;
@@ -220,7 +221,7 @@ export class Hubble {
    * Get all Hubble user metadatas (borrowing state, debt, collateral stats...) and include raw JSON RPC responses in the return value.
    * @return list of on-chain {@link UserMetadata} from the borrowing program for the specific user with numbers as lamports
    */
-  async getAllUserMetadatasIncludeJsonResponse(): Promise<{ userMetadata: UserMetadata; jsonResponse: string }[]> {
+  async getAllUserMetadatasIncludeJsonResponse(): Promise<UserMetadataWithJson[]> {
     return (
       await this._borrowingProgram.account.userMetadata.all([
         {
@@ -230,10 +231,11 @@ export class Hubble {
           },
         },
       ])
-    ).map((x) => ({
-      userMetadata: Hubble.userMetadataToDecimals(x.account as UserMetadata),
-      jsonResponse: JSON.stringify(x.account),
-    }));
+    ).map((x) => {
+      const userMetadata = Hubble.userMetadataToDecimals(x.account as UserMetadata) as UserMetadataWithJson;
+      userMetadata.jsonResponse = JSON.stringify(x.account);
+      return userMetadata;
+    });
   }
 
   /**
