@@ -11,5 +11,6 @@ export interface LoanEntity {
   user_id: string;
   borrowing_market_state_pubkey: string;
   owner_id: number;
+  raw_json: string;
 }
 export default LoanEntity;
