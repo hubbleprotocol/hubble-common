@@ -8,7 +8,7 @@ describe('Hubble SDK Tests', () => {
   // let connection: Connection;
   //
   // beforeAll(() => {
-  //   connection = new Connect.ion(clusterApiUrl('devnet'));
+  //   connection = new Connection(clusterApiUrl('devnet'));
   // });
 
   test('should throw on invalid cluster', () => {
@@ -104,6 +104,12 @@ describe('Hubble SDK Tests', () => {
   //   const userVaults = await sdk.getAllUserMetadatas();
   //   expect(userVaults.length).toBeGreaterThan(0);
   //   console.log(userVaults.length);
+  // });
+
+  // test('should get specific user metadatas', async () => {
+  //   const sdk = new Hubble('devnet', connection);
+  //   const userVault = await sdk.getUserMetadata('CBbukgUThH2ezoLpdcSkTwio1BVPtjqwcvvhkVxVu2fe');
+  //   console.log(userVault);
   // });
 
   // test('should get all user metadatas with json', async () => {

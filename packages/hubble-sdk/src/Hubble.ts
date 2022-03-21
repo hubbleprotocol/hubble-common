@@ -201,6 +201,17 @@ export class Hubble {
   }
 
   /**
+   * Get specific user metadata (borrowing state, debt, collateral stats...).
+   * @param metadata Base58 encoded Public Key of the user metadata
+   * @return on-chain {@link UserMetadata} from the borrowing program for the specific user with numbers as lamports
+   */
+  async getUserMetadata(metadata: PublicKey | string): Promise<UserMetadata> {
+    return Hubble.userMetadataToDecimals(
+      (await this._borrowingProgram.account.userMetadata.fetch(metadata)) as UserMetadata
+    );
+  }
+
+  /**
    * Get all Hubble user metadatas (borrowing state, debt, collateral stats...), one user can have multiple borrowing accounts.
    * @return list of on-chain {@link UserMetadata} from the borrowing program for the specific user with numbers as lamports
    */
