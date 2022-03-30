@@ -16,9 +16,10 @@ import UserStakingState from './models/UserStakingState';
 import StabilityProviderState from './models/StabilityProviderState';
 import UserMetadata from './models/UserMetadata';
 import Loan from './models/Loan';
-import { HBB_DECIMALS, STABLECOIN_DECIMALS } from './constants';
+import { HBB_DECIMALS, STABLECOIN_DECIMALS, STREAMFLOW_HBB_CONTRACT } from './constants';
 import Decimal from 'decimal.js';
 import UserMetadataWithJson from './models/UserMetadataWithJson';
+import Stream, { Cluster } from '@streamflow/stream';
 
 export class Hubble {
   private _cluster: SolanaCluster;
@@ -318,7 +319,8 @@ export class Hubble {
   }
 
   /**
-   * Get circulating supply number of the Hubble (HBB) token
+   * Get circulating supply number of the Hubble (HBB) token.
+   * This also takes into account the locked HBB inside Streamflow vesting contracts and subtracts the locked HBB amount.
    * @return Number of HBB in circulation in decimal representation
    */
   async getHbbCirculatingSupply() {
@@ -328,7 +330,30 @@ export class Hubble {
         `Could not get HBB circulating supply from the HBB mint account: ${this._config.borrowing.accounts.mint.HBB}`
       );
     }
-    return new Decimal(tokenSupply.value.uiAmountString);
+    let totalTokenSupply = new Decimal(tokenSupply.value.uiAmountString);
+
+    if (this._cluster === 'mainnet-beta') {
+      try {
+        const streams = await Stream.get({
+          connection: this._connection,
+          wallet: new PublicKey(STREAMFLOW_HBB_CONTRACT),
+          cluster: Cluster.Mainnet,
+        });
+        let notWithdrawnTokens = new Decimal(0);
+        for (let [pubkey, stream] of streams) {
+          const totalWithdrawn = new Decimal(stream.withdrawnAmount.toString()).add(
+            stream.streamflowFeeWithdrawn.toString()
+          );
+          const deposited = new Decimal(stream.depositedAmount.toString());
+          notWithdrawnTokens = notWithdrawnTokens.add(deposited.minus(totalWithdrawn).dividedBy(HBB_DECIMALS));
+        }
+        totalTokenSupply = totalTokenSupply.minus(notWithdrawnTokens);
+      } catch (exception) {
+        throw Error(`Could not get HBB Streamflow contract data: ${exception}`);
+      }
+    }
+
+    return totalTokenSupply;
   }
 
   /**
