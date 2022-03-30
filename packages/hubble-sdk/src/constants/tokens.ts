@@ -18,6 +18,8 @@ export const RAY_MINT = '4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R';
 export const SRM_MINT = 'SRMuApVNdxXokk5GT7XD5cUUgXMBCoAz2LHeuAoKWRt';
 // mSOL mint address
 export const MSOL_MINT = 'mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So';
+// Streamflow contract for HBB vesting
+export const STREAMFLOW_HBB_CONTRACT = '84D1KGEXRwVzP2D7QFLx7ntUsPKWTm2EDkniTQCjE3W2';
 export const MINT_ADDRESSES: PublicKey[] = [
   new PublicKey(BTC_MINT),
   new PublicKey(ETH_MINT),
