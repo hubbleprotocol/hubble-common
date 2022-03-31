@@ -20,6 +20,7 @@ import { HBB_DECIMALS, STABLECOIN_DECIMALS, STREAMFLOW_HBB_CONTRACT } from './co
 import Decimal from 'decimal.js';
 import UserMetadataWithJson from './models/UserMetadataWithJson';
 import Stream, { Cluster } from '@streamflow/stream';
+import StabilityProviderStateWithJson from './models/StabilityProviderStateWithJson';
 
 export class Hubble {
   private _cluster: SolanaCluster;
@@ -162,6 +163,29 @@ export class Hubble {
         },
       ])
     ).map((x) => Hubble.stabilityProviderStateToDecimals(x.account as StabilityProviderState));
+  }
+
+  /**
+   * Get all Hubble stability providers (stability pool stats) and include raw JSON RPC responses in the return value.
+   * @return list of on-chain {@link StabilityProviderStateWithJson} from the borrowing program
+   */
+  async getStabilityProvidersIncludeJsonResponse(): Promise<StabilityProviderStateWithJson[]> {
+    return (
+      await this._borrowingProgram.account.stabilityProviderState.all([
+        {
+          memcmp: {
+            bytes: this._config.borrowing.accounts.stabilityPoolState.toBase58(),
+            offset: 9, // 8 (account discriminator for stability provider state) + 1 (version u8)
+          },
+        },
+      ])
+    ).map((x) => {
+      const stabilityProvider = Hubble.stabilityProviderStateToDecimals(
+        x.account as StabilityProviderState
+      ) as StabilityProviderStateWithJson;
+      stabilityProvider.jsonResponse = JSON.stringify(x.account);
+      return stabilityProvider;
+    });
   }
 
   /**

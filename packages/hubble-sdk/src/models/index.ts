@@ -4,6 +4,7 @@ export * from './CollateralTotals';
 export * from './DepositSnapshot';
 export * from './StabilityPoolState';
 export * from './StabilityProviderState';
+export * from './StabilityProviderStateWithJson';
 export * from './StabilityTokenMap';
 export * from './StakingPoolState';
 export * from './UserMetadata';
