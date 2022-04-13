@@ -65,11 +65,11 @@ describe('Hubble SDK Tests', () => {
   // });
 
   // test('should get user staked HBB', async () => {
-  //   const sdk = new Hubble('mainnet-beta', connection);
-  //   const stakedHbb = await sdk.getUserStakedHbb('9y7uLMUMW6EiRwH1aJFSp9Zka7dVx2JdZKA3858u6YHT');
+  //   const sdk = new Hubble('devnet', connection);
+  //   const stakedHbb = await sdk.getUserUsdhVault('Eoq6pcS5aQPM8SqtaP4LvRHUChXnwbgY62gD5n4ypwMS');
   //   expect(stakedHbb).not.toBeNull();
   //   console.log('staked hbb: ', stakedHbb);
-  // });
+  // }, 30000);
 
   // test('should handle user without anything gracefully', async () => {
   //   const sdk = new Hubble('devnet', connection);

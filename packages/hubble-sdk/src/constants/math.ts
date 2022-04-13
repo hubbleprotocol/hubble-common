@@ -24,3 +24,5 @@ export const STABLECOIN_DECIMALS = 1_000_000;
 export const SCALE_FACTOR = 1_000_000_000;
 // Decimal factor used with debt
 export const DECIMAL_FACTOR = new Decimal('1000000000000000');
+// Number of epoch to scale to sum tokens
+export const EPOCH_TO_SCALE_TO_SUM_TOKENS = 24;
