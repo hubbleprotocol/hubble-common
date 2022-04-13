@@ -16,11 +16,12 @@ import UserStakingState from './models/UserStakingState';
 import StabilityProviderState from './models/StabilityProviderState';
 import UserMetadata from './models/UserMetadata';
 import Loan from './models/Loan';
-import { HBB_DECIMALS, STABLECOIN_DECIMALS, STREAMFLOW_HBB_CONTRACT } from './constants';
+import { DECIMAL_FACTOR, HBB_DECIMALS, STABLECOIN_DECIMALS, STREAMFLOW_HBB_CONTRACT } from './constants';
 import Decimal from 'decimal.js';
 import UserMetadataWithJson from './models/UserMetadataWithJson';
 import Stream, { Cluster } from '@streamflow/stream';
 import StabilityProviderStateWithJson from './models/StabilityProviderStateWithJson';
+import { HbbVault } from './models';
 
 export class Hubble {
   private _cluster: SolanaCluster;
@@ -322,6 +323,29 @@ export class Hubble {
     const stakingState = await this.getUserStakingState(user);
     if (stakingState) {
       return stakingState.userStake.dividedBy(HBB_DECIMALS);
+    }
+    return undefined;
+  }
+
+  /**
+   * Get the amount of staked HBB of a specific user.
+   * @param user Base58 encoded Public Key of the user
+   * @return HBB vault with number of HBB staked and USDH rewards
+   * undefined if user has never used Hubble before or authorized HBB staking
+   */
+  async getUserHbbVault(user: PublicKey | string): Promise<HbbVault | undefined> {
+    const stakingState = await this.getUserStakingState(user);
+    if (stakingState) {
+      const stakingPoolState = await this.getStakingPoolState();
+      const usdhRewards = new Decimal(
+        stakingState.userStake.mul(stakingPoolState.rewardPerToken).minus(stakingState.rewardsTally)
+      )
+        .div(DECIMAL_FACTOR)
+        .div(STABLECOIN_DECIMALS);
+      return {
+        hbbStaked: stakingState.userStake.dividedBy(HBB_DECIMALS),
+        usdhRewards,
+      };
     }
     return undefined;
   }
