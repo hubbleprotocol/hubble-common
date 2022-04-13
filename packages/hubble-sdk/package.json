@@ -31,8 +31,10 @@
     "@project-serum/anchor": "^0.21.0",
     "@project-serum/serum": "^0.13.61",
     "@solana/wallet-adapter-base": "^0.9.5",
-    "@solana/web3.js": "^1.34.0",
-    "@streamflow/stream": "^2.2.2",
+    "@streamflow/stream": "^2.2.2"
+  },
+  "peerDependencies": {
+    "@solana/web3.js": "^1.37.1",
     "decimal.js": "^10.3.1"
   },
   "publishConfig": {
