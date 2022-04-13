@@ -25,13 +25,17 @@
     "url": "https://github.com/hubbleprotocol/hubble-common/issues"
   },
   "homepage": "https://github.com/hubbleprotocol/hubble-common/blob/master/packages/hubble-sdk",
+  "devDependencies": {
+    "@types/bn.js": "^5.1.0"
+  },
   "dependencies": {
     "@hubbleprotocol/hubble-config": "^1.0.37",
     "@hubbleprotocol/hubble-idl": "^1.0.25",
     "@project-serum/anchor": "^0.21.0",
     "@project-serum/serum": "^0.13.61",
     "@solana/wallet-adapter-base": "^0.9.5",
-    "@streamflow/stream": "^2.2.2"
+    "@streamflow/stream": "^2.2.2",
+    "bn.js": "^5.2.0"
   },
   "peerDependencies": {
     "@solana/web3.js": "^1.37.1",
