@@ -8,5 +8,6 @@ export type StabilityTokenMap = {
   ray: Decimal;
   ftt: Decimal;
   hbb: Decimal;
+  msol: Decimal;
 };
 export default StabilityTokenMap;

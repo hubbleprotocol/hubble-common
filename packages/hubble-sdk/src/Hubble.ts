@@ -6,21 +6,23 @@ import BorrowingMarketState from './models/BorrowingMarketState';
 import { Idl, Program, Provider } from '@project-serum/anchor';
 import { BORROWING_IDL } from '@hubbleprotocol/hubble-idl';
 import {
+  calculatePendingGains,
   calculateStabilityProvided,
-  getReadOnlyWallet,
-  calculateTotalDebt,
-  replaceBigNumberWithDecimal,
   calculateTotalCollateral,
+  calculateTotalDebt,
+  getReadOnlyWallet,
+  replaceBigNumberWithDecimal,
 } from './utils';
 import UserStakingState from './models/UserStakingState';
 import StabilityProviderState from './models/StabilityProviderState';
 import UserMetadata from './models/UserMetadata';
 import Loan from './models/Loan';
-import { HBB_DECIMALS, STABLECOIN_DECIMALS, STREAMFLOW_HBB_CONTRACT } from './constants';
+import { DECIMAL_FACTOR, HBB_DECIMALS, STABLECOIN_DECIMALS, STREAMFLOW_HBB_CONTRACT } from './constants';
 import Decimal from 'decimal.js';
 import UserMetadataWithJson from './models/UserMetadataWithJson';
 import Stream, { Cluster } from '@streamflow/stream';
 import StabilityProviderStateWithJson from './models/StabilityProviderStateWithJson';
+import { HbbVault, UsdhVault } from './models';
 
 export class Hubble {
   private _cluster: SolanaCluster;
@@ -106,7 +108,7 @@ export class Hubble {
         },
       ])
     ).map((x) => replaceBigNumberWithDecimal(x.account as UserStakingState));
-    return userStakingStates[0];
+    return userStakingStates.find((x) => !x.userStake.isZero());
   }
 
   /**
@@ -145,7 +147,7 @@ export class Hubble {
         },
       ])
     ).map((x) => Hubble.stabilityProviderStateToDecimals(x.account as StabilityProviderState));
-    return stabilityProviderStates[0];
+    return stabilityProviderStates.find((x) => !x.depositedStablecoin.isZero());
   }
 
   /**
@@ -313,6 +315,50 @@ export class Hubble {
   }
 
   /**
+   * Get user's USDH vault (usdh staked + liquidation rewards + hbb rewards)
+   * @param user Base58 encoded Public Key of the user
+   * @return USDH vault with amount of USDH staked, liquidation rewards and HBB rewards or
+   * undefined if user has never used Hubble before or authorized stability pool deposits
+   */
+  async getUserUsdhVault(user: PublicKey | string): Promise<UsdhVault | undefined> {
+    const provider = await this.getUserStabilityProviderState(user);
+    if (provider) {
+      const pool = await this.getStabilityPoolState();
+      const epoch = await this.getEpochToScaleToSum();
+      const usdhStaked = calculateStabilityProvided(pool, provider).dividedBy(STABLECOIN_DECIMALS);
+      const gains = calculatePendingGains(pool, provider, epoch);
+      return {
+        usdhStaked,
+        hbbRewards: gains.hbb,
+        liquidationRewards: {
+          sol: gains.sol,
+          eth: gains.eth,
+          ftt: gains.ftt,
+          btc: gains.btc,
+          ray: gains.ray,
+          srm: gains.srm,
+          msol: gains.msol,
+        },
+      };
+    }
+    return undefined;
+  }
+
+  /**
+   * Get a list of epoch to scale to sum values for Hubble
+   * @return Array of epoch to scale to sum in decimal format
+   */
+  async getEpochToScaleToSum() {
+    const epoch = await this._borrowingProgram.account.epochToScaleToSumAccount.fetch(
+      this._config.borrowing.accounts.epochToScaleToSum
+    );
+    if (epoch) {
+      return replaceBigNumberWithDecimal(epoch.data) as Decimal[];
+    }
+    throw Error(`Could not get epoch to scale to sum values from ${this._config.borrowing.accounts.epochToScaleToSum}`);
+  }
+
+  /**
    * Get the amount of staked HBB of a specific user.
    * @param user Base58 encoded Public Key of the user
    * @return HBB staked in decimal format or
@@ -322,6 +368,29 @@ export class Hubble {
     const stakingState = await this.getUserStakingState(user);
     if (stakingState) {
       return stakingState.userStake.dividedBy(HBB_DECIMALS);
+    }
+    return undefined;
+  }
+
+  /**
+   * Get the user's HBB vault (HBB staked + USDH rewards)
+   * @param user Base58 encoded Public Key of the user
+   * @return HBB vault with number of HBB staked and USDH rewards or
+   * undefined if user has never used Hubble before or authorized HBB staking
+   */
+  async getUserHbbVault(user: PublicKey | string): Promise<HbbVault | undefined> {
+    const stakingState = await this.getUserStakingState(user);
+    if (stakingState) {
+      const stakingPoolState = await this.getStakingPoolState();
+      const usdhRewards = new Decimal(
+        stakingState.userStake.mul(stakingPoolState.rewardPerToken).minus(stakingState.rewardsTally)
+      )
+        .div(DECIMAL_FACTOR)
+        .div(STABLECOIN_DECIMALS);
+      return {
+        hbbStaked: stakingState.userStake.dividedBy(HBB_DECIMALS),
+        usdhRewards,
+      };
     }
     return undefined;
   }

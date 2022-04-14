@@ -11,3 +11,5 @@ export * from './UserMetadata';
 export * from './UserMetadataWithJson';
 export * from './UserStakingState';
 export * from './Loan';
+export * from './HbbVault';
+export * from './UsdhVault';
