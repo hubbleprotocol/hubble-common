@@ -108,7 +108,7 @@ export class Hubble {
         },
       ])
     ).map((x) => replaceBigNumberWithDecimal(x.account as UserStakingState));
-    return userStakingStates[0];
+    return userStakingStates.find((x) => !x.userStake.isZero());
   }
 
   /**
@@ -147,7 +147,7 @@ export class Hubble {
         },
       ])
     ).map((x) => Hubble.stabilityProviderStateToDecimals(x.account as StabilityProviderState));
-    return stabilityProviderStates[0];
+    return stabilityProviderStates.find((x) => !x.depositedStablecoin.isZero());
   }
 
   /**
