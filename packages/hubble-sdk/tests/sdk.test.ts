@@ -8,7 +8,7 @@ describe('Hubble SDK Tests', () => {
   // let connection: Connection;
   //
   // beforeAll(() => {
-  //   connection = new Connection(clusterApiUrl('devnet'));
+  //   connection = new Connection(clusterApiUrl('mainnet-beta'));
   // });
 
   test('should throw on invalid cluster', () => {
@@ -97,6 +97,18 @@ describe('Hubble SDK Tests', () => {
   //   const stabilityProviderStates = await sdk.getStabilityProviders();
   //   expect(stabilityProviderStates.length).toBeGreaterThan(0);
   //   console.log(stabilityProviderStates.length);
+  // });
+
+  // test('should get all stability pool state', async () => {
+  //   const sdk = new Hubble('mainnet-beta', connection);
+  //   const sth = await sdk.getStabilityPoolState();
+  //   console.log(sth);
+  // });
+
+  // test('should get global config', async () => {
+  //   const sdk = new Hubble('mainnet-beta', connection);
+  //   const sth = await sdk.getGlobalConfig();
+  //   console.log(sth);
   // });
 
   // test('should get all user metadatas', async () => {

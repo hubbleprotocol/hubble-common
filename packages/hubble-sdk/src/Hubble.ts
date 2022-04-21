@@ -23,6 +23,7 @@ import UserMetadataWithJson from './models/UserMetadataWithJson';
 import Stream, { Cluster } from '@streamflow/stream';
 import StabilityProviderStateWithJson from './models/StabilityProviderStateWithJson';
 import { HbbVault, UsdhVault } from './models';
+import GlobalConfig from './models/GlobalConfig';
 
 export class Hubble {
   private _cluster: SolanaCluster;
@@ -463,6 +464,17 @@ export class Hubble {
         { memcmp: { offset: 0, bytes: this._config.borrowing.accounts.mint.HBB.toBase58() } },
       ],
     });
+  }
+
+  /**
+   * Get Hubble's global config values
+   */
+  async getGlobalConfig(): Promise<GlobalConfig> {
+    let globalConfig = (await this._borrowingProgram.account.globalConfig.fetch(
+      this._config.borrowing.accounts.globalConfig!
+    )) as GlobalConfig;
+    globalConfig = replaceBigNumberWithDecimal(globalConfig);
+    return globalConfig;
   }
 }
 
