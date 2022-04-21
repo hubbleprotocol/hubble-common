@@ -5,11 +5,11 @@ import Decimal from 'decimal.js';
 import Hubble from '../src/Hubble';
 
 describe('Hubble SDK Tests', () => {
-  // let connection: Connection;
-  //
-  // beforeAll(() => {
-  //   connection = new Connection(clusterApiUrl('mainnet-beta'));
-  // });
+  let connection: Connection;
+
+  beforeAll(() => {
+    connection = new Connection(clusterApiUrl('devnet'));
+  });
 
   test('should throw on invalid cluster', () => {
     const cluster = 'invalid-clusters';
@@ -105,11 +105,11 @@ describe('Hubble SDK Tests', () => {
   //   console.log(sth);
   // });
 
-  // test('should get global config', async () => {
-  //   const sdk = new Hubble('mainnet-beta', connection);
-  //   const sth = await sdk.getGlobalConfig();
-  //   console.log(sth);
-  // });
+  test('should get global config', async () => {
+    const sdk = new Hubble('devnet', connection);
+    const sth = await sdk.getGlobalConfig();
+    console.log(sth);
+  });
 
   // test('should get all user metadatas', async () => {
   //   const sdk = new Hubble('devnet', connection);
