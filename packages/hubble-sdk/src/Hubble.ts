@@ -169,6 +169,24 @@ export class Hubble {
   }
 
   /**
+   * Get all non-zero Hubble user staking states.
+   * @return list of on-chain {@link UserStakingState} from the borrowing program
+   */
+  async getUserStakingStates(): Promise<UserStakingState[]> {
+    const userStakingStates = (
+      await this._borrowingProgram.account.userStakingState.all([
+        {
+          memcmp: {
+            bytes: this._config.borrowing.accounts.stakingPoolState.toBase58(),
+            offset: 17, // 8 (account discriminator for user staking state) + 1 (version u8) + 8 (user_id u64)
+          },
+        },
+      ])
+    ).map((x) => replaceBigNumberWithDecimal(x.account as UserStakingState));
+    return userStakingStates.filter((x) => !x.userStake.isZero());
+  }
+
+  /**
    * Get all Hubble stability providers (stability pool stats) and include raw JSON RPC responses in the return value.
    * @return list of on-chain {@link StabilityProviderStateWithJson} from the borrowing program
    */
