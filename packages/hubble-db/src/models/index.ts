@@ -7,12 +7,14 @@ export * from './StabilityProviderEntity';
 export * from './BorrowingMarketStateEntity';
 export * from './StabilityPoolStateEntity';
 export * from './StakingPoolStateEntity';
+export * from './MetricsEntity';
 
 export const CLUSTER_TABLE: string = 'cluster';
 export const COLLATERAL_TABLE: string = 'collateral';
 export const LOAN_TABLE: string = 'loan';
 export const OWNER_TABLE: string = 'owner';
 export const TOKEN_TABLE: string = 'token';
+export const METRICS_TABLE: string = 'metrics';
 export const BORROWING_MARKET_STATE_TABLE: string = 'borrowing_market_state';
 export const STABILITY_POOL_STATE_TABLE: string = 'stability_pool_state';
 export const STAKING_POOL_STATE_TABLE: string = 'staking_pool_state';
