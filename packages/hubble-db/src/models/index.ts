@@ -8,6 +8,7 @@ export * from './BorrowingMarketStateEntity';
 export * from './StabilityPoolStateEntity';
 export * from './StakingPoolStateEntity';
 export * from './MetricsEntity';
+export * from './UsdhEntity';
 
 export const CLUSTER_TABLE: string = 'cluster';
 export const COLLATERAL_TABLE: string = 'collateral';
@@ -19,4 +20,5 @@ export const BORROWING_MARKET_STATE_TABLE: string = 'borrowing_market_state';
 export const STABILITY_POOL_STATE_TABLE: string = 'stability_pool_state';
 export const STAKING_POOL_STATE_TABLE: string = 'staking_pool_state';
 export const STABILITY_PROVIDER_TABLE: string = 'stability_provider';
+export const USDH_TABLE: string = 'usdh';
 export const API_SCHEMA: string = 'api';
