@@ -22,7 +22,7 @@ export type GlobalConfig = {
   emergencyMode: boolean;
   userDepositMax: Decimal;
   totalDepositMax: Decimal;
-  issuancePerMinute: Decimal;
+  issuancePerSecond: Decimal;
   useIssuancePerMinute: boolean;
   scopeProgramId: PublicKey;
 };
