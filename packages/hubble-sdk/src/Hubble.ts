@@ -80,8 +80,8 @@ export class Hubble {
       this._config.borrowing.accounts.borrowingMarketState
     )) as BorrowingMarketState;
     state = replaceBigNumberWithDecimal(state);
-    state.depositedCollateral = replaceBigNumberWithDecimal(state.depositedCollateral);
-    state.inactiveCollateral = replaceBigNumberWithDecimal(state.inactiveCollateral);
+    state.depositedCollateral.amounts = replaceBigNumberWithDecimal(state.depositedCollateral.amounts);
+    state.inactiveCollateral.amounts = replaceBigNumberWithDecimal(state.inactiveCollateral.amounts);
     state.collateralRewardPerToken = replaceBigNumberWithDecimal(state.collateralRewardPerToken);
     return state;
   }

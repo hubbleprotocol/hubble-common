@@ -16,8 +16,8 @@ export type BorrowingMarketState = {
   numUsers: Decimal;
   numActiveUsers: Decimal;
   stablecoinBorrowed: Decimal;
-  depositedCollateral: CollateralAmounts;
-  inactiveCollateral: CollateralAmounts;
+  depositedCollateral: { amounts: Decimal[] };
+  inactiveCollateral: { amounts: Decimal[] };
   baseRateBps: number;
   lastFeeEvent: Decimal;
   redistributedStablecoin: Decimal;
