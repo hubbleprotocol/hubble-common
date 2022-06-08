@@ -1,0 +1,46 @@
+{
+  "name": "@hubbleprotocol/scope-sdk",
+  "description": "Scope Oracle SDK",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "version": "1.0.47",
+  "scripts": {
+    "build": "tsc",
+    "build:watch": "tsc -w"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hubbleprotocol/hubble-common.git"
+  },
+  "keywords": [
+    "hubble",
+    "hubbleprotocol",
+    "common",
+    "sdk",
+    "client",
+    "scope"
+  ],
+  "author": "Hubble Protocol",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/hubbleprotocol/hubble-common/issues"
+  },
+  "homepage": "https://github.com/hubbleprotocol/hubble-common/blob/master/packages/scope-sdk",
+  "devDependencies": {
+    "@types/bn.js": "^5.1.0"
+  },
+  "dependencies": {
+    "@hubbleprotocol/hubble-config": "^1.0.37",
+    "@project-serum/anchor": "^0.21.0",
+    "@project-serum/serum": "^0.13.61",
+    "@solana/wallet-adapter-base": "^0.9.5",
+    "bn.js": "^5.2.0"
+  },
+  "peerDependencies": {
+    "@solana/web3.js": "^1.37.1",
+    "decimal.js": "^10.3.1"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
