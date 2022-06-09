@@ -1,6 +1,8 @@
-import { SolanaCluster } from '@hubbleprotocol/hubble-config';
-import { Connection } from '@solana/web3.js';
+import { getConfigByCluster, HubbleConfig, SolanaCluster } from '@hubbleprotocol/hubble-config';
+import { Connection, PublicKey } from '@solana/web3.js';
 import Decimal from 'decimal.js';
+import { OraclePrices } from './accounts';
+import { setProgramId } from './programId';
 
 export type SupportedToken = 'SOL' | 'ETH' | 'BTC' | 'SRM' | 'RAY' | 'FTT' | 'MSOL' | 'DAOSOL' | 'STSOL';
 
@@ -11,8 +13,9 @@ export interface CollateralToken {
 }
 
 export class Scope {
-  private _cluster: SolanaCluster;
-  private _connection: Connection;
+  private readonly _cluster: SolanaCluster;
+  private readonly _connection: Connection;
+  private readonly _config: HubbleConfig;
 
   private _tokens: CollateralToken[] = [
     { id: 0, name: 'SOL', price: new Decimal(39.36) },
@@ -34,6 +37,8 @@ export class Scope {
   constructor(cluster: SolanaCluster, connection: Connection) {
     this._cluster = cluster;
     this._connection = connection;
+    this._config = getConfigByCluster(cluster);
+    setProgramId(this._config.scope.programId);
   }
 
   /**
@@ -42,6 +47,8 @@ export class Scope {
    */
   async getPrice(token: SupportedToken) {
     const priceInfo = this._tokens.find((x) => x.name === token);
+    const oraclePrices = await OraclePrices.fetch(this._connection, this._config.scope.oraclePrices);
+    console.log(oraclePrices?.prices);
     if (!priceInfo) {
       throw Error(`Could not get price for ${token} - not supported`);
     }

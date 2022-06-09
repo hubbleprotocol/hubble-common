@@ -27,7 +27,7 @@ describe('Scope SDK Tests', () => {
     expect(prices.length).toBeGreaterThan(0);
   });
 
-  test('should get specific price', async () => {
+  test.only('should get specific price', async () => {
     const scope = new Scope('devnet', connection);
     const price = await scope.getPrice('ETH');
     expect(price.name).toEqual('ETH');
