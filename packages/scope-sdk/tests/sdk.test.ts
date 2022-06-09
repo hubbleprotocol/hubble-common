@@ -8,18 +8,12 @@ describe('Scope SDK Tests', () => {
     connection = new Connection(clusterApiUrl('devnet'));
   });
 
-  // test('should throw on invalid cluster', () => {
-  //   const cluster = 'invalid-clusters';
-  //   // @ts-ignore
-  //   const init = () => new Scope(cluster, undefined);
-  //   expect(init).toThrow(Error);
-  // });
-  //
-  // test('should throw on invalid connection', () => {
-  //   // @ts-ignore
-  //   const init = () => new Scope('mainnet-beta', undefined);
-  //   expect(init).toThrow(Error);
-  // });
+  test('should throw on invalid cluster', () => {
+    const cluster = 'invalid-clusters';
+    // @ts-ignore
+    const init = () => new Scope(cluster, undefined);
+    expect(init).toThrow(Error);
+  });
 
   test('should get all prices', async () => {
     const scope = new Scope('devnet', connection);
@@ -27,7 +21,7 @@ describe('Scope SDK Tests', () => {
     expect(prices.length).toBeGreaterThan(0);
   });
 
-  test.only('should get specific price', async () => {
+  test('should get specific price', async () => {
     const scope = new Scope('devnet', connection);
     const price = await scope.getPrice('ETH');
     expect(price.name).toEqual('ETH');
