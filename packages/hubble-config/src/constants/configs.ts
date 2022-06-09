@@ -4,6 +4,12 @@ import { PublicKey } from '@solana/web3.js';
 export const HUBBLE_CONFIGS: HubbleConfig[] = [
   {
     cluster: 'mainnet-beta',
+    scope: {
+      oracleMappings: new PublicKey('Chpu5ZgfWX5ZzVpUx9Xvv4WPM75Xd7zPJNDPsFnCpLpk'),
+      oraclePrices: new PublicKey('3NJYftD5sjVfxSnUdZ1wVML8f3aC6mp1CXCL6L7TnU8C'),
+      programId: new PublicKey('HFn8GnPADiny6XqUoWE8uRPPxb29ikn4yTuPa9MF2fWJ'),
+      configurationAccount: new PublicKey('AdTiP7QyjUyv6crF4H8z7fxJKU7Z5eCAGvJN1Y55cXxb'),
+    },
     borrowing: {
       programId: new PublicKey('HubbLeXBb7qyLHt3x7gvYaRrxQmmgExb7fCJgDqFuB6T'),
       accounts: {
@@ -155,6 +161,12 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
   },
   {
     cluster: 'testnet',
+    scope: {
+      oracleMappings: new PublicKey('Chpu5ZgfWX5ZzVpUx9Xvv4WPM75Xd7zPJNDPsFnCpLpk'),
+      oraclePrices: new PublicKey('3NJYftD5sjVfxSnUdZ1wVML8f3aC6mp1CXCL6L7TnU8C'),
+      programId: new PublicKey('HFn8GnPADiny6XqUoWE8uRPPxb29ikn4yTuPa9MF2fWJ'),
+      configurationAccount: new PublicKey('AdTiP7QyjUyv6crF4H8z7fxJKU7Z5eCAGvJN1Y55cXxb'),
+    },
     borrowing: {
       programId: new PublicKey('6JbR96VWfG5P2eFCBPRDFenw6poqGP7RoA4vqx5tNBJf'),
       accounts: {
@@ -239,6 +251,12 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
   },
   {
     cluster: 'devnet',
+    scope: {
+      oracleMappings: new PublicKey('4PoKkcsQakSMovMWh127gviWPpA6wGyY8uZWavccXAGE'),
+      oraclePrices: new PublicKey('Aprk2sZNvxZNUpgq2WuS3VNkbxh35aCqJd1GbtBZzkG5'),
+      programId: new PublicKey('3Vw8Ngkh1MVJTPHthmUbmU2XKtFEkjYvJzMqrv2rh9yX'),
+      configurationAccount: new PublicKey('qAN1wkxEzBg7AzeLC4sGT61czYvDiotZTMKojVL2o2E'),
+    },
     borrowing: {
       programId: new PublicKey('m9P5MBXVg33N5cWuHPd4YctGhKy3p6iDdHr7Ro2YRgr'),
       accounts: {
@@ -390,6 +408,12 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
   },
   {
     cluster: 'localnet',
+    scope: {
+      oracleMappings: new PublicKey('4PoKkcsQakSMovMWh127gviWPpA6wGyY8uZWavccXAGE'),
+      oraclePrices: new PublicKey('Aprk2sZNvxZNUpgq2WuS3VNkbxh35aCqJd1GbtBZzkG5'),
+      programId: new PublicKey('3Vw8Ngkh1MVJTPHthmUbmU2XKtFEkjYvJzMqrv2rh9yX'),
+      configurationAccount: new PublicKey('qAN1wkxEzBg7AzeLC4sGT61czYvDiotZTMKojVL2o2E'),
+    },
     borrowing: {
       programId: new PublicKey('FAZuPmWCvPzVoSXudtMvixiGNGKyEuKvfEuJh3i6NkXu'),
       accounts: {
