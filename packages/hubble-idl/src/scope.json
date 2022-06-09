@@ -1,0 +1,378 @@
+{
+  "version": "0.1.0",
+  "name": "scope",
+  "instructions": [
+    {
+      "name": "initialize",
+      "accounts": [
+        {
+          "name": "admin",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "program",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "programData",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "configuration",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "oraclePrices",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "oracleMappings",
+          "isMut": true,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "feedName",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "refreshOnePrice",
+      "accounts": [
+        {
+          "name": "oraclePrices",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "oracleMappings",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "priceInfo",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "clock",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "token",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "refreshPriceList",
+      "accounts": [
+        {
+          "name": "oraclePrices",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "oracleMappings",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "clock",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "tokens",
+          "type": {
+            "vec": "u16"
+          }
+        }
+      ]
+    },
+    {
+      "name": "updateMapping",
+      "accounts": [
+        {
+          "name": "admin",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "program",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "programData",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "oracleMappings",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "priceInfo",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "token",
+          "type": "u64"
+        },
+        {
+          "name": "priceType",
+          "type": "u8"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "OraclePrices",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "oracleMappings",
+            "type": "publicKey"
+          },
+          {
+            "name": "prices",
+            "type": {
+              "array": [
+                {
+                  "defined": "DatedPrice"
+                },
+                512
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "OracleMappings",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "priceInfoAccounts",
+            "type": {
+              "array": [
+                "publicKey",
+                512
+              ]
+            }
+          },
+          {
+            "name": "priceTypes",
+            "type": {
+              "array": [
+                "u8",
+                512
+              ]
+            }
+          },
+          {
+            "name": "reserved2",
+            "type": {
+              "array": [
+                "u64",
+                512
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "Configuration",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "adminPbk",
+            "type": "publicKey"
+          },
+          {
+            "name": "oracleMappingsPbk",
+            "type": "publicKey"
+          },
+          {
+            "name": "oraclePricesPbk",
+            "type": "publicKey"
+          },
+          {
+            "name": "padding",
+            "type": {
+              "array": [
+                "u64",
+                1267
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "YiToken",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "mint",
+            "type": "publicKey"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "padding",
+            "type": {
+              "array": [
+                "u8",
+                7
+              ]
+            }
+          },
+          {
+            "name": "tokenMint",
+            "type": "publicKey"
+          },
+          {
+            "name": "tokenAccount",
+            "type": "publicKey"
+          },
+          {
+            "name": "stakeFee",
+            "type": "u32"
+          },
+          {
+            "name": "unstakeFee",
+            "type": "u32"
+          }
+        ]
+      }
+    }
+  ],
+  "types": [
+    {
+      "name": "Price",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "value",
+            "type": "u64"
+          },
+          {
+            "name": "exp",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "DatedPrice",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "price",
+            "type": {
+              "defined": "Price"
+            }
+          },
+          {
+            "name": "lastUpdatedSlot",
+            "type": "u64"
+          },
+          {
+            "name": "reserved",
+            "type": {
+              "array": [
+                "u64",
+                4
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "IntegerOverflow",
+      "msg": "Integer overflow"
+    },
+    {
+      "code": 6001,
+      "name": "ConversionFailure",
+      "msg": "Conversion failure"
+    },
+    {
+      "code": 6002,
+      "name": "MathOverflow",
+      "msg": "Mathematical operation with overflow"
+    },
+    {
+      "code": 6003,
+      "name": "OutOfRangeIntegralConversion",
+      "msg": "Out of range integral conversion attempted"
+    },
+    {
+      "code": 6004,
+      "name": "UnexpectedAccount",
+      "msg": "Unexpected account in instruction"
+    },
+    {
+      "code": 6005,
+      "name": "PriceNotValid",
+      "msg": "Price is not valid"
+    },
+    {
+      "code": 6006,
+      "name": "AccountsAndTokenMismatch",
+      "msg": "The number of tokens is different from the number of received accounts"
+    },
+    {
+      "code": 6007,
+      "name": "BadTokenNb",
+      "msg": "The token index received is out of range"
+    },
+    {
+      "code": 6008,
+      "name": "BadTokenType",
+      "msg": "The token type received is invalid"
+    },
+    {
+      "code": 6009,
+      "name": "SwitchboardV2Error",
+      "msg": "There was an error with the Switchboard V2 retrieval"
+    }
+  ]
+}
