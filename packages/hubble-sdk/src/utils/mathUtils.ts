@@ -33,6 +33,7 @@ export const lamportsToDecimal = (collateral: CollateralAmounts): CollateralAmou
     ftt: collateral.ftt.div(DECIMALS_FTT),
     eth: collateral.eth.div(DECIMALS_ETH),
     srm: collateral.srm.div(DECIMALS_SRM),
+    extraCollaterals: [], //todo
   };
 };
 
@@ -107,6 +108,7 @@ export const addCollateralAmounts = (first: CollateralAmounts, second: Collatera
     btc: first.btc.add(second.btc),
     srm: first.srm.add(second.srm),
     msol: first.msol.add(second.msol),
+    extraCollaterals: [],
   };
 };
 
@@ -172,6 +174,7 @@ export function sub(left: CollateralAmounts, right: CollateralAmounts): Collater
     ray: left.ray.minus(right.ray),
     srm: left.srm.minus(right.srm),
     msol: left.msol.minus(right.msol),
+    extraCollaterals: [],
   };
 }
 
@@ -203,6 +206,7 @@ export function zeroCollateral(): CollateralAmounts {
     ray: new Decimal(0),
     srm: new Decimal(0),
     msol: new Decimal(0),
+    extraCollaterals: [],
   };
 }
 
@@ -221,6 +225,7 @@ export function mulFrac(coll: CollateralAmounts, numerator: Decimal, denominator
     ray: new Decimal(coll.ray).div(denominator).mul(numerator),
     srm: new Decimal(coll.srm).div(denominator).mul(numerator),
     msol: new Decimal(coll.msol).div(denominator).mul(numerator),
+    extraCollaterals: [],
   };
 }
 
