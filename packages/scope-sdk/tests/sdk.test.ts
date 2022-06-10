@@ -23,15 +23,15 @@ describe('Scope SDK Tests', () => {
 
   test('should get specific price', async () => {
     const scope = new Scope('devnet', connection);
-    const price = await scope.getPrice('ETH');
-    expect(price.name).toEqual('ETH');
+    const price = await scope.getPrice('ETH/USD');
+    expect(price.name).toEqual('ETH/USD');
     expect(price.id).not.toBeNaN();
     expect(price.price).not.toBeUndefined();
   });
 
   test('should get specific prices', async () => {
     const scope = new Scope('devnet', connection);
-    const prices = await scope.getPrices(['ETH', 'BTC']);
+    const prices = await scope.getPrices(['ETH/USD', 'BTC/USD']);
     expect(prices).toHaveLength(2);
   });
 });
