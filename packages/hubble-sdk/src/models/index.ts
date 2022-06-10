@@ -1,5 +1,6 @@
 export * from './BorrowingMarketState';
 export * from './CollateralAmounts';
+export * from './ExtraCollateralAmount';
 export * from './CollateralTotals';
 export * from './DepositSnapshot';
 export * from './StabilityPoolState';

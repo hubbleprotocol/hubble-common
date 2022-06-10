@@ -5,11 +5,11 @@ import Decimal from 'decimal.js';
 import Hubble from '../src/Hubble';
 
 describe('Hubble SDK Tests', () => {
-  // let connection: Connection;
-  //
-  // beforeAll(() => {
-  //   connection = new Connection(clusterApiUrl('devnet'));
-  // });
+  let connection: Connection;
+
+  beforeAll(() => {
+    connection = new Connection(clusterApiUrl('devnet'));
+  });
 
   test('should throw on invalid cluster', () => {
     const cluster = 'invalid-clusters';
@@ -111,12 +111,13 @@ describe('Hubble SDK Tests', () => {
   //   console.log(sth);
   // });
 
-  // test('should get all user metadatas', async () => {
-  //   const sdk = new Hubble('devnet', connection);
-  //   const userVaults = await sdk.getAllUserMetadatas();
-  //   expect(userVaults.length).toBeGreaterThan(0);
-  //   console.log(userVaults.length);
-  // });
+  test('should get all user metadatas', async () => {
+    const sdk = new Hubble('devnet', connection);
+    const userVaults = await sdk.getAllUserMetadatas();
+    expect(userVaults.length).toBeGreaterThan(0);
+    expect(userVaults[0].depositedCollateral.extraCollaterals.length).toBeGreaterThan(0);
+    expect(userVaults[0].inactiveCollateral.extraCollaterals.length).toBeGreaterThan(0);
+  });
 
   // test('should get specific user metadatas', async () => {
   //   const sdk = new Hubble('devnet', connection);

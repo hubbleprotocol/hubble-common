@@ -219,6 +219,12 @@ export class Hubble {
     converted.userCollateralRewardPerToken = replaceBigNumberWithDecimal(converted.userCollateralRewardPerToken);
     converted.depositedCollateral = replaceBigNumberWithDecimal(converted.depositedCollateral);
     converted.inactiveCollateral = replaceBigNumberWithDecimal(converted.inactiveCollateral);
+    converted.depositedCollateral.extraCollaterals = converted.depositedCollateral.extraCollaterals.map((x) =>
+      replaceBigNumberWithDecimal(x)
+    );
+    converted.inactiveCollateral.extraCollaterals = converted.inactiveCollateral.extraCollaterals.map((x) =>
+      replaceBigNumberWithDecimal(x)
+    );
     return replaceBigNumberWithDecimal(converted);
   }
 
@@ -357,6 +363,7 @@ export class Hubble {
           ray: gains.ray,
           srm: gains.srm,
           msol: gains.msol,
+          extraCollaterals: [], //todo
         },
       };
     }
