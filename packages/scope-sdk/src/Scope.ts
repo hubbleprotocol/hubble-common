@@ -5,7 +5,7 @@ import { OraclePrices } from './accounts';
 import { setProgramId } from './programId';
 import { Price } from './types';
 
-export type SupportedToken =
+export type ScopePair =
   | 'SOL/USD'
   | 'ETH/USD'
   | 'BTC/USD'
@@ -28,7 +28,31 @@ export type SupportedToken =
   | 'wstETH/USD'
   | 'LDO/USD';
 
+export type SupportedToken =
+  | 'SOL'
+  | 'ETH'
+  | 'BTC'
+  | 'SRM'
+  | 'RAY'
+  | 'FTT'
+  | 'MSOL'
+  | 'scnSOL'
+  | 'BNB'
+  | 'AVAX'
+  | 'daoSOL'
+  | 'SaberMSOL'
+  | 'USDH'
+  | 'STSOL'
+  | 'cSOL'
+  | 'cETH'
+  | 'cBTC'
+  | 'cMSOL'
+  | 'stETH'
+  | 'wstETH'
+  | 'LDO';
+
 export interface ScopeToken {
+  pair: ScopePair;
   name: SupportedToken;
   id: number;
   price: Decimal;
@@ -40,26 +64,26 @@ export class Scope {
   private readonly _config: HubbleConfig;
 
   private _tokens: ScopeToken[] = [
-    { id: 0, name: 'SOL/USD', price: new Decimal(0) },
-    { id: 1, name: 'ETH/USD', price: new Decimal(0) },
-    { id: 2, name: 'BTC/USD', price: new Decimal(0) },
-    { id: 3, name: 'SRM/USD', price: new Decimal(0) },
-    { id: 4, name: 'RAY/USD', price: new Decimal(0) },
-    { id: 5, name: 'FTT/USD', price: new Decimal(0) },
-    { id: 6, name: 'MSOL/USD', price: new Decimal(0) },
-    { id: 7, name: 'scnSOL/SOL', price: new Decimal(0) },
-    { id: 8, name: 'BNB/USD', price: new Decimal(0) },
-    { id: 9, name: 'AVAX/USD', price: new Decimal(0) },
-    { id: 10, name: 'daoSOL/USDC', price: new Decimal(0) },
-    { id: 11, name: 'SaberMSOL/SOL', price: new Decimal(0) },
-    { id: 12, name: 'USDH/USD', price: new Decimal(0) },
-    { id: 13, name: 'STSOL/USD', price: new Decimal(0) },
-    { id: 14, name: 'cSOL/SOL', price: new Decimal(0) },
-    { id: 15, name: 'cETH/ETH', price: new Decimal(0) },
-    { id: 16, name: 'cBTC/BTC', price: new Decimal(0) },
-    { id: 17, name: 'cMSOL/MSOL', price: new Decimal(0) },
-    { id: 18, name: 'wstETH/USD', price: new Decimal(0) },
-    { id: 19, name: 'LDO/USD', price: new Decimal(0) },
+    { id: 0, pair: 'SOL/USD', name: 'SOL', price: new Decimal(0) },
+    { id: 1, pair: 'ETH/USD', name: 'ETH', price: new Decimal(0) },
+    { id: 2, pair: 'BTC/USD', name: 'BTC', price: new Decimal(0) },
+    { id: 3, pair: 'SRM/USD', name: 'SRM', price: new Decimal(0) },
+    { id: 4, pair: 'RAY/USD', name: 'RAY', price: new Decimal(0) },
+    { id: 5, pair: 'FTT/USD', name: 'FTT', price: new Decimal(0) },
+    { id: 6, pair: 'MSOL/USD', name: 'MSOL', price: new Decimal(0) },
+    { id: 7, pair: 'scnSOL/SOL', name: 'scnSOL', price: new Decimal(0) },
+    { id: 8, pair: 'BNB/USD', name: 'BNB', price: new Decimal(0) },
+    { id: 9, pair: 'AVAX/USD', name: 'AVAX', price: new Decimal(0) },
+    { id: 10, pair: 'daoSOL/USDC', name: 'daoSOL', price: new Decimal(0) },
+    { id: 11, pair: 'SaberMSOL/SOL', name: 'SaberMSOL', price: new Decimal(0) },
+    { id: 12, pair: 'USDH/USD', name: 'USDH', price: new Decimal(0) },
+    { id: 13, pair: 'STSOL/USD', name: 'STSOL', price: new Decimal(0) },
+    { id: 14, pair: 'cSOL/SOL', name: 'cSOL', price: new Decimal(0) },
+    { id: 15, pair: 'cETH/ETH', name: 'cETH', price: new Decimal(0) },
+    { id: 16, pair: 'cBTC/BTC', name: 'cBTC', price: new Decimal(0) },
+    { id: 17, pair: 'cMSOL/MSOL', name: 'cMSOL', price: new Decimal(0) },
+    { id: 18, pair: 'wstETH/USD', name: 'wstETH', price: new Decimal(0) },
+    { id: 19, pair: 'LDO/USD', name: 'LDO', price: new Decimal(0) },
   ];
 
   /**
