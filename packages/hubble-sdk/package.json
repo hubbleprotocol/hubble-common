@@ -3,7 +3,7 @@
   "description": "Hubble Protocol client SDK",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "version": "1.0.55",
+  "version": "1.0.56",
   "scripts": {
     "build": "tsc",
     "build:watch": "tsc -w"
