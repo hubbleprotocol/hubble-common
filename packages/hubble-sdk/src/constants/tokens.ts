@@ -1,9 +1,5 @@
 import { PublicKey } from '@solana/web3.js';
 
-// Currently supported tokens in Hubble
-export type SupportedToken = 'BTC' | 'SRM' | 'ETH' | 'SOL' | 'FTT' | 'RAY' | 'mSOL';
-export const SUPPORTED_TOKENS: SupportedToken[] = ['BTC', 'SRM', 'ETH', 'SOL', 'FTT', 'RAY', 'mSOL'];
-export const STABLE_COINS = new Set(['USDC', 'wUSDC', 'USDT']);
 // BTC mint address
 export const BTC_MINT = '9n4nbM75f5Ui33ZbPYXn59EwSgE8CGsHtAeTH5YFeJ9E';
 // ETH mint address
