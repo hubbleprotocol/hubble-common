@@ -52,10 +52,28 @@ export type SupportedToken =
   | 'LDO';
 
 export interface ScopeToken {
+  /**
+   * Scope collateral token pair name
+   */
   pair: ScopePair;
+  /**
+   * Collateral token name
+   */
   name: SupportedToken;
+  /**
+   * Scope token pair ID
+   */
   id: number;
+  /**
+   * Current price of collateral token in USD or USDC - it will always be calculated as usd or usdc
+   */
   price: Decimal;
+
+  /**
+   * If the Scope collateral pair isn't in USD or USDC, we need to multiply by this collateral token.
+   * For example scnSOL/SOL will have this ID set to the SOL/USD pair.
+   */
+  nonUsdPairId?: number;
 }
 
 export class Scope {
@@ -71,17 +89,17 @@ export class Scope {
     { id: 4, pair: 'RAY/USD', name: 'RAY', price: new Decimal(0) },
     { id: 5, pair: 'FTT/USD', name: 'FTT', price: new Decimal(0) },
     { id: 6, pair: 'MSOL/USD', name: 'MSOL', price: new Decimal(0) },
-    { id: 7, pair: 'scnSOL/SOL', name: 'scnSOL', price: new Decimal(0) },
+    { id: 7, pair: 'scnSOL/SOL', name: 'scnSOL', price: new Decimal(0), nonUsdPairId: 0 },
     { id: 8, pair: 'BNB/USD', name: 'BNB', price: new Decimal(0) },
     { id: 9, pair: 'AVAX/USD', name: 'AVAX', price: new Decimal(0) },
     { id: 10, pair: 'daoSOL/USDC', name: 'daoSOL', price: new Decimal(0) },
-    { id: 11, pair: 'SaberMSOL/SOL', name: 'SaberMSOL', price: new Decimal(0) },
+    { id: 11, pair: 'SaberMSOL/SOL', name: 'SaberMSOL', price: new Decimal(0), nonUsdPairId: 0 },
     { id: 12, pair: 'USDH/USD', name: 'USDH', price: new Decimal(0) },
     { id: 13, pair: 'STSOL/USD', name: 'STSOL', price: new Decimal(0) },
-    { id: 14, pair: 'cSOL/SOL', name: 'cSOL', price: new Decimal(0) },
-    { id: 15, pair: 'cETH/ETH', name: 'cETH', price: new Decimal(0) },
-    { id: 16, pair: 'cBTC/BTC', name: 'cBTC', price: new Decimal(0) },
-    { id: 17, pair: 'cMSOL/MSOL', name: 'cMSOL', price: new Decimal(0) },
+    { id: 14, pair: 'cSOL/SOL', name: 'cSOL', price: new Decimal(0), nonUsdPairId: 0 },
+    { id: 15, pair: 'cETH/ETH', name: 'cETH', price: new Decimal(0), nonUsdPairId: 1 },
+    { id: 16, pair: 'cBTC/BTC', name: 'cBTC', price: new Decimal(0), nonUsdPairId: 2 },
+    { id: 17, pair: 'cMSOL/MSOL', name: 'cMSOL', price: new Decimal(0), nonUsdPairId: 6 },
     { id: 18, pair: 'wstETH/USD', name: 'wstETH', price: new Decimal(0) },
     { id: 19, pair: 'LDO/USD', name: 'LDO', price: new Decimal(0) },
   ];
@@ -98,23 +116,18 @@ export class Scope {
     setProgramId(this._config.scope.programId);
   }
 
-  /**
-   * Get price of the specified token
-   * @param token name of the token
-   */
-  async getPrice(token: SupportedToken) {
+  private async getSinglePrice(token: SupportedToken, prices: OraclePrices) {
     const tokenInfo = this._tokens.find((x) => x.name === token);
     if (!tokenInfo) {
       throw Error(`Could not get price for ${token} - not supported`);
     }
 
-    const prices = await OraclePrices.fetch(this._connection, this._config.scope.oraclePrices);
-    if (!prices) {
-      throw Error(`Could not get price for ${token}`);
-    }
-
     const priceInfo = prices.prices[tokenInfo.id].price;
     tokenInfo.price = Scope.priceToDecimal(priceInfo);
+    if (tokenInfo.nonUsdPairId !== undefined) {
+      const pairPrice = Scope.priceToDecimal(prices.prices[tokenInfo.nonUsdPairId].price);
+      tokenInfo.price = tokenInfo.price.mul(pairPrice);
+    }
 
     return tokenInfo;
   }
@@ -123,14 +136,23 @@ export class Scope {
     return new Decimal(price.value.toString()).mul(new Decimal(10).pow(new Decimal(-price.exp.toString())));
   }
 
+  private async getOraclePrices() {
+    const prices = await OraclePrices.fetch(this._connection, this._config.scope.oraclePrices);
+    if (!prices) {
+      throw Error(`Could not get scope oracle prices`);
+    }
+    return prices;
+  }
+
   /**
    * Get prices of the specified tokens
    * @param tokens list of names of the token
    */
   async getPrices(tokens: SupportedToken[]) {
     const prices: ScopeToken[] = [];
+    const oraclePrices = await this.getOraclePrices();
     for (const token of tokens) {
-      prices.push(await this.getPrice(token));
+      prices.push(await this.getSinglePrice(token, oraclePrices));
     }
     return prices;
   }
@@ -140,6 +162,15 @@ export class Scope {
    */
   async getAllPrices() {
     return this.getPrices(this._tokens.map((x) => x.name));
+  }
+
+  /**
+   * Get price of the specified token
+   * @param token name of the token
+   */
+  async getPrice(token: SupportedToken) {
+    const oraclePrices = await this.getOraclePrices();
+    return this.getSinglePrice(token, oraclePrices);
   }
 }
 

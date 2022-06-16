@@ -33,6 +33,12 @@ describe('Scope SDK Tests', () => {
   //   expect(price.name).toEqual('MSOL');
   //   expect(price.id).not.toBeNaN();
   //   expect(price.price).not.toBeUndefined();
+  //
+  //   price = await scope.getPrice('scnSOL');
+  //   expect(price.name).toEqual('scnSOL');
+  //   expect(price.id).not.toBeNaN();
+  //   expect(price.price).not.toBeUndefined();
+  //   console.log(price);
   // });
   //
   // test('should get specific prices', async () => {
