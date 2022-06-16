@@ -475,6 +475,16 @@ export class Hubble {
     return totalTokenSupply;
   }
 
+  async getUsdhCirculatingSupply() {
+    const tokenSupply = await this._provider.connection.getTokenSupply(this._config.borrowing.accounts.stablecoinMint);
+    if (!tokenSupply.value.uiAmountString) {
+      throw Error(
+        `Could not get USDH circulating supply from the USDH mint account: ${this._config.borrowing.accounts.stablecoinMint}`
+      );
+    }
+    return new Decimal(tokenSupply.value.uiAmountString);
+  }
+
   /**
    * Get all token accounts that are holding HBB
    */

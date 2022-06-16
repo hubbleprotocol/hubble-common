@@ -29,6 +29,13 @@ describe('Hubble SDK Tests', () => {
 
   //TODO: replace with localnet below and setup integration tests...
 
+  // test('should get usdh circulating supply', async () => {
+  //   const sdk = new Hubble(cluster, connection);
+  //   const sth = await sdk.getUsdhCirculatingSupply();
+  //   expect(sth).not.toBeNull();
+  //   console.log(sth);
+  // });
+
   // test('should get staking pool', async () => {
   //   const sdk = new Hubble(cluster, connection);
   //   const pool: StakingPoolState = await sdk.getStakingPoolState();
