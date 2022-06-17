@@ -17,5 +17,7 @@ export type UserMetadata = {
   userStake: Decimal;
   userCollateralRewardPerToken: CollateralAmounts;
   userStablecoinRewardPerToken: Decimal;
+
+  marketType: Decimal;
 };
 export default UserMetadata;

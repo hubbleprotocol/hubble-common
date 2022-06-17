@@ -18,6 +18,8 @@ export type UserMetadataWithJson = {
   userCollateralRewardPerToken: CollateralAmounts;
   userStablecoinRewardPerToken: Decimal;
 
+  marketType: Decimal;
+
   jsonResponse: string;
 };
 export default UserMetadataWithJson;

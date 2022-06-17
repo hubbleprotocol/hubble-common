@@ -26,6 +26,7 @@ export type BorrowingMarketState = {
   stablecoinRewardPerToken: Decimal;
   totalStakeSnapshot: Decimal;
   borrowedStablecoinSnapshot: Decimal;
+  marketMcr: Decimal;
 };
 
 export default BorrowingMarketState;
