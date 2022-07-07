@@ -22,12 +22,13 @@ import Decimal from 'decimal.js';
 import UserMetadataWithJson from './models/UserMetadataWithJson';
 import Stream, { Cluster } from '@streamflow/stream';
 import StabilityProviderStateWithJson from './models/StabilityProviderStateWithJson';
-import { HbbVault, UsdhVault } from './models';
+import { HbbVault, PsmReserve, UsdhVault } from './models';
 import GlobalConfig from './models/GlobalConfig';
+import { SwapInfo } from './models/SwapInfo';
 
 export class Hubble {
-  private _cluster: SolanaCluster;
-  private _connection: Connection;
+  private readonly _cluster: SolanaCluster;
+  private readonly _connection: Connection;
   private readonly _config: HubbleConfig;
   private readonly _provider: Provider;
   private _borrowingProgram: Program;
@@ -41,7 +42,9 @@ export class Hubble {
     this._cluster = cluster;
     this._connection = connection;
     this._config = getConfigByCluster(cluster);
-    this._provider = new AnchorProvider(connection, getReadOnlyWallet(), { commitment: connection.commitment });
+    this._provider = new AnchorProvider(connection, getReadOnlyWallet(), {
+      commitment: connection.commitment,
+    });
     this._borrowingProgram = new Program(BORROWING_IDL as Idl, this._config.borrowing.programId, this._provider);
   }
 
@@ -510,6 +513,76 @@ export class Hubble {
     )) as GlobalConfig;
     globalConfig = replaceBigNumberWithDecimal(globalConfig);
     return globalConfig;
+  }
+
+  /**
+   * Get PSM reserve state
+   */
+  async getPsmReserve(): Promise<PsmReserve> {
+    const psmPubkey = await this.getPsmPublicKey();
+    const reserve = (await this._borrowingProgram.account.psmReserve.fetch(psmPubkey)) as PsmReserve;
+    return replaceBigNumberWithDecimal(reserve);
+  }
+
+  /**
+   * Get PSM public key
+   */
+  async getPsmPublicKey(): Promise<PublicKey> {
+    const res = await PublicKey.findProgramAddress(
+      [Buffer.from('PSM'), this._config.borrowing.accounts.USDC!.toBuffer()],
+      this._config.borrowing.programId
+    );
+    return res[0];
+  }
+
+  /**
+   * Get the USDC -> USDH swap information
+   * @param usdcInAmount number of USDC tokens
+   * @param slippage
+   */
+  async getUsdcToUsdhSwap(usdcInAmount: Decimal, slippage: Decimal = new Decimal(0)): Promise<SwapInfo> {
+    const psmReserve = await this.getPsmReserve();
+
+    // we would be minting USDH with this operation
+
+    // remaining USDC = max capacity - deposited,
+    // this is the amount of USDC that can be stored inside the PSM reserve
+    // we can only mint max this much USDH
+    const availableUsdc = psmReserve.maxCapacity
+      .dividedBy(STABLECOIN_DECIMALS)
+      .minus(psmReserve.depositedStablecoin.dividedBy(STABLECOIN_DECIMALS));
+    let outAmount = usdcInAmount;
+    if (usdcInAmount.greaterThan(availableUsdc)) {
+      outAmount = new Decimal(0);
+    }
+    return {
+      fees: new Decimal(0), // TODO after fees are implemented
+      slippage: new Decimal(0), // TODO: there is no slippage (currently) with PSM
+      inAmount: usdcInAmount,
+      outAmount,
+    };
+  }
+
+  /**
+   * Get the USDH -> USDC swap information
+   * @param usdhInAmount number of USDH tokens
+   * @param slippage
+   */
+  async getUsdhToUsdcSwap(usdhInAmount: Decimal, slippage: Decimal = new Decimal(0)): Promise<SwapInfo> {
+    const psmReserve = await this.getPsmReserve();
+    let outAmount = new Decimal(0);
+
+    // we are burning USDH with this operation and we can only burn as much as there is deposited_stablecoin inside psm reserve
+    const usdcAvailable = psmReserve.depositedStablecoin.dividedBy(STABLECOIN_DECIMALS);
+    if (usdhInAmount.lessThanOrEqualTo(usdcAvailable)) {
+      outAmount = usdhInAmount;
+    }
+    return {
+      fees: new Decimal(0), // TODO: after fees are implemented
+      slippage: new Decimal(0), // TODO: there is no slippage (currently) with PSM
+      inAmount: usdhInAmount,
+      outAmount,
+    };
   }
 }
 
