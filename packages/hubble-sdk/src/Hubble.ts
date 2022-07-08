@@ -549,8 +549,8 @@ export class Hubble {
     // this is the amount of USDC that can be stored inside the PSM reserve
     // we can only mint max this much USDH
     const availableUsdc = psmReserve.maxCapacity
-      .dividedBy(STABLECOIN_DECIMALS)
-      .minus(psmReserve.depositedStablecoin.dividedBy(STABLECOIN_DECIMALS));
+      .dividedBy(10 ** psmReserve.stablecoinMintDecimals)
+      .minus(psmReserve.depositedStablecoin.dividedBy(10 ** psmReserve.stablecoinMintDecimals));
     let outAmount = usdcInAmount;
     if (usdcInAmount.greaterThan(availableUsdc)) {
       outAmount = new Decimal(0);
@@ -573,7 +573,7 @@ export class Hubble {
     let outAmount = new Decimal(0);
 
     // we are burning USDH with this operation and we can only burn as much as there is deposited_stablecoin inside psm reserve
-    const usdcAvailable = psmReserve.depositedStablecoin.dividedBy(STABLECOIN_DECIMALS);
+    const usdcAvailable = psmReserve.depositedStablecoin.dividedBy(10 ** psmReserve.stablecoinMintDecimals);
     if (usdhInAmount.lessThanOrEqualTo(usdcAvailable)) {
       outAmount = usdhInAmount;
     }

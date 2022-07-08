@@ -1,10 +1,9 @@
 import { clusterApiUrl, Connection, PublicKey } from '@solana/web3.js';
-import { HBB_DECIMALS } from '../src/constants';
+import { HBB_DECIMALS, STABLECOIN_DECIMALS } from '../src/constants';
 import { BN } from '@project-serum/anchor';
 import Decimal from 'decimal.js';
 import Hubble from '../src/Hubble';
 import { SolanaCluster } from '@hubbleprotocol/hubble-config';
-import { STABLECOIN_DECIMALS, StakingPoolState } from '../dist';
 import { PsmReserve } from '../src';
 
 describe('Hubble SDK Tests', () => {
@@ -19,15 +18,15 @@ describe('Hubble SDK Tests', () => {
       return Promise.resolve({
         maxCapacity: new Decimal(3000 * STABLECOIN_DECIMALS),
         depositedStablecoin: new Decimal(1000 * STABLECOIN_DECIMALS),
+        mintedUsdh: new Decimal(1000 * STABLECOIN_DECIMALS),
         borrowingMarketState: pk,
-        bump: 0,
+        bump: 255,
         psmVault: pk,
         psmVaultAuthority: pk,
         psmVaultAuthoritySeed: pk,
         stablecoinMint: pk,
-        stablecoinMintDecimals: 0,
+        stablecoinMintDecimals: 6,
         version: zero,
-        mintedUsdh: zero,
       });
     });
   });
@@ -50,6 +49,13 @@ describe('Hubble SDK Tests', () => {
   // test('should get usdh circulating supply', async () => {
   //   const sdk = new Hubble(cluster, connection);
   //   const sth = await sdk.getUsdhCirculatingSupply();
+  //   expect(sth).not.toBeNull();
+  //   console.log(sth);
+  // });
+
+  // test('should get psm reserve', async () => {
+  //   const sdk = new Hubble(cluster, connection);
+  //   const sth = await sdk.getPsmReserve();
   //   expect(sth).not.toBeNull();
   //   console.log(sth);
   // });
