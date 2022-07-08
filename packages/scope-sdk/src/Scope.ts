@@ -16,7 +16,7 @@ export type ScopePair =
   | 'scnSOL/SOL'
   | 'BNB/USD'
   | 'AVAX/USD'
-  | 'daoSOL/USDC'
+  | 'daoSOL/SOL'
   | 'SaberMSOL/SOL'
   | 'USDH/USD'
   | 'STSOL/USD'
@@ -26,7 +26,8 @@ export type ScopePair =
   | 'cMSOL/MSOL'
   | 'stETH/USD'
   | 'wstETH/USD'
-  | 'LDO/USD';
+  | 'LDO/USD'
+  | 'USDC/USD';
 
 export type SupportedToken =
   | 'SOL'
@@ -49,7 +50,8 @@ export type SupportedToken =
   | 'cMSOL'
   | 'stETH'
   | 'wstETH'
-  | 'LDO';
+  | 'LDO'
+  | 'USDC';
 
 export interface ScopeToken {
   /**
@@ -92,7 +94,7 @@ export class Scope {
     { id: 7, pair: 'scnSOL/SOL', name: 'scnSOL', price: new Decimal(0), nonUsdPairId: 0 },
     { id: 8, pair: 'BNB/USD', name: 'BNB', price: new Decimal(0) },
     { id: 9, pair: 'AVAX/USD', name: 'AVAX', price: new Decimal(0) },
-    { id: 10, pair: 'daoSOL/USDC', name: 'daoSOL', price: new Decimal(0) },
+    { id: 10, pair: 'daoSOL/SOL', name: 'daoSOL', price: new Decimal(0), nonUsdPairId: 0 },
     { id: 11, pair: 'SaberMSOL/SOL', name: 'SaberMSOL', price: new Decimal(0), nonUsdPairId: 0 },
     { id: 12, pair: 'USDH/USD', name: 'USDH', price: new Decimal(0) },
     { id: 13, pair: 'STSOL/USD', name: 'STSOL', price: new Decimal(0) },
@@ -102,6 +104,7 @@ export class Scope {
     { id: 17, pair: 'cMSOL/MSOL', name: 'cMSOL', price: new Decimal(0), nonUsdPairId: 6 },
     { id: 18, pair: 'wstETH/USD', name: 'wstETH', price: new Decimal(0) },
     { id: 19, pair: 'LDO/USD', name: 'LDO', price: new Decimal(0) },
+    { id: 20, pair: 'USDC/USD', name: 'USDC', price: new Decimal(0) },
   ];
 
   /**
