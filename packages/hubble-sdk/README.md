@@ -66,4 +66,10 @@ const hbbTokenAccounts = await hubble.getHbbTokenAccounts();
 const userStakingState = await hubble.getUserStakingState(pubKey);
 const userStabilityProviderState = await hubble.getUserStabilityProviderState(pubKey);
 const userMetadatas = await hubble.getUserMetadatas(pubKey); //user metadatas = user's loans
+
+// Get peg stability module (PSM) reserve and swaps
+const swapUsdhToUsdc = await hubble.getUsdhToUsdcSwap(new Decimal(1000));
+const swapUsdcToUsdh = await hubble.getUsdcToUsdhSwap(new Decimal(500));
+const psmReserve = await hubble.getPsmReserve();
+const psmPubkey = await hubble.getPsmPublicKey();
 ```
