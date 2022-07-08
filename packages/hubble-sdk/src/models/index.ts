@@ -14,3 +14,4 @@ export * from './UserStakingState';
 export * from './Loan';
 export * from './HbbVault';
 export * from './UsdhVault';
+export * from './PsmReserve';

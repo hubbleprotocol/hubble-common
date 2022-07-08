@@ -1,10 +1,10 @@
-import { clusterApiUrl, Connection } from '@solana/web3.js';
-import { HBB_DECIMALS } from '../src/constants';
+import { clusterApiUrl, Connection, PublicKey } from '@solana/web3.js';
+import { HBB_DECIMALS, STABLECOIN_DECIMALS } from '../src/constants';
 import { BN } from '@project-serum/anchor';
 import Decimal from 'decimal.js';
 import Hubble from '../src/Hubble';
 import { SolanaCluster } from '@hubbleprotocol/hubble-config';
-import { StakingPoolState } from '../dist';
+import { PsmReserve } from '../src';
 
 describe('Hubble SDK Tests', () => {
   const cluster: SolanaCluster = 'mainnet-beta';
@@ -12,6 +12,23 @@ describe('Hubble SDK Tests', () => {
 
   beforeAll(() => {
     connection = new Connection(clusterApiUrl(cluster));
+    jest.spyOn(Hubble.prototype, 'getPsmReserve').mockImplementation(() => {
+      const zero = new Decimal(0);
+      const pk = new PublicKey('72tsMfXLasd8GFya63UZY7w8xDgDLdxJtCJ16trT14gm');
+      return Promise.resolve({
+        maxCapacity: new Decimal(3000 * STABLECOIN_DECIMALS),
+        depositedStablecoin: new Decimal(1000 * STABLECOIN_DECIMALS),
+        mintedUsdh: new Decimal(1000 * STABLECOIN_DECIMALS),
+        borrowingMarketState: pk,
+        bump: 255,
+        psmVault: pk,
+        psmVaultAuthority: pk,
+        psmVaultAuthoritySeed: pk,
+        stablecoinMint: pk,
+        stablecoinMintDecimals: 6,
+        version: zero,
+      });
+    });
   });
 
   test('should throw on invalid cluster', () => {
@@ -34,6 +51,68 @@ describe('Hubble SDK Tests', () => {
   //   const sth = await sdk.getUsdhCirculatingSupply();
   //   expect(sth).not.toBeNull();
   //   console.log(sth);
+  // });
+
+  // test('should get psm reserve', async () => {
+  //   const sdk = new Hubble(cluster, connection);
+  //   const sth = await sdk.getPsmReserve();
+  //   expect(sth).not.toBeNull();
+  //   console.log(sth);
+  // });
+
+  test('should get 10 usdc-usdh swap info', async () => {
+    const sdk = new Hubble(cluster, connection);
+    const swap = await sdk.getUsdcToUsdhSwap(new Decimal(10));
+    expect(swap).not.toBeNull();
+    expect(swap.outAmount.toNumber()).toEqual(10);
+    expect(swap.inAmount.toNumber()).toEqual(10);
+  });
+
+  test('should get 2000 usdc-usdh swap info', async () => {
+    const sdk = new Hubble(cluster, connection);
+    const swap = await sdk.getUsdcToUsdhSwap(new Decimal(2000));
+    expect(swap).not.toBeNull();
+    expect(swap.outAmount.toNumber()).toEqual(2000);
+    expect(swap.inAmount.toNumber()).toEqual(2000);
+  });
+
+  test('should get 0 usdc-usdh swap info', async () => {
+    const sdk = new Hubble(cluster, connection);
+    const swap = await sdk.getUsdcToUsdhSwap(new Decimal(2001));
+    expect(swap).not.toBeNull();
+    expect(swap.outAmount.toNumber()).toEqual(0);
+    expect(swap.inAmount.toNumber()).toEqual(2001);
+  });
+
+  test('should get 10 usdh-usdc swap info', async () => {
+    const sdk = new Hubble(cluster, connection);
+    const swap = await sdk.getUsdhToUsdcSwap(new Decimal(10));
+    expect(swap).not.toBeNull();
+    expect(swap.outAmount.toNumber()).toEqual(10);
+    expect(swap.inAmount.toNumber()).toEqual(10);
+  });
+
+  test('should get 1000 usdh-usdc swap info', async () => {
+    const sdk = new Hubble(cluster, connection);
+    const swap = await sdk.getUsdhToUsdcSwap(new Decimal(1000));
+    expect(swap).not.toBeNull();
+    expect(swap.outAmount.toNumber()).toEqual(1000);
+    expect(swap.inAmount.toNumber()).toEqual(1000);
+  });
+
+  test('should get 0 usdh-usdc swap info', async () => {
+    const sdk = new Hubble(cluster, connection);
+    const swap = await sdk.getUsdhToUsdcSwap(new Decimal(1001));
+    expect(swap).not.toBeNull();
+    expect(swap.outAmount.toNumber()).toEqual(0);
+    expect(swap.inAmount.toNumber()).toEqual(1001);
+  });
+
+  // test('should get borrowing market state', async () => {
+  //   const sdk = new Hubble(cluster, connection);
+  //   const sth = await sdk.getBorrowingMarketState();
+  //   expect(sth).not.toBeNull();
+  //   console.log(sth.marketMcr.toNumber());
   // });
 
   // test('should get staking pool', async () => {
@@ -122,6 +201,7 @@ describe('Hubble SDK Tests', () => {
   //   const sdk = new Hubble(cluster, connection);
   //   const userVaults = await sdk.getAllUserMetadatas();
   //   expect(userVaults.length).toBeGreaterThan(0);
+  //   console.log(userVaults[0]);
   // });
   //
   // test('should get specific user metadatas', async () => {
