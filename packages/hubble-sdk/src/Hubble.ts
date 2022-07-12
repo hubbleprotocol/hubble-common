@@ -3,7 +3,7 @@ import { Connection, PublicKey } from '@solana/web3.js';
 import StakingPoolState from './models/StakingPoolState';
 import StabilityPoolState from './models/StabilityPoolState';
 import BorrowingMarketState from './models/BorrowingMarketState';
-import { AnchorProvider, Idl, Program, Provider } from '@project-serum/anchor';
+import { Idl, Program, Provider } from '@project-serum/anchor';
 import { BORROWING_IDL } from '@hubbleprotocol/hubble-idl';
 import {
   calculatePendingGains,
@@ -42,7 +42,7 @@ export class Hubble {
     this._cluster = cluster;
     this._connection = connection;
     this._config = getConfigByCluster(cluster);
-    this._provider = new AnchorProvider(connection, getReadOnlyWallet(), {
+    this._provider = new Provider(connection, getReadOnlyWallet(), {
       commitment: connection.commitment,
     });
     this._borrowingProgram = new Program(BORROWING_IDL as Idl, this._config.borrowing.programId, this._provider);
