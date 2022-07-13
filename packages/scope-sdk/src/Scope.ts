@@ -27,7 +27,8 @@ export type ScopePair =
   | 'stETH/USD'
   | 'wstETH/USD'
   | 'LDO/USD'
-  | 'USDC/USD';
+  | 'USDC/USD'
+  | 'cUSDC/USDC';
 
 export type SupportedToken =
   | 'SOL'
@@ -51,7 +52,8 @@ export type SupportedToken =
   | 'stETH'
   | 'wstETH'
   | 'LDO'
-  | 'USDC';
+  | 'USDC'
+  | 'cUSDC';
 
 export interface ScopeToken {
   /**
@@ -105,6 +107,7 @@ export class Scope {
     { id: 18, pair: 'wstETH/USD', name: 'wstETH', price: new Decimal(0) },
     { id: 19, pair: 'LDO/USD', name: 'LDO', price: new Decimal(0) },
     { id: 20, pair: 'USDC/USD', name: 'USDC', price: new Decimal(0) },
+    { id: 21, pair: 'cUSDC/USDC', name: 'cUSDC', price: new Decimal(0), nonUsdPairId: 20 },
   ];
 
   /**
