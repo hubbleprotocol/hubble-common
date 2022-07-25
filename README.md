@@ -6,13 +6,14 @@ Hubble common NPM packages.
 
 ![Release packages](https://github.com/hubbleprotocol/hubble-common/actions/workflows/release_packages.yml/badge.svg)
 
-| Package                         | Description                        | Docs                                         | Version                                                                                                                                  |
-|---------------------------------|------------------------------------|----------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------|
-| `@hubbleprotocol/hubble-config` | Hubble Solana config (public keys) | [README](./packages/hubble-config/README.md) | [![npm](https://img.shields.io/npm/v/@hubbleprotocol/hubble-config)](https://www.npmjs.com/package/@hubbleprotocol/hubble-config)        |
-| `@hubbleprotocol/hubble-idl`    | Hubble IDL for Anchor              | [README](./packages/hubble-idl/README.md)    | [![npm](https://img.shields.io/npm/v/@hubbleprotocol/hubble-idl)](https://www.npmjs.com/package/@hubbleprotocol/hubble-idl)              |
-| `@hubbleprotocol/hubble-sdk`    | Hubble Protocol client SDK         | [README](./packages/hubble-sdk/README.md)    | [![npm](https://img.shields.io/npm/v/@hubbleprotocol/hubble-sdk)](https://www.npmjs.com/package/@hubbleprotocol/hubble-sdk)              |
-| `@hubbleprotocol/hubble-db`     | Hubble Protocol database schema    | [README](./packages/hubble-db/README.md)     | [![npm](https://img.shields.io/npm/v/@hubbleprotocol/hubble-db)](https://www.npmjs.com/package/@hubbleprotocol/hubble-db)                |
-| `@hubbleprotocol/scope-sdk`     | Scope Oracle SDK                   | [README](./packages/scope-sdk/README.md)     | [![npm](https://img.shields.io/npm/v/@hubbleprotocol/scope-sdk)](https://www.npmjs.com/package/@hubbleprotocol/scope-sdk)                |
+| Package                         | Description                        | Docs                                         | Version                                                                                                                           |
+|---------------------------------|------------------------------------|----------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
+| `@hubbleprotocol/hubble-config` | Hubble Solana config (public keys) | [README](./packages/hubble-config/README.md) | [![npm](https://img.shields.io/npm/v/@hubbleprotocol/hubble-config)](https://www.npmjs.com/package/@hubbleprotocol/hubble-config) |
+| `@hubbleprotocol/hubble-idl`    | Hubble IDL for Anchor              | [README](./packages/hubble-idl/README.md)    | [![npm](https://img.shields.io/npm/v/@hubbleprotocol/hubble-idl)](https://www.npmjs.com/package/@hubbleprotocol/hubble-idl)       |
+| `@hubbleprotocol/hubble-sdk`    | Hubble Protocol client SDK         | [README](./packages/hubble-sdk/README.md)    | [![npm](https://img.shields.io/npm/v/@hubbleprotocol/hubble-sdk)](https://www.npmjs.com/package/@hubbleprotocol/hubble-sdk)       |
+| `@hubbleprotocol/hubble-db`     | Hubble Protocol database schema    | [README](./packages/hubble-db/README.md)     | [![npm](https://img.shields.io/npm/v/@hubbleprotocol/hubble-db)](https://www.npmjs.com/package/@hubbleprotocol/hubble-db)         |
+| `@hubbleprotocol/scope-sdk`     | Scope Oracle SDK                   | [README](./packages/scope-sdk/README.md)     | [![npm](https://img.shields.io/npm/v/@hubbleprotocol/scope-sdk)](https://www.npmjs.com/package/@hubbleprotocol/scope-sdk)         |
+| `@hubbleprotocol/kamino-sdk`    | Kamino SDK                         | [README](./packages/kamino-sdk/README.md)    | [![npm](https://img.shields.io/npm/v/@hubbleprotocol/kamino-sdk)](https://www.npmjs.com/package/@hubbleprotocol/kamino-sdk)       |
 
 
 ## Deployment

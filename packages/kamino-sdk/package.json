@@ -1,0 +1,47 @@
+{
+  "name": "@hubbleprotocol/kamino-sdk",
+  "description": "Kamino SDK",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "version": "1.0.61",
+  "scripts": {
+    "build": "tsc",
+    "build:watch": "tsc -w"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hubbleprotocol/hubble-common.git"
+  },
+  "keywords": [
+    "hubble",
+    "hubbleprotocol",
+    "common",
+    "sdk",
+    "client",
+    "kamino"
+  ],
+  "author": "Hubble Protocol",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/hubbleprotocol/hubble-common/issues"
+  },
+  "homepage": "https://github.com/hubbleprotocol/hubble-common/blob/master/packages/kamino-sdk",
+  "devDependencies": {
+    "@types/bn.js": "^5.1.0"
+  },
+  "dependencies": {
+    "@hubbleprotocol/hubble-config": "^1.0.61",
+    "@project-serum/anchor": "^0.25.0",
+    "@project-serum/serum": "^0.13.65",
+    "@solana/buffer-layout": "^4.0.0",
+    "@solana/wallet-adapter-base": "^0.9.8",
+    "bn.js": "^5.2.1"
+  },
+  "peerDependencies": {
+    "@solana/web3.js": "^1.47.3",
+    "decimal.js": "^10.3.1"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
