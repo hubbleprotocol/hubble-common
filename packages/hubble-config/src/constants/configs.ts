@@ -4,6 +4,21 @@ import { PublicKey } from '@solana/web3.js';
 export const HUBBLE_CONFIGS: HubbleConfig[] = [
   {
     cluster: 'mainnet-beta',
+    kamino: {
+      mints: {
+        usdt: new PublicKey('AcU8CfJiLEBn1x7Cgx8atX6DdebmdQtNSsJBkQyf6Q4L'),
+        usdh: new PublicKey('kfZGSThBdZbZY6cDSHP7NmCWa6D2hFc5kjBuGHREzZ3'),
+        usdc: new PublicKey('HEzfH7PCNSCU92zdk3iaKG4E9hQTErfgVGvqgywEvPzu'),
+        stsol: new PublicKey('ESba8sT1R7WPiE3weBU1u6UqEmXRuM8Rs1LLvXayEizf'),
+        msol: new PublicKey('2wMQTELEgEcK7V3gwZBH58WvGcRZsyaWNpebqyFugGKe'),
+        sol: new PublicKey('So11111111111111111111111111111111111111112'),
+        solMsol: new PublicKey('7hUuLSz41MAJTASQTr6VnrRzZ5oyf2DNmLcpTHqZVyro'),
+        solStsol: new PublicKey('2MpRMgTDALUqa42DNAgqM6X8TAqRSojhvtmgM15Dei1B'),
+        usdcUsdt: new PublicKey('Fk3UsY9LtbKyqU6hwuM86Rxq3HTokDKcieJjpmbn1CRn'),
+        usdhUsdc: new PublicKey('HYszS8Y59xwAtmZZ5ja2XjLpvc8eHmmzc1craEdRzfMb'),
+        usdhUsdt: new PublicKey('6xAFTAV3V7vbWhPgmbUrSndpE85MHNu1tUyRecX9JHS7'),
+      },
+    },
     scope: {
       oracleMappings: new PublicKey('Chpu5ZgfWX5ZzVpUx9Xvv4WPM75Xd7zPJNDPsFnCpLpk'),
       oraclePrices: new PublicKey('3NJYftD5sjVfxSnUdZ1wVML8f3aC6mp1CXCL6L7TnU8C'),
@@ -161,6 +176,21 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
   },
   {
     cluster: 'testnet',
+    kamino: {
+      mints: {
+        usdt: new PublicKey('AcU8CfJiLEBn1x7Cgx8atX6DdebmdQtNSsJBkQyf6Q4L'),
+        usdh: new PublicKey('kfZGSThBdZbZY6cDSHP7NmCWa6D2hFc5kjBuGHREzZ3'),
+        usdc: new PublicKey('HEzfH7PCNSCU92zdk3iaKG4E9hQTErfgVGvqgywEvPzu'),
+        stsol: new PublicKey('ESba8sT1R7WPiE3weBU1u6UqEmXRuM8Rs1LLvXayEizf'),
+        msol: new PublicKey('2wMQTELEgEcK7V3gwZBH58WvGcRZsyaWNpebqyFugGKe'),
+        sol: new PublicKey('So11111111111111111111111111111111111111112'),
+        solMsol: new PublicKey('7hUuLSz41MAJTASQTr6VnrRzZ5oyf2DNmLcpTHqZVyro'),
+        solStsol: new PublicKey('2MpRMgTDALUqa42DNAgqM6X8TAqRSojhvtmgM15Dei1B'),
+        usdcUsdt: new PublicKey('Fk3UsY9LtbKyqU6hwuM86Rxq3HTokDKcieJjpmbn1CRn'),
+        usdhUsdc: new PublicKey('HYszS8Y59xwAtmZZ5ja2XjLpvc8eHmmzc1craEdRzfMb'),
+        usdhUsdt: new PublicKey('6xAFTAV3V7vbWhPgmbUrSndpE85MHNu1tUyRecX9JHS7'),
+      },
+    },
     scope: {
       oracleMappings: new PublicKey('Chpu5ZgfWX5ZzVpUx9Xvv4WPM75Xd7zPJNDPsFnCpLpk'),
       oraclePrices: new PublicKey('3NJYftD5sjVfxSnUdZ1wVML8f3aC6mp1CXCL6L7TnU8C'),
@@ -251,6 +281,21 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
   },
   {
     cluster: 'devnet',
+    kamino: {
+      mints: {
+        usdt: new PublicKey('AcU8CfJiLEBn1x7Cgx8atX6DdebmdQtNSsJBkQyf6Q4L'),
+        usdh: new PublicKey('kfZGSThBdZbZY6cDSHP7NmCWa6D2hFc5kjBuGHREzZ3'),
+        usdc: new PublicKey('HEzfH7PCNSCU92zdk3iaKG4E9hQTErfgVGvqgywEvPzu'),
+        stsol: new PublicKey('ESba8sT1R7WPiE3weBU1u6UqEmXRuM8Rs1LLvXayEizf'),
+        msol: new PublicKey('2wMQTELEgEcK7V3gwZBH58WvGcRZsyaWNpebqyFugGKe'),
+        sol: new PublicKey('So11111111111111111111111111111111111111112'),
+        solMsol: new PublicKey('7hUuLSz41MAJTASQTr6VnrRzZ5oyf2DNmLcpTHqZVyro'),
+        solStsol: new PublicKey('2MpRMgTDALUqa42DNAgqM6X8TAqRSojhvtmgM15Dei1B'),
+        usdcUsdt: new PublicKey('Fk3UsY9LtbKyqU6hwuM86Rxq3HTokDKcieJjpmbn1CRn'),
+        usdhUsdc: new PublicKey('HYszS8Y59xwAtmZZ5ja2XjLpvc8eHmmzc1craEdRzfMb'),
+        usdhUsdt: new PublicKey('6xAFTAV3V7vbWhPgmbUrSndpE85MHNu1tUyRecX9JHS7'),
+      },
+    },
     scope: {
       oracleMappings: new PublicKey('4PoKkcsQakSMovMWh127gviWPpA6wGyY8uZWavccXAGE'),
       oraclePrices: new PublicKey('Aprk2sZNvxZNUpgq2WuS3VNkbxh35aCqJd1GbtBZzkG5'),
@@ -408,6 +453,21 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
   },
   {
     cluster: 'localnet',
+    kamino: {
+      mints: {
+        usdt: new PublicKey('AcU8CfJiLEBn1x7Cgx8atX6DdebmdQtNSsJBkQyf6Q4L'),
+        usdh: new PublicKey('kfZGSThBdZbZY6cDSHP7NmCWa6D2hFc5kjBuGHREzZ3'),
+        usdc: new PublicKey('HEzfH7PCNSCU92zdk3iaKG4E9hQTErfgVGvqgywEvPzu'),
+        stsol: new PublicKey('ESba8sT1R7WPiE3weBU1u6UqEmXRuM8Rs1LLvXayEizf'),
+        msol: new PublicKey('2wMQTELEgEcK7V3gwZBH58WvGcRZsyaWNpebqyFugGKe'),
+        sol: new PublicKey('So11111111111111111111111111111111111111112'),
+        solMsol: new PublicKey('7hUuLSz41MAJTASQTr6VnrRzZ5oyf2DNmLcpTHqZVyro'),
+        solStsol: new PublicKey('2MpRMgTDALUqa42DNAgqM6X8TAqRSojhvtmgM15Dei1B'),
+        usdcUsdt: new PublicKey('Fk3UsY9LtbKyqU6hwuM86Rxq3HTokDKcieJjpmbn1CRn'),
+        usdhUsdc: new PublicKey('HYszS8Y59xwAtmZZ5ja2XjLpvc8eHmmzc1craEdRzfMb'),
+        usdhUsdt: new PublicKey('6xAFTAV3V7vbWhPgmbUrSndpE85MHNu1tUyRecX9JHS7'),
+      },
+    },
     scope: {
       oracleMappings: new PublicKey('4PoKkcsQakSMovMWh127gviWPpA6wGyY8uZWavccXAGE'),
       oraclePrices: new PublicKey('Aprk2sZNvxZNUpgq2WuS3VNkbxh35aCqJd1GbtBZzkG5'),
