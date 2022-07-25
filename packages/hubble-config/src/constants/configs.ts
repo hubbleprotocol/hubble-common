@@ -18,6 +18,7 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
         usdhUsdc: new PublicKey('HYszS8Y59xwAtmZZ5ja2XjLpvc8eHmmzc1craEdRzfMb'),
         usdhUsdt: new PublicKey('6xAFTAV3V7vbWhPgmbUrSndpE85MHNu1tUyRecX9JHS7'),
       },
+      programId: new PublicKey('E6qbhrt4pFmCotNUSSEh6E5cRQCEJpMcd79Z56EG9KY'),
     },
     scope: {
       oracleMappings: new PublicKey('Chpu5ZgfWX5ZzVpUx9Xvv4WPM75Xd7zPJNDPsFnCpLpk'),
@@ -177,6 +178,7 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
   {
     cluster: 'testnet',
     kamino: {
+      programId: new PublicKey('E6qbhrt4pFmCotNUSSEh6E5cRQCEJpMcd79Z56EG9KY'),
       mints: {
         usdt: new PublicKey('AcU8CfJiLEBn1x7Cgx8atX6DdebmdQtNSsJBkQyf6Q4L'),
         usdh: new PublicKey('kfZGSThBdZbZY6cDSHP7NmCWa6D2hFc5kjBuGHREzZ3'),
@@ -282,6 +284,7 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
   {
     cluster: 'devnet',
     kamino: {
+      programId: new PublicKey('E6qbhrt4pFmCotNUSSEh6E5cRQCEJpMcd79Z56EG9KY'),
       mints: {
         usdt: new PublicKey('AcU8CfJiLEBn1x7Cgx8atX6DdebmdQtNSsJBkQyf6Q4L'),
         usdh: new PublicKey('kfZGSThBdZbZY6cDSHP7NmCWa6D2hFc5kjBuGHREzZ3'),
@@ -454,6 +457,7 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
   {
     cluster: 'localnet',
     kamino: {
+      programId: new PublicKey('E6qbhrt4pFmCotNUSSEh6E5cRQCEJpMcd79Z56EG9KY'),
       mints: {
         usdt: new PublicKey('AcU8CfJiLEBn1x7Cgx8atX6DdebmdQtNSsJBkQyf6Q4L'),
         usdh: new PublicKey('kfZGSThBdZbZY6cDSHP7NmCWa6D2hFc5kjBuGHREzZ3'),
