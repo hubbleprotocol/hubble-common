@@ -14,4 +14,5 @@ export type KaminoConfig = {
     usdhUsdc: PublicKey;
     usdhUsdt: PublicKey;
   };
+  programId: PublicKey;
 };
