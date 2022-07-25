@@ -1,6 +1,6 @@
 import { getConfigByCluster, HubbleConfig, SolanaCluster } from '@hubbleprotocol/hubble-config';
 import { Connection } from '@solana/web3.js';
-import { setProgramId } from './programId';
+import { setKaminoProgramId } from './kamino-client/programId';
 
 export class Kamino {
   private readonly _cluster: SolanaCluster;
@@ -16,8 +16,7 @@ export class Kamino {
     this._cluster = cluster;
     this._connection = connection;
     this._config = getConfigByCluster(cluster);
-    //TODO:
-    // setProgramId(this._config.kamino.programId);
+    setKaminoProgramId(this._config.kamino.programId);
   }
 }
 
