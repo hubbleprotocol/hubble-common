@@ -12,12 +12,29 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
         stsol: new PublicKey('ESba8sT1R7WPiE3weBU1u6UqEmXRuM8Rs1LLvXayEizf'),
         msol: new PublicKey('2wMQTELEgEcK7V3gwZBH58WvGcRZsyaWNpebqyFugGKe'),
         sol: new PublicKey('So11111111111111111111111111111111111111112'),
-        solMsol: new PublicKey('7hUuLSz41MAJTASQTr6VnrRzZ5oyf2DNmLcpTHqZVyro'),
-        solStsol: new PublicKey('2MpRMgTDALUqa42DNAgqM6X8TAqRSojhvtmgM15Dei1B'),
-        usdcUsdt: new PublicKey('Fk3UsY9LtbKyqU6hwuM86Rxq3HTokDKcieJjpmbn1CRn'),
-        usdhUsdc: new PublicKey('HYszS8Y59xwAtmZZ5ja2XjLpvc8eHmmzc1craEdRzfMb'),
-        usdhUsdt: new PublicKey('6xAFTAV3V7vbWhPgmbUrSndpE85MHNu1tUyRecX9JHS7'),
       },
+      strategies: [
+        {
+          address: new PublicKey('7hUuLSz41MAJTASQTr6VnrRzZ5oyf2DNmLcpTHqZVyro'),
+          name: 'SOL - MSOL',
+        },
+        {
+          address: new PublicKey('2MpRMgTDALUqa42DNAgqM6X8TAqRSojhvtmgM15Dei1B'),
+          name: 'SOL - STSOL',
+        },
+        {
+          address: new PublicKey('Fk3UsY9LtbKyqU6hwuM86Rxq3HTokDKcieJjpmbn1CRn'),
+          name: 'USDC - USDT',
+        },
+        {
+          address: new PublicKey('HYszS8Y59xwAtmZZ5ja2XjLpvc8eHmmzc1craEdRzfMb'),
+          name: 'USDH - USDC',
+        },
+        {
+          address: new PublicKey('6xAFTAV3V7vbWhPgmbUrSndpE85MHNu1tUyRecX9JHS7'),
+          name: 'USDH - USDT',
+        },
+      ],
       programId: new PublicKey('E6qbhrt4pFmCotNUSSEh6E5cRQCEJpMcd79Z56EG9KY'),
     },
     scope: {
@@ -186,12 +203,29 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
         stsol: new PublicKey('ESba8sT1R7WPiE3weBU1u6UqEmXRuM8Rs1LLvXayEizf'),
         msol: new PublicKey('2wMQTELEgEcK7V3gwZBH58WvGcRZsyaWNpebqyFugGKe'),
         sol: new PublicKey('So11111111111111111111111111111111111111112'),
-        solMsol: new PublicKey('7hUuLSz41MAJTASQTr6VnrRzZ5oyf2DNmLcpTHqZVyro'),
-        solStsol: new PublicKey('2MpRMgTDALUqa42DNAgqM6X8TAqRSojhvtmgM15Dei1B'),
-        usdcUsdt: new PublicKey('Fk3UsY9LtbKyqU6hwuM86Rxq3HTokDKcieJjpmbn1CRn'),
-        usdhUsdc: new PublicKey('HYszS8Y59xwAtmZZ5ja2XjLpvc8eHmmzc1craEdRzfMb'),
-        usdhUsdt: new PublicKey('6xAFTAV3V7vbWhPgmbUrSndpE85MHNu1tUyRecX9JHS7'),
       },
+      strategies: [
+        {
+          address: new PublicKey('7hUuLSz41MAJTASQTr6VnrRzZ5oyf2DNmLcpTHqZVyro'),
+          name: 'SOL - MSOL',
+        },
+        {
+          address: new PublicKey('2MpRMgTDALUqa42DNAgqM6X8TAqRSojhvtmgM15Dei1B'),
+          name: 'SOL - STSOL',
+        },
+        {
+          address: new PublicKey('Fk3UsY9LtbKyqU6hwuM86Rxq3HTokDKcieJjpmbn1CRn'),
+          name: 'USDC - USDT',
+        },
+        {
+          address: new PublicKey('HYszS8Y59xwAtmZZ5ja2XjLpvc8eHmmzc1craEdRzfMb'),
+          name: 'USDH - USDC',
+        },
+        {
+          address: new PublicKey('6xAFTAV3V7vbWhPgmbUrSndpE85MHNu1tUyRecX9JHS7'),
+          name: 'USDH - USDT',
+        },
+      ],
     },
     scope: {
       oracleMappings: new PublicKey('Chpu5ZgfWX5ZzVpUx9Xvv4WPM75Xd7zPJNDPsFnCpLpk'),
@@ -292,12 +326,29 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
         stsol: new PublicKey('ESba8sT1R7WPiE3weBU1u6UqEmXRuM8Rs1LLvXayEizf'),
         msol: new PublicKey('2wMQTELEgEcK7V3gwZBH58WvGcRZsyaWNpebqyFugGKe'),
         sol: new PublicKey('So11111111111111111111111111111111111111112'),
-        solMsol: new PublicKey('7hUuLSz41MAJTASQTr6VnrRzZ5oyf2DNmLcpTHqZVyro'),
-        solStsol: new PublicKey('2MpRMgTDALUqa42DNAgqM6X8TAqRSojhvtmgM15Dei1B'),
-        usdcUsdt: new PublicKey('Fk3UsY9LtbKyqU6hwuM86Rxq3HTokDKcieJjpmbn1CRn'),
-        usdhUsdc: new PublicKey('HYszS8Y59xwAtmZZ5ja2XjLpvc8eHmmzc1craEdRzfMb'),
-        usdhUsdt: new PublicKey('6xAFTAV3V7vbWhPgmbUrSndpE85MHNu1tUyRecX9JHS7'),
       },
+      strategies: [
+        {
+          address: new PublicKey('7hUuLSz41MAJTASQTr6VnrRzZ5oyf2DNmLcpTHqZVyro'),
+          name: 'SOL - MSOL',
+        },
+        {
+          address: new PublicKey('2MpRMgTDALUqa42DNAgqM6X8TAqRSojhvtmgM15Dei1B'),
+          name: 'SOL - STSOL',
+        },
+        {
+          address: new PublicKey('Fk3UsY9LtbKyqU6hwuM86Rxq3HTokDKcieJjpmbn1CRn'),
+          name: 'USDC - USDT',
+        },
+        {
+          address: new PublicKey('HYszS8Y59xwAtmZZ5ja2XjLpvc8eHmmzc1craEdRzfMb'),
+          name: 'USDH - USDC',
+        },
+        {
+          address: new PublicKey('6xAFTAV3V7vbWhPgmbUrSndpE85MHNu1tUyRecX9JHS7'),
+          name: 'USDH - USDT',
+        },
+      ],
     },
     scope: {
       oracleMappings: new PublicKey('4PoKkcsQakSMovMWh127gviWPpA6wGyY8uZWavccXAGE'),
@@ -465,12 +516,29 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
         stsol: new PublicKey('ESba8sT1R7WPiE3weBU1u6UqEmXRuM8Rs1LLvXayEizf'),
         msol: new PublicKey('2wMQTELEgEcK7V3gwZBH58WvGcRZsyaWNpebqyFugGKe'),
         sol: new PublicKey('So11111111111111111111111111111111111111112'),
-        solMsol: new PublicKey('7hUuLSz41MAJTASQTr6VnrRzZ5oyf2DNmLcpTHqZVyro'),
-        solStsol: new PublicKey('2MpRMgTDALUqa42DNAgqM6X8TAqRSojhvtmgM15Dei1B'),
-        usdcUsdt: new PublicKey('Fk3UsY9LtbKyqU6hwuM86Rxq3HTokDKcieJjpmbn1CRn'),
-        usdhUsdc: new PublicKey('HYszS8Y59xwAtmZZ5ja2XjLpvc8eHmmzc1craEdRzfMb'),
-        usdhUsdt: new PublicKey('6xAFTAV3V7vbWhPgmbUrSndpE85MHNu1tUyRecX9JHS7'),
       },
+      strategies: [
+        {
+          address: new PublicKey('7hUuLSz41MAJTASQTr6VnrRzZ5oyf2DNmLcpTHqZVyro'),
+          name: 'SOL - MSOL',
+        },
+        {
+          address: new PublicKey('2MpRMgTDALUqa42DNAgqM6X8TAqRSojhvtmgM15Dei1B'),
+          name: 'SOL - STSOL',
+        },
+        {
+          address: new PublicKey('Fk3UsY9LtbKyqU6hwuM86Rxq3HTokDKcieJjpmbn1CRn'),
+          name: 'USDC - USDT',
+        },
+        {
+          address: new PublicKey('HYszS8Y59xwAtmZZ5ja2XjLpvc8eHmmzc1craEdRzfMb'),
+          name: 'USDH - USDC',
+        },
+        {
+          address: new PublicKey('6xAFTAV3V7vbWhPgmbUrSndpE85MHNu1tUyRecX9JHS7'),
+          name: 'USDH - USDT',
+        },
+      ],
     },
     scope: {
       oracleMappings: new PublicKey('4PoKkcsQakSMovMWh127gviWPpA6wGyY8uZWavccXAGE'),

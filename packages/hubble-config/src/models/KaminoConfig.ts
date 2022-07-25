@@ -8,11 +8,12 @@ export type KaminoConfig = {
     stsol: PublicKey;
     msol: PublicKey;
     sol: PublicKey;
-    solMsol: PublicKey;
-    solStsol: PublicKey;
-    usdcUsdt: PublicKey;
-    usdhUsdc: PublicKey;
-    usdhUsdt: PublicKey;
   };
+  strategies: KaminoStrategy[];
   programId: PublicKey;
+};
+
+export type KaminoStrategy = {
+  address: PublicKey;
+  name: string;
 };
