@@ -15,27 +15,45 @@ describe('Scope SDK Tests', () => {
     expect(init).toThrow(Error);
   });
 
-  test('should get all strategies', async () => {
-    const kamino = new Kamino(cluster, connection);
-    const allStrategies = await kamino.getStrategies();
-    expect(allStrategies.length).toBeGreaterThan(0);
-    for (const strat of allStrategies) {
-      expect(strat).not.toBeNull();
-    }
-  });
+  // test('should get all strategies', async () => {
+  //   const kamino = new Kamino(cluster, connection);
+  //   const allStrategies = await kamino.getStrategies();
+  //   expect(allStrategies.length).toBeGreaterThan(0);
+  //   for (const strat of allStrategies) {
+  //     expect(strat).not.toBeNull();
+  //   }
+  // });
+  //
+  // test('should get strategy by name', async () => {
+  //   const kamino = new Kamino(cluster, connection);
+  //   const strategy = await kamino.getStrategyByName('SOL', 'MSOL');
+  //   expect(strategy).not.toBeNull();
+  // });
+  //
+  // test('should get strategy share price', async () => {
+  //   const kamino = new Kamino(cluster, connection);
+  //   const strategy = await kamino.getStrategyByName('USDH', 'USDC');
+  //   expect(strategy).not.toBeNull();
+  //   const price = await kamino.getStrategySharePrice(strategy!);
+  //   expect(price.toNumber()).toBeGreaterThanOrEqual(0);
+  // });
 
-  test('should get strategy by name', async () => {
-    const kamino = new Kamino(cluster, connection);
-    const strategy = await kamino.getStrategyByName('SOL - MSOL');
-    expect(strategy).not.toBeNull();
-  });
+  // test('should get all strategies share price', async () => {
+  //   const kamino = new Kamino(cluster, connection);
+  //   const strats = await kamino.getStrategies();
+  //   expect(strats.length).toBeGreaterThan(0);
+  //   for (const strat of strats) {
+  //     expect(strat).not.toBeNull();
+  //     const price = await kamino.getStrategySharePrice(strat!);
+  //     expect(price.toNumber()).toBeGreaterThanOrEqual(0);
+  //   }
+  // });
 
-  test('should get strategy share price', async () => {
-    const kamino = new Kamino(cluster, connection);
-    const strategy = await kamino.getStrategyByAddress(new PublicKey('AvRMXt1MM9bdyE4yrnbVYjzYWWx8sdhkXPFbmxeb3rq6'));
-    expect(strategy).not.toBeNull();
-    const price = await kamino.getStrategySharePrice(strategy!);
-    expect(price.toNumber()).toBeGreaterThan(0);
-    console.log(price);
-  });
+  // test('should get all strategy holders', async () => {
+  //   const kamino = new Kamino(cluster, connection);
+  //   const strategy = await kamino.getStrategyByName('USDH', 'USDC');
+  //   expect(strategy).not.toBeNull();
+  //   const accounts = await kamino.getStrategyHolders(strategy!);
+  //   expect(accounts.length).toBeGreaterThan(0);
+  // });
 });

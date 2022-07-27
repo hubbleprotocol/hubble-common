@@ -10,11 +10,14 @@ import { OrcaDAL } from '@orca-so/whirlpool-sdk/dist/dal/orca-dal';
 import { OrcaPosition } from '@orca-so/whirlpool-sdk/dist/position/orca-position';
 import { PROGRAM_ID_CLI as WHIRPOOL_PROGRAM_ID } from './whirpools-client/programId';
 import { Holdings, StrategyBalances, StrategyVaultBalances } from './models';
+import axios from 'axios';
+import { MultipleAccountsResponse } from './models/MultipleAccountsResponse';
+import { StrategyHolder } from './models/StrategyHolder';
 
 export class Kamino {
   private readonly _cluster: SolanaCluster;
   private readonly _connection: Connection;
-  private readonly _config: HubbleConfig;
+  readonly _config: HubbleConfig;
 
   /**
    * Create a new instance of the Kamino SDK class.
@@ -40,10 +43,12 @@ export class Kamino {
 
   /**
    * Get a Kamino whirpool strategy by its name
-   * @param name
    */
-  getStrategyByName(name: string) {
-    const strategy = this._config.kamino.strategies.find((x) => x.name.toLowerCase() === name.toLowerCase());
+  getStrategyByName(tokenA: string, tokenB: string) {
+    const strategy = this._config.kamino.strategies.find(
+      (x) =>
+        x.collateralA.toLowerCase() === tokenA.toLowerCase() && x.collateralB.toLowerCase() === tokenB.toLowerCase()
+    );
     if (strategy) {
       return WhirlpoolStrategy.fetch(this._connection, strategy.address);
     } else {
@@ -68,7 +73,7 @@ export class Kamino {
     const sharesIssued = new Decimal(strategy.sharesIssued.toString());
     const unit = Decimal.pow(10, decimalsShares);
     if (sharesIssued.isZero()) {
-      return unit;
+      return new Decimal(0);
     } else {
       const balances = await this.getStrategyBalances(strategy);
       return unit.mul(balances.computedHoldings.total_sum).div(sharesIssued);
@@ -144,16 +149,51 @@ export class Kamino {
   }
 
   /**
-   * Get all token accounts that are holding a specific Kamino whirpool strategy
+   * Get all token accounts for the specified share mint
    */
-  getStrategyTokenAccounts(strategyAddress: PublicKey) {
+  getShareTokenAccounts(shareMint: PublicKey) {
     //how to get all token accounts for specific mint: https://spl.solana.com/token#finding-all-token-accounts-for-a-specific-mint
     //get it from the hardcoded token program and create a filter with the actual mint address
     //datasize:165 filter selects all token accounts, memcmp filter selects based on the mint address withing each token account
     const tokenProgram = new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA');
     return this._connection.getParsedProgramAccounts(tokenProgram, {
-      filters: [{ dataSize: 165 }, { memcmp: { offset: 0, bytes: strategyAddress.toBase58() } }],
+      filters: [{ dataSize: 165 }, { memcmp: { offset: 0, bytes: shareMint.toBase58() } }],
     });
+  }
+
+  /**
+   * Get all token accounts that are holding a specific Kamino whirpool strategy
+   */
+  getStrategyTokenAccounts(strategy: WhirlpoolStrategy) {
+    return this.getShareTokenAccounts(strategy.sharesMint);
+  }
+
+  async getStrategyHolders(strategy: WhirlpoolStrategy): Promise<StrategyHolder[]> {
+    const tokenAccounts = await this.getStrategyTokenAccounts(strategy);
+    const response = await axios.post<MultipleAccountsResponse>(
+      this._connection.rpcEndpoint,
+      JSON.stringify({
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'getMultipleAccounts',
+        params: [[tokenAccounts.map((x) => x.pubkey.toString()).toString()], { encoding: 'jsonParsed' }],
+      }),
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    if (response.status === 200 && response.data?.result?.value) {
+      return response.data.result.value.map((x) => ({
+        holderPubkey: new PublicKey(x.data.parsed.info.owner),
+        amount: new Decimal(x.data.parsed.info.tokenAmount.uiAmountString),
+      }));
+    } else if (response.status !== 200) {
+      throw Error(`Could not get strategy holders, request http error: ${response.statusText}`);
+    } else {
+      return [];
+    }
   }
 }
 
