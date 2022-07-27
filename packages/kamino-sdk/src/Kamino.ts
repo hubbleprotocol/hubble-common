@@ -168,6 +168,10 @@ export class Kamino {
     return this.getShareTokenAccounts(strategy.sharesMint);
   }
 
+  /**
+   * Get all strategy token holders
+   * @param strategy
+   */
   async getStrategyHolders(strategy: WhirlpoolStrategy): Promise<StrategyHolder[]> {
     const tokenAccounts = await this.getStrategyTokenAccounts(strategy);
     const response = await axios.post<MultipleAccountsResponse>(
