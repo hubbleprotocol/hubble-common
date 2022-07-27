@@ -1,5 +1,5 @@
 import Decimal from 'decimal.js';
-import { TokenAmounts } from '../Kamino';
+import { TokenAmounts } from './TokenAmounts';
 
 export type Holdings = {
   available: TokenAmounts;
