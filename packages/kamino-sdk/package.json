@@ -30,12 +30,14 @@
     "@types/bn.js": "^5.1.0"
   },
   "dependencies": {
-    "@hubbleprotocol/hubble-config": "^1.0.62",
+    "@hubbleprotocol/hubble-config": "^1.0.63",
     "@project-serum/anchor": "^0.25.0",
     "@project-serum/serum": "^0.13.65",
     "@solana/buffer-layout": "^4.0.0",
     "@solana/wallet-adapter-base": "^0.9.8",
-    "bn.js": "^5.2.1"
+    "bn.js": "^5.2.1",
+    "@orca-so/whirlpool-sdk": "^0.3.0",
+    "@orca-so/whirlpool-client-sdk": "^0.0.8"
   },
   "peerDependencies": {
     "@solana/web3.js": "^1.47.3",
