@@ -15,5 +15,6 @@ export type KaminoConfig = {
 
 export type KaminoStrategy = {
   address: PublicKey;
-  name: string;
+  collateralA: string;
+  collateralB: string;
 };
