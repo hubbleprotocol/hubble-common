@@ -12,6 +12,7 @@ export interface GlobalConfigFields {
   blockCollectFees: BN
   blockCollectRewards: BN
   blockSwapRewards: BN
+  blockSwapUnevenVaults: BN
   feesBps: BN
   scopeProgramId: PublicKey
   scopePriceId: PublicKey
@@ -28,6 +29,7 @@ export interface GlobalConfigJSON {
   blockCollectFees: string
   blockCollectRewards: string
   blockSwapRewards: string
+  blockSwapUnevenVaults: string
   feesBps: string
   scopeProgramId: string
   scopePriceId: string
@@ -44,6 +46,7 @@ export class GlobalConfig {
   readonly blockCollectFees: BN
   readonly blockCollectRewards: BN
   readonly blockSwapRewards: BN
+  readonly blockSwapUnevenVaults: BN
   readonly feesBps: BN
   readonly scopeProgramId: PublicKey
   readonly scopePriceId: PublicKey
@@ -63,6 +66,7 @@ export class GlobalConfig {
     borsh.u64("blockCollectFees"),
     borsh.u64("blockCollectRewards"),
     borsh.u64("blockSwapRewards"),
+    borsh.u64("blockSwapUnevenVaults"),
     borsh.u64("feesBps"),
     borsh.publicKey("scopeProgramId"),
     borsh.publicKey("scopePriceId"),
@@ -79,6 +83,7 @@ export class GlobalConfig {
     this.blockCollectFees = fields.blockCollectFees
     this.blockCollectRewards = fields.blockCollectRewards
     this.blockSwapRewards = fields.blockSwapRewards
+    this.blockSwapUnevenVaults = fields.blockSwapUnevenVaults
     this.feesBps = fields.feesBps
     this.scopeProgramId = fields.scopeProgramId
     this.scopePriceId = fields.scopePriceId
@@ -136,6 +141,7 @@ export class GlobalConfig {
       blockCollectFees: dec.blockCollectFees,
       blockCollectRewards: dec.blockCollectRewards,
       blockSwapRewards: dec.blockSwapRewards,
+      blockSwapUnevenVaults: dec.blockSwapUnevenVaults,
       feesBps: dec.feesBps,
       scopeProgramId: dec.scopeProgramId,
       scopePriceId: dec.scopePriceId,
@@ -154,6 +160,7 @@ export class GlobalConfig {
       blockCollectFees: this.blockCollectFees.toString(),
       blockCollectRewards: this.blockCollectRewards.toString(),
       blockSwapRewards: this.blockSwapRewards.toString(),
+      blockSwapUnevenVaults: this.blockSwapUnevenVaults.toString(),
       feesBps: this.feesBps.toString(),
       scopeProgramId: this.scopeProgramId.toString(),
       scopePriceId: this.scopePriceId.toString(),
@@ -174,6 +181,7 @@ export class GlobalConfig {
       blockCollectFees: new BN(obj.blockCollectFees),
       blockCollectRewards: new BN(obj.blockCollectRewards),
       blockSwapRewards: new BN(obj.blockSwapRewards),
+      blockSwapUnevenVaults: new BN(obj.blockSwapUnevenVaults),
       feesBps: new BN(obj.feesBps),
       scopeProgramId: new PublicKey(obj.scopeProgramId),
       scopePriceId: new PublicKey(obj.scopePriceId),

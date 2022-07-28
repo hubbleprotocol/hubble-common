@@ -187,6 +187,75 @@ export class USDT {
   }
 }
 
+export interface ORCAJSON {
+  kind: "ORCA"
+}
+
+export class ORCA {
+  static readonly discriminator = 8
+  static readonly kind = "ORCA"
+  readonly discriminator = 8
+  readonly kind = "ORCA"
+
+  toJSON(): ORCAJSON {
+    return {
+      kind: "ORCA",
+    }
+  }
+
+  toEncodable() {
+    return {
+      ORCA: {},
+    }
+  }
+}
+
+export interface MNDEJSON {
+  kind: "MNDE"
+}
+
+export class MNDE {
+  static readonly discriminator = 9
+  static readonly kind = "MNDE"
+  readonly discriminator = 9
+  readonly kind = "MNDE"
+
+  toJSON(): MNDEJSON {
+    return {
+      kind: "MNDE",
+    }
+  }
+
+  toEncodable() {
+    return {
+      MNDE: {},
+    }
+  }
+}
+
+export interface HBBJSON {
+  kind: "HBB"
+}
+
+export class HBB {
+  static readonly discriminator = 10
+  static readonly kind = "HBB"
+  readonly discriminator = 10
+  readonly kind = "HBB"
+
+  toJSON(): HBBJSON {
+    return {
+      kind: "HBB",
+    }
+  }
+
+  toEncodable() {
+    return {
+      HBB: {},
+    }
+  }
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function fromDecoded(obj: any): types.CollateralTokenKind {
   if (typeof obj !== "object") {
@@ -216,6 +285,15 @@ export function fromDecoded(obj: any): types.CollateralTokenKind {
   }
   if ("USDT" in obj) {
     return new USDT()
+  }
+  if ("ORCA" in obj) {
+    return new ORCA()
+  }
+  if ("MNDE" in obj) {
+    return new MNDE()
+  }
+  if ("HBB" in obj) {
+    return new HBB()
   }
 
   throw new Error("Invalid enum object")
@@ -249,6 +327,15 @@ export function fromJSON(
     case "USDT": {
       return new USDT()
     }
+    case "ORCA": {
+      return new ORCA()
+    }
+    case "MNDE": {
+      return new MNDE()
+    }
+    case "HBB": {
+      return new HBB()
+    }
   }
 }
 
@@ -262,6 +349,9 @@ export function layout(property?: string) {
     borsh.struct([], "MSOL"),
     borsh.struct([], "STSOL"),
     borsh.struct([], "USDT"),
+    borsh.struct([], "ORCA"),
+    borsh.struct([], "MNDE"),
+    borsh.struct([], "HBB"),
   ])
   if (property !== undefined) {
     return ret.replicate(property)

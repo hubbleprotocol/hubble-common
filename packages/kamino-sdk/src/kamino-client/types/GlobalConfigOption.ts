@@ -164,14 +164,37 @@ export class BlockSwapRewards {
   }
 }
 
+export interface BlockSwapUnevenVaultsJSON {
+  kind: "BlockSwapUnevenVaults"
+}
+
+export class BlockSwapUnevenVaults {
+  static readonly discriminator = 7
+  static readonly kind = "BlockSwapUnevenVaults"
+  readonly discriminator = 7
+  readonly kind = "BlockSwapUnevenVaults"
+
+  toJSON(): BlockSwapUnevenVaultsJSON {
+    return {
+      kind: "BlockSwapUnevenVaults",
+    }
+  }
+
+  toEncodable() {
+    return {
+      BlockSwapUnevenVaults: {},
+    }
+  }
+}
+
 export interface FeesBpsJSON {
   kind: "FeesBps"
 }
 
 export class FeesBps {
-  static readonly discriminator = 7
+  static readonly discriminator = 8
   static readonly kind = "FeesBps"
-  readonly discriminator = 7
+  readonly discriminator = 8
   readonly kind = "FeesBps"
 
   toJSON(): FeesBpsJSON {
@@ -192,9 +215,9 @@ export interface SwapDiscountBpsJSON {
 }
 
 export class SwapDiscountBps {
-  static readonly discriminator = 8
+  static readonly discriminator = 9
   static readonly kind = "SwapDiscountBps"
-  readonly discriminator = 8
+  readonly discriminator = 9
   readonly kind = "SwapDiscountBps"
 
   toJSON(): SwapDiscountBpsJSON {
@@ -215,9 +238,9 @@ export interface ScopeProgramIdJSON {
 }
 
 export class ScopeProgramId {
-  static readonly discriminator = 9
+  static readonly discriminator = 10
   static readonly kind = "ScopeProgramId"
-  readonly discriminator = 9
+  readonly discriminator = 10
   readonly kind = "ScopeProgramId"
 
   toJSON(): ScopeProgramIdJSON {
@@ -238,9 +261,9 @@ export interface ScopePriceIdJSON {
 }
 
 export class ScopePriceId {
-  static readonly discriminator = 10
+  static readonly discriminator = 11
   static readonly kind = "ScopePriceId"
-  readonly discriminator = 10
+  readonly discriminator = 11
   readonly kind = "ScopePriceId"
 
   toJSON(): ScopePriceIdJSON {
@@ -283,6 +306,9 @@ export function fromDecoded(obj: any): types.GlobalConfigOptionKind {
   if ("BlockSwapRewards" in obj) {
     return new BlockSwapRewards()
   }
+  if ("BlockSwapUnevenVaults" in obj) {
+    return new BlockSwapUnevenVaults()
+  }
   if ("FeesBps" in obj) {
     return new FeesBps()
   }
@@ -324,6 +350,9 @@ export function fromJSON(
     case "BlockSwapRewards": {
       return new BlockSwapRewards()
     }
+    case "BlockSwapUnevenVaults": {
+      return new BlockSwapUnevenVaults()
+    }
     case "FeesBps": {
       return new FeesBps()
     }
@@ -348,6 +377,7 @@ export function layout(property?: string) {
     borsh.struct([], "BlockCollectFees"),
     borsh.struct([], "BlockCollectRewards"),
     borsh.struct([], "BlockSwapRewards"),
+    borsh.struct([], "BlockSwapUnevenVaults"),
     borsh.struct([], "FeesBps"),
     borsh.struct([], "SwapDiscountBps"),
     borsh.struct([], "ScopeProgramId"),

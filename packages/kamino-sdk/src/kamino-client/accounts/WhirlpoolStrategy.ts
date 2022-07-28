@@ -53,6 +53,12 @@ export interface WhirlpoolStrategyFields {
   reward2CollateralId: BN
   reward2Decimals: BN
   depositCapUsd: BN
+  feesACumulative: BN
+  feesBCumulative: BN
+  reward0AmountCumulative: BN
+  reward1AmountCumulative: BN
+  reward2AmountCumulative: BN
+  padding0: BN
   padding1: Array<BN>
   padding2: Array<BN>
   padding3: Array<BN>
@@ -107,6 +113,12 @@ export interface WhirlpoolStrategyJSON {
   reward2CollateralId: string
   reward2Decimals: string
   depositCapUsd: string
+  feesACumulative: string
+  feesBCumulative: string
+  reward0AmountCumulative: string
+  reward1AmountCumulative: string
+  reward2AmountCumulative: string
+  padding0: string
   padding1: Array<string>
   padding2: Array<string>
   padding3: Array<string>
@@ -161,6 +173,12 @@ export class WhirlpoolStrategy {
   readonly reward2CollateralId: BN
   readonly reward2Decimals: BN
   readonly depositCapUsd: BN
+  readonly feesACumulative: BN
+  readonly feesBCumulative: BN
+  readonly reward0AmountCumulative: BN
+  readonly reward1AmountCumulative: BN
+  readonly reward2AmountCumulative: BN
+  readonly padding0: BN
   readonly padding1: Array<BN>
   readonly padding2: Array<BN>
   readonly padding3: Array<BN>
@@ -218,7 +236,13 @@ export class WhirlpoolStrategy {
     borsh.u64("reward2CollateralId"),
     borsh.u64("reward2Decimals"),
     borsh.u64("depositCapUsd"),
-    borsh.array(borsh.u128(), 32, "padding1"),
+    borsh.u64("feesACumulative"),
+    borsh.u64("feesBCumulative"),
+    borsh.u64("reward0AmountCumulative"),
+    borsh.u64("reward1AmountCumulative"),
+    borsh.u64("reward2AmountCumulative"),
+    borsh.u64("padding0"),
+    borsh.array(borsh.u128(), 29, "padding1"),
     borsh.array(borsh.u128(), 32, "padding2"),
     borsh.array(borsh.u128(), 32, "padding3"),
   ])
@@ -272,6 +296,12 @@ export class WhirlpoolStrategy {
     this.reward2CollateralId = fields.reward2CollateralId
     this.reward2Decimals = fields.reward2Decimals
     this.depositCapUsd = fields.depositCapUsd
+    this.feesACumulative = fields.feesACumulative
+    this.feesBCumulative = fields.feesBCumulative
+    this.reward0AmountCumulative = fields.reward0AmountCumulative
+    this.reward1AmountCumulative = fields.reward1AmountCumulative
+    this.reward2AmountCumulative = fields.reward2AmountCumulative
+    this.padding0 = fields.padding0
     this.padding1 = fields.padding1
     this.padding2 = fields.padding2
     this.padding3 = fields.padding3
@@ -367,6 +397,12 @@ export class WhirlpoolStrategy {
       reward2CollateralId: dec.reward2CollateralId,
       reward2Decimals: dec.reward2Decimals,
       depositCapUsd: dec.depositCapUsd,
+      feesACumulative: dec.feesACumulative,
+      feesBCumulative: dec.feesBCumulative,
+      reward0AmountCumulative: dec.reward0AmountCumulative,
+      reward1AmountCumulative: dec.reward1AmountCumulative,
+      reward2AmountCumulative: dec.reward2AmountCumulative,
+      padding0: dec.padding0,
       padding1: dec.padding1,
       padding2: dec.padding2,
       padding3: dec.padding3,
@@ -423,6 +459,12 @@ export class WhirlpoolStrategy {
       reward2CollateralId: this.reward2CollateralId.toString(),
       reward2Decimals: this.reward2Decimals.toString(),
       depositCapUsd: this.depositCapUsd.toString(),
+      feesACumulative: this.feesACumulative.toString(),
+      feesBCumulative: this.feesBCumulative.toString(),
+      reward0AmountCumulative: this.reward0AmountCumulative.toString(),
+      reward1AmountCumulative: this.reward1AmountCumulative.toString(),
+      reward2AmountCumulative: this.reward2AmountCumulative.toString(),
+      padding0: this.padding0.toString(),
       padding1: this.padding1.map((item) => item.toString()),
       padding2: this.padding2.map((item) => item.toString()),
       padding3: this.padding3.map((item) => item.toString()),
@@ -479,6 +521,12 @@ export class WhirlpoolStrategy {
       reward2CollateralId: new BN(obj.reward2CollateralId),
       reward2Decimals: new BN(obj.reward2Decimals),
       depositCapUsd: new BN(obj.depositCapUsd),
+      feesACumulative: new BN(obj.feesACumulative),
+      feesBCumulative: new BN(obj.feesBCumulative),
+      reward0AmountCumulative: new BN(obj.reward0AmountCumulative),
+      reward1AmountCumulative: new BN(obj.reward1AmountCumulative),
+      reward2AmountCumulative: new BN(obj.reward2AmountCumulative),
+      padding0: new BN(obj.padding0),
       padding1: obj.padding1.map((item) => new BN(item)),
       padding2: obj.padding2.map((item) => new BN(item)),
       padding3: obj.padding3.map((item) => new BN(item)),

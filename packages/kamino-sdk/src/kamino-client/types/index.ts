@@ -65,6 +65,8 @@ export type VaultErrorKind =
   | VaultError.CouldNotDeserializeScope
   | VaultError.WrongCollateralID
   | VaultError.CollateralTokensExceedDepositCap
+  | VaultError.SwapUnevenVaultsBlocked
+  | VaultError.VaultsAreAlreadyBalanced
 export type VaultErrorJSON =
   | VaultError.IntegerOverflowJSON
   | VaultError.OperationForbiddenJSON
@@ -108,6 +110,8 @@ export type VaultErrorJSON =
   | VaultError.CouldNotDeserializeScopeJSON
   | VaultError.WrongCollateralIDJSON
   | VaultError.CollateralTokensExceedDepositCapJSON
+  | VaultError.SwapUnevenVaultsBlockedJSON
+  | VaultError.VaultsAreAlreadyBalancedJSON
 
 export { LiquidityCalculationMode }
 
@@ -143,6 +147,10 @@ export type ScopePriceIdKind =
   | ScopePriceId.LDO
   | ScopePriceId.USDC
   | ScopePriceId.CUSDC_USDC
+  | ScopePriceId.USDT
+  | ScopePriceId.ORCA
+  | ScopePriceId.MNDE
+  | ScopePriceId.HBB
 export type ScopePriceIdJSON =
   | ScopePriceId.SOLJSON
   | ScopePriceId.ETHJSON
@@ -166,6 +174,10 @@ export type ScopePriceIdJSON =
   | ScopePriceId.LDOJSON
   | ScopePriceId.USDCJSON
   | ScopePriceId.CUSDC_USDCJSON
+  | ScopePriceId.USDTJSON
+  | ScopePriceId.ORCAJSON
+  | ScopePriceId.MNDEJSON
+  | ScopePriceId.HBBJSON
 
 export { CollateralToken }
 
@@ -178,6 +190,9 @@ export type CollateralTokenKind =
   | CollateralToken.MSOL
   | CollateralToken.STSOL
   | CollateralToken.USDT
+  | CollateralToken.ORCA
+  | CollateralToken.MNDE
+  | CollateralToken.HBB
 export type CollateralTokenJSON =
   | CollateralToken.USDCJSON
   | CollateralToken.USDHJSON
@@ -187,6 +202,9 @@ export type CollateralTokenJSON =
   | CollateralToken.MSOLJSON
   | CollateralToken.STSOLJSON
   | CollateralToken.USDTJSON
+  | CollateralToken.ORCAJSON
+  | CollateralToken.MNDEJSON
+  | CollateralToken.HBBJSON
 
 export { GlobalConfigOption }
 
@@ -198,6 +216,7 @@ export type GlobalConfigOptionKind =
   | GlobalConfigOption.BlockCollectFees
   | GlobalConfigOption.BlockCollectRewards
   | GlobalConfigOption.BlockSwapRewards
+  | GlobalConfigOption.BlockSwapUnevenVaults
   | GlobalConfigOption.FeesBps
   | GlobalConfigOption.SwapDiscountBps
   | GlobalConfigOption.ScopeProgramId
@@ -210,6 +229,7 @@ export type GlobalConfigOptionJSON =
   | GlobalConfigOption.BlockCollectFeesJSON
   | GlobalConfigOption.BlockCollectRewardsJSON
   | GlobalConfigOption.BlockSwapRewardsJSON
+  | GlobalConfigOption.BlockSwapUnevenVaultsJSON
   | GlobalConfigOption.FeesBpsJSON
   | GlobalConfigOption.SwapDiscountBpsJSON
   | GlobalConfigOption.ScopeProgramIdJSON

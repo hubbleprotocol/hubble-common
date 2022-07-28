@@ -509,6 +509,98 @@ export class CUSDC_USDC {
   }
 }
 
+export interface USDTJSON {
+  kind: "USDT"
+}
+
+export class USDT {
+  static readonly discriminator = 22
+  static readonly kind = "USDT"
+  readonly discriminator = 22
+  readonly kind = "USDT"
+
+  toJSON(): USDTJSON {
+    return {
+      kind: "USDT",
+    }
+  }
+
+  toEncodable() {
+    return {
+      USDT: {},
+    }
+  }
+}
+
+export interface ORCAJSON {
+  kind: "ORCA"
+}
+
+export class ORCA {
+  static readonly discriminator = 23
+  static readonly kind = "ORCA"
+  readonly discriminator = 23
+  readonly kind = "ORCA"
+
+  toJSON(): ORCAJSON {
+    return {
+      kind: "ORCA",
+    }
+  }
+
+  toEncodable() {
+    return {
+      ORCA: {},
+    }
+  }
+}
+
+export interface MNDEJSON {
+  kind: "MNDE"
+}
+
+export class MNDE {
+  static readonly discriminator = 24
+  static readonly kind = "MNDE"
+  readonly discriminator = 24
+  readonly kind = "MNDE"
+
+  toJSON(): MNDEJSON {
+    return {
+      kind: "MNDE",
+    }
+  }
+
+  toEncodable() {
+    return {
+      MNDE: {},
+    }
+  }
+}
+
+export interface HBBJSON {
+  kind: "HBB"
+}
+
+export class HBB {
+  static readonly discriminator = 25
+  static readonly kind = "HBB"
+  readonly discriminator = 25
+  readonly kind = "HBB"
+
+  toJSON(): HBBJSON {
+    return {
+      kind: "HBB",
+    }
+  }
+
+  toEncodable() {
+    return {
+      HBB: {},
+    }
+  }
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function fromDecoded(obj: any): types.ScopePriceIdKind {
   if (typeof obj !== "object") {
@@ -580,6 +672,18 @@ export function fromDecoded(obj: any): types.ScopePriceIdKind {
   }
   if ("CUSDC_USDC" in obj) {
     return new CUSDC_USDC()
+  }
+  if ("USDT" in obj) {
+    return new USDT()
+  }
+  if ("ORCA" in obj) {
+    return new ORCA()
+  }
+  if ("MNDE" in obj) {
+    return new MNDE()
+  }
+  if ("HBB" in obj) {
+    return new HBB()
   }
 
   throw new Error("Invalid enum object")
@@ -653,6 +757,18 @@ export function fromJSON(obj: types.ScopePriceIdJSON): types.ScopePriceIdKind {
     case "CUSDC_USDC": {
       return new CUSDC_USDC()
     }
+    case "USDT": {
+      return new USDT()
+    }
+    case "ORCA": {
+      return new ORCA()
+    }
+    case "MNDE": {
+      return new MNDE()
+    }
+    case "HBB": {
+      return new HBB()
+    }
   }
 }
 
@@ -680,6 +796,10 @@ export function layout(property?: string) {
     borsh.struct([], "LDO"),
     borsh.struct([], "USDC"),
     borsh.struct([], "CUSDC_USDC"),
+    borsh.struct([], "USDT"),
+    borsh.struct([], "ORCA"),
+    borsh.struct([], "MNDE"),
+    borsh.struct([], "HBB"),
   ])
   if (property !== undefined) {
     return ret.replicate(property)

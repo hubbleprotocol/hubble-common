@@ -969,6 +969,52 @@ export class CollateralTokensExceedDepositCap {
   }
 }
 
+export interface SwapUnevenVaultsBlockedJSON {
+  kind: "SwapUnevenVaultsBlocked"
+}
+
+export class SwapUnevenVaultsBlocked {
+  static readonly discriminator = 42
+  static readonly kind = "SwapUnevenVaultsBlocked"
+  readonly discriminator = 42
+  readonly kind = "SwapUnevenVaultsBlocked"
+
+  toJSON(): SwapUnevenVaultsBlockedJSON {
+    return {
+      kind: "SwapUnevenVaultsBlocked",
+    }
+  }
+
+  toEncodable() {
+    return {
+      SwapUnevenVaultsBlocked: {},
+    }
+  }
+}
+
+export interface VaultsAreAlreadyBalancedJSON {
+  kind: "VaultsAreAlreadyBalanced"
+}
+
+export class VaultsAreAlreadyBalanced {
+  static readonly discriminator = 43
+  static readonly kind = "VaultsAreAlreadyBalanced"
+  readonly discriminator = 43
+  readonly kind = "VaultsAreAlreadyBalanced"
+
+  toJSON(): VaultsAreAlreadyBalancedJSON {
+    return {
+      kind: "VaultsAreAlreadyBalanced",
+    }
+  }
+
+  toEncodable() {
+    return {
+      VaultsAreAlreadyBalanced: {},
+    }
+  }
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function fromDecoded(obj: any): types.VaultErrorKind {
   if (typeof obj !== "object") {
@@ -1100,6 +1146,12 @@ export function fromDecoded(obj: any): types.VaultErrorKind {
   }
   if ("CollateralTokensExceedDepositCap" in obj) {
     return new CollateralTokensExceedDepositCap()
+  }
+  if ("SwapUnevenVaultsBlocked" in obj) {
+    return new SwapUnevenVaultsBlocked()
+  }
+  if ("VaultsAreAlreadyBalanced" in obj) {
+    return new VaultsAreAlreadyBalanced()
   }
 
   throw new Error("Invalid enum object")
@@ -1233,6 +1285,12 @@ export function fromJSON(obj: types.VaultErrorJSON): types.VaultErrorKind {
     case "CollateralTokensExceedDepositCap": {
       return new CollateralTokensExceedDepositCap()
     }
+    case "SwapUnevenVaultsBlocked": {
+      return new SwapUnevenVaultsBlocked()
+    }
+    case "VaultsAreAlreadyBalanced": {
+      return new VaultsAreAlreadyBalanced()
+    }
   }
 }
 
@@ -1280,6 +1338,8 @@ export function layout(property?: string) {
     borsh.struct([], "CouldNotDeserializeScope"),
     borsh.struct([], "WrongCollateralID"),
     borsh.struct([], "CollateralTokensExceedDepositCap"),
+    borsh.struct([], "SwapUnevenVaultsBlocked"),
+    borsh.struct([], "VaultsAreAlreadyBalanced"),
   ])
   if (property !== undefined) {
     return ret.replicate(property)

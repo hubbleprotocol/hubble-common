@@ -8,7 +8,7 @@ import { getMintDecimals } from '@project-serum/serum/lib/market';
 import { Percentage, RemoveLiquidityQuote, RemoveLiquidityQuoteParam } from '@orca-so/whirlpool-sdk';
 import { OrcaDAL } from '@orca-so/whirlpool-sdk/dist/dal/orca-dal';
 import { OrcaPosition } from '@orca-so/whirlpool-sdk/dist/position/orca-position';
-import { PROGRAM_ID_CLI as WHIRPOOL_PROGRAM_ID } from './whirpools-client/programId';
+import { PROGRAM_ID_CLI as WHIRLPOOL_PROGRAM_ID } from './whirpools-client/programId';
 import { Holdings, StrategyBalances, StrategyVaultBalances } from './models';
 import axios from 'axios';
 import { MultipleAccountsResponse } from './models/MultipleAccountsResponse';
@@ -32,7 +32,7 @@ export class Kamino {
   }
 
   /**
-   * Return a list of all Kamino whirpool strategies
+   * Return a list of all Kamino whirlpool strategies
    */
   getStrategies() {
     return WhirlpoolStrategy.fetchMultiple(
@@ -42,7 +42,7 @@ export class Kamino {
   }
 
   /**
-   * Get a Kamino whirpool strategy by its name
+   * Get a Kamino whirlpool strategy by its name
    */
   getStrategyByName(tokenA: string, tokenB: string) {
     const strategy = this._config.kamino.strategies.find(
@@ -52,12 +52,12 @@ export class Kamino {
     if (strategy) {
       return WhirlpoolStrategy.fetch(this._connection, strategy.address);
     } else {
-      throw new Error(`Could not find strategy with name: ${name}`);
+      throw new Error(`Could not find strategy: ${tokenA}-${tokenB}`);
     }
   }
 
   /**
-   * Get a Kamino whirpool strategy by its public key address
+   * Get a Kamino whirlpool strategy by its public key address
    * @param address
    */
   getStrategyByAddress(address: PublicKey) {
@@ -65,7 +65,7 @@ export class Kamino {
   }
 
   /**
-   * Get the share price of the specified Kamino whirpool strategy
+   * Get the share price of the specified Kamino whirlpool strategy
    * @param strategy
    */
   async getStrategySharePrice(strategy: WhirlpoolStrategy) {
@@ -73,7 +73,7 @@ export class Kamino {
     const sharesIssued = new Decimal(strategy.sharesIssued.toString());
     const unit = Decimal.pow(10, decimalsShares);
     if (sharesIssued.isZero()) {
-      return new Decimal(0);
+      return new Decimal(1);
     } else {
       const balances = await this.getStrategyBalances(strategy);
       return unit.mul(balances.computedHoldings.total_sum).div(sharesIssued);
@@ -89,18 +89,18 @@ export class Kamino {
   }
 
   private async getStrategyBalances(strategy: WhirlpoolStrategy) {
-    const whirpool = await Whirlpool.fetch(this._connection, strategy.whirlpool);
+    const whirlpool = await Whirlpool.fetch(this._connection, strategy.whirlpool);
     const position = await Position.fetch(this._connection, strategy.position);
 
     if (!position) {
       throw new Error(`Position ${strategy.position.toString()} could not be found.`);
     }
-    if (!whirpool) {
-      throw new Error(`Whirpool ${strategy.whirlpool.toString()} could not be found.`);
+    if (!whirlpool) {
+      throw new Error(`Whirlpool ${strategy.whirlpool.toString()} could not be found.`);
     }
 
-    const decimalsA = await getMintDecimals(this._connection, whirpool.tokenMintA);
-    const decimalsB = await getMintDecimals(this._connection, whirpool.tokenMintB);
+    const decimalsA = await getMintDecimals(this._connection, whirlpool.tokenMintA);
+    const decimalsB = await getMintDecimals(this._connection, whirlpool.tokenMintB);
 
     const aAvailable = new Decimal(strategy.tokenAAmounts.toString()).div(Decimal.pow(10, decimalsA));
     const bAvailable = new Decimal(strategy.tokenBAmounts.toString()).div(Decimal.pow(10, decimalsB));
@@ -109,7 +109,7 @@ export class Kamino {
     const bVault = await this.getTokenAccountBalance(strategy.tokenBVault);
 
     // 2. Calc given Max B (3 tokens) - what is max a, max b, etc
-    const accessor = new OrcaDAL(whirpool.whirlpoolsConfig, WHIRPOOL_PROGRAM_ID, this._connection);
+    const accessor = new OrcaDAL(whirlpool.whirlpoolsConfig, WHIRLPOOL_PROGRAM_ID, this._connection);
     const orcaPosition = new OrcaPosition(accessor);
     const params: RemoveLiquidityQuoteParam = {
       positionAddress: strategy.position,
@@ -162,7 +162,7 @@ export class Kamino {
   }
 
   /**
-   * Get all token accounts that are holding a specific Kamino whirpool strategy
+   * Get all token accounts that are holding a specific Kamino whirlpool strategy
    */
   getStrategyTokenAccounts(strategy: WhirlpoolStrategy) {
     return this.getShareTokenAccounts(strategy.sharesMint);
@@ -194,7 +194,7 @@ export class Kamino {
         amount: new Decimal(x.data.parsed.info.tokenAmount.uiAmountString),
       }));
     } else if (response.status !== 200) {
-      throw Error(`Could not get strategy holders, request http error: ${response.statusText}`);
+      throw Error(`Could not get strategy holders, request error: ${response.status} - ${response.statusText}`);
     } else {
       return [];
     }
