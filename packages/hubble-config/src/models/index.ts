@@ -5,3 +5,5 @@ export * from './SaberConfig';
 export * from './SerumMarketsConfig';
 export * from './SolanaCluster';
 export * from './VaultConfig';
+export * from './KaminoConfig';
+export * from './ScopeConfig';
