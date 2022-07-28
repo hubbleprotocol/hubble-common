@@ -12,7 +12,7 @@ export * from './UsdhEntity';
 export * from './StrategyEntity';
 export * from './ShareMintEntity';
 export * from './ShareHolderEntity';
-export * from './SharePriceEntity';
+export * from './StrategyStateEntity';
 
 export const CLUSTER_TABLE: string = 'cluster';
 export const COLLATERAL_TABLE: string = 'collateral';
@@ -28,6 +28,6 @@ export const USDH_TABLE: string = 'usdh';
 export const LIDO_USDH_DEBT_FUNCTION = 'get_lido_usdh_debt';
 export const STRATEGY_TABLE: string = 'strategy';
 export const SHARE_MINT_TABLE: string = 'share_mint';
-export const SHARE_PRICE_TABLE: string = 'share_price';
+export const STRATEGY_STATE_TABLE: string = 'strategy_state';
 export const SHARE_HOLDER_TABLE: string = 'share_holder';
 export const API_SCHEMA: string = 'api';

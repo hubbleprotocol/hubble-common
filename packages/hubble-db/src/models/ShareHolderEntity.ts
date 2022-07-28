@@ -4,7 +4,7 @@ export interface ShareHolderEntity {
   shares_amount: string;
   usd_amount: string;
   owner_id: number;
-  share_price_id: number;
+  strategy_state_id: number;
 }
 
 export default ShareHolderEntity;
