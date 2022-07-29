@@ -32,7 +32,15 @@ export type ScopePair =
   | 'USDT/USD'
   | 'ORCA/USD'
   | 'MNDE/USD'
-  | 'HBB/USD';
+  | 'HBB/USD'
+  | 'cORCA/ORCA'
+  | 'cSLND/SLND'
+  | 'cSRM/SRM'
+  | 'cRAY/RAY'
+  | 'cSRM/SRM'
+  | 'cFTT/FTT'
+  | 'cSTSOL/STSOL'
+  | 'SLND/USD';
 
 export type SupportedToken =
   | 'SOL'
@@ -61,7 +69,14 @@ export type SupportedToken =
   | 'USDT'
   | 'ORCA'
   | 'MNDE'
-  | 'HBB';
+  | 'HBB'
+  | 'cORCA'
+  | 'cSLND'
+  | 'cSRM'
+  | 'cRAY'
+  | 'cFTT'
+  | 'cSTSOL'
+  | 'SLND';
 
 export interface ScopeToken {
   /**
@@ -120,6 +135,13 @@ export class Scope {
     { id: 23, pair: 'ORCA/USD', name: 'ORCA', price: new Decimal(0) },
     { id: 24, pair: 'MNDE/USD', name: 'MNDE', price: new Decimal(0) },
     { id: 25, pair: 'HBB/USD', name: 'HBB', price: new Decimal(0) },
+    { id: 26, pair: 'cORCA/ORCA', name: 'cORCA', price: new Decimal(0), nonUsdPairId: 23 },
+    { id: 27, pair: 'cSLND/SLND', name: 'cSLND', price: new Decimal(0), nonUsdPairId: 32 },
+    { id: 28, pair: 'cSRM/SRM', name: 'cSRM', price: new Decimal(0), nonUsdPairId: 3 },
+    { id: 29, pair: 'cRAY/RAY', name: 'cRAY', price: new Decimal(0), nonUsdPairId: 4 },
+    { id: 30, pair: 'cFTT/FTT', name: 'cFTT', price: new Decimal(0), nonUsdPairId: 5 },
+    { id: 31, pair: 'cSTSOL/STSOL', name: 'cSTSOL', price: new Decimal(0), nonUsdPairId: 13 },
+    { id: 32, pair: 'SLND/USD', name: 'SLND', price: new Decimal(0) },
   ];
 
   /**
