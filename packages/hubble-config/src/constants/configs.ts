@@ -15,32 +15,32 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
       },
       strategies: [
         {
-          address: new PublicKey('2H4xebnp2M9JYgPPfUw58uUQahWF8f1YTNxwwtmdqVYV'),
+          address: new PublicKey('Cfuy5T6osdazUeLego5LFycBQebm9PP3H7VNdCndXXEN'),
           collateralA: 'USDH',
           collateralB: 'USDC',
         },
         {
-          address: new PublicKey('BEyPwuJzK4SPx254PpfAvXJ3J5bg2eWpB9ozEMgjJDEX'),
+          address: new PublicKey('DJ4tLS5q566UXJRdEREBKAg9URuNoyKZWByaUu62npHC'),
           collateralA: 'SOL',
           collateralB: 'MSOL',
         },
         {
-          address: new PublicKey('AvRMXt1MM9bdyE4yrnbVYjzYWWx8sdhkXPFbmxeb3rq6'),
+          address: new PublicKey('ByXB4xCxVhmUEmQj3Ut7byZ1Hbva1zhKjaVcv3jBMN7E'),
           collateralA: 'SOL',
           collateralB: 'STSOL',
         },
         {
-          address: new PublicKey('yT2bBMrE4AVG3BM8LHjDSr1yketzabmfp3rYimS36C9'),
+          address: new PublicKey('D6LyYoruQkw11oDqjdNifLLEd3aWkkCgTdhMvn4pvqRv'),
           collateralA: 'USDC',
           collateralB: 'USDT',
         },
         {
-          address: new PublicKey('EbRR6C3uCRwnHjvbJuuiaipvVCVLYb2ZL5B3GH4zm3FH'),
+          address: new PublicKey('98kNMp1aqWoYAaUU8m5REBAYVwhFb4aX9yoSpgq8kUFu'),
           collateralA: 'USDH',
           collateralB: 'USDT',
         },
       ],
-      programId: new PublicKey('E6qbhrt4pFmCotNUSSEh6E5cRQCEJpMcd79Z56EG9KY'),
+      programId: new PublicKey('6LtLpnUFNByNXLyCoK9wA2MykKAmQNZKBdY8s47dehDc'),
     },
     scope: {
       oracleMappings: new PublicKey('Chpu5ZgfWX5ZzVpUx9Xvv4WPM75Xd7zPJNDPsFnCpLpk'),
