@@ -25,9 +25,6 @@
     "url": "https://github.com/hubbleprotocol/hubble-common/issues"
   },
   "homepage": "https://github.com/hubbleprotocol/hubble-common/blob/master/packages/hubble-config",
-  "dependencies": {
-    "@hubbleprotocol/scope-sdk": "^1.0.72"
-  },
   "peerDependencies": {
     "@solana/web3.js": "^1.47.3"
   },

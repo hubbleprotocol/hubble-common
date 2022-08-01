@@ -1,5 +1,4 @@
 import { PublicKey } from '@solana/web3.js';
-import { SupportedToken } from '@hubbleprotocol/scope-sdk';
 
 export type KaminoConfig = {
   mints: CollateralMint[];
@@ -9,7 +8,7 @@ export type KaminoConfig = {
 
 export type CollateralMint = {
   address: PublicKey;
-  scopeToken: SupportedToken;
+  scopeToken: string;
 };
 
 export type KaminoStrategy = {
