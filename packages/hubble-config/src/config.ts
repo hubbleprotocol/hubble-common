@@ -1,7 +1,6 @@
 import { HubbleConfig, SolanaCluster } from './index';
 import { HUBBLE_CONFIGS } from './constants/configs';
 import { PublicKey } from '@solana/web3.js';
-import { SupportedToken } from '@hubbleprotocol/scope-sdk';
 
 /**
  * Get Hubble configuration for specific Solana cluster.
@@ -29,13 +28,4 @@ export const getAllConfigs = (): HubbleConfig[] => {
  */
 export const getCollateralMintByAddress = (address: PublicKey, config: HubbleConfig) => {
   return config.kamino.mints.find((x) => x.address.toBase58() === address.toBase58());
-};
-
-/**
- * Get collateral mint from Kamino config by Scope name
- * @param tokenName
- * @param config
- */
-export const getCollateralMintByName = (tokenName: SupportedToken, config: HubbleConfig) => {
-  return config.kamino.mints.find((x) => x.scopeToken === tokenName);
 };
