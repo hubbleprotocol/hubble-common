@@ -1,16 +1,14 @@
 import { PublicKey } from '@solana/web3.js';
 
 export type KaminoConfig = {
-  mints: {
-    usdt: PublicKey;
-    usdh: PublicKey;
-    usdc: PublicKey;
-    stsol: PublicKey;
-    msol: PublicKey;
-    sol: PublicKey;
-  };
+  mints: CollateralMint[];
   strategies: KaminoStrategy[];
   programId: PublicKey;
+};
+
+export type CollateralMint = {
+  address: PublicKey;
+  scopeToken: string;
 };
 
 export type KaminoStrategy = {

@@ -5,14 +5,14 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
   {
     cluster: 'mainnet-beta',
     kamino: {
-      mints: {
-        usdt: new PublicKey('AcU8CfJiLEBn1x7Cgx8atX6DdebmdQtNSsJBkQyf6Q4L'),
-        usdh: new PublicKey('kfZGSThBdZbZY6cDSHP7NmCWa6D2hFc5kjBuGHREzZ3'),
-        usdc: new PublicKey('HEzfH7PCNSCU92zdk3iaKG4E9hQTErfgVGvqgywEvPzu'),
-        stsol: new PublicKey('ESba8sT1R7WPiE3weBU1u6UqEmXRuM8Rs1LLvXayEizf'),
-        msol: new PublicKey('2wMQTELEgEcK7V3gwZBH58WvGcRZsyaWNpebqyFugGKe'),
-        sol: new PublicKey('So11111111111111111111111111111111111111112'),
-      },
+      mints: [
+        { address: new PublicKey('Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB'), scopeToken: 'USDT' },
+        { address: new PublicKey('USDH1SM1ojwWUga67PGrgFWUHibbjqMvuMaDkRJTgkX'), scopeToken: 'USDH' },
+        { address: new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'), scopeToken: 'USDC' },
+        { address: new PublicKey('7dHbWXmci3dT8UFYWYZweBLXgycu7Y3iL6trKn1Y7ARj'), scopeToken: 'STSOL' },
+        { address: new PublicKey('mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So'), scopeToken: 'MSOL' },
+        { address: new PublicKey('So11111111111111111111111111111111111111112'), scopeToken: 'SOL' },
+      ],
       strategies: [
         {
           address: new PublicKey('Cfuy5T6osdazUeLego5LFycBQebm9PP3H7VNdCndXXEN'),
@@ -201,14 +201,14 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
     cluster: 'testnet',
     kamino: {
       programId: new PublicKey('E6qbhrt4pFmCotNUSSEh6E5cRQCEJpMcd79Z56EG9KY'),
-      mints: {
-        usdt: new PublicKey('AcU8CfJiLEBn1x7Cgx8atX6DdebmdQtNSsJBkQyf6Q4L'),
-        usdh: new PublicKey('kfZGSThBdZbZY6cDSHP7NmCWa6D2hFc5kjBuGHREzZ3'),
-        usdc: new PublicKey('HEzfH7PCNSCU92zdk3iaKG4E9hQTErfgVGvqgywEvPzu'),
-        stsol: new PublicKey('ESba8sT1R7WPiE3weBU1u6UqEmXRuM8Rs1LLvXayEizf'),
-        msol: new PublicKey('2wMQTELEgEcK7V3gwZBH58WvGcRZsyaWNpebqyFugGKe'),
-        sol: new PublicKey('So11111111111111111111111111111111111111112'),
-      },
+      mints: [
+        { address: new PublicKey('AcU8CfJiLEBn1x7Cgx8atX6DdebmdQtNSsJBkQyf6Q4L'), scopeToken: 'USDT' },
+        { address: new PublicKey('kfZGSThBdZbZY6cDSHP7NmCWa6D2hFc5kjBuGHREzZ3'), scopeToken: 'USDH' },
+        { address: new PublicKey('HEzfH7PCNSCU92zdk3iaKG4E9hQTErfgVGvqgywEvPzu'), scopeToken: 'USDC' },
+        { address: new PublicKey('ESba8sT1R7WPiE3weBU1u6UqEmXRuM8Rs1LLvXayEizf'), scopeToken: 'STSOL' },
+        { address: new PublicKey('2wMQTELEgEcK7V3gwZBH58WvGcRZsyaWNpebqyFugGKe'), scopeToken: 'MSOL' },
+        { address: new PublicKey('So11111111111111111111111111111111111111112'), scopeToken: 'SOL' },
+      ],
       strategies: [
         {
           address: new PublicKey('2H4xebnp2M9JYgPPfUw58uUQahWF8f1YTNxwwtmdqVYV'),
@@ -329,14 +329,14 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
     cluster: 'devnet',
     kamino: {
       programId: new PublicKey('E6qbhrt4pFmCotNUSSEh6E5cRQCEJpMcd79Z56EG9KY'),
-      mints: {
-        usdt: new PublicKey('AcU8CfJiLEBn1x7Cgx8atX6DdebmdQtNSsJBkQyf6Q4L'),
-        usdh: new PublicKey('kfZGSThBdZbZY6cDSHP7NmCWa6D2hFc5kjBuGHREzZ3'),
-        usdc: new PublicKey('HEzfH7PCNSCU92zdk3iaKG4E9hQTErfgVGvqgywEvPzu'),
-        stsol: new PublicKey('ESba8sT1R7WPiE3weBU1u6UqEmXRuM8Rs1LLvXayEizf'),
-        msol: new PublicKey('2wMQTELEgEcK7V3gwZBH58WvGcRZsyaWNpebqyFugGKe'),
-        sol: new PublicKey('So11111111111111111111111111111111111111112'),
-      },
+      mints: [
+        { address: new PublicKey('AcU8CfJiLEBn1x7Cgx8atX6DdebmdQtNSsJBkQyf6Q4L'), scopeToken: 'USDT' },
+        { address: new PublicKey('kfZGSThBdZbZY6cDSHP7NmCWa6D2hFc5kjBuGHREzZ3'), scopeToken: 'USDH' },
+        { address: new PublicKey('HEzfH7PCNSCU92zdk3iaKG4E9hQTErfgVGvqgywEvPzu'), scopeToken: 'USDC' },
+        { address: new PublicKey('ESba8sT1R7WPiE3weBU1u6UqEmXRuM8Rs1LLvXayEizf'), scopeToken: 'STSOL' },
+        { address: new PublicKey('2wMQTELEgEcK7V3gwZBH58WvGcRZsyaWNpebqyFugGKe'), scopeToken: 'MSOL' },
+        { address: new PublicKey('So11111111111111111111111111111111111111112'), scopeToken: 'SOL' },
+      ],
       strategies: [
         {
           address: new PublicKey('2H4xebnp2M9JYgPPfUw58uUQahWF8f1YTNxwwtmdqVYV'),
@@ -524,14 +524,14 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
     cluster: 'localnet',
     kamino: {
       programId: new PublicKey('E6qbhrt4pFmCotNUSSEh6E5cRQCEJpMcd79Z56EG9KY'),
-      mints: {
-        usdt: new PublicKey('AcU8CfJiLEBn1x7Cgx8atX6DdebmdQtNSsJBkQyf6Q4L'),
-        usdh: new PublicKey('kfZGSThBdZbZY6cDSHP7NmCWa6D2hFc5kjBuGHREzZ3'),
-        usdc: new PublicKey('HEzfH7PCNSCU92zdk3iaKG4E9hQTErfgVGvqgywEvPzu'),
-        stsol: new PublicKey('ESba8sT1R7WPiE3weBU1u6UqEmXRuM8Rs1LLvXayEizf'),
-        msol: new PublicKey('2wMQTELEgEcK7V3gwZBH58WvGcRZsyaWNpebqyFugGKe'),
-        sol: new PublicKey('So11111111111111111111111111111111111111112'),
-      },
+      mints: [
+        { address: new PublicKey('AcU8CfJiLEBn1x7Cgx8atX6DdebmdQtNSsJBkQyf6Q4L'), scopeToken: 'USDT' },
+        { address: new PublicKey('kfZGSThBdZbZY6cDSHP7NmCWa6D2hFc5kjBuGHREzZ3'), scopeToken: 'USDH' },
+        { address: new PublicKey('HEzfH7PCNSCU92zdk3iaKG4E9hQTErfgVGvqgywEvPzu'), scopeToken: 'USDC' },
+        { address: new PublicKey('ESba8sT1R7WPiE3weBU1u6UqEmXRuM8Rs1LLvXayEizf'), scopeToken: 'STSOL' },
+        { address: new PublicKey('2wMQTELEgEcK7V3gwZBH58WvGcRZsyaWNpebqyFugGKe'), scopeToken: 'MSOL' },
+        { address: new PublicKey('So11111111111111111111111111111111111111112'), scopeToken: 'SOL' },
+      ],
       strategies: [
         {
           address: new PublicKey('2H4xebnp2M9JYgPPfUw58uUQahWF8f1YTNxwwtmdqVYV'),
