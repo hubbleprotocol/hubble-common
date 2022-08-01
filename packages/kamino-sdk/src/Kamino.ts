@@ -1,4 +1,9 @@
-import { getConfigByCluster, HubbleConfig, SolanaCluster } from '@hubbleprotocol/hubble-config';
+import {
+  getCollateralMintByAddress,
+  getConfigByCluster,
+  HubbleConfig,
+  SolanaCluster,
+} from '@hubbleprotocol/hubble-config';
 import { Connection, PublicKey } from '@solana/web3.js';
 import { setKaminoProgramId } from './kamino-client/programId';
 import { WhirlpoolStrategy } from './kamino-client/accounts';
@@ -13,11 +18,13 @@ import { Holdings, StrategyBalances, StrategyVaultBalances } from './models';
 import axios from 'axios';
 import { MultipleAccountsResponse } from './models/MultipleAccountsResponse';
 import { StrategyHolder } from './models/StrategyHolder';
+import { Scope, SupportedToken } from '@hubbleprotocol/scope-sdk';
 
 export class Kamino {
   private readonly _cluster: SolanaCluster;
   private readonly _connection: Connection;
   readonly _config: HubbleConfig;
+  private readonly _scope: Scope;
 
   /**
    * Create a new instance of the Kamino SDK class.
@@ -28,6 +35,7 @@ export class Kamino {
     this._cluster = cluster;
     this._connection = connection;
     this._config = getConfigByCluster(cluster);
+    this._scope = new Scope(cluster, connection);
     setKaminoProgramId(this._config.kamino.programId);
   }
 
@@ -126,12 +134,10 @@ export class Kamino {
       a: aVault,
       b: bVault,
     };
+    const { aPrice, bPrice } = await this.getPrices(strategy);
 
-    const aPrice = new Decimal(1.0);
-    const bPrice = new Decimal(1.0);
-
-    const availableUsd = aAvailable.mul(aPrice).add(bAvailable.mul(bPrice));
-    const investedUsd = aInvested.mul(aPrice).add(bInvested.mul(bPrice));
+    const availableUsd = aAvailable.mul(aPrice.price).add(bAvailable.mul(bPrice.price));
+    const investedUsd = aInvested.mul(aPrice.price).add(bInvested.mul(bPrice.price));
 
     const computedHoldings: Holdings = {
       available: { a: aAvailable, b: bAvailable },
@@ -146,6 +152,31 @@ export class Kamino {
       vaultBalances,
     };
     return balances;
+  }
+
+  private async getPrices(strategy: WhirlpoolStrategy) {
+    const collateralMintA = getCollateralMintByAddress(strategy.tokenAMint, this._config);
+    const collateralMintB = getCollateralMintByAddress(strategy.tokenBMint, this._config);
+    if (!collateralMintA) {
+      throw Error(`Could not map token mint with scope price token (token A: ${strategy.tokenAMint.toBase58()})`);
+    }
+    if (!collateralMintB) {
+      throw Error(`Could not map token mint with scope price token (token B: ${strategy.tokenBMint.toBase58()})`);
+    }
+    const prices = await this._scope.getPrices([
+      collateralMintA.scopeToken as SupportedToken,
+      collateralMintB.scopeToken as SupportedToken,
+    ]);
+    const aPrice = prices.find((x) => x.name === collateralMintA.scopeToken);
+    const bPrice = prices.find((x) => x.name === collateralMintB.scopeToken);
+
+    if (!aPrice) {
+      throw Error(`Could not get token price from scope for ${collateralMintA.scopeToken}`);
+    }
+    if (!bPrice) {
+      throw Error(`Could not get token price from scope for ${collateralMintB.scopeToken}`);
+    }
+    return { aPrice, bPrice };
   }
 
   /**
