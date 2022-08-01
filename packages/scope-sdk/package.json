@@ -3,7 +3,7 @@
   "description": "Scope Oracle SDK",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "version": "1.0.71",
+  "version": "1.0.72",
   "scripts": {
     "build": "tsc",
     "build:watch": "tsc -w"
@@ -30,7 +30,7 @@
     "@types/bn.js": "^5.1.0"
   },
   "dependencies": {
-    "@hubbleprotocol/hubble-config": "^1.0.71",
+    "@hubbleprotocol/hubble-config": "^1.0.72",
     "@project-serum/anchor": "^0.25.0",
     "@project-serum/serum": "^0.13.65",
     "@solana/buffer-layout": "^4.0.0",
