@@ -12,6 +12,8 @@ import {
   STABLECOIN_DECIMALS,
   EPOCH_TO_SCALE_TO_SUM_TOKENS,
   HBB_DECIMALS,
+  ExtraCollateralMap,
+  getExtraCollateralTokenById,
 } from '../constants';
 import { BN } from '@project-serum/anchor';
 import Decimal from 'decimal.js';
@@ -19,7 +21,7 @@ import StabilityPoolState from '../models/StabilityPoolState';
 import StabilityProviderState from '../models/StabilityProviderState';
 import UserMetadata from '../models/UserMetadata';
 import BorrowingMarketState from '../models/BorrowingMarketState';
-import { StabilityTokenMap } from '../models';
+import { ExtraCollateralAmount, StabilityTokenMap } from '../models';
 
 /**
  * Divide all collateral amounts to convert from lamports to decimals
@@ -33,7 +35,14 @@ export const lamportsToDecimal = (collateral: CollateralAmounts): CollateralAmou
     ftt: collateral.ftt.div(DECIMALS_FTT),
     eth: collateral.eth.div(DECIMALS_ETH),
     srm: collateral.srm.div(DECIMALS_SRM),
-    extraCollaterals: [], //todo
+    extraCollaterals: collateral.extraCollaterals
+      .filter((x) => ExtraCollateralMap.some((y) => x.tokenId.eq(y.id)))
+      .map((coll) => {
+        return {
+          amount: convertTokenLamportsToDecimal(coll.amount, getExtraCollateralTokenById(coll.tokenId).name),
+          tokenId: coll.tokenId,
+        };
+      }),
   };
 };
 
@@ -100,6 +109,8 @@ export const calculateStabilityProvided = (
  * @param second
  */
 export const addCollateralAmounts = (first: CollateralAmounts, second: CollateralAmounts): CollateralAmounts => {
+  const leftExtra = first.extraCollaterals ? first.extraCollaterals : zeroExtraCollateral();
+  const rightExtra = second.extraCollaterals ? second.extraCollaterals : zeroExtraCollateral();
   return {
     sol: first.sol.add(second.sol),
     eth: first.eth.add(second.eth),
@@ -108,7 +119,12 @@ export const addCollateralAmounts = (first: CollateralAmounts, second: Collatera
     btc: first.btc.add(second.btc),
     srm: first.srm.add(second.srm),
     msol: first.msol.add(second.msol),
-    extraCollaterals: [],
+    extraCollaterals: leftExtra.map((coll, i) => {
+      return {
+        amount: coll.amount.plus(rightExtra.find((x) => x.tokenId.eq(coll.tokenId))?.amount ?? 0),
+        tokenId: coll.tokenId,
+      };
+    }),
   };
 };
 
@@ -166,6 +182,8 @@ export function calculateTotalCollateral(user: UserMetadata, market: BorrowingMa
  * @param right
  */
 export function sub(left: CollateralAmounts, right: CollateralAmounts): CollateralAmounts {
+  const leftExtra = left.extraCollaterals ? left.extraCollaterals : zeroExtraCollateral();
+  const rightExtra = right.extraCollaterals ? right.extraCollaterals : zeroExtraCollateral();
   return {
     sol: left.sol.minus(right.sol),
     btc: left.btc.minus(right.btc),
@@ -174,7 +192,12 @@ export function sub(left: CollateralAmounts, right: CollateralAmounts): Collater
     ray: left.ray.minus(right.ray),
     srm: left.srm.minus(right.srm),
     msol: left.msol.minus(right.msol),
-    extraCollaterals: [],
+    extraCollaterals: leftExtra.map((coll, i) => {
+      return {
+        amount: coll.amount.minus(rightExtra.find((x) => x.tokenId.eq(coll.tokenId))?.amount ?? 0),
+        tokenId: coll.tokenId,
+      };
+    }),
   };
 }
 
@@ -191,6 +214,7 @@ export function isZero(coll: CollateralAmounts): boolean {
     coll.ray.isZero() &&
     coll.srm.isZero() &&
     coll.msol.isZero()
+    // coll.extraCollaterals.every((x) => x.amount.isZero())
   );
 }
 
@@ -206,8 +230,16 @@ export function zeroCollateral(): CollateralAmounts {
     ray: new Decimal(0),
     srm: new Decimal(0),
     msol: new Decimal(0),
-    extraCollaterals: [],
+    extraCollaterals: zeroExtraCollateral(),
   };
+}
+
+export function zeroExtraCollateral() {
+  const extra: ExtraCollateralAmount[] = [];
+  for (let i = 0; i < ExtraCollateralMap.length; i++) {
+    extra.push({ tokenId: new Decimal(ExtraCollateralMap[i].id), amount: new Decimal(0) });
+  }
+  return extra;
 }
 
 /**
@@ -225,7 +257,12 @@ export function mulFrac(coll: CollateralAmounts, numerator: Decimal, denominator
     ray: new Decimal(coll.ray).div(denominator).mul(numerator),
     srm: new Decimal(coll.srm).div(denominator).mul(numerator),
     msol: new Decimal(coll.msol).div(denominator).mul(numerator),
-    extraCollaterals: [],
+    extraCollaterals: coll.extraCollaterals.map((coll) => {
+      return {
+        amount: coll.amount.div(denominator).mul(numerator),
+        tokenId: coll.tokenId,
+      };
+    }),
   };
 }
 
@@ -430,3 +467,39 @@ function mul(left: TokenMapBig, right: Decimal): TokenMapBig {
     msol: left.msol.mul(right),
   };
 }
+
+export const convertTokenLamportsToDecimal = (lamports: Decimal, tokenName: string): Decimal => {
+  let factor = LAMPORTS_PER_SOL;
+  switch (tokenName) {
+    case 'SOL':
+    case 'scnSOL':
+    case 'daoSOL':
+    case 'STSOL':
+    case 'MSOL':
+      factor = LAMPORTS_PER_SOL;
+      break;
+    case 'ETH':
+    case 'wstETH':
+    case 'LDO':
+      factor = DECIMALS_ETH;
+      break;
+    case 'BTC':
+      factor = DECIMALS_BTC;
+      break;
+    case 'SRM':
+      factor = DECIMALS_SRM;
+      break;
+    case 'RAY':
+      factor = DECIMALS_RAY;
+      break;
+    case 'FTT':
+      factor = DECIMALS_FTT;
+      break;
+    default:
+      throw Error(`${tokenName} not supported yet`);
+  }
+  if (lamports.isZero()) {
+    return lamports;
+  }
+  return lamports.dividedBy(factor);
+};
