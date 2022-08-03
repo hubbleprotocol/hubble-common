@@ -1,5 +1,5 @@
 import { clusterApiUrl, Connection, PublicKey } from '@solana/web3.js';
-import { HBB_DECIMALS, STABLECOIN_DECIMALS } from '../src/constants';
+import { findInExtraCollateralByName, HBB_DECIMALS, STABLECOIN_DECIMALS } from '../src/constants';
 import { BN } from '@project-serum/anchor';
 import Decimal from 'decimal.js';
 import Hubble from '../src/Hubble';
@@ -237,4 +237,24 @@ describe('Hubble SDK Tests', () => {
   //   console.log(circulatingSupply);
   //   expect(circulatingSupply.isZero()).toBeFalsy();
   // });
+
+  //   test('should get user loans', async () => {
+  //     const sdk = new Hubble(cluster, connection);
+  //     const userLoans = await sdk.getUserLoans('9S426eJi7Ydzc3bawR7DpxbMcGUuNvvj8ru2UePWr4x4');
+  //     // expect(userLoans).toHaveLength(4);
+  //     for (const userLoan of userLoans) {
+  //       // use helper functions:
+  //       const stsol = findInExtraCollateralByName('STSOL', userLoan.collateral.extraCollaterals);
+  //       const ldo = findInExtraCollateralByName('LDO', userLoan.collateral.extraCollaterals);
+  //       // or use the map:
+  //       // const stsolId = ExtraCollateralMap.find((x) => x.name === 'STSOL')!.id;
+  //       // const ldoId = ExtraCollateralMap.find((x) => x.name === 'LDO')!.id;
+  //       // const stsol = userLoan.collateral.extraCollaterals.find((x) => x.tokenId.eq(stsolId));
+  //       // const ldo = userLoan.collateral.extraCollaterals.find((x) => x.tokenId.eq(ldoId));
+  //       expect(stsol?.amount.toNumber()).toBeGreaterThanOrEqual(0);
+  //       expect(ldo?.amount.toNumber()).toBeGreaterThanOrEqual(0);
+  //     }
+  //     console.log(userLoans.map((x) => x.collateral));
+  //     console.log(userLoans.map((x) => x.collateral.extraCollaterals));
+  //   });
 });

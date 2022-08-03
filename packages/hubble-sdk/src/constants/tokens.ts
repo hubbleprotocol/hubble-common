@@ -1,4 +1,6 @@
 import { PublicKey } from '@solana/web3.js';
+import { ExtraCollateralAmount } from '../models';
+import Decimal from 'decimal.js';
 
 // BTC mint address
 export const BTC_MINT = '9n4nbM75f5Ui33ZbPYXn59EwSgE8CGsHtAeTH5YFeJ9E';
@@ -25,3 +27,53 @@ export const MINT_ADDRESSES: PublicKey[] = [
   new PublicKey(SRM_MINT),
   new PublicKey(MSOL_MINT),
 ];
+
+export interface ExtraCollateralToken {
+  /**
+   * Collateral token name
+   */
+  name: string;
+  /**
+   * Hubble smart contracts extra collateral ID
+   */
+  id: number;
+}
+
+export const ExtraCollateralMap: ExtraCollateralToken[] = [
+  { id: 0, name: 'SOL' },
+  { id: 1, name: 'ETH' },
+  { id: 2, name: 'BTC' },
+  { id: 3, name: 'SRM' },
+  { id: 4, name: 'RAY' },
+  { id: 5, name: 'FTT' },
+  { id: 6, name: 'MSOL' },
+  { id: 7, name: 'daoSOL' },
+  { id: 8, name: 'STSOL' },
+  { id: 9, name: 'scnSOL' },
+  { id: 10, name: 'wstETH' },
+  { id: 11, name: 'LDO' },
+];
+
+export const getExtraCollateralToken = (token: string) => {
+  return ExtraCollateralMap.find((x) => x.name.toLowerCase() === token.toLowerCase());
+};
+
+export const getExtraCollateralTokenById = (tokenId: Decimal) => {
+  const coll = ExtraCollateralMap.find((x) => tokenId.eq(x.id));
+  if (!coll) {
+    throw Error(`Could not find token id ${tokenId} in a list of extra collateral`);
+  }
+  return coll;
+};
+
+export const findInExtraCollateralByName = (token: string, extraCollateral: ExtraCollateralAmount[]) => {
+  const coll = getExtraCollateralToken(token);
+  if (!coll) {
+    throw Error(`Could not find ${token} in a list of extra collateral`);
+  }
+  const extra = extraCollateral.find((x) => x.tokenId.eq(coll.id));
+  if (!extra) {
+    throw Error(`Could not find ${token} in a list of extra collateral`);
+  }
+  return extra;
+};

@@ -43,6 +43,25 @@ const stakedHbb = await hubble.getUserStakedHbb(pubKey);
 
 // Get all of user's loans (debt + collateral)
 const loans = await hubble.getUserLoans(pubKey);
+for (const userLoan of loans) {
+  // main collateral can be accessed by using property access:
+  console.log('SOL', userLoan.collateral.sol);
+  console.log('BTC', userLoan.collateral.btc);
+  console.log('ETH', userLoan.collateral.eth);
+  console.log('SRM', userLoan.collateral.srm);
+  console.log('RAY', userLoan.collateral.ray);
+  console.log('FTT', userLoan.collateral.ftt);
+  console.log('MSOL', userLoan.collateral.msol);
+
+  // extra collateral can be accessed by either using a helper function:
+  console.log('STSOL', findInExtraCollateralByName('STSOL', userLoan.collateral.extraCollaterals));
+  console.log('LDO', findInExtraCollateralByName('LDO', userLoan.collateral.extraCollaterals));
+  // or using the map manually:
+  const stsolId = ExtraCollateralMap.find((x) => x.name === 'STSOL').id;
+  const ldoId = ExtraCollateralMap.find((x) => x.name === 'LDO').id;
+  const stsol = userLoan.collateral.extraCollaterals.find((x) => x.tokenId.eq(stsolId));
+  const ldo = userLoan.collateral.extraCollaterals.find((x) => x.tokenId.eq(ldoId));
+}
 
 // Get the amount of stablecoin (USDH) user has deposited in the stability pool
 const usdh = await hubble.getUserUsdhInStabilityPool(pubKey);

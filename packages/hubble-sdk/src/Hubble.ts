@@ -83,8 +83,8 @@ export class Hubble {
       this._config.borrowing.accounts.borrowingMarketState
     )) as BorrowingMarketState;
     state = replaceBigNumberWithDecimal(state);
-    state.depositedCollateral.amounts = replaceBigNumberWithDecimal(state.depositedCollateral.amounts);
-    state.inactiveCollateral.amounts = replaceBigNumberWithDecimal(state.inactiveCollateral.amounts);
+    state.inactiveCollateral.amounts = state.inactiveCollateral.amounts.map((x) => replaceBigNumberWithDecimal(x));
+    state.depositedCollateral.amounts = state.depositedCollateral.amounts.map((x) => replaceBigNumberWithDecimal(x));
     state.collateralRewardPerToken = replaceBigNumberWithDecimal(state.collateralRewardPerToken);
     return state;
   }
@@ -366,7 +366,7 @@ export class Hubble {
           ray: gains.ray,
           srm: gains.srm,
           msol: gains.msol,
-          extraCollaterals: [], //todo
+          extraCollaterals: [], // user does not gain any liquidation rewards from extra collateral
         },
       };
     }
