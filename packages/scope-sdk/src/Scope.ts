@@ -37,7 +37,6 @@ export type ScopePair =
   | 'cSLND/SLND'
   | 'cSRM/SRM'
   | 'cRAY/RAY'
-  | 'cSRM/SRM'
   | 'cFTT/FTT'
   | 'cSTSOL/STSOL'
   | 'SLND/USD';
