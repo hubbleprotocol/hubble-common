@@ -13,6 +13,8 @@ export * from './StrategyEntity';
 export * from './ShareMintEntity';
 export * from './ShareHolderEntity';
 export * from './StrategyStateEntity';
+export * from './WhirlpoolEntity';
+export * from './WhirlpoolStateEntity';
 
 export const CLUSTER_TABLE: string = 'cluster';
 export const COLLATERAL_TABLE: string = 'collateral';
@@ -30,4 +32,6 @@ export const STRATEGY_TABLE: string = 'strategy';
 export const SHARE_MINT_TABLE: string = 'share_mint';
 export const STRATEGY_STATE_TABLE: string = 'strategy_state';
 export const SHARE_HOLDER_TABLE: string = 'share_holder';
+export const WHIRLPOOL_TABLE: string = 'whirlpool';
+export const WHIRLPOOL_STATE_TABLE: string = 'whirlpool_state';
 export const API_SCHEMA: string = 'api';
