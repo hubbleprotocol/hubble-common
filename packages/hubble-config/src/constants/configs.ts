@@ -13,6 +13,148 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
         { address: new PublicKey('mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So'), scopeToken: 'MSOL' },
         { address: new PublicKey('So11111111111111111111111111111111111111112'), scopeToken: 'SOL' },
       ],
+      whirlpoolsToSnapshot: [
+        {
+          address: new PublicKey('5Z66YYYaTmmx1R4mATAGLSc8aV4Vfy5tNdJQzk1GP9RF'),
+          collateralA: 'orcaEKTdK7LKz57vaAYr9QeNsVEPfiu6QeMU1kektZE',
+          collateralB: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        },
+        {
+          address: new PublicKey('HJPjoWUrhoZzkNfRpHuieeFk9WcZWjwy6PBjZ81ngndJ'),
+          collateralA: 'So11111111111111111111111111111111111111112',
+          collateralB: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        },
+        {
+          address: new PublicKey('AiMZS5U3JMvpdvsr1KeaMiS354Z1DeSg5XjA4yYRxtFf'),
+          collateralA: 'mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So',
+          collateralB: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        },
+        {
+          address: new PublicKey('HQcY5n2zP6rW74fyFEhWeBd3LnJpBcZechkvJpmdb8cx'),
+          collateralA: 'So11111111111111111111111111111111111111112',
+          collateralB: 'mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So',
+        },
+        {
+          address: new PublicKey('7A1R3L7AxcxuZHMJjFgskKGeBR5Rwst3Ai5bv5uAWZFG'),
+          collateralA: 'mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So',
+          collateralB: 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB',
+        },
+        {
+          address: new PublicKey('AXtdSZ2mpagmtM5aipN5kV9CyGBA8dxhSBnqMRp7UpdN'),
+          collateralA: '7dHbWXmci3dT8UFYWYZweBLXgycu7Y3iL6trKn1Y7ARj',
+          collateralB: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        },
+        {
+          address: new PublicKey('2AEWSvUds1wsufnsDPCXjFsJCMJH5SNNm7fSF4kxys9a'),
+          collateralA: 'So11111111111111111111111111111111111111112',
+          collateralB: '7dHbWXmci3dT8UFYWYZweBLXgycu7Y3iL6trKn1Y7ARj',
+        },
+        {
+          address: new PublicKey('FAbwB8VgdgSGty5E8dnmNbu5PZnQcvSuLnboJVpw1Rty'),
+          collateralA: '7dHbWXmci3dT8UFYWYZweBLXgycu7Y3iL6trKn1Y7ARj',
+          collateralB: 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB',
+        },
+        {
+          address: new PublicKey('E5KuHFnU2VuuZFKeghbTLazgxeni4dhQ7URE4oBtJju2'),
+          collateralA: '7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs',
+          collateralB: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        },
+        {
+          address: new PublicKey('ErSQss3jrqDpQoLEYvo6onzjsi6zm4Sjpoz1pjqz2o6D'),
+          collateralA: '9n4nbM75f5Ui33ZbPYXn59EwSgE8CGsHtAeTH5YFeJ9E',
+          collateralB: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        },
+        {
+          address: new PublicKey('6jZQFLhSAzTYfo33MSQYvwKvZYwxat8kUa29Mz63oHN9'),
+          collateralA: 'mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So',
+          collateralB: '7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs',
+        },
+        {
+          address: new PublicKey('H1fREbTWrkhCs2stH3tKANWJepmqeF9hww4nWRYrM7uV'),
+          collateralA: 'mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So',
+          collateralB: '9n4nbM75f5Ui33ZbPYXn59EwSgE8CGsHtAeTH5YFeJ9E',
+        },
+        {
+          address: new PublicKey('9vqYJjDUFecLL2xPUC4Rc7hyCtZ6iJ4mDiVZX7aFXoAe'),
+          collateralA: '7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU',
+          collateralB: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        },
+        {
+          address: new PublicKey('J7qn7AvZ4QK9qT6BikVBKA3hUp89Lg9UkqJmXZQEjRxq'),
+          collateralA: '7dHbWXmci3dT8UFYWYZweBLXgycu7Y3iL6trKn1Y7ARj',
+          collateralB: '9n4nbM75f5Ui33ZbPYXn59EwSgE8CGsHtAeTH5YFeJ9E',
+        },
+        {
+          address: new PublicKey('Db4AyCBKyH5pcCxJuvQzWfFsVsSH6rM9sm21HbA4WU5'),
+          collateralA: '7dHbWXmci3dT8UFYWYZweBLXgycu7Y3iL6trKn1Y7ARj',
+          collateralB: '7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs',
+        },
+        {
+          address: new PublicKey('ApLVWYdXzjoDhBHeRx6SnbFWv4MYjFMih5FijDQUJk5R'),
+          collateralA: '9iLH8T7zoWhY7sBmj1WK9ENbWdS1nL8n9wAxaeRitTa6',
+          collateralB: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        },
+        {
+          address: new PublicKey('GpqMSH1YM6oPmJ5xxEE2KfePf7uf5rXFbTW2TnxicRj6'),
+          collateralA: 'USDH1SM1ojwWUga67PGrgFWUHibbjqMvuMaDkRJTgkX',
+          collateralB: '7dHbWXmci3dT8UFYWYZweBLXgycu7Y3iL6trKn1Y7ARj',
+        },
+        {
+          address: new PublicKey('Fvtf8VCjnkqbETA6KtyHYqHm26ut6w184Jqm4MQjPvv7'),
+          collateralA: 'USDH1SM1ojwWUga67PGrgFWUHibbjqMvuMaDkRJTgkX',
+          collateralB: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        },
+        {
+          address: new PublicKey('F7qyox3dAegTNfd8oBQD97LuCHWzQ9hSjbsF7Kv8kTNc'),
+          collateralA: 'a11bdAAuV8iB2fu7X6AxAvDTo1QZ8FXB3kk5eecdasp',
+          collateralB: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        },
+        {
+          address: new PublicKey('8Ej6U2za4nwsCUyEXidzG9aWcd69PPtrA3hnVYWgJUx1'),
+          collateralA: 'So11111111111111111111111111111111111111112',
+          collateralB: '7Q2afV64in6N6SeZsAAB81TJzwDoD6zpqmHkzi9Dcavn',
+        },
+        {
+          address: new PublicKey('HPh1hkQFYchT3bfeYQTx4uLRXuj7eRMjdJZJjtRY6gDq'),
+          collateralA: '5Wsd311hY8NXQhkt9cWHwTnqafk7BGEbLu8Py3DSnPAr',
+          collateralB: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        },
+        {
+          address: new PublicKey('xLeM685ZkAZYXDKwzfB9eyszw1oELAmzCn45amKscmh'),
+          collateralA: 'MEANeD3XDdUmNMsRGjASkSWdC8prLYsoRJ61pPeHctD',
+          collateralB: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        },
+        {
+          address: new PublicKey('2fPqLazJ91cKRoZoH9XHC2YQnRq2wBZZpbcNx4HYoQXY'),
+          collateralA: 'StepAscQoEioFxxWGnh2sLBDFp9d8rvKz2Yp39iDpyT',
+          collateralB: 'USDH1SM1ojwWUga67PGrgFWUHibbjqMvuMaDkRJTgkX',
+        },
+        {
+          address: new PublicKey('5AX84BrKDWpUZ87fbQpkm7XsSx8bWwANePRmAx17tQjM'),
+          collateralA: 'So11111111111111111111111111111111111111112',
+          collateralB: 'StepAscQoEioFxxWGnh2sLBDFp9d8rvKz2Yp39iDpyT',
+        },
+        {
+          address: new PublicKey('4RGgiAMx3YED2nPTvTrVuy7u93pw9AtJBQjGJ4gLiTiz'),
+          collateralA: 'kiTkNc7nYAu8dLKjQFYPx3BqdzwagZGBUrcb7d4nbN5',
+          collateralB: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        },
+        {
+          address: new PublicKey('CpbNcvqxXdQyQ3SRPDPSwLfzd9sgzBm8TjRFsfJL7Pf4'),
+          collateralA: 'DUSTawucrTsGU8hcqRdHDCbuYhCPADMLM2VcCb8VnFnQ',
+          collateralB: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        },
+        {
+          address: new PublicKey('CPsTfDvZYeVB5uTqQZcwwTTBJ7KPFvB6JKLGSWsFZEL7'),
+          collateralA: 'So11111111111111111111111111111111111111112',
+          collateralB: 'DUSTawucrTsGU8hcqRdHDCbuYhCPADMLM2VcCb8VnFnQ',
+        },
+        {
+          address: new PublicKey('4eJ1jCPysCrEH53VUAxgNT8BMccXsgHX1nX4FxXAUVWy'),
+          collateralA: 'USDH1SM1ojwWUga67PGrgFWUHibbjqMvuMaDkRJTgkX',
+          collateralB: 'mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So',
+        },
+      ],
       strategies: [
         {
           address: new PublicKey('Cfuy5T6osdazUeLego5LFycBQebm9PP3H7VNdCndXXEN'),
@@ -209,6 +351,7 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
         { address: new PublicKey('2wMQTELEgEcK7V3gwZBH58WvGcRZsyaWNpebqyFugGKe'), scopeToken: 'MSOL' },
         { address: new PublicKey('So11111111111111111111111111111111111111112'), scopeToken: 'SOL' },
       ],
+      whirlpoolsToSnapshot: [],
       strategies: [
         {
           address: new PublicKey('2H4xebnp2M9JYgPPfUw58uUQahWF8f1YTNxwwtmdqVYV'),
@@ -337,6 +480,7 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
         { address: new PublicKey('2wMQTELEgEcK7V3gwZBH58WvGcRZsyaWNpebqyFugGKe'), scopeToken: 'MSOL' },
         { address: new PublicKey('So11111111111111111111111111111111111111112'), scopeToken: 'SOL' },
       ],
+      whirlpoolsToSnapshot: [],
       strategies: [
         {
           address: new PublicKey('2H4xebnp2M9JYgPPfUw58uUQahWF8f1YTNxwwtmdqVYV'),
@@ -532,6 +676,7 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
         { address: new PublicKey('2wMQTELEgEcK7V3gwZBH58WvGcRZsyaWNpebqyFugGKe'), scopeToken: 'MSOL' },
         { address: new PublicKey('So11111111111111111111111111111111111111112'), scopeToken: 'SOL' },
       ],
+      whirlpoolsToSnapshot: [],
       strategies: [
         {
           address: new PublicKey('2H4xebnp2M9JYgPPfUw58uUQahWF8f1YTNxwwtmdqVYV'),
