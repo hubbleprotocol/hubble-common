@@ -3,7 +3,7 @@ import { Kamino } from '../src';
 
 describe('Scope SDK Tests', () => {
   let connection: Connection;
-  const cluster = 'devnet';
+  const cluster = 'mainnet-beta';
 
   beforeAll(() => {
     connection = new Connection(clusterApiUrl(cluster));
@@ -46,6 +46,7 @@ describe('Scope SDK Tests', () => {
   //     expect(strat).not.toBeNull();
   //     const price = await kamino.getStrategySharePrice(strat!);
   //     expect(price.toNumber()).toBeGreaterThanOrEqual(0);
+  //     console.log(price);
   //   }
   // });
 
@@ -55,5 +56,10 @@ describe('Scope SDK Tests', () => {
   //   expect(strategy).not.toBeNull();
   //   const accounts = await kamino.getStrategyHolders(strategy!);
   //   expect(accounts.length).toBeGreaterThan(0);
+  // });
+
+  // test('should get all whirlpools', async () => {
+  //   const kamino = new Kamino(cluster, connection);
+  //   console.log(await kamino.getWhirlpools([]));
   // });
 });

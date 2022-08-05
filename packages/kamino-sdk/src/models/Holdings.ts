@@ -6,5 +6,5 @@ export type Holdings = {
   availableUsd: Decimal;
   invested: TokenAmounts;
   investedUsd: Decimal;
-  total_sum: Decimal;
+  totalSum: Decimal;
 };
