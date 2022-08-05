@@ -60,6 +60,6 @@ describe('Scope SDK Tests', () => {
 
   // test('should get all whirlpools', async () => {
   //   const kamino = new Kamino(cluster, connection);
-  //   console.log(await kamino.getWhirlpoolsToSnapshot());
+  //   console.log(await kamino.getWhirlpools([]));
   // });
 });
