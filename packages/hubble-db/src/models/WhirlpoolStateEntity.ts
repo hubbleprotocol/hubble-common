@@ -12,6 +12,7 @@ export interface WhirlpoolStateEntity {
   protocol_fee_owed_b: string;
   fee_growth_global_a: string;
   fee_growth_global_b: string;
+  reward_last_updated_timestamp: string;
   whirlpool_id: number;
 }
 
