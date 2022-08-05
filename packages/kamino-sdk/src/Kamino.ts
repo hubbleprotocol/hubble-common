@@ -258,9 +258,9 @@ export class Kamino {
     }
   }
 
-  // getWhirpools() {
-  //   return Whirlpool.fetchMultiple();
-  // }
+  getWhirlpoolsToSnapshot() {
+    const whirlpools = Whirlpool.fetchMultiple(this._connection, this._config.kamino.whirlpoolsToSnapshot);
+  }
 }
 
 export default Kamino;

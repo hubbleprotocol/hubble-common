@@ -57,4 +57,9 @@ describe('Scope SDK Tests', () => {
   //   const accounts = await kamino.getStrategyHolders(strategy!);
   //   expect(accounts.length).toBeGreaterThan(0);
   // });
+
+  // test('should get all whirlpools', async () => {
+  //   const kamino = new Kamino(cluster, connection);
+  //   console.log(await kamino.getWhirlpoolsToSnapshot());
+  // });
 });
