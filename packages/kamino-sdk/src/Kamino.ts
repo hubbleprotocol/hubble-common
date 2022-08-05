@@ -77,14 +77,13 @@ export class Kamino {
    * @param strategy
    */
   async getStrategySharePrice(strategy: WhirlpoolStrategy) {
-    const decimalsShares = new Decimal(strategy.sharesMintDecimals.toString());
+    const dollarFactor = Decimal.pow(10, 6);
     const sharesIssued = new Decimal(strategy.sharesIssued.toString());
-    const unit = Decimal.pow(10, decimalsShares);
     if (sharesIssued.isZero()) {
       return new Decimal(1);
     } else {
       const balances = await this.getStrategyBalances(strategy);
-      return unit.mul(balances.computedHoldings.total_sum).div(sharesIssued);
+      return balances.computedHoldings.totalSum.div(sharesIssued).mul(dollarFactor);
     }
   }
 
@@ -110,9 +109,6 @@ export class Kamino {
     const decimalsA = await getMintDecimals(this._connection, whirlpool.tokenMintA);
     const decimalsB = await getMintDecimals(this._connection, whirlpool.tokenMintB);
 
-    const aAvailable = new Decimal(strategy.tokenAAmounts.toString()).div(Decimal.pow(10, decimalsA));
-    const bAvailable = new Decimal(strategy.tokenBAmounts.toString()).div(Decimal.pow(10, decimalsB));
-
     const aVault = await this.getTokenAccountBalance(strategy.tokenAVault);
     const bVault = await this.getTokenAccountBalance(strategy.tokenBVault);
 
@@ -127,31 +123,62 @@ export class Kamino {
     };
     const removeLiquidityQuote: RemoveLiquidityQuote = await orcaPosition.getRemoveLiquidityQuote(params);
 
-    const aInvested = new Decimal(removeLiquidityQuote.estTokenA.toString()).div(Decimal.pow(10, decimalsA));
-    const bInvested = new Decimal(removeLiquidityQuote.estTokenB.toString()).div(Decimal.pow(10, decimalsB));
-
     const vaultBalances: StrategyVaultBalances = {
       a: aVault,
       b: bVault,
     };
     const { aPrice, bPrice } = await this.getPrices(strategy);
 
-    const availableUsd = aAvailable.mul(aPrice.price).add(bAvailable.mul(bPrice.price));
-    const investedUsd = aInvested.mul(aPrice.price).add(bInvested.mul(bPrice.price));
-
-    const computedHoldings: Holdings = {
-      available: { a: aAvailable, b: bAvailable },
-      availableUsd,
-      invested: { a: aInvested, b: bInvested },
-      investedUsd,
-      total_sum: availableUsd.add(investedUsd),
-    };
+    let computedHoldings: Holdings = this.getStrategyHoldingsUsd(
+      new Decimal(strategy.tokenAAmounts.toNumber()),
+      new Decimal(strategy.tokenBAmounts.toNumber()),
+      new Decimal(removeLiquidityQuote.estTokenA.toNumber()),
+      new Decimal(removeLiquidityQuote.estTokenB.toNumber()),
+      decimalsA,
+      decimalsB,
+      aPrice.price,
+      bPrice.price
+    );
 
     const balances: StrategyBalances = {
       computedHoldings,
       vaultBalances,
     };
     return balances;
+  }
+
+  private getStrategyHoldingsUsd(
+    aAvailable: Decimal,
+    bAvailable: Decimal,
+    aInvested: Decimal,
+    bInvested: Decimal,
+    decimalsA: number,
+    decimalsB: number,
+    aPrice: Decimal,
+    bPrice: Decimal
+  ): Holdings {
+    const aAvailableScaled = aAvailable.div(Decimal.pow(10, decimalsA));
+    const bAvailableScaled = bAvailable.div(Decimal.pow(10, decimalsB));
+
+    const aInvestedScaled = aInvested.div(Decimal.pow(10, decimalsA));
+    const bInvestedScaled = bInvested.div(Decimal.pow(10, decimalsB));
+
+    const availableUsd = aAvailableScaled.mul(aPrice).add(bAvailableScaled.mul(bPrice));
+    const investedUsd = aInvestedScaled.mul(aPrice).add(bInvestedScaled.mul(bPrice));
+
+    return {
+      available: {
+        a: aAvailableScaled,
+        b: bAvailableScaled,
+      },
+      availableUsd: availableUsd,
+      invested: {
+        a: aInvestedScaled,
+        b: bInvestedScaled,
+      },
+      investedUsd: investedUsd,
+      totalSum: availableUsd.add(investedUsd),
+    };
   }
 
   private async getPrices(strategy: WhirlpoolStrategy) {
@@ -230,6 +257,10 @@ export class Kamino {
       return [];
     }
   }
+
+  // getWhirpools() {
+  //   return Whirlpool.fetchMultiple();
+  // }
 }
 
 export default Kamino;
