@@ -22,4 +22,6 @@ export type WhirlpoolToSnapshot = {
   address: PublicKey;
   collateralA: string;
   collateralB: string;
+  mintA: PublicKey;
+  mintB: PublicKey;
 };
