@@ -258,8 +258,8 @@ export class Kamino {
     }
   }
 
-  getWhirlpoolsToSnapshot() {
-    const whirlpools = Whirlpool.fetchMultiple(this._connection, this._config.kamino.whirlpoolsToSnapshot);
+  getWhirlpools(whirlpools: PublicKey[]) {
+    return Whirlpool.fetchMultiple(this._connection, whirlpools);
   }
 }
 
