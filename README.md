@@ -32,3 +32,17 @@ Pull requests are welcome. For major changes, please open an issue first to disc
 ## License
 
 [Apache 2.0](https://choosealicense.com/licenses/apache-2.0/)
+
+
+## Installing hubble common
+
+```shell
+npm install
+npm run bootstrap
+```
+
+## Testing hubble common packages
+
+```shell
+npm run test
+```
