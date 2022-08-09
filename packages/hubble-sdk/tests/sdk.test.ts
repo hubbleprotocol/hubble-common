@@ -111,6 +111,7 @@ describe('Hubble SDK Tests', () => {
   // test('should get borrowing market state', async () => {
   //   const sdk = new Hubble(cluster, connection);
   //   const sth = await sdk.getBorrowingMarketState();
+  //   console.log(sth.depositedCollateral.amounts[0].isZero());
   //   expect(sth).not.toBeNull();
   //   console.log(sth.marketMcr.toNumber());
   // });
