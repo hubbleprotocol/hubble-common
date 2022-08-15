@@ -6,8 +6,8 @@
       "name": "initializeBorrowingMarket",
       "accounts": [
         {
-          "name": "initialMarketOwner",
-          "isMut": false,
+          "name": "adminAuthority",
+          "isMut": true,
           "isSigner": true
         },
         {
@@ -44,16 +44,6 @@
           "name": "systemProgram",
           "isMut": false,
           "isSigner": false
-        },
-        {
-          "name": "clock",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "rent",
-          "isMut": false,
-          "isSigner": false
         }
       ],
       "args": []
@@ -62,7 +52,7 @@
       "name": "createAdditionalBorrowingMarket",
       "accounts": [
         {
-          "name": "initialMarketOwner",
+          "name": "adminAuthority",
           "isMut": false,
           "isSigner": true
         },
@@ -80,88 +70,10 @@
       "args": []
     },
     {
-      "name": "updateMarketMcr",
-      "accounts": [
-        {
-          "name": "initialMarketOwner",
-          "isMut": false,
-          "isSigner": true
-        },
-        {
-          "name": "borrowingMarketState",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "mcr",
-          "type": "u64"
-        }
-      ]
-    },
-    {
-      "name": "updateMarketType",
-      "accounts": [
-        {
-          "name": "initialMarketOwner",
-          "isMut": false,
-          "isSigner": true
-        },
-        {
-          "name": "borrowingMarketState",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "marketType",
-          "type": "u64"
-        }
-      ]
-    },
-    {
-      "name": "updateMarketDebtMax",
-      "accounts": [
-        {
-          "name": "initialMarketOwner",
-          "isMut": false,
-          "isSigner": true
-        },
-        {
-          "name": "borrowingMarketState",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "totalDebtMax",
-          "type": "u64"
-        }
-      ]
-    },
-    {
       "name": "updateMarketLinkage",
       "accounts": [
         {
-          "name": "initialMarketOwner",
+          "name": "adminAuthority",
           "isMut": false,
           "isSigner": true
         },
@@ -199,10 +111,31 @@
       "args": []
     },
     {
+      "name": "updateMarketOwner",
+      "accounts": [
+        {
+          "name": "adminAuthority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "borrowingMarketState",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "newOwner",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "initializeCollateralVaultsNew",
       "accounts": [
         {
-          "name": "initialMarketOwner",
+          "name": "adminAuthority",
           "isMut": false,
           "isSigner": true
         },
@@ -253,7 +186,7 @@
       "name": "addNewVault",
       "accounts": [
         {
-          "name": "initialMarketOwner",
+          "name": "adminAuthority",
           "isMut": false,
           "isSigner": true
         },
@@ -302,7 +235,7 @@
       "name": "updateGlobalConfig",
       "accounts": [
         {
-          "name": "initialMarketOwner",
+          "name": "adminAuthority",
           "isMut": false,
           "isSigner": true
         },
@@ -342,7 +275,7 @@
       "name": "modifySupportedCollaterals",
       "accounts": [
         {
-          "name": "initialMarketOwner",
+          "name": "adminAuthority",
           "isMut": false,
           "isSigner": true
         },
@@ -367,7 +300,7 @@
       "name": "updateMarketTokenDepositCap",
       "accounts": [
         {
-          "name": "initialMarketOwner",
+          "name": "adminAuthority",
           "isMut": false,
           "isSigner": true
         },
@@ -392,7 +325,7 @@
       "name": "updateOracleMapping",
       "accounts": [
         {
-          "name": "initialMarketOwner",
+          "name": "adminAuthority",
           "isMut": false,
           "isSigner": true
         },
@@ -433,7 +366,7 @@
       "name": "updateScopeMapping",
       "accounts": [
         {
-          "name": "initialMarketOwner",
+          "name": "adminAuthority",
           "isMut": false,
           "isSigner": true
         },
@@ -497,7 +430,88 @@
       "args": []
     },
     {
+      "name": "transferLoanOwnership",
+      "accounts": [
+        {
+          "name": "owner",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "newOwner",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "borrowingMarketState",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "userMetadata",
+          "isMut": true,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "depositCollateral",
+      "accounts": [
+        {
+          "name": "owner",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "borrowingMarketState",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "globalConfig",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "borrowingVaults",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "userMetadata",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "collateralFrom",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "collateralTo",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "amountInLamports",
+          "type": "u64"
+        },
+        {
+          "name": "collateral",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "depositCollateralUnsecured",
       "accounts": [
         {
           "name": "owner",
@@ -673,7 +687,10 @@
         {
           "name": "owner",
           "isMut": true,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "It has to be mut, because we're returning the sol back, after closing the acc"
+          ]
         },
         {
           "name": "borrowingMarketState",
@@ -798,6 +815,43 @@
         {
           "name": "borrowAmount",
           "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "borrowChangeWithdrawalCap",
+      "accounts": [
+        {
+          "name": "adminAuthority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "borrowingMarketState",
+          "isMut": true,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "maxCapacity",
+          "type": "u64"
+        },
+        {
+          "name": "intervalLength",
+          "type": "u64"
+        },
+        {
+          "name": "changeCollateralCap",
+          "type": "bool"
+        },
+        {
+          "name": "collateralId",
+          "type": "u8"
+        },
+        {
+          "name": "accumActionBool",
+          "type": "bool"
         }
       ]
     },
@@ -981,8 +1035,8 @@
       "name": "stabilityInitialize",
       "accounts": [
         {
-          "name": "initialMarketOwner",
-          "isMut": false,
+          "name": "adminAuthority",
+          "isMut": true,
           "isSigner": true
         },
         {
@@ -1054,6 +1108,32 @@
         {
           "name": "rent",
           "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "stabilityTransferOwnership",
+      "accounts": [
+        {
+          "name": "owner",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "newOwner",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "stabilityPoolState",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "stabilityProviderState",
+          "isMut": true,
           "isSigner": false
         }
       ],
@@ -1197,82 +1277,6 @@
       ]
     },
     {
-      "name": "tryMarkLiquidate",
-      "accounts": [
-        {
-          "name": "liquidator",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "borrowingMarketState",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "globalConfig",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "userMetadata",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "oracleMappings",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "pythSolPriceInfo",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "pythEthPriceInfo",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "pythBtcPriceInfo",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "pythSrmPriceInfo",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "pythRayPriceInfo",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "pythFttPriceInfo",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "pythMsolPriceInfo",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "scopePrices",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": []
-    },
-    {
       "name": "tryLiquidate",
       "accounts": [
         {
@@ -1392,6 +1396,132 @@
         }
       ],
       "args": []
+    },
+    {
+      "name": "tryLiquidateCashBased",
+      "accounts": [
+        {
+          "name": "liquidator",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "liquidatorUsdhAta",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "borrowingMarketState",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "globalConfig",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "stabilityPoolState",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userMetadata",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "epochToScaleToSum",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "borrowingVaults",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "liquidationsQueue",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "stablecoinMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "stablecoinMintAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "stablecoinStabilityPoolVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "stablecoinStabilityPoolVaultAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "oracleMappings",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "pythSolPriceInfo",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "pythEthPriceInfo",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "pythBtcPriceInfo",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "pythSrmPriceInfo",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "pythRayPriceInfo",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "pythFttPriceInfo",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "pythMsolPriceInfo",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "scopePrices",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "debtToRepay",
+          "type": "u64"
+        }
+      ]
     },
     {
       "name": "harvestLiquidationGains",
@@ -1559,8 +1689,8 @@
       "name": "stakingInitialize",
       "accounts": [
         {
-          "name": "initialMarketOwner",
-          "isMut": false,
+          "name": "adminAuthority",
+          "isMut": true,
           "isSigner": true
         },
         {
@@ -1638,6 +1768,32 @@
       "args": []
     },
     {
+      "name": "stakingTransferOwnership",
+      "accounts": [
+        {
+          "name": "owner",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "newOwner",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "stakingPoolState",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "userStakingState",
+          "isMut": true,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "stakingStakeHbb",
       "accounts": [
         {
@@ -1689,10 +1845,66 @@
       ]
     },
     {
+      "name": "withdrawFromTreasury",
+      "accounts": [
+        {
+          "name": "adminAuthority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "stablecoinMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "borrowingMarketState",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "globalConfig",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "stakingPoolState",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "treasuryVault",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "treasuryVaultAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "toAccount",
+          "isMut": true,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
       "name": "resetPlaceholders",
       "accounts": [
         {
-          "name": "initialMarketOwner",
+          "name": "adminAuthority",
           "isMut": false,
           "isSigner": true
         },
@@ -1908,7 +2120,10 @@
         {
           "name": "owner",
           "isMut": true,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "The account that initialized the open orders"
+          ]
         },
         {
           "name": "borrowingMarketState",
@@ -1933,7 +2148,11 @@
         {
           "name": "collateralFrom",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "The collateral vault to send the tokens from or to receive the tokens back if the order isn't executed",
+            "Must be an ATA for market base or quote mint, depending on the side of the market being traded on"
+          ]
         },
         {
           "name": "collateralFromAuthority",
@@ -1943,12 +2162,27 @@
         {
           "name": "collateralTo",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "The ATA which I expect to receive the tokens when the order is executed successfully",
+            "Must be an ATA for market base or quote mint, depending on the side of the market being traded on"
+          ]
+        },
+        {
+          "name": "oracleMappings",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "Oracle accounts"
+          ]
         },
         {
           "name": "pythSolPriceInfo",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "Oracle accounts"
+          ]
         },
         {
           "name": "pythEthPriceInfo",
@@ -1981,64 +2215,94 @@
           "isSigner": false
         },
         {
-          "name": "oracleMappings",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "market",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "BEGIN SERUM ACCOUNTS",
+            "The market pair address (A-Token/B-Token)"
+          ]
         },
         {
           "name": "vaultSigner",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "DEX owner"
+          ]
         },
         {
           "name": "openOrders",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "The user's open orders account"
+          ]
         },
         {
           "name": "requestQueue",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "The queue with the events that are being processed"
+          ]
         },
         {
           "name": "eventQueue",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "The queue with the consumed events on the market"
+          ]
         },
         {
           "name": "bids",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "The address of bids on the orderbook"
+          ]
         },
         {
           "name": "asks",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "The address of asks on the orderbook"
+          ]
         },
         {
           "name": "coinVault",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "The DEX vault for the \"base\" currency (WSOL/BTC/ETH, etc)"
+          ]
         },
         {
           "name": "pcVault",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "The DEX vault for the \"quote\" currency (USDC, etc.)"
+          ]
         },
         {
           "name": "dexSwapAccount",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "An intermed account that will pay for the new order tx (we fund this account through the coll vault)"
+          ]
         },
         {
           "name": "dexProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "END SERUM ACCOUNTS",
+            "The DEX program"
+          ]
         },
         {
           "name": "tokenProgram",
@@ -2208,7 +2472,7 @@
       "name": "delegateMarinadeEmergencyWithdraw",
       "accounts": [
         {
-          "name": "initialMarketOwner",
+          "name": "adminAuthority",
           "isMut": false,
           "isSigner": true
         },
@@ -2279,7 +2543,7 @@
       "name": "airdropHbb",
       "accounts": [
         {
-          "name": "initialMarketOwner",
+          "name": "adminAuthority",
           "isMut": true,
           "isSigner": true
         },
@@ -2330,7 +2594,7 @@
       "name": "airdropUsdh",
       "accounts": [
         {
-          "name": "initialMarketOwner",
+          "name": "adminAuthority",
           "isMut": false,
           "isSigner": true
         },
@@ -2371,8 +2635,8 @@
       "name": "psmInitialize",
       "accounts": [
         {
-          "name": "initialMarketOwner",
-          "isMut": false,
+          "name": "adminAuthority",
+          "isMut": true,
           "isSigner": true
         },
         {
@@ -2414,14 +2678,58 @@
         {
           "name": "maxCapacity",
           "type": "u64"
+        },
+        {
+          "name": "mintFeeBps",
+          "type": "u64"
+        },
+        {
+          "name": "burnFeeBps",
+          "type": "u64"
         }
       ]
+    },
+    {
+      "name": "psmInitTreasuryVault",
+      "accounts": [
+        {
+          "name": "adminAuthority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "borrowingMarketState",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "psmReserve",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "otherStablecoinMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "treasuryVaultOtherStable",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
     },
     {
       "name": "psmChangeMaxCapacity",
       "accounts": [
         {
-          "name": "initialMarketOwner",
+          "name": "adminAuthority",
           "isMut": false,
           "isSigner": true
         },
@@ -2440,6 +2748,74 @@
         {
           "name": "maxCapacity",
           "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "psmChangeFees",
+      "accounts": [
+        {
+          "name": "adminAuthority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "borrowingMarketState",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "psmReserve",
+          "isMut": true,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "mintFeeBps",
+          "type": "u64"
+        },
+        {
+          "name": "operationType",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "psmChangeWithdrawalCap",
+      "accounts": [
+        {
+          "name": "adminAuthority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "borrowingMarketState",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "psmReserve",
+          "isMut": true,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "maxCapacity",
+          "type": "u64"
+        },
+        {
+          "name": "interval",
+          "type": "u64"
+        },
+        {
+          "name": "changeStableCap",
+          "type": "bool"
+        },
+        {
+          "name": "resetAccums",
+          "type": "bool"
         }
       ]
     },
@@ -2484,6 +2860,11 @@
         {
           "name": "usdhMintAuthority",
           "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "treasuryVaultOtherStable",
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -2563,18 +2944,8 @@
           "isSigner": false
         },
         {
-          "name": "borrowingVaults",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "burningVault",
+          "name": "treasuryVaultOtherStable",
           "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "burningVaultAuthority",
-          "isMut": false,
           "isSigner": false
         },
         {
@@ -2657,10 +3028,10 @@
       "args": []
     },
     {
-      "name": "updateStabilityFeesConfig",
+      "name": "updateMarketConfig",
       "accounts": [
         {
-          "name": "initialMarketOwner",
+          "name": "adminAuthority",
           "isMut": false,
           "isSigner": true
         },
@@ -2802,7 +3173,7 @@
             "type": "bool"
           },
           {
-            "name": "placeholder5",
+            "name": "placeholder3",
             "type": {
               "array": [
                 "u8",
@@ -2854,15 +3225,15 @@
             "type": "u64"
           },
           {
+            "name": "adminAuthority",
+            "type": "publicKey"
+          },
+          {
             "name": "initialMarketOwner",
             "type": "publicKey"
           },
           {
             "name": "placeholder1",
-            "type": "publicKey"
-          },
-          {
-            "name": "placeholder2",
             "type": "publicKey"
           },
           {
@@ -2940,7 +3311,7 @@
             "type": "u64"
           },
           {
-            "name": "placeholder3",
+            "name": "placeholder2",
             "type": "u64"
           },
           {
@@ -3026,7 +3397,7 @@
             "type": "u16"
           },
           {
-            "name": "placeholder4",
+            "name": "placeholder3",
             "type": "u16"
           },
           {
@@ -3041,11 +3412,40 @@
             }
           },
           {
+            "name": "liquidationPenaltyPoolBased",
+            "type": "u64"
+          },
+          {
+            "name": "liquidationPenaltyCashBased",
+            "type": "u64"
+          },
+          {
+            "name": "minCashBasedLiquidationRepayment",
+            "type": "u64"
+          },
+          {
+            "name": "withdrawalCap",
+            "type": {
+              "defined": "WithdrawalCaps"
+            }
+          },
+          {
+            "name": "withdrawalCapsCollateral",
+            "type": {
+              "array": [
+                {
+                  "defined": "CollateralWithdrawalCaps"
+                },
+                32
+              ]
+            }
+          },
+          {
             "name": "reserved",
             "type": {
               "array": [
                 "u64",
-                931
+                764
               ]
             }
           }
@@ -3102,11 +3502,39 @@
             "type": "u64"
           },
           {
+            "name": "withdrawalCapUsdh",
+            "type": {
+              "defined": "WithdrawalCaps"
+            }
+          },
+          {
+            "name": "withdrawalCapStable",
+            "type": {
+              "defined": "WithdrawalCaps"
+            }
+          },
+          {
+            "name": "mintFeeBps",
+            "type": "u64"
+          },
+          {
+            "name": "burnFeeBps",
+            "type": "u64"
+          },
+          {
+            "name": "treasuryVaultOtherStable",
+            "type": "publicKey"
+          },
+          {
+            "name": "treasuryVaultOtherStableAuthority",
+            "type": "publicKey"
+          },
+          {
             "name": "padding",
             "type": {
               "array": [
                 "u64",
-                32
+                14
               ]
             }
           }
@@ -3705,6 +4133,53 @@
       }
     },
     {
+      "name": "UserCollateralAmounts",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "sol",
+            "type": "u64"
+          },
+          {
+            "name": "eth",
+            "type": "u64"
+          },
+          {
+            "name": "btc",
+            "type": "u64"
+          },
+          {
+            "name": "srm",
+            "type": "u64"
+          },
+          {
+            "name": "ray",
+            "type": "u64"
+          },
+          {
+            "name": "ftt",
+            "type": "u64"
+          },
+          {
+            "name": "msol",
+            "type": "u64"
+          },
+          {
+            "name": "extraCollaterals",
+            "type": {
+              "array": [
+                {
+                  "defined": "ExtraCollateralAmount"
+                },
+                8
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
       "name": "SupportedCollateral",
       "type": {
         "kind": "struct",
@@ -3716,6 +4191,48 @@
           {
             "name": "tokenCap",
             "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "WithdrawalCaps",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "configCapacity",
+            "type": "i64"
+          },
+          {
+            "name": "currentTotal",
+            "type": "i64"
+          },
+          {
+            "name": "lastIntervalStartTimestamp",
+            "type": "u64"
+          },
+          {
+            "name": "configIntervalLengthSeconds",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "CollateralWithdrawalCaps",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "token",
+            "type": "u64"
+          },
+          {
+            "name": "tokenCap",
+            "type": {
+              "defined": "WithdrawalCaps"
+            }
           }
         ]
       }
@@ -4001,48 +4518,73 @@
       }
     },
     {
-      "name": "UserCollateralAmounts",
+      "name": "UpdateBmsConfig",
       "type": {
-        "kind": "struct",
-        "fields": [
+        "kind": "enum",
+        "variants": [
           {
-            "name": "sol",
-            "type": "u64"
+            "name": "UpdateSFValue"
           },
           {
-            "name": "eth",
-            "type": "u64"
+            "name": "UpdateStabilityPct"
           },
           {
-            "name": "btc",
-            "type": "u64"
+            "name": "UpdateStakingPct"
           },
           {
-            "name": "srm",
-            "type": "u64"
+            "name": "UpdateTreasuryPct"
           },
           {
-            "name": "ray",
-            "type": "u64"
+            "name": "UpdateLastEventTimestamp"
           },
           {
-            "name": "ftt",
-            "type": "u64"
+            "name": "UpdateMarketType"
           },
           {
-            "name": "msol",
-            "type": "u64"
+            "name": "UpdateMarketMcr"
           },
           {
-            "name": "extraCollaterals",
-            "type": {
-              "array": [
-                {
-                  "defined": "ExtraCollateralAmount"
-                },
-                8
-              ]
-            }
+            "name": "UpdateLiqPenaltyCashBased"
+          },
+          {
+            "name": "UpdateLiqPenaltyPoolBased"
+          },
+          {
+            "name": "UpdateDebtMax"
+          },
+          {
+            "name": "UpdateMinPartialDebtAccepted"
+          }
+        ]
+      }
+    },
+    {
+      "name": "CollateralStatus",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Inactive"
+          },
+          {
+            "name": "Deposited"
+          }
+        ]
+      }
+    },
+    {
+      "name": "LiquidationType",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "PoolBased"
+          },
+          {
+            "name": "CashBased",
+            "fields": [
+              "u64"
+            ]
           }
         ]
       }
@@ -4053,24 +4595,211 @@
         "kind": "enum",
         "variants": [
           {
-            "name": "Liquidate"
+            "name": "RedistributeAll"
           },
           {
-            "name": "DoNothing"
+            "name": "StabilityPoolThenRedistribute"
           }
         ]
       }
     },
     {
-      "name": "RedistributionDecision",
+      "name": "CashBasedLiquidationDecision",
       "type": {
         "kind": "enum",
         "variants": [
           {
-            "name": "RedistributeAll"
+            "name": "PayDebt"
           },
           {
-            "name": "StabilityPoolThenRedistribute"
+            "name": "PayThenRedistribute"
+          }
+        ]
+      }
+    },
+    {
+      "name": "TryLiquidateResult",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Success"
+          },
+          {
+            "name": "Error",
+            "fields": [
+              "string"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "Event",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "AddBorrowers",
+            "fields": [
+              {
+                "vec": {
+                  "defined": "Borrower"
+                }
+              }
+            ]
+          },
+          {
+            "name": "AddStabilityProviders",
+            "fields": [
+              {
+                "vec": {
+                  "defined": "StabilityProvider"
+                }
+              }
+            ]
+          },
+          {
+            "name": "SetPrices",
+            "fields": [
+              {
+                "defined": "Tokens"
+              }
+            ]
+          },
+          {
+            "name": "TryLiquidate",
+            "fields": [
+              {
+                "defined": "TryLiquidateEvent"
+              }
+            ]
+          },
+          {
+            "name": "TryLiquidateCash",
+            "fields": [
+              {
+                "defined": "TryLiquidateEventCash"
+              }
+            ]
+          },
+          {
+            "name": "UpdateMarketMinLTV",
+            "fields": [
+              "f64"
+            ]
+          },
+          {
+            "name": "ClearLiquidationGains",
+            "fields": [
+              {
+                "defined": "ExpectedClearGains"
+              }
+            ]
+          },
+          {
+            "name": "AssertUserBalance",
+            "fields": [
+              {
+                "defined": "AssertUserBalance"
+              }
+            ]
+          },
+          {
+            "name": "SetLiquidationPenalty",
+            "fields": [
+              "u64"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "WithdrawalCapAction",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Add"
+          },
+          {
+            "name": "Remove"
+          }
+        ]
+      }
+    },
+    {
+      "name": "WithdrawalCapOverflowAction",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "SaturatingOverflow"
+          },
+          {
+            "name": "ErrorOnOverflow"
+          }
+        ]
+      }
+    },
+    {
+      "name": "WithdrawalCapAccumulatorAction",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "KeepAccumulator"
+          },
+          {
+            "name": "ResetAccumulator"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PsmAction",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Mint",
+            "fields": [
+              "u64"
+            ]
+          },
+          {
+            "name": "Burn",
+            "fields": [
+              "u64"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "PsmWithdrawalCapType",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "UsdhWithdrawalCap"
+          },
+          {
+            "name": "OtherStablecoinWithdrawalCap"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PsmOperationType",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Mint"
+          },
+          {
+            "name": "Burn"
           }
         ]
       }
@@ -4085,163 +4814,6 @@
           },
           {
             "name": "PendingCollection"
-          }
-        ]
-      }
-    },
-    {
-      "name": "PDA",
-      "type": {
-        "kind": "enum",
-        "variants": [
-          {
-            "name": "BorrowingFeesAccount",
-            "fields": [
-              {
-                "name": "owner",
-                "type": "publicKey"
-              }
-            ]
-          },
-          {
-            "name": "StablecoinMint",
-            "fields": [
-              {
-                "name": "owner",
-                "type": "publicKey"
-              }
-            ]
-          },
-          {
-            "name": "StabilityPool",
-            "fields": [
-              {
-                "name": "owner",
-                "type": "publicKey"
-              }
-            ]
-          },
-          {
-            "name": "BurningPotAccount",
-            "fields": [
-              {
-                "name": "owner",
-                "type": "publicKey"
-              }
-            ]
-          },
-          {
-            "name": "TreasuryAccount",
-            "fields": [
-              {
-                "name": "owner",
-                "type": "publicKey"
-              }
-            ]
-          },
-          {
-            "name": "StakingPool",
-            "fields": [
-              {
-                "name": "owner",
-                "type": "publicKey"
-              }
-            ]
-          },
-          {
-            "name": "HbbMint",
-            "fields": [
-              {
-                "name": "owner",
-                "type": "publicKey"
-              }
-            ]
-          },
-          {
-            "name": "CollateralVault",
-            "fields": [
-              {
-                "name": "owner",
-                "type": "publicKey"
-              }
-            ]
-          },
-          {
-            "name": "LiquidationsVault",
-            "fields": [
-              {
-                "name": "owner",
-                "type": "publicKey"
-              }
-            ]
-          },
-          {
-            "name": "PsmVault",
-            "fields": [
-              {
-                "name": "owner",
-                "type": "publicKey"
-              }
-            ]
-          }
-        ]
-      }
-    },
-    {
-      "name": "ScopePriceId",
-      "type": {
-        "kind": "enum",
-        "variants": [
-          {
-            "name": "SOL"
-          },
-          {
-            "name": "ETH"
-          },
-          {
-            "name": "BTC"
-          },
-          {
-            "name": "SRM"
-          },
-          {
-            "name": "RAY"
-          },
-          {
-            "name": "FTT"
-          },
-          {
-            "name": "MSOL"
-          },
-          {
-            "name": "BNB"
-          },
-          {
-            "name": "AVAX"
-          },
-          {
-            "name": "DaoSOL"
-          },
-          {
-            "name": "SaberMSOL_SOL"
-          },
-          {
-            "name": "USDH"
-          },
-          {
-            "name": "StSOL"
-          },
-          {
-            "name": "CSOL_SOL"
-          },
-          {
-            "name": "CETH_ETH"
-          },
-          {
-            "name": "CBTC_BTC"
-          },
-          {
-            "name": "CMSOL_SOL"
           }
         ]
       }
@@ -4412,6 +4984,18 @@
             "name": "STSOL"
           },
           {
+            "name": "SCNSOL"
+          },
+          {
+            "name": "WSTETH"
+          },
+          {
+            "name": "LDO"
+          },
+          {
+            "name": "CSOL"
+          },
+          {
             "name": "OTHER"
           }
         ]
@@ -4550,38 +5134,194 @@
       }
     },
     {
-      "name": "UpdateSFMode",
+      "name": "PDA",
       "type": {
         "kind": "enum",
         "variants": [
           {
-            "name": "UpdateSFValue"
+            "name": "BorrowingFeesAccount",
+            "fields": [
+              {
+                "name": "owner",
+                "type": "publicKey"
+              }
+            ]
           },
           {
-            "name": "UpdateStabilityPct"
+            "name": "StablecoinMint",
+            "fields": [
+              {
+                "name": "owner",
+                "type": "publicKey"
+              }
+            ]
           },
           {
-            "name": "UpdateStakingPct"
+            "name": "StabilityPool",
+            "fields": [
+              {
+                "name": "owner",
+                "type": "publicKey"
+              }
+            ]
           },
           {
-            "name": "UpdateTreasuryPct"
+            "name": "BurningPotAccount",
+            "fields": [
+              {
+                "name": "owner",
+                "type": "publicKey"
+              }
+            ]
           },
           {
-            "name": "UpdateLastEventTimestamp"
+            "name": "TreasuryAccount",
+            "fields": [
+              {
+                "name": "owner",
+                "type": "publicKey"
+              }
+            ]
+          },
+          {
+            "name": "StakingPool",
+            "fields": [
+              {
+                "name": "owner",
+                "type": "publicKey"
+              }
+            ]
+          },
+          {
+            "name": "HbbMint",
+            "fields": [
+              {
+                "name": "owner",
+                "type": "publicKey"
+              }
+            ]
+          },
+          {
+            "name": "CollateralVault",
+            "fields": [
+              {
+                "name": "owner",
+                "type": "publicKey"
+              }
+            ]
+          },
+          {
+            "name": "LiquidationsVault",
+            "fields": [
+              {
+                "name": "owner",
+                "type": "publicKey"
+              }
+            ]
+          },
+          {
+            "name": "PsmVault",
+            "fields": [
+              {
+                "name": "owner",
+                "type": "publicKey"
+              }
+            ]
+          },
+          {
+            "name": "PsmTreasuryOtherStable",
+            "fields": [
+              {
+                "name": "owner",
+                "type": "publicKey"
+              }
+            ]
           }
         ]
       }
     },
     {
-      "name": "CollateralStatus",
+      "name": "ScopePriceId",
       "type": {
         "kind": "enum",
         "variants": [
           {
-            "name": "Inactive"
+            "name": "SOL"
           },
           {
-            "name": "Deposited"
+            "name": "ETH"
+          },
+          {
+            "name": "BTC"
+          },
+          {
+            "name": "SRM"
+          },
+          {
+            "name": "RAY"
+          },
+          {
+            "name": "FTT"
+          },
+          {
+            "name": "MSOL"
+          },
+          {
+            "name": "scnSOL_SOL"
+          },
+          {
+            "name": "BNB"
+          },
+          {
+            "name": "AVAX"
+          },
+          {
+            "name": "DaoSOL_SOL"
+          },
+          {
+            "name": "SaberMSOL_SOL"
+          },
+          {
+            "name": "USDH"
+          },
+          {
+            "name": "StSOL"
+          },
+          {
+            "name": "CSOL_SOL"
+          },
+          {
+            "name": "CETH_ETH"
+          },
+          {
+            "name": "CBTC_BTC"
+          },
+          {
+            "name": "CMSOL_SOL"
+          },
+          {
+            "name": "wstETH"
+          },
+          {
+            "name": "LDO"
+          },
+          {
+            "name": "USDC"
+          },
+          {
+            "name": "CUSDC_USDC"
+          },
+          {
+            "name": "USDT"
+          },
+          {
+            "name": "ORCA"
+          },
+          {
+            "name": "MNDE"
+          },
+          {
+            "name": "HBB"
           }
         ]
       }
@@ -4990,8 +5730,8 @@
     },
     {
       "code": 6080,
-      "name": "PSMModuleOutOfUSDH",
-      "msg": "PSM Module out of minted USDH"
+      "name": "PSMModuleOutOfOtherStable",
+      "msg": "PSM Module out of other stable"
     },
     {
       "code": 6081,
@@ -5030,48 +5770,63 @@
     },
     {
       "code": 6088,
-      "name": "CannotLiquidateUnmarkedUser",
-      "msg": "Cannot liquidate user position if not marked as liquidated"
+      "name": "CannotLiquidateNonzeroSecondary",
+      "msg": "Cannot liquidate via stability pool with non original collaterals"
     },
     {
       "code": 6089,
-      "name": "CannotLiquidateNonzeroSecondary",
-      "msg": "Cannot liquidate user position if the secondary tokens were not swapped yet"
-    },
-    {
-      "code": 6090,
       "name": "UserStatusNotActive",
       "msg": "User status must be active to liquidate"
     },
     {
-      "code": 6091,
+      "code": 6090,
       "name": "UserIsLiquidated",
       "msg": "User is in process of liquidation"
     },
     {
-      "code": 6092,
+      "code": 6091,
       "name": "PsmMintBlocked",
       "msg": "Psm_mint is currently blocked"
     },
     {
-      "code": 6093,
+      "code": 6092,
       "name": "PsmBurnBlocked",
       "msg": "Psm_burn is currently blocked"
     },
     {
-      "code": 6094,
+      "code": 6093,
       "name": "DepositCollateralBlocked",
       "msg": "deposit_collateral is currently blocked"
     },
     {
-      "code": 6095,
+      "code": 6094,
       "name": "PSMCannotMintZeroAmount",
       "msg": "PSM Cannot Mint Zero Amount"
     },
     {
-      "code": 6096,
+      "code": 6095,
       "name": "PSMCannotBurnZeroAmount",
       "msg": "PSM Cannot Burn Zero Amount"
+    },
+    {
+      "code": 6096,
+      "name": "CannotLiquidateCashBasedIfNoSecondary",
+      "msg": "Cannot liquidate cash based if the position has no secondary tokens"
+    },
+    {
+      "code": 6097,
+      "name": "PledgedLiquidationAmountLessThanMinimum",
+      "msg": "Cannot liquidate cash based partially if pledged amount less than minimum"
+    },
+    {
+      "code": 6098,
+      "name": "WithdrawalCapReached",
+      "msg": "Withdrawal Capacity exceeded"
+    },
+    {
+      "code": 6099,
+      "name": "TimestampDecrease",
+      "msg": "Current Timestamp smaller than Last Recorded"
     }
   ]
 }

@@ -86,6 +86,10 @@ export class Hubble {
     state.depositedCollateral.amounts = replaceBigNumberWithDecimal(state.depositedCollateral.amounts);
     state.inactiveCollateral.amounts = replaceBigNumberWithDecimal(state.inactiveCollateral.amounts);
     state.collateralRewardPerToken = replaceBigNumberWithDecimal(state.collateralRewardPerToken);
+    state.withdrawalCap = replaceBigNumberWithDecimal(state.withdrawalCap);
+    state.withdrawalCapsCollateral = state.withdrawalCapsCollateral.map((collCap) => {collCap.tokenCap = replaceBigNumberWithDecimal(collCap.tokenCap);
+      return replaceBigNumberWithDecimal(collCap);});
+    state.supportedCollaterals = state.supportedCollaterals.map((collateral) => replaceBigNumberWithDecimal(collateral))
     return state;
   }
 
@@ -521,6 +525,8 @@ export class Hubble {
   async getPsmReserve(): Promise<PsmReserve> {
     const psmPubkey = await this.getPsmPublicKey();
     const reserve = (await this._borrowingProgram.account.psmReserve.fetch(psmPubkey)) as PsmReserve;
+    reserve.withdrawalCapStable = replaceBigNumberWithDecimal(reserve.withdrawalCapStable);
+    reserve.withdrawalCapUsdh = replaceBigNumberWithDecimal(reserve.withdrawalCapUsdh);
     return replaceBigNumberWithDecimal(reserve);
   }
 

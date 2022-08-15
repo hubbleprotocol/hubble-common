@@ -1,6 +1,9 @@
 import { PublicKey } from '@solana/web3.js';
 import CollateralAmounts from './CollateralAmounts';
 import Decimal from 'decimal.js';
+import SupportedCollateral from './SupportedCollateral';
+import CollateralWithdrawalCaps from './CollateralWithdrawalCaps';
+import WithdrawalCaps from './WithdrawalCaps';
 
 export type BorrowingMarketState = {
   version: number;
@@ -26,7 +29,10 @@ export type BorrowingMarketState = {
   stablecoinRewardPerToken: Decimal;
   totalStakeSnapshot: Decimal;
   borrowedStablecoinSnapshot: Decimal;
+  supportedCollaterals: SupportedCollateral[];
   marketMcr: Decimal;
+  withdrawalCap: WithdrawalCaps;
+  withdrawalCapsCollateral: CollateralWithdrawalCaps[];
 };
 
 export default BorrowingMarketState;
