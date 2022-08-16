@@ -4,6 +4,14 @@ import Decimal from 'decimal.js';
 export const LAMPORTS_PER_SOL = 1_000_000_000;
 // Number of lamports per mSOL
 export const LAMPORTS_PER_MSOL = 1_000_000_000;
+// Number of lamports per DAOSOL
+export const LAMPORTS_PER_DAOSOL = 1_000_000_000;
+// Number of lamports per STSOL
+export const LAMPORTS_PER_STSOL = 1_000_000_000;
+// Number of lamports per SCNSOL
+export const LAMPORTS_PER_SCNSOL = 1_000_000_000;
+// Number of lamports per SSOL
+export const LAMPORTS_PER_SSOL = 1_000_000_000;
 // Number of decimals for ETH
 export const DECIMALS_ETH = 1_000_000_00;
 // Number of decimals for BTC
@@ -14,6 +22,10 @@ export const DECIMALS_FTT = 1_000_000;
 export const DECIMALS_RAY = 1_000_000;
 // Number of decimals for SRM
 export const DECIMALS_SRM = 1_000_000;
+// Number of decimals for WSTETH
+export const DECIMALS_WSTETH = 1_000_000_00;
+// Number of decimals for LDO
+export const DECIMALS_LDO = 1_000_000_00;
 // Number of decimals for USDC
 export const DECIMALS_USDC = 1_000_000;
 // Number of decimals for HBB
