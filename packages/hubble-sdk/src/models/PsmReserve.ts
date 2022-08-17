@@ -1,8 +1,9 @@
 import { PublicKey } from '@solana/web3.js';
 import Decimal from 'decimal.js';
+import WithdrawalCaps from './WithdrawalCaps';
 
 export type PsmReserve = {
-  version: Decimal;
+  version: number;
   bump: number;
   borrowingMarketState: PublicKey;
   depositedStablecoin: Decimal;
@@ -12,7 +13,13 @@ export type PsmReserve = {
   stablecoinMint: PublicKey;
   psmVault: PublicKey;
   psmVaultAuthority: PublicKey;
-  psmVaultAuthoritySeed: PublicKey;
+  psmVaultAuthoritySeed: number;
+  withdrawalCapUsdh: WithdrawalCaps;
+  withdrawalCapStable: WithdrawalCaps;
+  mintFeeBps: number;
+  burnFeeBps: number;
+  treasuryVaultOtherStable: PublicKey;
+  treasuryVaultOtherStableAuthority: PublicKey;
 };
 
 export default PsmReserve;

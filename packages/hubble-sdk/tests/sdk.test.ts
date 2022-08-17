@@ -23,10 +23,16 @@ describe('Hubble SDK Tests', () => {
         bump: 255,
         psmVault: pk,
         psmVaultAuthority: pk,
-        psmVaultAuthoritySeed: pk,
+        psmVaultAuthoritySeed: 0,
         stablecoinMint: pk,
         stablecoinMintDecimals: 6,
-        version: zero,
+        version: 0,
+        withdrawalCapUsdh: {configCapacity: new Decimal(0), currentTotal: new Decimal(0), lastIntervalStartTimestamp:0, configIntervalLengthSeconds: 0},
+        withdrawalCapStable: {configCapacity: new Decimal(0), currentTotal: new Decimal(0), lastIntervalStartTimestamp: 0, configIntervalLengthSeconds: 0},
+        mintFeeBps: 0,
+        burnFeeBps: 0,
+        treasuryVaultOtherStable: pk,
+        treasuryVaultOtherStableAuthority: pk,
       });
     });
   });

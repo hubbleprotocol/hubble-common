@@ -15,3 +15,6 @@ export * from './Loan';
 export * from './HbbVault';
 export * from './UsdhVault';
 export * from './PsmReserve';
+export * from './SupportedCollateral';
+export * from './WithdrawalCaps';
+export * from './CollateralWithdrawalCaps';
