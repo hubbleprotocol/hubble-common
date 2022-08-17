@@ -525,10 +525,13 @@ export class Hubble {
    */
   async getPsmReserve(): Promise<PsmReserve> {
     const psmPubkey = await this.getPsmPublicKey();
-    const reserve = (await this._borrowingProgram.account.psmReserve.fetch(psmPubkey)) as PsmReserve;
+    let reserve = (await this._borrowingProgram.account.psmReserve.fetch(psmPubkey)) as PsmReserve;
     reserve.withdrawalCapStable = decimalToNumWithdrawalCap(replaceBigNumberWithDecimal(reserve.withdrawalCapStable) as any);
     reserve.withdrawalCapUsdh = decimalToNumWithdrawalCap(replaceBigNumberWithDecimal(reserve.withdrawalCapUsdh) as any);
-    return replaceBigNumberWithDecimal(reserve);
+    reserve = replaceBigNumberWithDecimal(reserve);
+    reserve.mintFeeBps = (reserve.mintFeeBps as any).toNumber();
+    reserve.burnFeeBps = (reserve.burnFeeBps as any).toNumber();
+    return reserve;
   }
 
   /**
