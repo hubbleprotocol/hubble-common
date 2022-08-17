@@ -31,9 +31,9 @@ export type BorrowingMarketState = {
   borrowedStablecoinSnapshot: Decimal;
   supportedCollaterals: SupportedCollateral[];
   marketMcr: Decimal;
-  liquidation_penalty_pool_based: Decimal;
-  liquidation_penalty_cash_based: Decimal;
-  min_cash_based_liquidation_repayment: Decimal;
+  liquidationPenaltyPoolBased: Decimal;
+  liquidationPenaltyCashBased: Decimal;
+  minCashBasedLiquidationRepayment: Decimal;
   withdrawalCap: WithdrawalCaps;
   withdrawalCapsCollateral: CollateralWithdrawalCaps[];
 };
