@@ -10,6 +10,7 @@ import {
   calculateStabilityProvided,
   calculateTotalCollateral,
   calculateTotalDebt,
+  decimalToNumWithdrawalCap,
   getReadOnlyWallet,
   replaceBigNumberWithDecimal,
 } from './utils';
@@ -86,8 +87,8 @@ export class Hubble {
     state.depositedCollateral.amounts = replaceBigNumberWithDecimal(state.depositedCollateral.amounts);
     state.inactiveCollateral.amounts = replaceBigNumberWithDecimal(state.inactiveCollateral.amounts);
     state.collateralRewardPerToken = replaceBigNumberWithDecimal(state.collateralRewardPerToken);
-    state.withdrawalCap = replaceBigNumberWithDecimal(state.withdrawalCap);
-    state.withdrawalCapsCollateral = state.withdrawalCapsCollateral.map((collCap) => {collCap.tokenCap = replaceBigNumberWithDecimal(collCap.tokenCap);
+    state.withdrawalCap = decimalToNumWithdrawalCap(replaceBigNumberWithDecimal(state.withdrawalCap) as any);
+    state.withdrawalCapsCollateral = state.withdrawalCapsCollateral.map((collCap) => {collCap.tokenCap = decimalToNumWithdrawalCap(replaceBigNumberWithDecimal(collCap.tokenCap) as any);
       return replaceBigNumberWithDecimal(collCap);});
     state.supportedCollaterals = state.supportedCollaterals.map((collateral) => replaceBigNumberWithDecimal(collateral))
     return state;
@@ -525,8 +526,8 @@ export class Hubble {
   async getPsmReserve(): Promise<PsmReserve> {
     const psmPubkey = await this.getPsmPublicKey();
     const reserve = (await this._borrowingProgram.account.psmReserve.fetch(psmPubkey)) as PsmReserve;
-    reserve.withdrawalCapStable = replaceBigNumberWithDecimal(reserve.withdrawalCapStable);
-    reserve.withdrawalCapUsdh = replaceBigNumberWithDecimal(reserve.withdrawalCapUsdh);
+    reserve.withdrawalCapStable = decimalToNumWithdrawalCap(replaceBigNumberWithDecimal(reserve.withdrawalCapStable) as any);
+    reserve.withdrawalCapUsdh = decimalToNumWithdrawalCap(replaceBigNumberWithDecimal(reserve.withdrawalCapUsdh) as any);
     return replaceBigNumberWithDecimal(reserve);
   }
 

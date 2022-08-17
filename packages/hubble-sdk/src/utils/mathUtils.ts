@@ -22,6 +22,7 @@ import StabilityProviderState from '../models/StabilityProviderState';
 import UserMetadata from '../models/UserMetadata';
 import BorrowingMarketState from '../models/BorrowingMarketState';
 import { ExtraCollateralAmount, StabilityTokenMap } from '../models';
+import WithdrawalCaps from '../models/WithdrawalCaps';
 
 /**
  * Divide all collateral amounts to convert from lamports to decimals
@@ -76,6 +77,10 @@ export const replaceBigNumberWithDecimal = <T>(obj: T): T => {
   }
   return obj;
 };
+
+export const decimalToNumWithdrawalCap = (cap: {configCapacity: Decimal; currentTotal: Decimal; lastIntervalStartTimestamp: Decimal; configIntervalLengthSeconds: Decimal;}) => {
+  return{configCapacity: cap.configCapacity, currentTotal: cap.currentTotal, lastIntervalStartTimestamp: cap.lastIntervalStartTimestamp.toNumber(), configIntervalLengthSeconds: cap.configIntervalLengthSeconds.toNumber()}
+}
 
 /**
  * Calculate stability provider's actual stability provided
