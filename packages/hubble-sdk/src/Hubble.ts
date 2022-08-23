@@ -30,7 +30,7 @@ import { SwapInfo } from './models/SwapInfo';
 export class Hubble {
   private readonly _cluster: SolanaCluster;
   private readonly _connection: Connection;
-  private readonly _config: HubbleConfig;
+  readonly _config: HubbleConfig;
   private readonly _provider: Provider;
   private _borrowingProgram: Program;
 
