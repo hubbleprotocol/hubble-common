@@ -13,7 +13,6 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
         { address: new PublicKey('mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So'), scopeToken: 'MSOL' },
         { address: new PublicKey('So11111111111111111111111111111111111111112'), scopeToken: 'SOL' },
       ],
-
       whirlpoolsToSnapshot: [
         {
           address: new PublicKey('5Z66YYYaTmmx1R4mATAGLSc8aV4Vfy5tNdJQzk1GP9RF'),
@@ -262,6 +261,8 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
           HBB: new PublicKey('HBB111SCo9jkCejsZfz8Ec8nH7T6THF8KEKSnvwT6XK6'),
           WSOL: new PublicKey('So11111111111111111111111111111111111111112'),
           MSOL: new PublicKey('mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So'),
+          LDO: new PublicKey('HZRCwxP2Vq9PCpPXooayhJ2bxTpo5xfpQrwB1svh332p'),
+          ORCA: new PublicKey('orcaEKTdK7LKz57vaAYr9QeNsVEPfiu6QeMU1kektZE'),
         },
         collateralVaultsAuthority: new PublicKey('HZYHFagpyCqXuQjrSCN2jWrMHTVHPf9VWP79UGyvo95L'),
         collateralVault: {
@@ -458,6 +459,8 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
           HBB: new PublicKey('HBB111SCo9jkCejsZfz8Ec8nH7T6THF8KEKSnvwT6XK6'),
           MSOL: undefined,
           WSOL: undefined,
+          LDO: new PublicKey('HZRCwxP2Vq9PCpPXooayhJ2bxTpo5xfpQrwB1svh332p'),
+          ORCA: new PublicKey('orcarKHSqC5CDDsGbho8GKvwExejWHxTqGzXgcewB9L'),
         },
         collateralVault: {
           SOL: {
@@ -587,6 +590,8 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
           FTT: new PublicKey('7DmsbJXUcVwNmj84Cqd91KrEzJyLKGPHdKTqKTwHwsHE'),
           HBB: new PublicKey('GnzBpWxvN75JXxKndPwJ63ABdKDACMDWTC5iTUqGzSsD'),
           MSOL: new PublicKey('mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So'),
+          LDO: new PublicKey('HZRCwxP2Vq9PCpPXooayhJ2bxTpo5xfpQrwB1svh332p'),
+          ORCA: new PublicKey('orcaEKTdK7LKz57vaAYr9QeNsVEPfiu6QeMU1kektZE'),
         },
         collateralVaultsAuthority: new PublicKey('5t8jZ1T6cR79vEu5Vo1Jc6Q3RaYtLsNJdPTLLu4z9vX3'),
         collateralVault: {
@@ -784,6 +789,8 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
           FTT: new PublicKey('6AJ9LYjCpLFekhX7Jzq6YDQrZ72oLTeQuLgGCxHw8nq2'),
           HBB: new PublicKey('HBB111SCo9jkCejsZfz8Ec8nH7T6THF8KEKSnvwT6XK6'),
           MSOL: undefined,
+          LDO: new PublicKey('HZRCwxP2Vq9PCpPXooayhJ2bxTpo5xfpQrwB1svh332p'),
+          ORCA: new PublicKey('orcaEKTdK7LKz57vaAYr9QeNsVEPfiu6QeMU1kektZE'),
         },
         collateralVaultsAuthority: new PublicKey('AzrwP37zYTDh1dfbWWc3ceK2LVbijNuDvV9hS1qH96dM'),
         collateralVault: {

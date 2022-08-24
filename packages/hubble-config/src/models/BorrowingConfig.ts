@@ -16,6 +16,8 @@ export type BorrowingConfig = {
       RAY: PublicKey;
       FTT: PublicKey;
       HBB: PublicKey;
+      LDO: PublicKey;
+      ORCA: PublicKey;
       WSOL: PublicKey | undefined;
       MSOL: PublicKey | undefined;
     };
