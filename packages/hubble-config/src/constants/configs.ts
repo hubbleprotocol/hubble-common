@@ -591,7 +591,7 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
           HBB: new PublicKey('GnzBpWxvN75JXxKndPwJ63ABdKDACMDWTC5iTUqGzSsD'),
           MSOL: new PublicKey('mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So'),
           LDO: new PublicKey('99nKXBggZF5Xxbc9RPD1kzD1ZP1TPXQyNSCTn1MK2Dbi'),
-          ORCA: new PublicKey('orcaEKTdK7LKz57vaAYr9QeNsVEPfiu6QeMU1kektZE'),
+          ORCA: new PublicKey('orcarKHSqC5CDDsGbho8GKvwExejWHxTqGzXgcewB9L'),
         },
         collateralVaultsAuthority: new PublicKey('5t8jZ1T6cR79vEu5Vo1Jc6Q3RaYtLsNJdPTLLu4z9vX3'),
         collateralVault: {
