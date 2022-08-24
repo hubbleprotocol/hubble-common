@@ -28,6 +28,7 @@ export type BorrowingMarketState = {
   collateralRewardPerToken: CollateralAmounts;
   stablecoinRewardPerToken: Decimal;
   totalStakeSnapshot: Decimal;
+  totalDebtMax: Decimal;
   borrowedStablecoinSnapshot: Decimal;
   supportedCollaterals: SupportedCollateral[];
   marketMcr: Decimal;
