@@ -3303,15 +3303,15 @@
             }
           },
           {
-            "name": "baseRateBps",
-            "type": "u64"
-          },
-          {
-            "name": "lastFeeEvent",
+            "name": "mintingFeeBps",
             "type": "u64"
           },
           {
             "name": "placeholder2",
+            "type": "u64"
+          },
+          {
+            "name": "placeholder3",
             "type": "u64"
           },
           {
@@ -3397,7 +3397,7 @@
             "type": "u16"
           },
           {
-            "name": "placeholder3",
+            "name": "placeholder4",
             "type": "u16"
           },
           {
@@ -4554,6 +4554,9 @@
           },
           {
             "name": "UpdateMinPartialDebtAccepted"
+          },
+          {
+            "name": "UpdateMintingFeeBps"
           }
         ]
       }
@@ -4996,6 +4999,36 @@
             "name": "CSOL"
           },
           {
+            "name": "CETH"
+          },
+          {
+            "name": "CBTC"
+          },
+          {
+            "name": "CMSOL"
+          },
+          {
+            "name": "CUSDC"
+          },
+          {
+            "name": "CSRM"
+          },
+          {
+            "name": "CRAY"
+          },
+          {
+            "name": "CFTT"
+          },
+          {
+            "name": "CSTSOL"
+          },
+          {
+            "name": "CSLND"
+          },
+          {
+            "name": "CORCA"
+          },
+          {
             "name": "OTHER"
           }
         ]
@@ -5322,6 +5355,27 @@
           },
           {
             "name": "HBB"
+          },
+          {
+            "name": "CSLND_SLND"
+          },
+          {
+            "name": "CORCA_ORCA"
+          },
+          {
+            "name": "CSRM_SRM"
+          },
+          {
+            "name": "CRAY_RAY"
+          },
+          {
+            "name": "CFTT_FTT"
+          },
+          {
+            "name": "CSTSOL_STSOL"
+          },
+          {
+            "name": "SLND"
           }
         ]
       }
