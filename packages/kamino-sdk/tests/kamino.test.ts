@@ -34,8 +34,9 @@ describe('Scope SDK Tests', () => {
   //   const kamino = new Kamino(cluster, connection);
   //   const strategy = await kamino.getStrategyByName('USDH', 'USDC');
   //   expect(strategy).not.toBeNull();
-  //   const price = await kamino.getStrategySharePrice(strategy!);
-  //   expect(price.toNumber()).toBeGreaterThanOrEqual(0);
+  //   const price = await kamino.getStrategyShareData(strategy!);
+  //   expect(price.price.toNumber()).toBeGreaterThanOrEqual(0);
+  //   console.log(price);
   // });
 
   // test('should get all strategies share price', async () => {

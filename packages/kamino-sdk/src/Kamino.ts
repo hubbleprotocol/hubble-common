@@ -14,17 +14,37 @@ import { Percentage, RemoveLiquidityQuote, RemoveLiquidityQuoteParam } from '@or
 import { OrcaDAL } from '@orca-so/whirlpool-sdk/dist/dal/orca-dal';
 import { OrcaPosition } from '@orca-so/whirlpool-sdk/dist/position/orca-position';
 import { PROGRAM_ID_CLI as WHIRLPOOL_PROGRAM_ID } from './whirpools-client/programId';
-import { Holdings, StrategyBalances, StrategyVaultBalances } from './models';
+import { Holdings, ShareData, StrategyBalances, StrategyVaultBalances } from './models';
 import axios from 'axios';
 import { MultipleAccountsResponse } from './models/MultipleAccountsResponse';
 import { StrategyHolder } from './models/StrategyHolder';
 import { Scope, SupportedToken } from '@hubbleprotocol/scope-sdk';
+import { KaminoToken } from './models/KaminoToken';
+import { PriceData } from './models/PriceData';
 
 export class Kamino {
   private readonly _cluster: SolanaCluster;
   private readonly _connection: Connection;
   readonly _config: HubbleConfig;
   private readonly _scope: Scope;
+
+  private readonly _tokenMap: KaminoToken[] = [
+    { name: 'USDC', id: 0 },
+    { name: 'USDH', id: 1 },
+    { name: 'SOL', id: 2 },
+    { name: 'ETH', id: 3 },
+    { name: 'BTC', id: 4 },
+    { name: 'MSOL', id: 5 },
+    { name: 'STSOL', id: 6 },
+    { name: 'USDT', id: 7 },
+    { name: 'ORCA', id: 8 },
+    { name: 'MNDE', id: 9 },
+    { name: 'HBB', id: 10 },
+    { name: 'JSOL', id: 11 },
+    // { name: 'USH', id: 12 },
+    { name: 'DAI', id: 13 },
+    { name: 'LDO', id: 14 },
+  ];
 
   /**
    * Create a new instance of the Kamino SDK class.
@@ -73,16 +93,31 @@ export class Kamino {
   }
 
   /**
-   * Get the share price of the specified Kamino whirlpool strategy
+   * Get the strategy share data (price + balances) of the specified Kamino whirlpool strategy
    * @param strategy
    */
-  async getStrategySharePrice(strategy: WhirlpoolStrategy) {
+  async getStrategyShareData(strategy: WhirlpoolStrategy): Promise<ShareData> {
     const dollarFactor = Decimal.pow(10, 6);
     const sharesIssued = new Decimal(strategy.sharesIssued.toString());
+    const balances = await this.getStrategyBalances(strategy);
+    if (sharesIssued.isZero()) {
+      return { price: new Decimal(1), balance: balances };
+    } else {
+      return { price: balances.computedHoldings.totalSum.div(sharesIssued).mul(dollarFactor), balance: balances };
+    }
+  }
+
+  /**
+   * Get the strategy share price of the specified Kamino whirlpool strategy
+   * @param strategy
+   */
+  async getStrategySharePrice(strategy: WhirlpoolStrategy): Promise<Decimal> {
+    const dollarFactor = Decimal.pow(10, 6);
+    const sharesIssued = new Decimal(strategy.sharesIssued.toString());
+    const balances = await this.getStrategyBalances(strategy);
     if (sharesIssued.isZero()) {
       return new Decimal(1);
     } else {
-      const balances = await this.getStrategyBalances(strategy);
       return balances.computedHoldings.totalSum.div(sharesIssued).mul(dollarFactor);
     }
   }
@@ -127,22 +162,29 @@ export class Kamino {
       a: aVault,
       b: bVault,
     };
-    const { aPrice, bPrice } = await this.getPrices(strategy);
+    const prices = await this.getPrices(strategy);
+    const aAvailable = new Decimal(strategy.tokenAAmounts.toNumber());
+    const bAvailable = new Decimal(strategy.tokenBAmounts.toNumber());
+    const aInvested = new Decimal(removeLiquidityQuote.estTokenA.toNumber());
+    const bInvested = new Decimal(removeLiquidityQuote.estTokenB.toNumber());
 
     let computedHoldings: Holdings = this.getStrategyHoldingsUsd(
-      new Decimal(strategy.tokenAAmounts.toNumber()),
-      new Decimal(strategy.tokenBAmounts.toNumber()),
-      new Decimal(removeLiquidityQuote.estTokenA.toNumber()),
-      new Decimal(removeLiquidityQuote.estTokenB.toNumber()),
+      aAvailable,
+      bAvailable,
+      aInvested,
+      bInvested,
       decimalsA,
       decimalsB,
-      aPrice.price,
-      bPrice.price
+      prices.aPrice,
+      prices.bPrice
     );
 
     const balances: StrategyBalances = {
       computedHoldings,
       vaultBalances,
+      prices,
+      tokenAAmounts: aAvailable.plus(aInvested),
+      tokenBAmounts: bAvailable.plus(bInvested),
     };
     return balances;
   }
@@ -181,7 +223,7 @@ export class Kamino {
     };
   }
 
-  private async getPrices(strategy: WhirlpoolStrategy) {
+  private async getPrices(strategy: WhirlpoolStrategy): Promise<PriceData> {
     const collateralMintA = getCollateralMintByAddress(strategy.tokenAMint, this._config);
     const collateralMintB = getCollateralMintByAddress(strategy.tokenBMint, this._config);
     if (!collateralMintA) {
@@ -190,12 +232,20 @@ export class Kamino {
     if (!collateralMintB) {
       throw Error(`Could not map token mint with scope price token (token B: ${strategy.tokenBMint.toBase58()})`);
     }
-    const prices = await this._scope.getPrices([
-      collateralMintA.scopeToken as SupportedToken,
-      collateralMintB.scopeToken as SupportedToken,
-    ]);
+    const tokens: SupportedToken[] = [];
+    const rewardToken0 = this.getRewardToken(strategy.reward0CollateralId.toNumber(), tokens);
+    const rewardToken1 = this.getRewardToken(strategy.reward1CollateralId.toNumber(), tokens);
+    const rewardToken2 = this.getRewardToken(strategy.reward2CollateralId.toNumber(), tokens);
+    tokens.push(collateralMintA.scopeToken as SupportedToken);
+    tokens.push(collateralMintB.scopeToken as SupportedToken);
+
+    const prices = await this._scope.getPrices([...new Set(tokens)]);
     const aPrice = prices.find((x) => x.name === collateralMintA.scopeToken);
     const bPrice = prices.find((x) => x.name === collateralMintB.scopeToken);
+
+    const reward0Price = prices.find((x) => x.name === rewardToken0?.name)?.price ?? new Decimal(0);
+    const reward1Price = prices.find((x) => x.name === rewardToken1?.name)?.price ?? new Decimal(0);
+    const reward2Price = prices.find((x) => x.name === rewardToken2?.name)?.price ?? new Decimal(0);
 
     if (!aPrice) {
       throw Error(`Could not get token price from scope for ${collateralMintA.scopeToken}`);
@@ -203,7 +253,15 @@ export class Kamino {
     if (!bPrice) {
       throw Error(`Could not get token price from scope for ${collateralMintB.scopeToken}`);
     }
-    return { aPrice, bPrice };
+    return { aPrice: aPrice.price, bPrice: bPrice.price, reward0Price, reward1Price, reward2Price };
+  }
+
+  private getRewardToken(tokenId: number, tokens: SupportedToken[]) {
+    const rewardToken = this._tokenMap.find((x) => x.id === tokenId);
+    if (rewardToken) {
+      tokens.push(rewardToken.name);
+    }
+    return rewardToken;
   }
 
   /**
