@@ -2,7 +2,7 @@ import Decimal from 'decimal.js';
 import { StrategyBalances } from './StrategyBalances';
 
 export type ShareData = {
-  balance?: StrategyBalances;
+  balance: StrategyBalances;
   price: Decimal;
 };
 
