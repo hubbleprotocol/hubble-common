@@ -24,7 +24,6 @@ export type ScopePair =
   | 'cETH/ETH'
   | 'cBTC/BTC'
   | 'cMSOL/MSOL'
-  | 'stETH/USD'
   | 'wstETH/USD'
   | 'LDO/USD'
   | 'USDC/USD'
@@ -39,6 +38,8 @@ export type ScopePair =
   | 'cRAY/RAY'
   | 'cFTT/FTT'
   | 'cSTSOL/STSOL'
+  | 'JSOL/SOL'
+  | 'DAI/USD'
   | 'SLND/USD';
 
 export type SupportedToken =
@@ -60,7 +61,6 @@ export type SupportedToken =
   | 'cETH'
   | 'cBTC'
   | 'cMSOL'
-  | 'stETH'
   | 'wstETH'
   | 'LDO'
   | 'USDC'
@@ -75,6 +75,8 @@ export type SupportedToken =
   | 'cRAY'
   | 'cFTT'
   | 'cSTSOL'
+  | 'DAI'
+  | 'JSOL'
   | 'SLND';
 
 export interface ScopeToken {
@@ -141,6 +143,8 @@ export class Scope {
     { id: 30, pair: 'cFTT/FTT', name: 'cFTT', price: new Decimal(0), nonUsdPairId: 5 },
     { id: 31, pair: 'cSTSOL/STSOL', name: 'cSTSOL', price: new Decimal(0), nonUsdPairId: 13 },
     { id: 32, pair: 'SLND/USD', name: 'SLND', price: new Decimal(0) },
+    { id: 33, pair: 'DAI/USD', name: 'DAI', price: new Decimal(0) },
+    { id: 34, pair: 'JSOL/SOL', name: 'JSOL', price: new Decimal(0), nonUsdPairId: 0 },
   ];
 
   /**
