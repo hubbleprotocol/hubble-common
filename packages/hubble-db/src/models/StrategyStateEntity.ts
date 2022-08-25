@@ -10,6 +10,14 @@ export interface StrategyStateEntity {
   raw_json: string;
   strategy_id: number;
   share_mint_id: number;
+  shares_issued: string;
+  token_a_amounts: string;
+  token_b_amounts: string;
+  token_a_price: string;
+  token_b_price: string;
+  reward_0_price: string;
+  reward_1_price: string;
+  reward_2_price: string;
 }
 
 export default StrategyStateEntity;
