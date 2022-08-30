@@ -38,9 +38,11 @@ export type ScopePair =
   | 'cRAY/RAY'
   | 'cFTT/FTT'
   | 'cSTSOL/STSOL'
-  | 'JSOL/SOL'
+  | 'SLND/USD'
   | 'DAI/USD'
-  | 'SLND/USD';
+  | 'JSOL/SOL'
+  | 'USH/USD'
+  | 'UXD/USD';
 
 export type SupportedToken =
   | 'SOL'
@@ -75,9 +77,11 @@ export type SupportedToken =
   | 'cRAY'
   | 'cFTT'
   | 'cSTSOL'
-  | 'DAI'
+  | 'SLND'
   | 'JSOL'
-  | 'SLND';
+  | 'DAI'
+  | 'USH'
+  | 'UXD';
 
 export interface ScopeToken {
   /**
@@ -145,6 +149,8 @@ export class Scope {
     { id: 32, pair: 'SLND/USD', name: 'SLND', price: new Decimal(0) },
     { id: 33, pair: 'DAI/USD', name: 'DAI', price: new Decimal(0) },
     { id: 34, pair: 'JSOL/SOL', name: 'JSOL', price: new Decimal(0), nonUsdPairId: 0 },
+    { id: 35, pair: 'USH/USD', name: 'USH', price: new Decimal(0) },
+    { id: 36, pair: 'UXD/USD', name: 'UXD', price: new Decimal(0) },
   ];
 
   /**
