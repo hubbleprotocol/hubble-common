@@ -1,5 +1,6 @@
 import { clusterApiUrl, Connection, PublicKey } from '@solana/web3.js';
 import { Kamino } from '../src';
+import Decimal from 'decimal.js';
 
 describe('Scope SDK Tests', () => {
   let connection: Connection;
@@ -53,10 +54,15 @@ describe('Scope SDK Tests', () => {
 
   // test('should get all strategy holders', async () => {
   //   const kamino = new Kamino(cluster, connection);
-  //   const strategy = await kamino.getStrategyByName('USDH', 'USDC');
+  //   const strategy = await kamino.getStrategyByAddress(new PublicKey('ByXB4xCxVhmUEmQj3Ut7byZ1Hbva1zhKjaVcv3jBMN7E'));
   //   expect(strategy).not.toBeNull();
   //   const accounts = await kamino.getStrategyHolders(strategy!);
   //   expect(accounts.length).toBeGreaterThan(0);
+  //   const expectedShares = new Decimal(strategy!.sharesIssued.toString())
+  //     .div(new Decimal(10).pow(strategy!.sharesMintDecimals.toString()))
+  //     .toNumber();
+  //   const actualShares = accounts.map((x) => x.amount.toNumber()).reduce((partialSum, a) => partialSum + a, 0);
+  //   expect(expectedShares).toBe(actualShares);
   // });
 
   // test('should get all whirlpools', async () => {

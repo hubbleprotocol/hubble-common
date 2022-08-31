@@ -15,8 +15,7 @@ import { OrcaDAL } from '@orca-so/whirlpool-sdk/dist/dal/orca-dal';
 import { OrcaPosition } from '@orca-so/whirlpool-sdk/dist/position/orca-position';
 import { PROGRAM_ID_CLI as WHIRLPOOL_PROGRAM_ID } from './whirpools-client/programId';
 import { Holdings, ShareData, StrategyBalances, StrategyVaultBalances } from './models';
-import axios from 'axios';
-import { MultipleAccountsResponse } from './models/MultipleAccountsResponse';
+import { Data } from './models/MultipleAccountsResponse';
 import { StrategyHolder } from './models/StrategyHolder';
 import { Scope, SupportedToken } from '@hubbleprotocol/scope-sdk';
 import { KaminoToken } from './models/KaminoToken';
@@ -290,30 +289,15 @@ export class Kamino {
    */
   async getStrategyHolders(strategy: WhirlpoolStrategy): Promise<StrategyHolder[]> {
     const tokenAccounts = await this.getStrategyTokenAccounts(strategy);
-    const response = await axios.post<MultipleAccountsResponse>(
-      this._connection.rpcEndpoint,
-      JSON.stringify({
-        jsonrpc: '2.0',
-        id: 1,
-        method: 'getMultipleAccounts',
-        params: [[tokenAccounts.map((x) => x.pubkey.toString()).toString()], { encoding: 'jsonParsed' }],
-      }),
-      {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
-    );
-    if (response.status === 200 && response.data?.result?.value) {
-      return response.data.result.value.map((x) => ({
-        holderPubkey: new PublicKey(x.data.parsed.info.owner),
-        amount: new Decimal(x.data.parsed.info.tokenAmount.uiAmountString),
-      }));
-    } else if (response.status !== 200) {
-      throw Error(`Could not get strategy holders, request error: ${response.status} - ${response.statusText}`);
-    } else {
-      return [];
+    const result: StrategyHolder[] = [];
+    for (const tokenAccount of tokenAccounts) {
+      const accountData = tokenAccount.account.data as Data;
+      result.push({
+        holderPubkey: new PublicKey(accountData.parsed.info.owner),
+        amount: new Decimal(accountData.parsed.info.tokenAmount.uiAmountString),
+      });
     }
+    return result;
   }
 
   getWhirlpools(whirlpools: PublicKey[]) {
