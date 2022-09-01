@@ -218,23 +218,13 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
           collateralB: 'USDC',
         },
         {
-          address: new PublicKey('DJ4tLS5q566UXJRdEREBKAg9URuNoyKZWByaUu62npHC'),
-          collateralA: 'SOL',
-          collateralB: 'MSOL',
-        },
-        {
           address: new PublicKey('ByXB4xCxVhmUEmQj3Ut7byZ1Hbva1zhKjaVcv3jBMN7E'),
           collateralA: 'SOL',
           collateralB: 'STSOL',
         },
         {
-          address: new PublicKey('D6LyYoruQkw11oDqjdNifLLEd3aWkkCgTdhMvn4pvqRv'),
-          collateralA: 'USDC',
-          collateralB: 'USDT',
-        },
-        {
           address: new PublicKey('98kNMp1aqWoYAaUU8m5REBAYVwhFb4aX9yoSpgq8kUFu'),
-          collateralA: 'USDH',
+          collateralA: 'USDC',
           collateralB: 'USDT',
         },
       ],
@@ -548,11 +538,6 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
           collateralB: 'USDC',
         },
         {
-          address: new PublicKey('BEyPwuJzK4SPx254PpfAvXJ3J5bg2eWpB9ozEMgjJDEX'),
-          collateralA: 'SOL',
-          collateralB: 'MSOL',
-        },
-        {
           address: new PublicKey('AvRMXt1MM9bdyE4yrnbVYjzYWWx8sdhkXPFbmxeb3rq6'),
           collateralA: 'SOL',
           collateralB: 'STSOL',
@@ -560,11 +545,6 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
         {
           address: new PublicKey('yT2bBMrE4AVG3BM8LHjDSr1yketzabmfp3rYimS36C9'),
           collateralA: 'USDC',
-          collateralB: 'USDT',
-        },
-        {
-          address: new PublicKey('EbRR6C3uCRwnHjvbJuuiaipvVCVLYb2ZL5B3GH4zm3FH'),
-          collateralA: 'USDH',
           collateralB: 'USDT',
         },
       ],
