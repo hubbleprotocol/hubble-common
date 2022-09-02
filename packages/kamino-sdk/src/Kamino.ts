@@ -40,7 +40,7 @@ export class Kamino {
     { name: 'MNDE', id: 9 },
     { name: 'HBB', id: 10 },
     { name: 'JSOL', id: 11 },
-    // { name: 'USH', id: 12 },
+    { name: 'USH', id: 12 },
     { name: 'DAI', id: 13 },
     { name: 'LDO', id: 14 },
   ];
@@ -62,25 +62,7 @@ export class Kamino {
    * Return a list of all Kamino whirlpool strategies
    */
   getStrategies() {
-    return WhirlpoolStrategy.fetchMultiple(
-      this._connection,
-      this._config.kamino.strategies.map((x) => x.address)
-    );
-  }
-
-  /**
-   * Get a Kamino whirlpool strategy by its name
-   */
-  getStrategyByName(tokenA: string, tokenB: string) {
-    const strategy = this._config.kamino.strategies.find(
-      (x) =>
-        x.collateralA.toLowerCase() === tokenA.toLowerCase() && x.collateralB.toLowerCase() === tokenB.toLowerCase()
-    );
-    if (strategy) {
-      return WhirlpoolStrategy.fetch(this._connection, strategy.address);
-    } else {
-      throw new Error(`Could not find strategy: ${tokenA}-${tokenB}`);
-    }
+    return WhirlpoolStrategy.fetchMultiple(this._connection, this._config.kamino.strategies);
   }
 
   /**
