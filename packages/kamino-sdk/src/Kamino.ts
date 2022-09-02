@@ -289,7 +289,7 @@ export class Kamino {
   getTokenName(collateralId: number) {
     const tokenName = this._tokenMap.find((x) => x.id === collateralId);
     if (!tokenName) {
-      throw Error(`Token with collateral ID ${collateralId}does not exist.`);
+      throw Error(`Token with collateral ID ${collateralId} does not exist.`);
     }
     return tokenName.name;
   }
