@@ -43,6 +43,8 @@ export class Kamino {
     { name: 'USH', id: 12 },
     { name: 'DAI', id: 13 },
     { name: 'LDO', id: 14 },
+    { name: 'scnSOL', id: 15 },
+    { name: 'UXD', id: 16 },
   ];
 
   /**
