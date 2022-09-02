@@ -285,6 +285,14 @@ export class Kamino {
   getWhirlpools(whirlpools: PublicKey[]) {
     return Whirlpool.fetchMultiple(this._connection, whirlpools);
   }
+
+  getTokenName(collateralId: number) {
+    const tokenName = this._tokenMap.find((x) => x.id === collateralId);
+    if (!tokenName) {
+      throw Error(`Token with collateral ID ${collateralId} does not exist.`);
+    }
+    return tokenName.name;
+  }
 }
 
 export default Kamino;
