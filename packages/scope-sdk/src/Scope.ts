@@ -42,7 +42,11 @@ export type ScopePair =
   | 'DAI/USD'
   | 'JSOL/SOL'
   | 'USH/USD'
-  | 'UXD/USD';
+  | 'UXD/USD'
+  | 'USDHTwap/USD'
+  | 'USHTwap/USD'
+  | 'UXDTwap/USD'
+  | 'HDG/USD';
 
 export type SupportedToken =
   | 'SOL'
@@ -81,7 +85,11 @@ export type SupportedToken =
   | 'JSOL'
   | 'DAI'
   | 'USH'
-  | 'UXD';
+  | 'UXD'
+  | 'USDHTwap'
+  | 'USHTwap'
+  | 'UXDTwap'
+  | 'HDG';
 
 export interface ScopeToken {
   /**
@@ -151,6 +159,10 @@ export class Scope {
     { id: 34, pair: 'JSOL/SOL', name: 'JSOL', price: new Decimal(0), nonUsdPairId: 0 },
     { id: 35, pair: 'USH/USD', name: 'USH', price: new Decimal(0) },
     { id: 36, pair: 'UXD/USD', name: 'UXD', price: new Decimal(0) },
+    { id: 37, pair: 'USDHTwap/USD', name: 'USDHTwap', price: new Decimal(0) },
+    { id: 38, pair: 'USHTwap/USD', name: 'USHTwap', price: new Decimal(0) },
+    { id: 39, pair: 'UXDTwap/USD', name: 'UXDTwap', price: new Decimal(0) },
+    { id: 40, pair: 'HDG/USD', name: 'HDG', price: new Decimal(0) },
   ];
 
   /**
