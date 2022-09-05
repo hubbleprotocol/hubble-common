@@ -46,7 +46,8 @@ export type ScopePair =
   | 'USDHTwap/USD'
   | 'USHTwap/USD'
   | 'UXDTwap/USD'
-  | 'HDG/USD';
+  | 'HDG/USD'
+  | 'DUST/USD';
 
 export type SupportedToken =
   | 'SOL'
@@ -89,7 +90,8 @@ export type SupportedToken =
   | 'USDHTwap'
   | 'USHTwap'
   | 'UXDTwap'
-  | 'HDG';
+  | 'HDG'
+  | 'DUST';
 
 export interface ScopeToken {
   /**
@@ -163,6 +165,7 @@ export class Scope {
     { id: 38, pair: 'USHTwap/USD', name: 'USHTwap', price: new Decimal(0) },
     { id: 39, pair: 'UXDTwap/USD', name: 'UXDTwap', price: new Decimal(0) },
     { id: 40, pair: 'HDG/USD', name: 'HDG', price: new Decimal(0) },
+    { id: 41, pair: 'DUST/USD', name: 'DUST', price: new Decimal(0) },
   ];
 
   /**
