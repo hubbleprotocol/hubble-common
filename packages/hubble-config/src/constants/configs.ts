@@ -227,6 +227,8 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
         new PublicKey('BfyQYYr2T9eJfMfq5gPXcq3SUkJSh2ahtk7ZNUCzkx9e'),
         new PublicKey('6taYeUSiNzuzQ8ys5d4TErzKRTPcqAC8Mx78RfKUoD9w'),
         new PublicKey('VF45TSF5WPAay9qy2zr1hPYgieBv7r17vYLRK6v1RmB'),
+        new PublicKey('2J7zeWbFC6PxtwnwEHb8zpF62w9Xanc18ThsF3UHMtVf'),
+        new PublicKey('GFaca7ca27vXofRJ3y1FtWgKwKWjn3LdCexttCsRLcvc'),
       ],
       programId: new PublicKey('6LtLpnUFNByNXLyCoK9wA2MykKAmQNZKBdY8s47dehDc'),
     },
