@@ -15,6 +15,8 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
         { address: new PublicKey('5oVNBeEEQvYi1cX3ir8Dx5n1P7pdxydbGF2X4TxVusJm'), scopeToken: 'scnSOL' },
         { address: new PublicKey('9iLH8T7zoWhY7sBmj1WK9ENbWdS1nL8n9wAxaeRitTa6'), scopeToken: 'USH' },
         { address: new PublicKey('7kbnvuGBxxj8AG9qp8Scn56muWGaRaFqxg1FsRp3PaFT'), scopeToken: 'UXD' },
+        { address: new PublicKey('7Q2afV64in6N6SeZsAAB81TJzwDoD6zpqmHkzi9Dcavn'), scopeToken: 'JSOL' },
+        { address: new PublicKey('DUSTawucrTsGU8hcqRdHDCbuYhCPADMLM2VcCb8VnFnQ'), scopeToken: 'DUST' },
       ],
       whirlpoolsToSnapshot: [
         {
