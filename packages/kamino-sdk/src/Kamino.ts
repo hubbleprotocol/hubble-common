@@ -95,13 +95,13 @@ export class Kamino {
    * @param strategy
    */
   async getStrategySharePrice(strategy: WhirlpoolStrategy): Promise<Decimal> {
-    const dollarFactor = Decimal.pow(10, 6);
+    const sharesFactor = Decimal.pow(10, strategy.sharesMintDecimals.toNumber());
     const sharesIssued = new Decimal(strategy.sharesIssued.toString());
     const balances = await this.getStrategyBalances(strategy);
     if (sharesIssued.isZero()) {
       return new Decimal(1);
     } else {
-      return balances.computedHoldings.totalSum.div(sharesIssued).mul(dollarFactor);
+      return balances.computedHoldings.totalSum.div(sharesIssued).mul(sharesFactor);
     }
   }
 
