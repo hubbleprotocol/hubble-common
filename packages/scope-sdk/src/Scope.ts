@@ -47,7 +47,12 @@ export type ScopePair =
   | 'USHTwap/USD'
   | 'UXDTwap/USD'
   | 'HDG/USD'
-  | 'DUST/USD';
+  | 'DUST/USD'
+  | 'kUSDHUSDCOrca/USD'
+  | 'kSOLSTSOLOrca/USD'
+  | 'kUSDCUSDTOrca/USD'
+  | 'kUSHUSDCOrca/USD'
+  | 'USDr/USD';
 
 export type SupportedToken =
   | 'SOL'
@@ -91,7 +96,12 @@ export type SupportedToken =
   | 'USHTwap'
   | 'UXDTwap'
   | 'HDG'
-  | 'DUST';
+  | 'DUST'
+  | 'kUSDHUSDCOrca/USD'
+  | 'kSOLSTSOLOrca/USD'
+  | 'kUSDCUSDTOrca/USD'
+  | 'kUSHUSDCOrca/USD'
+  | 'USDr';
 
 export interface ScopeToken {
   /**
@@ -166,6 +176,11 @@ export class Scope {
     { id: 39, pair: 'UXDTwap/USD', name: 'UXDTwap', price: new Decimal(0) },
     { id: 40, pair: 'HDG/USD', name: 'HDG', price: new Decimal(0) },
     { id: 41, pair: 'DUST/USD', name: 'DUST', price: new Decimal(0) },
+    { id: 42, pair: 'kUSDHUSDCOrca/USD', name: 'kUSDHUSDCOrca/USD', price: new Decimal(0) },
+    { id: 43, pair: 'kSOLSTSOLOrca/USD', name: 'kSOLSTSOLOrca/USD', price: new Decimal(0) },
+    { id: 44, pair: 'kUSDCUSDTOrca/USD', name: 'kUSDCUSDTOrca/USD', price: new Decimal(0) },
+    { id: 45, pair: 'kUSHUSDCOrca/USD', name: 'kUSHUSDCOrca/USD', price: new Decimal(0) },
+    { id: 46, pair: 'USDr/USD', name: 'USDr', price: new Decimal(0) },
   ];
 
   /**
