@@ -17,6 +17,7 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
         { address: new PublicKey('7kbnvuGBxxj8AG9qp8Scn56muWGaRaFqxg1FsRp3PaFT'), scopeToken: 'UXD' },
         { address: new PublicKey('7Q2afV64in6N6SeZsAAB81TJzwDoD6zpqmHkzi9Dcavn'), scopeToken: 'JSOL' },
         { address: new PublicKey('DUSTawucrTsGU8hcqRdHDCbuYhCPADMLM2VcCb8VnFnQ'), scopeToken: 'DUST' },
+        { address: new PublicKey('USDrbBQwQbQ2oWHUPfA8QBHcyVxKUq1xHyXsSLKdUq2'), scopeToken: 'USDr' },
       ],
       whirlpoolsToSnapshot: [
         {
@@ -215,6 +216,20 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
           mintA: new PublicKey('USDH1SM1ojwWUga67PGrgFWUHibbjqMvuMaDkRJTgkX'),
           mintB: new PublicKey('mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So'),
         },
+        {
+          address: new PublicKey('6BFWHpnQA7BTHq8XXzuPFmKiZxwH866udVVXNvMrWPqB'),
+          collateralA: 'USDr',
+          collateralB: 'USDT',
+          mintA: new PublicKey('USDrbBQwQbQ2oWHUPfA8QBHcyVxKUq1xHyXsSLKdUq2'),
+          mintB: new PublicKey('Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB'),
+        },
+        {
+          address: new PublicKey('5kDjnhGz9jjwUE84syEjUJjPyQNo4eA5uxs9fd5zzswS'),
+          collateralA: 'USDr',
+          collateralB: 'USDC',
+          mintA: new PublicKey('USDrbBQwQbQ2oWHUPfA8QBHcyVxKUq1xHyXsSLKdUq2'),
+          mintB: new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'),
+        },
       ],
       strategies: [
         new PublicKey('Cfuy5T6osdazUeLego5LFycBQebm9PP3H7VNdCndXXEN'),
@@ -232,6 +247,8 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
         new PublicKey('2J7zeWbFC6PxtwnwEHb8zpF62w9Xanc18ThsF3UHMtVf'),
         new PublicKey('GFaca7ca27vXofRJ3y1FtWgKwKWjn3LdCexttCsRLcvc'),
         new PublicKey('A4ufgHTe3jLzxbR6sDdrZhLxNdR1Lw2ija1uEdDFLPbX'),
+        new PublicKey('CofEPsAoV6bdn7guCPHhmb5nJ1xmnhZ4Ha2zZVx14Ppb'),
+        new PublicKey('BKipQNa4zGAxS2kHjvgRMyFymBXJg5wnYjiud5zdqvAS'),
       ],
       programId: new PublicKey('6LtLpnUFNByNXLyCoK9wA2MykKAmQNZKBdY8s47dehDc'),
     },
