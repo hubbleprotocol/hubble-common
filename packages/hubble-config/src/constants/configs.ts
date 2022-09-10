@@ -218,14 +218,14 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
         },
         {
           address: new PublicKey('6BFWHpnQA7BTHq8XXzuPFmKiZxwH866udVVXNvMrWPqB'),
-          collateralA: 'USDr',
+          collateralA: 'USDR',
           collateralB: 'USDT',
           mintA: new PublicKey('USDrbBQwQbQ2oWHUPfA8QBHcyVxKUq1xHyXsSLKdUq2'),
           mintB: new PublicKey('Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB'),
         },
         {
           address: new PublicKey('5kDjnhGz9jjwUE84syEjUJjPyQNo4eA5uxs9fd5zzswS'),
-          collateralA: 'USDr',
+          collateralA: 'USDR',
           collateralB: 'USDC',
           mintA: new PublicKey('USDrbBQwQbQ2oWHUPfA8QBHcyVxKUq1xHyXsSLKdUq2'),
           mintB: new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'),
