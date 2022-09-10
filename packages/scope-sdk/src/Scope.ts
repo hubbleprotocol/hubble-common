@@ -52,8 +52,8 @@ export type ScopePair =
   | 'kSOLSTSOLOrca/USD'
   | 'kUSDCUSDTOrca/USD'
   | 'kUSHUSDCOrca/USD'
-  | 'USDr/USD'
-  | 'USDrTwap/USD';
+  | 'USDR/USD'
+  | 'USDRTwap/USD';
 
 export type SupportedToken =
   | 'SOL'
@@ -102,8 +102,8 @@ export type SupportedToken =
   | 'kSOLSTSOLOrca'
   | 'kUSDCUSDTOrca'
   | 'kUSHUSDCOrca'
-  | 'USDrTwap'
-  | 'USDr';
+  | 'USDRTwap'
+  | 'USDR';
 
 export interface ScopeToken {
   /**
@@ -182,8 +182,8 @@ export class Scope {
     { id: 43, pair: 'kSOLSTSOLOrca/USD', name: 'kSOLSTSOLOrca', price: new Decimal(0) },
     { id: 44, pair: 'kUSDCUSDTOrca/USD', name: 'kUSDCUSDTOrca', price: new Decimal(0) },
     { id: 45, pair: 'kUSHUSDCOrca/USD', name: 'kUSHUSDCOrca', price: new Decimal(0) },
-    { id: 46, pair: 'USDr/USD', name: 'USDr', price: new Decimal(0) },
-    { id: 47, pair: 'USDrTwap/USD', name: 'USDrTwap', price: new Decimal(0) },
+    { id: 46, pair: 'USDR/USD', name: 'USDR', price: new Decimal(0) },
+    { id: 47, pair: 'USDRTwap/USD', name: 'USDRTwap', price: new Decimal(0) },
   ];
 
   /**
