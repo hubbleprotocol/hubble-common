@@ -48,6 +48,7 @@ export class Kamino {
     { name: 'HDG', id: 17 },
     { name: 'DUST', id: 18 },
     { name: 'USDR', id: 19 },
+    { name: 'RATIO', id: 20 },
   ];
 
   /**
