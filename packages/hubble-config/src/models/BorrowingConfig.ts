@@ -31,7 +31,7 @@ export type BorrowingConfig = {
       MSOL: VaultConfig | PublicKey | undefined;
     };
     borrowingVaultsV2: PublicKey;
-
+    borrowingMarketStates: PublicKey[];
     borrowingMarketState: PublicKey;
     stabilityPoolState: PublicKey;
     epochToScaleToSum: PublicKey;

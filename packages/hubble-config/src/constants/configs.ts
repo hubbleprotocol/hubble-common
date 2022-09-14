@@ -290,6 +290,10 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
         redemptionCandidatesQueue: new PublicKey('9MDc3EZR9cZvhB2sprPh2Tz6n1p9NNJMXiP7ZWPNSbpN'),
         liquidationsQueue: new PublicKey('3nBiYphUBFv8RGHNZYsTEFQthYnHBDoFJrSXfL59dNu7'),
         borrowingMarketState: new PublicKey('YSp9bJpQom2HA7VThxYZX9pNwrcBH88NBcBNWs5yskR'),
+        borrowingMarketStates: [
+          new PublicKey('YSp9bJpQom2HA7VThxYZX9pNwrcBH88NBcBNWs5yskR'),
+          new PublicKey('B6gckY3KmWR2u1gwruE55Hxoj5uqiTTtuXLbE6Bu7bZq'),
+        ],
         borrowingVaultsV2: new PublicKey('EUEukBTF2X4gtFzkAJaqBcxUVbrSLn2yxLDBuKJj5JoZ'),
         stabilityPoolState: new PublicKey('245U3MMJ57YDGUSYRQxsJurqUhnXK4mjjvavbrvSn3uh'),
         epochToScaleToSum: new PublicKey('HDZR8Knvh9ETmCFGig3ocmzxijVgSrtPYSNCFoj2muRf'),
@@ -441,6 +445,10 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
         stablecoinMint: new PublicKey('6w7WUkBpfZwejqesCMgXUTdbtZdGThu1882BNiLzTwc8'),
         stablecoinMintAuthority: new PublicKey('2okhqAYAsxcDLWxaKdAJ38G2By9HwDdhTmTmY84UftHP'),
         borrowingVaultsV2: new PublicKey('BHgw9kZcK6LVSadiqUZYBxe8rCzTcDq1dxsJcspLmWPX'),
+        borrowingMarketStates: [
+          new PublicKey('YSp9bJpQom2HA7VThxYZX9pNwrcBH88NBcBNWs5yskR'),
+          new PublicKey('B6gckY3KmWR2u1gwruE55Hxoj5uqiTTtuXLbE6Bu7bZq'),
+        ],
         mint: {
           ETH: new PublicKey('htC6eTvy3pUSi2wCurvczo5ZyX9vBBzvPMU4PFxr3TP'),
           BTC: new PublicKey('HAKEyaEmSUjMFU4qwXd6mf2Sj5Zas5667w6rcuPBuPst'),
@@ -575,6 +583,10 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
         },
         liquidationsQueue: new PublicKey('66QZM6UAKFpUeKWRe5spag5JEfT4ycJ1UtSzeffTiQJK'),
         borrowingMarketState: new PublicKey('FqkHHpETrpfgcA5SeH7PKKFDLGWM4tM7ZV31HfutTXNV'),
+        borrowingMarketStates: [
+          new PublicKey('FqkHHpETrpfgcA5SeH7PKKFDLGWM4tM7ZV31HfutTXNV'),
+          new PublicKey('2pjsM2weitsEP3w1Q4N7bLvFYmdNBWCw1H3E9k6rVQTy'),
+        ],
         stabilityPoolState: new PublicKey('FB1e3ACdWSgKVDaVp7YRWB64JgFrUNPrxm6ukKDjjKg'),
         epochToScaleToSum: new PublicKey('FPUTB5KsZQhPrJS6QmUzgAErYcfHBcyVwRSQcvCLzeVi'),
         borrowingVaultsV2: new PublicKey('BHgw9kZcK6LVSadiqUZYBxe8rCzTcDq1dxsJcspLmWPX'),
@@ -729,6 +741,10 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
         stablecoinMintAuthority: new PublicKey('89Ecdd8J7xTycvueCuK4ML3xUheZEp917qmzKsHfCgdV'),
         hbbMintAuthority: new PublicKey('5BKFyoeZB1ZArEzq3KLxF8RhUPzBLas8kgEH5sjn16Jb'),
         borrowingVaultsV2: new PublicKey('BHgw9kZcK6LVSadiqUZYBxe8rCzTcDq1dxsJcspLmWPX'),
+        borrowingMarketStates: [
+          new PublicKey('YSp9bJpQom2HA7VThxYZX9pNwrcBH88NBcBNWs5yskR'),
+          new PublicKey('B6gckY3KmWR2u1gwruE55Hxoj5uqiTTtuXLbE6Bu7bZq'),
+        ],
         mint: {
           WSOL: new PublicKey('So11111111111111111111111111111111111111112'),
           ETH: new PublicKey('B54v6dyccBv66VBTrQHqebKpBR1UNMT6UHMWZcVKJhct'),
