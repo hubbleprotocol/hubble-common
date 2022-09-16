@@ -69,7 +69,7 @@ export const lamportsTokenToDecimal = (collateral: TokenMapBig): TokenMapBig => 
  * @param obj Object of type T
  */
 export const replaceBigNumberWithDecimal = <T>(obj: T): T => {
-  for (let [key, value] of Object.entries(obj)) {
+  for (let [key, value] of Object.entries(obj!)) {
     if (value instanceof BN) {
       // @ts-ignore
       obj[key] = new Decimal(value.toString());
@@ -78,9 +78,19 @@ export const replaceBigNumberWithDecimal = <T>(obj: T): T => {
   return obj;
 };
 
-export const decimalToNumWithdrawalCap = (cap: {configCapacity: Decimal; currentTotal: Decimal; lastIntervalStartTimestamp: Decimal; configIntervalLengthSeconds: Decimal;}) => {
-  return{configCapacity: cap.configCapacity, currentTotal: cap.currentTotal, lastIntervalStartTimestamp: cap.lastIntervalStartTimestamp.toNumber(), configIntervalLengthSeconds: cap.configIntervalLengthSeconds.toNumber()}
-}
+export const decimalToNumWithdrawalCap = (cap: {
+  configCapacity: Decimal;
+  currentTotal: Decimal;
+  lastIntervalStartTimestamp: Decimal;
+  configIntervalLengthSeconds: Decimal;
+}): WithdrawalCaps => {
+  return {
+    configCapacity: cap.configCapacity,
+    currentTotal: cap.currentTotal,
+    lastIntervalStartTimestamp: cap.lastIntervalStartTimestamp.toNumber(),
+    configIntervalLengthSeconds: cap.configIntervalLengthSeconds.toNumber(),
+  };
+};
 
 /**
  * Calculate stability provider's actual stability provided
@@ -124,7 +134,7 @@ export const addCollateralAmounts = (first: CollateralAmounts, second: Collatera
     btc: first.btc.add(second.btc),
     srm: first.srm.add(second.srm),
     msol: first.msol.add(second.msol),
-    extraCollaterals: leftExtra.map((coll, i) => {
+    extraCollaterals: leftExtra.map((coll) => {
       return {
         amount: coll.amount.plus(rightExtra.find((x) => x.tokenId.eq(coll.tokenId))?.amount ?? 0),
         tokenId: coll.tokenId,
@@ -197,7 +207,7 @@ export function sub(left: CollateralAmounts, right: CollateralAmounts): Collater
     ray: left.ray.minus(right.ray),
     srm: left.srm.minus(right.srm),
     msol: left.msol.minus(right.msol),
-    extraCollaterals: leftExtra.map((coll, i) => {
+    extraCollaterals: leftExtra.map((coll) => {
       return {
         amount: coll.amount.minus(rightExtra.find((x) => x.tokenId.eq(coll.tokenId))?.amount ?? 0),
         tokenId: coll.tokenId,

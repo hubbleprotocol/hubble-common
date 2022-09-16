@@ -75,23 +75,59 @@ export class Hubble {
     return stability;
   }
 
-  /**
-   * Get Hubble's borrowing market state.
-   * @return on-chain {@link BorrowingMarketState} from the borrowing program with numbers as lamports
-   */
-  async getBorrowingMarketState(): Promise<BorrowingMarketState> {
-    let state = (await this._borrowingProgram.account.borrowingMarketState.fetch(
-      this._config.borrowing.accounts.borrowingMarketState
-    )) as BorrowingMarketState;
+  private borrowingMarketStateToDecimals(state: BorrowingMarketState, pubkey: PublicKey) {
     state = replaceBigNumberWithDecimal(state);
     state.depositedCollateral.amounts = replaceBigNumberWithDecimal(state.depositedCollateral.amounts);
     state.inactiveCollateral.amounts = replaceBigNumberWithDecimal(state.inactiveCollateral.amounts);
     state.collateralRewardPerToken = replaceBigNumberWithDecimal(state.collateralRewardPerToken);
     state.withdrawalCap = decimalToNumWithdrawalCap(replaceBigNumberWithDecimal(state.withdrawalCap) as any);
-    state.withdrawalCapsCollateral = state.withdrawalCapsCollateral.map((collCap) => {collCap.tokenCap = decimalToNumWithdrawalCap(replaceBigNumberWithDecimal(collCap.tokenCap) as any);
-      return replaceBigNumberWithDecimal(collCap);});
-    state.supportedCollaterals = state.supportedCollaterals.map((collateral) => replaceBigNumberWithDecimal(collateral))
+    state.withdrawalCapsCollateral = state.withdrawalCapsCollateral.map((collCap) => {
+      collCap.tokenCap = decimalToNumWithdrawalCap(replaceBigNumberWithDecimal(collCap.tokenCap) as any);
+      return replaceBigNumberWithDecimal(collCap);
+    });
+    state.supportedCollaterals = state.supportedCollaterals.map((collateral) =>
+      replaceBigNumberWithDecimal(collateral)
+    );
+    state.pubkey = pubkey;
     return state;
+  }
+
+  /**
+   * @deprecated Deprecated since version 1.0.114.
+   * Please use getBorrowingMarketStateByPubkey or getBorrowingMarketStates and use the correct borrowing market state specified by the UserMetadata.
+   * Get Hubble's borrowing market state.
+   * @return on-chain {@link BorrowingMarketState} from the borrowing program with numbers as lamports
+   */
+  async getBorrowingMarketState(): Promise<BorrowingMarketState> {
+    console.warn(
+      'getBorrowingMarketState has been deprecated since version 1.0.114. Please use getBorrowingMarketStates and use the correct borrowing market state specified by the UserMetadata.'
+    );
+    const state = (await this._borrowingProgram.account.borrowingMarketState.fetch(
+      this._config.borrowing.accounts.borrowingMarketState
+    )) as BorrowingMarketState;
+    return this.borrowingMarketStateToDecimals(state, this._config.borrowing.accounts.borrowingMarketState);
+  }
+
+  /**
+   * Get Hubble's borrowing market state by public key.
+   * @return on-chain {@link BorrowingMarketState} from the borrowing program with numbers as lamports
+   */
+  async getBorrowingMarketStateByPubkey(pubkey: PublicKey): Promise<BorrowingMarketState> {
+    const state = (await this._borrowingProgram.account.borrowingMarketState.fetch(pubkey)) as BorrowingMarketState;
+    return this.borrowingMarketStateToDecimals(state, pubkey);
+  }
+
+  /**
+   * Get Hubble's borrowing market states.
+   * @return list of on-chain {@link BorrowingMarketState} from the borrowing program with numbers as lamports
+   */
+  async getBorrowingMarketStates(): Promise<BorrowingMarketState[]> {
+    const states = [];
+    for (const pubkey of this._config.borrowing.accounts.borrowingMarketStates) {
+      const state = (await this._borrowingProgram.account.borrowingMarketState.fetch(pubkey)) as BorrowingMarketState;
+      states.push(this.borrowingMarketStateToDecimals(state, pubkey));
+    }
+    return states;
   }
 
   /**
@@ -242,22 +278,27 @@ export class Hubble {
    * @return on-chain {@link UserMetadata} from the borrowing program for the specific user with numbers as lamports
    */
   async getUserMetadatas(user: PublicKey | string): Promise<UserMetadata[]> {
-    return (
-      await this._borrowingProgram.account.userMetadata.all([
-        {
-          memcmp: {
-            bytes: user instanceof PublicKey ? user.toBase58() : user,
-            offset: 50, // 8 (account discriminator for usermetadata) + 1 (version u8) + 1 (status u8) + 8 (user_id u64) + 32 (metadata_pk pubkey [u8, 32])
+    const result: UserMetadata[] = [];
+    for (const bms of this._config.borrowing.accounts.borrowingMarketStates) {
+      const userMetadatas = (
+        await this._borrowingProgram.account.userMetadata.all([
+          {
+            memcmp: {
+              bytes: user instanceof PublicKey ? user.toBase58() : user,
+              offset: 50, // 8 (account discriminator for usermetadata) + 1 (version u8) + 1 (status u8) + 8 (user_id u64) + 32 (metadata_pk pubkey [u8, 32])
+            },
           },
-        },
-        {
-          memcmp: {
-            bytes: this._config.borrowing.accounts.borrowingMarketState.toBase58(),
-            offset: 82, // 8 (account discriminator for usermetadata) + 1 (version u8) + 1 (status u8) + 8 (user_id u64) + 32 (metadata_pk pubkey [u8, 32]) + 32 (owner pubkey)
+          {
+            memcmp: {
+              bytes: bms.toBase58(),
+              offset: 82, // 8 (account discriminator for usermetadata) + 1 (version u8) + 1 (status u8) + 8 (user_id u64) + 32 (metadata_pk pubkey [u8, 32]) + 32 (owner pubkey)
+            },
           },
-        },
-      ])
-    ).map((x) => Hubble.userMetadataToDecimals(x.account as UserMetadata));
+        ])
+      ).map((x) => Hubble.userMetadataToDecimals(x.account as UserMetadata));
+      result.push(...userMetadatas);
+    }
+    return result;
   }
 
   /**
@@ -276,16 +317,21 @@ export class Hubble {
    * @return list of on-chain {@link UserMetadata} from the borrowing program for the specific user with numbers as lamports
    */
   async getAllUserMetadatas(): Promise<UserMetadata[]> {
-    return (
-      await this._borrowingProgram.account.userMetadata.all([
-        {
-          memcmp: {
-            bytes: this._config.borrowing.accounts.borrowingMarketState.toBase58(),
-            offset: 82, // 8 (account discriminator for usermetadata) + 1 (version u8) + 1 (status u8) + 8 (user_id u64) + 32 (metadata_pk pubkey [u8, 32]) + 32 (owner pubkey)
+    const result: UserMetadata[] = [];
+    for (const bms of this._config.borrowing.accounts.borrowingMarketStates) {
+      const userMetadatas = (
+        await this._borrowingProgram.account.userMetadata.all([
+          {
+            memcmp: {
+              bytes: bms.toBase58(),
+              offset: 82, // 8 (account discriminator for usermetadata) + 1 (version u8) + 1 (status u8) + 8 (user_id u64) + 32 (metadata_pk pubkey [u8, 32]) + 32 (owner pubkey)
+            },
           },
-        },
-      ])
-    ).map((x) => Hubble.userMetadataToDecimals(x.account as UserMetadata));
+        ])
+      ).map((x) => Hubble.userMetadataToDecimals(x.account as UserMetadata));
+      result.push(...userMetadatas);
+    }
+    return result;
   }
 
   /**
@@ -293,20 +339,25 @@ export class Hubble {
    * @return list of on-chain {@link UserMetadata} from the borrowing program for the specific user with numbers as lamports
    */
   async getAllUserMetadatasIncludeJsonResponse(): Promise<UserMetadataWithJson[]> {
-    return (
-      await this._borrowingProgram.account.userMetadata.all([
-        {
-          memcmp: {
-            bytes: this._config.borrowing.accounts.borrowingMarketState.toBase58(),
-            offset: 82, // 8 (account discriminator for usermetadata) + 1 (version u8) + 1 (status u8) + 8 (user_id u64) + 32 (metadata_pk pubkey [u8, 32]) + 32 (owner pubkey)
+    const result: UserMetadataWithJson[] = [];
+    for (const bms of this._config.borrowing.accounts.borrowingMarketStates) {
+      const userMetadatas = (
+        await this._borrowingProgram.account.userMetadata.all([
+          {
+            memcmp: {
+              bytes: bms.toBase58(),
+              offset: 82, // 8 (account discriminator for usermetadata) + 1 (version u8) + 1 (status u8) + 8 (user_id u64) + 32 (metadata_pk pubkey [u8, 32]) + 32 (owner pubkey)
+            },
           },
-        },
-      ])
-    ).map((x) => {
-      const userMetadata = Hubble.userMetadataToDecimals(x.account as UserMetadata) as UserMetadataWithJson;
-      userMetadata.jsonResponse = JSON.stringify(x.account);
-      return userMetadata;
-    });
+        ])
+      ).map((x) => {
+        const userMetadata = Hubble.userMetadataToDecimals(x.account as UserMetadata) as UserMetadataWithJson;
+        userMetadata.jsonResponse = JSON.stringify(x.account);
+        return userMetadata;
+      });
+      result.push(...userMetadatas);
+    }
+    return result;
   }
 
   /**
@@ -320,8 +371,15 @@ export class Hubble {
     if (userVaults.length === 0) {
       return [];
     }
-    const borrowingMarketState = await this.getBorrowingMarketState();
+    const borrowingMarketStates = await this.getBorrowingMarketStates();
     for (const userVault of userVaults) {
+      let borrowingMarketState = borrowingMarketStates.find(
+        (x) => x.pubkey.toBase58() === userVault.borrowingMarketState.toBase58()
+      );
+      if (!borrowingMarketState) {
+        borrowingMarketState = await this.getBorrowingMarketStateByPubkey(userVault.borrowingMarketState);
+        borrowingMarketStates.push(borrowingMarketState);
+      }
       if (userVault.borrowedStablecoin.greaterThan(0)) {
         loans.push({
           usdhDebt: calculateTotalDebt(userVault, borrowingMarketState),
@@ -526,8 +584,12 @@ export class Hubble {
   async getPsmReserve(): Promise<PsmReserve> {
     const psmPubkey = await this.getPsmPublicKey();
     let reserve = (await this._borrowingProgram.account.psmReserve.fetch(psmPubkey)) as PsmReserve;
-    reserve.withdrawalCapStable = decimalToNumWithdrawalCap(replaceBigNumberWithDecimal(reserve.withdrawalCapStable) as any);
-    reserve.withdrawalCapUsdh = decimalToNumWithdrawalCap(replaceBigNumberWithDecimal(reserve.withdrawalCapUsdh) as any);
+    reserve.withdrawalCapStable = decimalToNumWithdrawalCap(
+      replaceBigNumberWithDecimal(reserve.withdrawalCapStable) as any
+    );
+    reserve.withdrawalCapUsdh = decimalToNumWithdrawalCap(
+      replaceBigNumberWithDecimal(reserve.withdrawalCapUsdh) as any
+    );
     reserve = replaceBigNumberWithDecimal(reserve);
     reserve.mintFeeBps = (reserve.mintFeeBps as any).toNumber();
     reserve.burnFeeBps = (reserve.burnFeeBps as any).toNumber();
