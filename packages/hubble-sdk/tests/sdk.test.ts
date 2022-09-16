@@ -7,7 +7,7 @@ import { SolanaCluster } from '@hubbleprotocol/hubble-config';
 import { PsmReserve } from '../src';
 
 describe('Hubble SDK Tests', () => {
-  const cluster: SolanaCluster = 'mainnet-beta';
+  const cluster: SolanaCluster = 'devnet';
   let connection: Connection;
 
   beforeAll(() => {
@@ -27,8 +27,18 @@ describe('Hubble SDK Tests', () => {
         stablecoinMint: pk,
         stablecoinMintDecimals: 6,
         version: 0,
-        withdrawalCapUsdh: {configCapacity: new Decimal(0), currentTotal: new Decimal(0), lastIntervalStartTimestamp:0, configIntervalLengthSeconds: 0},
-        withdrawalCapStable: {configCapacity: new Decimal(0), currentTotal: new Decimal(0), lastIntervalStartTimestamp: 0, configIntervalLengthSeconds: 0},
+        withdrawalCapUsdh: {
+          configCapacity: new Decimal(0),
+          currentTotal: new Decimal(0),
+          lastIntervalStartTimestamp: 0,
+          configIntervalLengthSeconds: 0,
+        },
+        withdrawalCapStable: {
+          configCapacity: new Decimal(0),
+          currentTotal: new Decimal(0),
+          lastIntervalStartTimestamp: 0,
+          configIntervalLengthSeconds: 0,
+        },
         mintFeeBps: 0,
         burnFeeBps: 0,
         treasuryVaultOtherStable: pk,
@@ -116,10 +126,9 @@ describe('Hubble SDK Tests', () => {
 
   // test('should get borrowing market state', async () => {
   //   const sdk = new Hubble(cluster, connection);
-  //   const sth = await sdk.getBorrowingMarketState();
-  //   console.log(sth.depositedCollateral.amounts[0].isZero());
-  //   expect(sth).not.toBeNull();
-  //   console.log(sth.marketMcr.toNumber());
+  //   const sth = await sdk.getBorrowingMarketStates();
+  //   console.log(sth);
+  //   expect(sth.length).toBeGreaterThanOrEqual(0);
   // });
 
   // test('should get staking pool', async () => {
@@ -181,7 +190,7 @@ describe('Hubble SDK Tests', () => {
   //
   // test('should get user loans', async () => {
   //   const sdk = new Hubble(cluster, connection);
-  //   const loans = await sdk.getUserLoans('9y7uLMUMW6EiRwH1aJFSp9Zka7dVx2JdZKA3858u6YHT');
+  //   const loans = await sdk.getUserLoans('F7rjavUpEevdUpgPm6WozNJynmwrzXuo2LgqgWRpJG5t');
   //   console.log('loans : ', loans);
   // });
   // //
@@ -208,7 +217,14 @@ describe('Hubble SDK Tests', () => {
   //   const sdk = new Hubble(cluster, connection);
   //   const userVaults = await sdk.getAllUserMetadatas();
   //   expect(userVaults.length).toBeGreaterThan(0);
-  //   console.log(userVaults[0]);
+  //   console.log(
+  //     userVaults.filter((x) => x.borrowingMarketState.toBase58() === '2pjsM2weitsEP3w1Q4N7bLvFYmdNBWCw1H3E9k6rVQTy')
+  //       .length
+  //   );
+  //   console.log(
+  //     userVaults.filter((x) => x.borrowingMarketState.toBase58() === 'FqkHHpETrpfgcA5SeH7PKKFDLGWM4tM7ZV31HfutTXNV')
+  //       .length
+  //   );
   // });
   //
   // test('should get specific user metadatas', async () => {

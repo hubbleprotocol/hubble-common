@@ -37,6 +37,7 @@ export type BorrowingMarketState = {
   minCashBasedLiquidationRepayment: Decimal;
   withdrawalCap: WithdrawalCaps;
   withdrawalCapsCollateral: CollateralWithdrawalCaps[];
+  pubkey: PublicKey;
 };
 
 export default BorrowingMarketState;

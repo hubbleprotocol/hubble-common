@@ -76,7 +76,8 @@ const circulatingSupply = await hubble.getHbbCirculatingSupply();
 // This is the raw data that has not been converted yet (everything is in the lamports format)
 const stakingPoolState = await hubble.getStakingPoolState();
 const stabilityPoolState = await hubble.getStabilityPoolState();
-const marketState = await hubble.getBorrowingMarketState();
+const marketStates = await hubble.getBorrowingMarketStates();
+const marketState = await hubble.getBorrowingMarketStateByPubkey(new PublicKey('FqkHHpETrpfgcA5SeH7PKKFDLGWM4tM7ZV31HfutTXNV'));
 const allUserMetadatas = await hubble.getAllUserMetadatas(); //user metadatas = user's loans
 const hbbTokenAccounts = await hubble.getHbbTokenAccounts();
 
