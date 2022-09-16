@@ -54,7 +54,7 @@ export type ScopePair =
   | 'kUSHUSDCOrca/USD'
   | 'USDR/USD'
   | 'USDRTwap/USD'
-  | "RATIO/USD";
+  | 'RATIO/USD';
 
 export type SupportedToken =
   | 'SOL'
@@ -105,7 +105,7 @@ export type SupportedToken =
   | 'kUSHUSDCOrca'
   | 'USDRTwap'
   | 'USDR'
-  | "RATIO";
+  | 'RATIO';
 
 export interface ScopeToken {
   /**

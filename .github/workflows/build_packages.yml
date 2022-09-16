@@ -10,6 +10,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     name: Build NPM packages
+    needs: prettier
     steps:
 
     # 1. provide Personal Access Token for checkout@v2
@@ -36,3 +37,11 @@ jobs:
 
     - name: Test packages
       run: npm test
+  prettier:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Run prettier
+        run: |-
+          npx prettier --check '{**/*,*}.{js,ts,jsx,tsx}'

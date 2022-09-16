@@ -1,0 +1,10 @@
+node_modules
+dist
+
+# auto-generated rpc clients
+kamino-client
+whirpools-client
+packages/scope-sdk/src/accounts
+packages/scope-sdk/src/instructions
+packages/scope-sdk/src/errors
+packages/scope-sdk/src/types
