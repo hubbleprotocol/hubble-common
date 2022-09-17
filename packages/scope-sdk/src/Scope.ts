@@ -5,107 +5,111 @@ import { OraclePrices } from './accounts';
 import { setProgramId } from './programId';
 import { Price } from './types';
 
-export type ScopePair =
-  | 'SOL/USD'
-  | 'ETH/USD'
-  | 'BTC/USD'
-  | 'SRM/USD'
-  | 'RAY/USD'
-  | 'FTT/USD'
-  | 'MSOL/USD'
-  | 'scnSOL/SOL'
-  | 'BNB/USD'
-  | 'AVAX/USD'
-  | 'daoSOL/SOL'
-  | 'SaberMSOL/SOL'
-  | 'USDH/USD'
-  | 'STSOL/USD'
-  | 'cSOL/SOL'
-  | 'cETH/ETH'
-  | 'cBTC/BTC'
-  | 'cMSOL/MSOL'
-  | 'wstETH/USD'
-  | 'LDO/USD'
-  | 'USDC/USD'
-  | 'cUSDC/USDC'
-  | 'USDT/USD'
-  | 'ORCA/USD'
-  | 'MNDE/USD'
-  | 'HBB/USD'
-  | 'cORCA/ORCA'
-  | 'cSLND/SLND'
-  | 'cSRM/SRM'
-  | 'cRAY/RAY'
-  | 'cFTT/FTT'
-  | 'cSTSOL/STSOL'
-  | 'SLND/USD'
-  | 'DAI/USD'
-  | 'JSOL/SOL'
-  | 'USH/USD'
-  | 'UXD/USD'
-  | 'USDHTwap/USD'
-  | 'USHTwap/USD'
-  | 'UXDTwap/USD'
-  | 'HDG/USD'
-  | 'DUST/USD'
-  | 'kUSDHUSDCOrca/USD'
-  | 'kSOLSTSOLOrca/USD'
-  | 'kUSDCUSDTOrca/USD'
-  | 'kUSHUSDCOrca/USD'
-  | 'USDR/USD'
-  | 'USDRTwap/USD'
-  | 'RATIO/USD';
+export const ScopePairs = [
+  'SOL/USD',
+  'ETH/USD',
+  'BTC/USD',
+  'SRM/USD',
+  'RAY/USD',
+  'FTT/USD',
+  'MSOL/USD',
+  'scnSOL/SOL',
+  'BNB/USD',
+  'AVAX/USD',
+  'daoSOL/SOL',
+  'SaberMSOL/SOL',
+  'USDH/USD',
+  'STSOL/USD',
+  'cSOL/SOL',
+  'cETH/ETH',
+  'cBTC/BTC',
+  'cMSOL/MSOL',
+  'wstETH/USD',
+  'LDO/USD',
+  'USDC/USD',
+  'cUSDC/USDC',
+  'USDT/USD',
+  'ORCA/USD',
+  'MNDE/USD',
+  'HBB/USD',
+  'cORCA/ORCA',
+  'cSLND/SLND',
+  'cSRM/SRM',
+  'cRAY/RAY',
+  'cFTT/FTT',
+  'cSTSOL/STSOL',
+  'SLND/USD',
+  'DAI/USD',
+  'JSOL/SOL',
+  'USH/USD',
+  'UXD/USD',
+  'USDHTwap/USD',
+  'USHTwap/USD',
+  'UXDTwap/USD',
+  'HDG/USD',
+  'DUST/USD',
+  'kUSDHUSDCOrca/USD',
+  'kSOLSTSOLOrca/USD',
+  'kUSDCUSDTOrca/USD',
+  'kUSHUSDCOrca/USD',
+  'USDR/USD',
+  'USDRTwap/USD',
+  'RATIO/USD',
+] as const;
+export type ScopePair = typeof ScopePairs[number];
 
-export type SupportedToken =
-  | 'SOL'
-  | 'ETH'
-  | 'BTC'
-  | 'SRM'
-  | 'RAY'
-  | 'FTT'
-  | 'MSOL'
-  | 'scnSOL'
-  | 'BNB'
-  | 'AVAX'
-  | 'daoSOL'
-  | 'SaberMSOL'
-  | 'USDH'
-  | 'STSOL'
-  | 'cSOL'
-  | 'cETH'
-  | 'cBTC'
-  | 'cMSOL'
-  | 'wstETH'
-  | 'LDO'
-  | 'USDC'
-  | 'cUSDC'
-  | 'USDT'
-  | 'ORCA'
-  | 'MNDE'
-  | 'HBB'
-  | 'cORCA'
-  | 'cSLND'
-  | 'cSRM'
-  | 'cRAY'
-  | 'cFTT'
-  | 'cSTSOL'
-  | 'SLND'
-  | 'JSOL'
-  | 'DAI'
-  | 'USH'
-  | 'UXD'
-  | 'USDHTwap'
-  | 'USHTwap'
-  | 'UXDTwap'
-  | 'HDG'
-  | 'DUST'
-  | 'kUSDHUSDCOrca'
-  | 'kSOLSTSOLOrca'
-  | 'kUSDCUSDTOrca'
-  | 'kUSHUSDCOrca'
-  | 'USDRTwap'
-  | 'USDR'
-  | 'RATIO';
+export const SupportedTokens = [
+  'SOL',
+  'ETH',
+  'BTC',
+  'SRM',
+  'RAY',
+  'FTT',
+  'MSOL',
+  'scnSOL',
+  'BNB',
+  'AVAX',
+  'daoSOL',
+  'SaberMSOL',
+  'USDH',
+  'STSOL',
+  'cSOL',
+  'cETH',
+  'cBTC',
+  'cMSOL',
+  'wstETH',
+  'LDO',
+  'USDC',
+  'cUSDC',
+  'USDT',
+  'ORCA',
+  'MNDE',
+  'HBB',
+  'cORCA',
+  'cSLND',
+  'cSRM',
+  'cRAY',
+  'cFTT',
+  'cSTSOL',
+  'SLND',
+  'JSOL',
+  'DAI',
+  'USH',
+  'UXD',
+  'USDHTwap',
+  'USHTwap',
+  'UXDTwap',
+  'HDG',
+  'DUST',
+  'kUSDHUSDCOrca',
+  'kSOLSTSOLOrca',
+  'kUSDCUSDTOrca',
+  'kUSHUSDCOrca',
+  'USDRTwap',
+  'USDR',
+  'RATIO'
+] as const;
+export type SupportedToken = typeof SupportedTokens[number];
 
 export interface ScopeToken {
   /**
