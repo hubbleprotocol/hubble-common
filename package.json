@@ -5,7 +5,9 @@
   "scripts": {
     "bootstrap": "npx lerna bootstrap --hoist && npx lerna run build",
     "publish": "npx lerna publish",
-    "test": "npx jest --config jest.config.json"
+    "test": "npx jest --config jest.config.json",
+    "format": "npx prettier --write '{**/*,*}.{js,ts,jsx,tsx}'",
+    "format:check": "npx prettier --check '{**/*,*}.{js,ts,jsx,tsx}'"
   },
   "devDependencies": {
     "@types/node": "^17.0.45",

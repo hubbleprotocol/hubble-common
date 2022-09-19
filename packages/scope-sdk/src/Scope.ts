@@ -107,7 +107,7 @@ export const SupportedTokens = [
   'kUSHUSDCOrca',
   'USDRTwap',
   'USDR',
-  'RATIO'
+  'RATIO',
 ] as const;
 export type SupportedToken = typeof SupportedTokens[number];
 
