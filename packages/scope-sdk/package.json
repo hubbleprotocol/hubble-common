@@ -3,7 +3,7 @@
   "description": "Scope Oracle SDK",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "version": "1.0.114",
+  "version": "1.0.115",
   "scripts": {
     "build": "tsc",
     "build:watch": "tsc -w"
