@@ -21,7 +21,7 @@ import StabilityPoolState from '../models/StabilityPoolState';
 import StabilityProviderState from '../models/StabilityProviderState';
 import UserMetadata from '../models/UserMetadata';
 import BorrowingMarketState from '../models/BorrowingMarketState';
-import { ExtraCollateralAmount, StabilityTokenMap } from '../models';
+import { CollateralWithdrawalCaps, ExtraCollateralAmount, StabilityTokenMap, SupportedCollateral } from '../models';
 import WithdrawalCaps from '../models/WithdrawalCaps';
 
 /**
@@ -76,6 +76,26 @@ export const replaceBigNumberWithDecimal = <T>(obj: T): T => {
     }
   }
   return obj;
+};
+
+export const decimalToNumSupportedCollateral = (supportedCollateral: {
+  token: Decimal;
+  tokenCap: Decimal;
+}): SupportedCollateral => {
+  return {
+    token: supportedCollateral.token.toNumber(),
+    tokenCap: supportedCollateral.tokenCap,
+  };
+};
+
+export const decimalToNumCollateralWithdrawalCap = (cap: {
+  token: Decimal;
+  tokenCap: WithdrawalCaps;
+}): CollateralWithdrawalCaps => {
+  return {
+    token: cap.token.toNumber(),
+    tokenCap: cap.tokenCap,
+  };
 };
 
 export const decimalToNumWithdrawalCap = (cap: {

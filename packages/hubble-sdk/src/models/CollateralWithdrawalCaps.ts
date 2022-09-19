@@ -1,4 +1,3 @@
-import Decimal from 'decimal.js';
 import WithdrawalCaps from './WithdrawalCaps';
 
 export type CollateralWithdrawalCaps = {

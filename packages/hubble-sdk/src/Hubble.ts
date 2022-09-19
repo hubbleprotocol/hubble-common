@@ -10,6 +10,8 @@ import {
   calculateStabilityProvided,
   calculateTotalCollateral,
   calculateTotalDebt,
+  decimalToNumCollateralWithdrawalCap,
+  decimalToNumSupportedCollateral,
   decimalToNumWithdrawalCap,
   getReadOnlyWallet,
   replaceBigNumberWithDecimal,
@@ -83,10 +85,10 @@ export class Hubble {
     state.withdrawalCap = decimalToNumWithdrawalCap(replaceBigNumberWithDecimal(state.withdrawalCap) as any);
     state.withdrawalCapsCollateral = state.withdrawalCapsCollateral.map((collCap) => {
       collCap.tokenCap = decimalToNumWithdrawalCap(replaceBigNumberWithDecimal(collCap.tokenCap) as any);
-      return replaceBigNumberWithDecimal(collCap);
+      return decimalToNumCollateralWithdrawalCap(replaceBigNumberWithDecimal(collCap as any));
     });
     state.supportedCollaterals = state.supportedCollaterals.map((collateral) =>
-      replaceBigNumberWithDecimal(collateral)
+      decimalToNumSupportedCollateral(replaceBigNumberWithDecimal(collateral as any))
     );
     state.pubkey = pubkey;
     return state;
