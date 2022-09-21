@@ -19,6 +19,7 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
         { address: new PublicKey('DUSTawucrTsGU8hcqRdHDCbuYhCPADMLM2VcCb8VnFnQ'), scopeToken: 'DUST' },
         { address: new PublicKey('USDrbBQwQbQ2oWHUPfA8QBHcyVxKUq1xHyXsSLKdUq2'), scopeToken: 'USDR' },
         { address: new PublicKey('7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs'), scopeToken: 'ETH' },
+        { address: new PublicKey('9n4nbM75f5Ui33ZbPYXn59EwSgE8CGsHtAeTH5YFeJ9E'), scopeToken: 'BTC' },
       ],
       whirlpoolsToSnapshot: [
         {
