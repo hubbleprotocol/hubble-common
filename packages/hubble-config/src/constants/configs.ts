@@ -410,6 +410,7 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
         borrowingMarketStates: [
           new PublicKey('YSp9bJpQom2HA7VThxYZX9pNwrcBH88NBcBNWs5yskR'),
           new PublicKey('B6gckY3KmWR2u1gwruE55Hxoj5uqiTTtuXLbE6Bu7bZq'),
+          new PublicKey('2catbAPzCLX6YZA1axobPEYwbNo1XQaqhvWrZfR4Yxms'),
         ],
         borrowingVaultsV2: new PublicKey('EUEukBTF2X4gtFzkAJaqBcxUVbrSLn2yxLDBuKJj5JoZ'),
         stabilityPoolState: new PublicKey('245U3MMJ57YDGUSYRQxsJurqUhnXK4mjjvavbrvSn3uh'),
@@ -703,6 +704,7 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
         borrowingMarketStates: [
           new PublicKey('FqkHHpETrpfgcA5SeH7PKKFDLGWM4tM7ZV31HfutTXNV'),
           new PublicKey('2pjsM2weitsEP3w1Q4N7bLvFYmdNBWCw1H3E9k6rVQTy'),
+          new PublicKey('5rDSgRsoq2sJQyzwLsmucvqMrNmYQDMr6L3xoXkxtadY'),
         ],
         stabilityPoolState: new PublicKey('FB1e3ACdWSgKVDaVp7YRWB64JgFrUNPrxm6ukKDjjKg'),
         epochToScaleToSum: new PublicKey('FPUTB5KsZQhPrJS6QmUzgAErYcfHBcyVwRSQcvCLzeVi'),
