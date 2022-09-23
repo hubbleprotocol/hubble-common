@@ -20,7 +20,7 @@ import { StrategyHolder } from './models/StrategyHolder';
 import { Scope, SupportedToken } from '@hubbleprotocol/scope-sdk';
 import { KaminoToken } from './models/KaminoToken';
 import { PriceData } from './models/PriceData';
-import { batchFetchMultipleAccounts } from "./utils";
+import { batchFetchMultipleAccounts } from './utils';
 
 export class Kamino {
   private readonly _cluster: SolanaCluster;
