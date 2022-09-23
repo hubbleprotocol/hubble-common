@@ -1,21 +1,14 @@
-import { PublicKey } from '@solana/web3.js';
-
-export async function batchFetchMultipleAccounts<T>(
-  addresses: Array<PublicKey>,
-  fetchBatch: (chunk: Array<PublicKey>) => Promise<Array<T>>
+export async function batchFetch<A, T>(
+  addresses: Array<A>,
+  fetchBatch: (chunk: Array<A>) => Promise<Array<T>>,
+  chunkSize: number = 100 // limit for web3 client getMultipleAccounts fetch
 ): Promise<Array<T>> {
-  let chunkSize = 100; // limit for web3 client
-  let results: Array<Array<T>> = await Promise.all(chunks(addresses, chunkSize).map((chunk) => fetchBatch(chunk)));
-
-  let merged = [];
-  for (let result of results) {
-    merged.push(...result);
-  }
-  return merged;
+  const results: Array<Array<T>> = await Promise.all(chunks(addresses, chunkSize).map((chunk) => fetchBatch(chunk)));
+  return results.reduce((acc, curr) => acc.concat(...curr), new Array<T>());
 }
 
 export function chunks<T>(array: T[], size: number): T[][] {
-  return Array.apply(0, new Array(Math.ceil(array.length / size))).map((_, index) =>
+  return [...new Array(Math.ceil(array.length / size)).keys()].map((_, index) =>
     array.slice(index * size, (index + 1) * size)
   );
 }
