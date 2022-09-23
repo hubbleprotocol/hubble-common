@@ -20,6 +20,7 @@ import { StrategyHolder } from './models/StrategyHolder';
 import { Scope, SupportedToken } from '@hubbleprotocol/scope-sdk';
 import { KaminoToken } from './models/KaminoToken';
 import { PriceData } from './models/PriceData';
+import { batchFetch } from './utils';
 
 export class Kamino {
   private readonly _cluster: SolanaCluster;
@@ -68,7 +69,9 @@ export class Kamino {
    * Return a list of all Kamino whirlpool strategies
    */
   getStrategies() {
-    return WhirlpoolStrategy.fetchMultiple(this._connection, this._config.kamino.strategies);
+    return batchFetch(this._config.kamino.strategies, (chunk) =>
+      WhirlpoolStrategy.fetchMultiple(this._connection, chunk)
+    );
   }
 
   /**
@@ -289,7 +292,7 @@ export class Kamino {
   }
 
   getWhirlpools(whirlpools: PublicKey[]) {
-    return Whirlpool.fetchMultiple(this._connection, whirlpools);
+    return batchFetch(whirlpools, (chunk) => Whirlpool.fetchMultiple(this._connection, chunk));
   }
 
   getTokenName(collateralId: number) {
