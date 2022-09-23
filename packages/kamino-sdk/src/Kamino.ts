@@ -67,13 +67,12 @@ export class Kamino {
 
   /**
    * Return a list of all Kamino whirlpool strategies
+   * @param strategies Limit results to these strategy addresses
    */
-  async getStrategies(): Promise<Array<WhirlpoolStrategy>> {
-    return (
-      await batchFetch(this._config.kamino.strategies, (chunk) =>
-        WhirlpoolStrategy.fetchMultiple(this._connection, chunk)
-      )
-    ).filter((strategy): strategy is WhirlpoolStrategy => strategy !== null && strategy !== undefined);
+  async getStrategies(
+    strategies: Array<PublicKey> = this._config.kamino.strategies
+  ): Promise<Array<WhirlpoolStrategy | null>> {
+    return await batchFetch(strategies, (chunk) => WhirlpoolStrategy.fetchMultiple(this._connection, chunk));
   }
 
   /**
