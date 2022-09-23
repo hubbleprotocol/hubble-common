@@ -3,7 +3,7 @@
   "description": "Hubble Protocol client SDK",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "version": "1.0.121",
+  "version": "1.0.122",
   "scripts": {
     "build": "tsc",
     "build:watch": "tsc -w"
@@ -29,7 +29,7 @@
     "@types/bn.js": "^5.1.0"
   },
   "dependencies": {
-    "@hubbleprotocol/hubble-config": "^1.0.121",
+    "@hubbleprotocol/hubble-config": "^1.0.122",
     "@hubbleprotocol/hubble-idl": "^1.0.91",
     "@project-serum/anchor": "0.21.0",
     "@project-serum/serum": "^0.13.65",
