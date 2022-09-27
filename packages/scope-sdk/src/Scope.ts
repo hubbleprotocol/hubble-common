@@ -55,6 +55,7 @@ export const ScopePairs = [
   'USDR/USD',
   'USDRTwap/USD',
   'RATIO/USD',
+  'UXP/USD',
 ] as const;
 export type ScopePair = typeof ScopePairs[number];
 
@@ -108,6 +109,7 @@ export const SupportedTokens = [
   'USDRTwap',
   'USDR',
   'RATIO',
+  'UXD',
 ] as const;
 export type SupportedToken = typeof SupportedTokens[number];
 
@@ -191,6 +193,7 @@ export class Scope {
     { id: 46, pair: 'USDR/USD', name: 'USDR', price: new Decimal(0) },
     { id: 47, pair: 'USDRTwap/USD', name: 'USDRTwap', price: new Decimal(0) },
     { id: 48, pair: 'RATIO/USD', name: 'RATIO', price: new Decimal(0) },
+    { id: 49, pair: 'UXD/USD', name: 'UXD', price: new Decimal(0) },
   ];
 
   /**
