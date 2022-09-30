@@ -4,26 +4,50 @@ import * as types from "../types" // eslint-disable-line @typescript-eslint/no-u
 import * as borsh from "@project-serum/borsh"
 
 export interface WhirlpoolRewardInfoFields {
+  /** Reward token mint. */
   mint: PublicKey
+  /** Reward vault token account. */
   vault: PublicKey
+  /** Authority account that has permission to initialize the reward and set emissions. */
   authority: PublicKey
+  /** Q64.64 number that indicates how many tokens per second are earned per unit of liquidity. */
   emissionsPerSecondX64: BN
+  /**
+   * Q64.64 number that tracks the total tokens earned per unit of liquidity since the reward
+   * emissions were turned on.
+   */
   growthGlobalX64: BN
 }
 
 export interface WhirlpoolRewardInfoJSON {
+  /** Reward token mint. */
   mint: string
+  /** Reward vault token account. */
   vault: string
+  /** Authority account that has permission to initialize the reward and set emissions. */
   authority: string
+  /** Q64.64 number that indicates how many tokens per second are earned per unit of liquidity. */
   emissionsPerSecondX64: string
+  /**
+   * Q64.64 number that tracks the total tokens earned per unit of liquidity since the reward
+   * emissions were turned on.
+   */
   growthGlobalX64: string
 }
 
 export class WhirlpoolRewardInfo {
+  /** Reward token mint. */
   readonly mint: PublicKey
+  /** Reward vault token account. */
   readonly vault: PublicKey
+  /** Authority account that has permission to initialize the reward and set emissions. */
   readonly authority: PublicKey
+  /** Q64.64 number that indicates how many tokens per second are earned per unit of liquidity. */
   readonly emissionsPerSecondX64: BN
+  /**
+   * Q64.64 number that tracks the total tokens earned per unit of liquidity since the reward
+   * emissions were turned on.
+   */
   readonly growthGlobalX64: BN
 
   constructor(fields: WhirlpoolRewardInfoFields) {

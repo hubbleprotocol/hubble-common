@@ -4,7 +4,15 @@ import {
   HubbleConfig,
   SolanaCluster,
 } from '@hubbleprotocol/hubble-config';
-import { Connection, PublicKey } from '@solana/web3.js';
+import {
+  AccountInfo,
+  Connection,
+  Keypair,
+  PublicKey,
+  sendAndConfirmTransaction,
+  SYSVAR_INSTRUCTIONS_PUBKEY,
+  Transaction,
+} from '@solana/web3.js';
 import { setKaminoProgramId } from './kamino-client/programId';
 import { WhirlpoolStrategy } from './kamino-client/accounts';
 import Decimal from 'decimal.js';
@@ -14,13 +22,22 @@ import { Percentage, RemoveLiquidityQuote, RemoveLiquidityQuoteParam } from '@or
 import { OrcaDAL } from '@orca-so/whirlpool-sdk/dist/dal/orca-dal';
 import { OrcaPosition } from '@orca-so/whirlpool-sdk/dist/position/orca-position';
 import { PROGRAM_ID_CLI as WHIRLPOOL_PROGRAM_ID } from './whirpools-client/programId';
-import { Holdings, ShareData, StrategyBalances, StrategyVaultBalances } from './models';
-import { Data } from './models/MultipleAccountsResponse';
+import { Holdings, ShareData, StrategyBalances, StrategyVaultBalances, TreasuryFeeVault } from './models';
+import { Data } from './models';
 import { StrategyHolder } from './models/StrategyHolder';
 import { Scope, SupportedToken } from '@hubbleprotocol/scope-sdk';
 import { KaminoToken } from './models/KaminoToken';
 import { PriceData } from './models/PriceData';
 import { batchFetch } from './utils';
+import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
+import { withdraw, WithdrawAccounts, WithdrawArgs } from './kamino-client/instructions';
+import BN from 'bn.js';
+import {
+  createAddExtraComputeUnitsTransaction,
+  createAssociatedTokenAccountInstruction,
+  getAssociatedTokenAddressAndData,
+} from './utils/tokenUtils';
+import { StrategyWithAddress } from './models/StrategyWithAddress';
 
 export class Kamino {
   private readonly _cluster: SolanaCluster;
@@ -87,10 +104,11 @@ export class Kamino {
    * Get the strategy share data (price + balances) of the specified Kamino whirlpool strategy
    * @param strategy
    */
-  async getStrategyShareData(strategy: WhirlpoolStrategy): Promise<ShareData> {
-    const sharesFactor = Decimal.pow(10, strategy.sharesMintDecimals.toNumber());
-    const sharesIssued = new Decimal(strategy.sharesIssued.toString());
-    const balances = await this.getStrategyBalances(strategy);
+  async getStrategyShareData(strategy: PublicKey | StrategyWithAddress): Promise<ShareData> {
+    const strategyState = await this.getStrategyStateIfNotFetched(strategy);
+    const sharesFactor = Decimal.pow(10, strategyState.strategy.sharesMintDecimals.toNumber());
+    const sharesIssued = new Decimal(strategyState.strategy.sharesIssued.toString());
+    const balances = await this.getStrategyBalances(strategyState.strategy);
     if (sharesIssued.isZero()) {
       return { price: new Decimal(1), balance: balances };
     } else {
@@ -102,10 +120,11 @@ export class Kamino {
    * Get the strategy share price of the specified Kamino whirlpool strategy
    * @param strategy
    */
-  async getStrategySharePrice(strategy: WhirlpoolStrategy): Promise<Decimal> {
-    const sharesFactor = Decimal.pow(10, strategy.sharesMintDecimals.toNumber());
-    const sharesIssued = new Decimal(strategy.sharesIssued.toString());
-    const balances = await this.getStrategyBalances(strategy);
+  async getStrategySharePrice(strategy: PublicKey | StrategyWithAddress): Promise<Decimal> {
+    const strategyState = await this.getStrategyStateIfNotFetched(strategy);
+    const sharesFactor = Decimal.pow(10, strategyState.strategy.sharesMintDecimals.toNumber());
+    const sharesIssued = new Decimal(strategyState.strategy.sharesIssued.toString());
+    const balances = await this.getStrategyBalances(strategyState.strategy);
     if (sharesIssued.isZero()) {
       return new Decimal(1);
     } else {
@@ -271,16 +290,18 @@ export class Kamino {
   /**
    * Get all token accounts that are holding a specific Kamino whirlpool strategy
    */
-  getStrategyTokenAccounts(strategy: WhirlpoolStrategy) {
-    return this.getShareTokenAccounts(strategy.sharesMint);
+  async getStrategyTokenAccounts(strategy: PublicKey | StrategyWithAddress) {
+    const strategyState = await this.getStrategyStateIfNotFetched(strategy);
+    return this.getShareTokenAccounts(strategyState.strategy.sharesMint);
   }
 
   /**
    * Get all strategy token holders
    * @param strategy
    */
-  async getStrategyHolders(strategy: WhirlpoolStrategy): Promise<StrategyHolder[]> {
-    const tokenAccounts = await this.getStrategyTokenAccounts(strategy);
+  async getStrategyHolders(strategy: PublicKey | StrategyWithAddress): Promise<StrategyHolder[]> {
+    const strategyState = await this.getStrategyStateIfNotFetched(strategy);
+    const tokenAccounts = await this.getStrategyTokenAccounts(strategyState);
     const result: StrategyHolder[] = [];
     for (const tokenAccount of tokenAccounts) {
       const accountData = tokenAccount.account.data as Data;
@@ -302,6 +323,209 @@ export class Kamino {
       throw Error(`Token with collateral ID ${collateralId} does not exist.`);
     }
     return tokenName.name;
+  }
+
+  /**
+   * Withdraw shares from a strategy for a specific wallet and get back token A and token B
+   * @param strategy strategy public key
+   * @param sharesAmount amount of shares (decimal representation), NOT in lamports
+   * @param wallet wallet keypair that will pay for the tx and has shares
+   * @returns transaction hash
+   */
+  async withdrawShares(strategy: PublicKey | StrategyWithAddress, sharesAmount: Decimal, wallet: Keypair) {
+    if (sharesAmount.lessThanOrEqualTo(0)) {
+      throw Error('Shares amount cant be lower than or equal to 0.');
+    }
+    const strategyState = await this.getStrategyStateIfNotFetched(strategy);
+
+    const whirlpoolState = await Whirlpool.fetch(this._connection, strategyState.strategy.whirlpool);
+    if (!whirlpoolState) {
+      throw Error(`Could not fetch whirlpool state with pubkey ${strategyState.strategy.whirlpool.toString()}`);
+    }
+    const { treasuryFeeTokenAVault, treasuryFeeTokenBVault, treasuryFeeVaultAuthority } =
+      await this.getTreasuryFeeVaultPDAs(strategyState.strategy.tokenAMint, strategyState.strategy.tokenBMint);
+
+    const [sharesAta, sharesMintData] = await getAssociatedTokenAddressAndData(
+      this._connection,
+      strategyState.strategy.sharesMint,
+      wallet.publicKey
+    );
+    if (!sharesMintData) {
+      throw Error(
+        `Cannot withdraw from strategy (${strategy.toString()}) because strategy hasn't been initialized yet (no shares deposited).
+        Shares associated token address (${sharesAta}) does not exist.
+        Please deposit some shares into the strategy first.`
+      );
+    }
+    const [tokenAAta, tokenAData] = await getAssociatedTokenAddressAndData(
+      this._connection,
+      strategyState.strategy.tokenAMint,
+      wallet.publicKey
+    );
+    const [tokenBAta, tokenBData] = await getAssociatedTokenAddressAndData(
+      this._connection,
+      strategyState.strategy.tokenBMint,
+      wallet.publicKey
+    );
+
+    const sharesAmountInLamports = sharesAmount.mul(
+      new Decimal(10).pow(strategyState.strategy.sharesMintDecimals.toString())
+    );
+
+    const args: WithdrawArgs = { sharesAmount: new BN(sharesAmountInLamports.toNumber()) };
+    const accounts: WithdrawAccounts = {
+      user: wallet.publicKey,
+      strategy: strategyState.address,
+      globalConfig: strategyState.strategy.globalConfig,
+      whirlpool: strategyState.strategy.whirlpool,
+      position: strategyState.strategy.position,
+      tickArrayLower: strategyState.strategy.tickArrayLower,
+      tickArrayUpper: strategyState.strategy.tickArrayUpper,
+      tokenAVault: strategyState.strategy.tokenAVault,
+      tokenBVault: strategyState.strategy.tokenBVault,
+      baseVaultAuthority: strategyState.strategy.baseVaultAuthority,
+      whirlpoolTokenVaultA: whirlpoolState.tokenVaultA,
+      whirlpoolTokenVaultB: whirlpoolState.tokenVaultB,
+      tokenAAta: tokenAAta,
+      tokenBAta: tokenBAta,
+      tokenAMint: strategyState.strategy.tokenAMint,
+      tokenBMint: strategyState.strategy.tokenBMint,
+      userSharesAta: sharesAta,
+      sharesMint: strategyState.strategy.sharesMint,
+      sharesMintAuthority: strategyState.strategy.sharesMintAuthority,
+      treasuryFeeTokenAVault,
+      treasuryFeeTokenBVault,
+      treasuryFeeVaultAuthority,
+      tokenProgram: TOKEN_PROGRAM_ID,
+      positionTokenAccount: strategyState.strategy.positionTokenAccount,
+      whirlpoolProgram: WHIRLPOOL_PROGRAM_ID,
+      instructionSysvarAccount: SYSVAR_INSTRUCTIONS_PUBKEY,
+    };
+
+    let tx = new Transaction();
+    const increaseBudgetIx = createAddExtraComputeUnitsTransaction(wallet.publicKey, 400000);
+    tx.add(increaseBudgetIx);
+    tx = await this.addShareAtasToTransaction(
+      tx,
+      wallet,
+      strategyState,
+      tokenAData,
+      tokenAAta,
+      tokenBData,
+      tokenBAta,
+      sharesMintData,
+      sharesAta
+    );
+    const withdrawIx = withdraw(args, accounts);
+    tx.add(withdrawIx);
+
+    const { blockhash, lastValidBlockHeight } = await this._connection.getLatestBlockhash();
+    tx.recentBlockhash = blockhash;
+    tx.feePayer = wallet.publicKey;
+    tx.lastValidBlockHeight = lastValidBlockHeight;
+
+    return await sendAndConfirmTransaction(this._connection, tx, [wallet], {
+      commitment: 'confirmed',
+    });
+  }
+
+  /**
+   * Add associated token accounts to the share transaction (token A, B and share)
+   */
+  private async addShareAtasToTransaction(
+    tx: Transaction,
+    wallet: Keypair,
+    strategyState: StrategyWithAddress,
+    tokenAData: AccountInfo<Buffer> | null,
+    tokenAAta: PublicKey,
+    tokenBData: AccountInfo<Buffer> | null,
+    tokenBAta: PublicKey,
+    sharesMintData: AccountInfo<Buffer> | null,
+    sharesAta: PublicKey
+  ) {
+    if (!tokenAData) {
+      tx.add(
+        createAssociatedTokenAccountInstruction(
+          wallet.publicKey,
+          tokenAAta,
+          wallet.publicKey,
+          strategyState.strategy.tokenAMint
+        )
+      );
+    }
+    if (!tokenBData) {
+      tx.add(
+        createAssociatedTokenAccountInstruction(
+          wallet.publicKey,
+          tokenBAta,
+          wallet.publicKey,
+          strategyState.strategy.tokenBMint
+        )
+      );
+    }
+    if (!sharesMintData) {
+      tx.add(
+        createAssociatedTokenAccountInstruction(
+          wallet.publicKey,
+          sharesAta,
+          wallet.publicKey,
+          strategyState.strategy.sharesMint
+        )
+      );
+    }
+    return tx;
+  }
+
+  private async getStrategyStateIfNotFetched(strategy: PublicKey | StrategyWithAddress) {
+    const hasStrategyBeenFetched = (object: PublicKey | StrategyWithAddress): object is StrategyWithAddress => {
+      return 'strategy' in object;
+    };
+
+    if (hasStrategyBeenFetched(strategy)) {
+      return strategy;
+    } else {
+      const strategyState = await this.getStrategyByAddress(strategy);
+      if (!strategyState) {
+        throw Error(`Could not fetch strategy state with pubkey ${strategy.toString()}`);
+      }
+      return { strategy: strategyState, address: strategy };
+    }
+  }
+
+  private async getTreasuryFeeVaultPDAs(tokenAMint: PublicKey, tokenBMint: PublicKey): Promise<TreasuryFeeVault> {
+    const [treasuryFeeTokenAVault, _treasuryFeeTokenAVaultBump] = await PublicKey.findProgramAddress(
+      [Buffer.from('treasury_fee_vault'), tokenAMint.toBuffer()],
+      this._config.kamino.programId
+    );
+    const [treasuryFeeTokenBVault, _treasuryFeeTokenBVaultBump] = await PublicKey.findProgramAddress(
+      [Buffer.from('treasury_fee_vault'), tokenBMint.toBuffer()],
+      this._config.kamino.programId
+    );
+    const [treasuryFeeVaultAuthority, _treasuryFeeVaultAuthorityBump] = await PublicKey.findProgramAddress(
+      [Buffer.from('treasury_fee_vault_authority')],
+      this._config.kamino.programId
+    );
+    return { treasuryFeeTokenAVault, treasuryFeeTokenBVault, treasuryFeeVaultAuthority };
+  }
+
+  /**
+   * Withdraw all strategy shares from a specific wallet into token A and B
+   * @param strategy public key of the strategy
+   * @param wallet keypair of the wallet (tx payer)
+   * @returns transaction hash or null if no shares are present in the wallet
+   */
+  async withdrawAllShares(strategy: PublicKey | StrategyWithAddress, wallet: Keypair) {
+    const strategyState = await this.getStrategyStateIfNotFetched(strategy);
+    const [sharesAta] = await getAssociatedTokenAddressAndData(
+      this._connection,
+      strategyState.strategy.sharesMint,
+      wallet.publicKey
+    );
+    const balance = await this.getTokenAccountBalance(sharesAta);
+    if (balance.isZero()) {
+      return null;
+    }
+    return this.withdrawShares(strategyState, balance, wallet);
   }
 }
 

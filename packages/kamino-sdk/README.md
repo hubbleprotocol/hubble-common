@@ -17,6 +17,7 @@ import { clusterApiUrl, Connection } from '@solana/web3.js';
 
 const connection = new Connection(clusterApiUrl('mainnet-beta'));
 const kamino = new Kamino('mainnet-beta', connection); 
+const wallet = Keypair.generate(); // use your own wallet with funds here, used for sending and confirming transactions
 
 // get all strategies supported by Kamino 
 const strategies = await kamino.getStrategies();
@@ -30,4 +31,9 @@ const holders = await kamino.getStrategyHolders(usdhUsdtStrategy);
 
 // get strategy share price
 const strategyPrice = await kamino.getStrategySharePrice(usdhUsdtStrategy);
+
+// withdraw shares from a strategy
+const transactionHash = await kamino.withdrawShares(usdhUsdtStrategy, new Decimal(1), wallet);
+// withdraw all shares from a strategy
+const transactionHash = await kamino.withdrawAllShares(usdhUsdtStrategy, wallet);
 ```

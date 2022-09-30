@@ -17,8 +17,10 @@ export interface GlobalConfigFields {
   scopeProgramId: PublicKey
   scopePriceId: PublicKey
   swapRewardsDiscountBps: Array<BN>
-  padding1: Array<BN>
-  padding2: Array<BN>
+  actionsAuthority: PublicKey
+  adminAuthority: PublicKey
+  treasuryFeeVaults: Array<PublicKey>
+  padding: Array<BN>
 }
 
 export interface GlobalConfigJSON {
@@ -34,8 +36,10 @@ export interface GlobalConfigJSON {
   scopeProgramId: string
   scopePriceId: string
   swapRewardsDiscountBps: Array<string>
-  padding1: Array<string>
-  padding2: Array<string>
+  actionsAuthority: string
+  adminAuthority: string
+  treasuryFeeVaults: Array<string>
+  padding: Array<string>
 }
 
 export class GlobalConfig {
@@ -51,8 +55,10 @@ export class GlobalConfig {
   readonly scopeProgramId: PublicKey
   readonly scopePriceId: PublicKey
   readonly swapRewardsDiscountBps: Array<BN>
-  readonly padding1: Array<BN>
-  readonly padding2: Array<BN>
+  readonly actionsAuthority: PublicKey
+  readonly adminAuthority: PublicKey
+  readonly treasuryFeeVaults: Array<PublicKey>
+  readonly padding: Array<BN>
 
   static readonly discriminator = Buffer.from([
     149, 8, 156, 202, 160, 252, 176, 217,
@@ -70,9 +76,11 @@ export class GlobalConfig {
     borsh.u64("feesBps"),
     borsh.publicKey("scopeProgramId"),
     borsh.publicKey("scopePriceId"),
-    borsh.array(borsh.u64(), 128, "swapRewardsDiscountBps"),
-    borsh.array(borsh.u64(), 65, "padding1"),
-    borsh.array(borsh.u64(), 20, "padding2"),
+    borsh.array(borsh.u64(), 256, "swapRewardsDiscountBps"),
+    borsh.publicKey("actionsAuthority"),
+    borsh.publicKey("adminAuthority"),
+    borsh.array(borsh.publicKey(), 256, "treasuryFeeVaults"),
+    borsh.array(borsh.u64(), 2048, "padding"),
   ])
 
   constructor(fields: GlobalConfigFields) {
@@ -88,8 +96,10 @@ export class GlobalConfig {
     this.scopeProgramId = fields.scopeProgramId
     this.scopePriceId = fields.scopePriceId
     this.swapRewardsDiscountBps = fields.swapRewardsDiscountBps
-    this.padding1 = fields.padding1
-    this.padding2 = fields.padding2
+    this.actionsAuthority = fields.actionsAuthority
+    this.adminAuthority = fields.adminAuthority
+    this.treasuryFeeVaults = fields.treasuryFeeVaults
+    this.padding = fields.padding
   }
 
   static async fetch(
@@ -146,8 +156,10 @@ export class GlobalConfig {
       scopeProgramId: dec.scopeProgramId,
       scopePriceId: dec.scopePriceId,
       swapRewardsDiscountBps: dec.swapRewardsDiscountBps,
-      padding1: dec.padding1,
-      padding2: dec.padding2,
+      actionsAuthority: dec.actionsAuthority,
+      adminAuthority: dec.adminAuthority,
+      treasuryFeeVaults: dec.treasuryFeeVaults,
+      padding: dec.padding,
     })
   }
 
@@ -167,8 +179,10 @@ export class GlobalConfig {
       swapRewardsDiscountBps: this.swapRewardsDiscountBps.map((item) =>
         item.toString()
       ),
-      padding1: this.padding1.map((item) => item.toString()),
-      padding2: this.padding2.map((item) => item.toString()),
+      actionsAuthority: this.actionsAuthority.toString(),
+      adminAuthority: this.adminAuthority.toString(),
+      treasuryFeeVaults: this.treasuryFeeVaults.map((item) => item.toString()),
+      padding: this.padding.map((item) => item.toString()),
     }
   }
 
@@ -188,8 +202,12 @@ export class GlobalConfig {
       swapRewardsDiscountBps: obj.swapRewardsDiscountBps.map(
         (item) => new BN(item)
       ),
-      padding1: obj.padding1.map((item) => new BN(item)),
-      padding2: obj.padding2.map((item) => new BN(item)),
+      actionsAuthority: new PublicKey(obj.actionsAuthority),
+      adminAuthority: new PublicKey(obj.adminAuthority),
+      treasuryFeeVaults: obj.treasuryFeeVaults.map(
+        (item) => new PublicKey(item)
+      ),
+      padding: obj.padding.map((item) => new BN(item)),
     })
   }
 }

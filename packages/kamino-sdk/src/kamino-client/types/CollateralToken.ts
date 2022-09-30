@@ -256,6 +256,259 @@ export class HBB {
   }
 }
 
+export interface JSOLJSON {
+  kind: "JSOL"
+}
+
+export class JSOL {
+  static readonly discriminator = 11
+  static readonly kind = "JSOL"
+  readonly discriminator = 11
+  readonly kind = "JSOL"
+
+  toJSON(): JSOLJSON {
+    return {
+      kind: "JSOL",
+    }
+  }
+
+  toEncodable() {
+    return {
+      JSOL: {},
+    }
+  }
+}
+
+export interface USHJSON {
+  kind: "USH"
+}
+
+export class USH {
+  static readonly discriminator = 12
+  static readonly kind = "USH"
+  readonly discriminator = 12
+  readonly kind = "USH"
+
+  toJSON(): USHJSON {
+    return {
+      kind: "USH",
+    }
+  }
+
+  toEncodable() {
+    return {
+      USH: {},
+    }
+  }
+}
+
+export interface DAIJSON {
+  kind: "DAI"
+}
+
+export class DAI {
+  static readonly discriminator = 13
+  static readonly kind = "DAI"
+  readonly discriminator = 13
+  readonly kind = "DAI"
+
+  toJSON(): DAIJSON {
+    return {
+      kind: "DAI",
+    }
+  }
+
+  toEncodable() {
+    return {
+      DAI: {},
+    }
+  }
+}
+
+export interface LDOJSON {
+  kind: "LDO"
+}
+
+export class LDO {
+  static readonly discriminator = 14
+  static readonly kind = "LDO"
+  readonly discriminator = 14
+  readonly kind = "LDO"
+
+  toJSON(): LDOJSON {
+    return {
+      kind: "LDO",
+    }
+  }
+
+  toEncodable() {
+    return {
+      LDO: {},
+    }
+  }
+}
+
+export interface SCNSOLJSON {
+  kind: "SCNSOL"
+}
+
+export class SCNSOL {
+  static readonly discriminator = 15
+  static readonly kind = "SCNSOL"
+  readonly discriminator = 15
+  readonly kind = "SCNSOL"
+
+  toJSON(): SCNSOLJSON {
+    return {
+      kind: "SCNSOL",
+    }
+  }
+
+  toEncodable() {
+    return {
+      SCNSOL: {},
+    }
+  }
+}
+
+export interface UXDJSON {
+  kind: "UXD"
+}
+
+export class UXD {
+  static readonly discriminator = 16
+  static readonly kind = "UXD"
+  readonly discriminator = 16
+  readonly kind = "UXD"
+
+  toJSON(): UXDJSON {
+    return {
+      kind: "UXD",
+    }
+  }
+
+  toEncodable() {
+    return {
+      UXD: {},
+    }
+  }
+}
+
+export interface HDGJSON {
+  kind: "HDG"
+}
+
+export class HDG {
+  static readonly discriminator = 17
+  static readonly kind = "HDG"
+  readonly discriminator = 17
+  readonly kind = "HDG"
+
+  toJSON(): HDGJSON {
+    return {
+      kind: "HDG",
+    }
+  }
+
+  toEncodable() {
+    return {
+      HDG: {},
+    }
+  }
+}
+
+export interface DUSTJSON {
+  kind: "DUST"
+}
+
+export class DUST {
+  static readonly discriminator = 18
+  static readonly kind = "DUST"
+  readonly discriminator = 18
+  readonly kind = "DUST"
+
+  toJSON(): DUSTJSON {
+    return {
+      kind: "DUST",
+    }
+  }
+
+  toEncodable() {
+    return {
+      DUST: {},
+    }
+  }
+}
+
+export interface USDRJSON {
+  kind: "USDR"
+}
+
+export class USDR {
+  static readonly discriminator = 19
+  static readonly kind = "USDR"
+  readonly discriminator = 19
+  readonly kind = "USDR"
+
+  toJSON(): USDRJSON {
+    return {
+      kind: "USDR",
+    }
+  }
+
+  toEncodable() {
+    return {
+      USDR: {},
+    }
+  }
+}
+
+export interface RATIOJSON {
+  kind: "RATIO"
+}
+
+export class RATIO {
+  static readonly discriminator = 20
+  static readonly kind = "RATIO"
+  readonly discriminator = 20
+  readonly kind = "RATIO"
+
+  toJSON(): RATIOJSON {
+    return {
+      kind: "RATIO",
+    }
+  }
+
+  toEncodable() {
+    return {
+      RATIO: {},
+    }
+  }
+}
+
+export interface UXPJSON {
+  kind: "UXP"
+}
+
+export class UXP {
+  static readonly discriminator = 21
+  static readonly kind = "UXP"
+  readonly discriminator = 21
+  readonly kind = "UXP"
+
+  toJSON(): UXPJSON {
+    return {
+      kind: "UXP",
+    }
+  }
+
+  toEncodable() {
+    return {
+      UXP: {},
+    }
+  }
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function fromDecoded(obj: any): types.CollateralTokenKind {
   if (typeof obj !== "object") {
@@ -294,6 +547,39 @@ export function fromDecoded(obj: any): types.CollateralTokenKind {
   }
   if ("HBB" in obj) {
     return new HBB()
+  }
+  if ("JSOL" in obj) {
+    return new JSOL()
+  }
+  if ("USH" in obj) {
+    return new USH()
+  }
+  if ("DAI" in obj) {
+    return new DAI()
+  }
+  if ("LDO" in obj) {
+    return new LDO()
+  }
+  if ("SCNSOL" in obj) {
+    return new SCNSOL()
+  }
+  if ("UXD" in obj) {
+    return new UXD()
+  }
+  if ("HDG" in obj) {
+    return new HDG()
+  }
+  if ("DUST" in obj) {
+    return new DUST()
+  }
+  if ("USDR" in obj) {
+    return new USDR()
+  }
+  if ("RATIO" in obj) {
+    return new RATIO()
+  }
+  if ("UXP" in obj) {
+    return new UXP()
   }
 
   throw new Error("Invalid enum object")
@@ -336,6 +622,39 @@ export function fromJSON(
     case "HBB": {
       return new HBB()
     }
+    case "JSOL": {
+      return new JSOL()
+    }
+    case "USH": {
+      return new USH()
+    }
+    case "DAI": {
+      return new DAI()
+    }
+    case "LDO": {
+      return new LDO()
+    }
+    case "SCNSOL": {
+      return new SCNSOL()
+    }
+    case "UXD": {
+      return new UXD()
+    }
+    case "HDG": {
+      return new HDG()
+    }
+    case "DUST": {
+      return new DUST()
+    }
+    case "USDR": {
+      return new USDR()
+    }
+    case "RATIO": {
+      return new RATIO()
+    }
+    case "UXP": {
+      return new UXP()
+    }
   }
 }
 
@@ -352,6 +671,17 @@ export function layout(property?: string) {
     borsh.struct([], "ORCA"),
     borsh.struct([], "MNDE"),
     borsh.struct([], "HBB"),
+    borsh.struct([], "JSOL"),
+    borsh.struct([], "USH"),
+    borsh.struct([], "DAI"),
+    borsh.struct([], "LDO"),
+    borsh.struct([], "SCNSOL"),
+    borsh.struct([], "UXD"),
+    borsh.struct([], "HDG"),
+    borsh.struct([], "DUST"),
+    borsh.struct([], "USDR"),
+    borsh.struct([], "RATIO"),
+    borsh.struct([], "UXP"),
   ])
   if (property !== undefined) {
     return ret.replicate(property)

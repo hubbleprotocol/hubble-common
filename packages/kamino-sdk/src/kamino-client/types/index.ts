@@ -1,10 +1,15 @@
-import * as VaultError from "./VaultError"
-import * as LiquidityCalculationMode from "./LiquidityCalculationMode"
-import * as ScopePriceId from "./ScopePriceId"
+import * as WithdrawalCapAction from "./WithdrawalCapAction"
+import * as WithdrawalCapOverflowAction from "./WithdrawalCapOverflowAction"
+import * as WithdrawalCapAccumulatorAction from "./WithdrawalCapAccumulatorAction"
 import * as CollateralToken from "./CollateralToken"
 import * as GlobalConfigOption from "./GlobalConfigOption"
+import * as StrategyConfigOption from "./StrategyConfigOption"
 import * as StrategyStatus from "./StrategyStatus"
+import * as StrategyType from "./StrategyType"
 import * as ExecutiveWithdrawAction from "./ExecutiveWithdrawAction"
+import * as LiquidityCalculationMode from "./LiquidityCalculationMode"
+import * as ScopePriceId from "./ScopePriceId"
+import * as DEX from "./DEX"
 
 export { PositionRewardInfo } from "./PositionRewardInfo"
 export type {
@@ -18,100 +23,198 @@ export type {
 } from "./WhirlpoolRewardInfo"
 export { Tick } from "./Tick"
 export type { TickFields, TickJSON } from "./Tick"
+export { RewardInfo } from "./RewardInfo"
+export type { RewardInfoFields, RewardInfoJSON } from "./RewardInfo"
+export { WithdrawalCaps } from "./WithdrawalCaps"
+export type { WithdrawalCapsFields, WithdrawalCapsJSON } from "./WithdrawalCaps"
 export { Price } from "./Price"
 export type { PriceFields, PriceJSON } from "./Price"
-export { VaultError }
+export { WithdrawalCapAction }
 
-export type VaultErrorKind =
-  | VaultError.IntegerOverflow
-  | VaultError.OperationForbidden
-  | VaultError.ZeroAmount
-  | VaultError.UnableToDeserializeAccount
-  | VaultError.VaultBalanceDoesNotMatchTokenA
-  | VaultError.VaultBalanceDoesNotMatchTokenB
-  | VaultError.SharesIssuedAmountDoesNotMatch
-  | VaultError.GlobalConfigKeyError
-  | VaultError.SystemInEmergencyMode
-  | VaultError.DepositBlocked
-  | VaultError.WithdrawBlocked
-  | VaultError.InvestBlocked
-  | VaultError.OutOfRangeIntegralConversion
-  | VaultError.MathOverflow
-  | VaultError.TooMuchLiquidityToWithdraw
-  | VaultError.DepositAmountsZero
-  | VaultError.SharesZero
-  | VaultError.StrategyNotActive
-  | VaultError.UnharvestedAmounts
-  | VaultError.InvalidRewardMapping
-  | VaultError.InvalidRewardIndex
-  | VaultError.OwnRewardUninitialized
-  | VaultError.PriceNotValid
-  | VaultError.SwapRewardImbalanced
-  | VaultError.SwapRewardTooSmall
-  | VaultError.SwapRewardLessThanRequested
-  | VaultError.SwapRewardLessThanMinimum
-  | VaultError.WrongDiscriminator
-  | VaultError.WrongMint
-  | VaultError.WrongVault
-  | VaultError.SwapAmountsZero
-  | VaultError.PriceTooOld
-  | VaultError.CannotInvestZeroAmount
-  | VaultError.MaxInvestableZero
-  | VaultError.CollectFeesBlocked
-  | VaultError.CollectRewardsBlocked
-  | VaultError.SwapRewardsBlocked
-  | VaultError.WrongRewardCollateralID
-  | VaultError.InvalidPositionAccount
-  | VaultError.CouldNotDeserializeScope
-  | VaultError.WrongCollateralID
-  | VaultError.CollateralTokensExceedDepositCap
-  | VaultError.SwapUnevenVaultsBlocked
-  | VaultError.VaultsAreAlreadyBalanced
-export type VaultErrorJSON =
-  | VaultError.IntegerOverflowJSON
-  | VaultError.OperationForbiddenJSON
-  | VaultError.ZeroAmountJSON
-  | VaultError.UnableToDeserializeAccountJSON
-  | VaultError.VaultBalanceDoesNotMatchTokenAJSON
-  | VaultError.VaultBalanceDoesNotMatchTokenBJSON
-  | VaultError.SharesIssuedAmountDoesNotMatchJSON
-  | VaultError.GlobalConfigKeyErrorJSON
-  | VaultError.SystemInEmergencyModeJSON
-  | VaultError.DepositBlockedJSON
-  | VaultError.WithdrawBlockedJSON
-  | VaultError.InvestBlockedJSON
-  | VaultError.OutOfRangeIntegralConversionJSON
-  | VaultError.MathOverflowJSON
-  | VaultError.TooMuchLiquidityToWithdrawJSON
-  | VaultError.DepositAmountsZeroJSON
-  | VaultError.SharesZeroJSON
-  | VaultError.StrategyNotActiveJSON
-  | VaultError.UnharvestedAmountsJSON
-  | VaultError.InvalidRewardMappingJSON
-  | VaultError.InvalidRewardIndexJSON
-  | VaultError.OwnRewardUninitializedJSON
-  | VaultError.PriceNotValidJSON
-  | VaultError.SwapRewardImbalancedJSON
-  | VaultError.SwapRewardTooSmallJSON
-  | VaultError.SwapRewardLessThanRequestedJSON
-  | VaultError.SwapRewardLessThanMinimumJSON
-  | VaultError.WrongDiscriminatorJSON
-  | VaultError.WrongMintJSON
-  | VaultError.WrongVaultJSON
-  | VaultError.SwapAmountsZeroJSON
-  | VaultError.PriceTooOldJSON
-  | VaultError.CannotInvestZeroAmountJSON
-  | VaultError.MaxInvestableZeroJSON
-  | VaultError.CollectFeesBlockedJSON
-  | VaultError.CollectRewardsBlockedJSON
-  | VaultError.SwapRewardsBlockedJSON
-  | VaultError.WrongRewardCollateralIDJSON
-  | VaultError.InvalidPositionAccountJSON
-  | VaultError.CouldNotDeserializeScopeJSON
-  | VaultError.WrongCollateralIDJSON
-  | VaultError.CollateralTokensExceedDepositCapJSON
-  | VaultError.SwapUnevenVaultsBlockedJSON
-  | VaultError.VaultsAreAlreadyBalancedJSON
+export type WithdrawalCapActionKind =
+  | WithdrawalCapAction.Add
+  | WithdrawalCapAction.Remove
+export type WithdrawalCapActionJSON =
+  | WithdrawalCapAction.AddJSON
+  | WithdrawalCapAction.RemoveJSON
+
+export { WithdrawalCapOverflowAction }
+
+export type WithdrawalCapOverflowActionKind =
+  | WithdrawalCapOverflowAction.SaturatingOverflow
+  | WithdrawalCapOverflowAction.ErrorOnOverflow
+export type WithdrawalCapOverflowActionJSON =
+  | WithdrawalCapOverflowAction.SaturatingOverflowJSON
+  | WithdrawalCapOverflowAction.ErrorOnOverflowJSON
+
+export { WithdrawalCapAccumulatorAction }
+
+export type WithdrawalCapAccumulatorActionKind =
+  | WithdrawalCapAccumulatorAction.KeepAccumulator
+  | WithdrawalCapAccumulatorAction.ResetAccumulator
+export type WithdrawalCapAccumulatorActionJSON =
+  | WithdrawalCapAccumulatorAction.KeepAccumulatorJSON
+  | WithdrawalCapAccumulatorAction.ResetAccumulatorJSON
+
+export { CollateralToken }
+
+export type CollateralTokenKind =
+  | CollateralToken.USDC
+  | CollateralToken.USDH
+  | CollateralToken.SOL
+  | CollateralToken.ETH
+  | CollateralToken.BTC
+  | CollateralToken.MSOL
+  | CollateralToken.STSOL
+  | CollateralToken.USDT
+  | CollateralToken.ORCA
+  | CollateralToken.MNDE
+  | CollateralToken.HBB
+  | CollateralToken.JSOL
+  | CollateralToken.USH
+  | CollateralToken.DAI
+  | CollateralToken.LDO
+  | CollateralToken.SCNSOL
+  | CollateralToken.UXD
+  | CollateralToken.HDG
+  | CollateralToken.DUST
+  | CollateralToken.USDR
+  | CollateralToken.RATIO
+  | CollateralToken.UXP
+export type CollateralTokenJSON =
+  | CollateralToken.USDCJSON
+  | CollateralToken.USDHJSON
+  | CollateralToken.SOLJSON
+  | CollateralToken.ETHJSON
+  | CollateralToken.BTCJSON
+  | CollateralToken.MSOLJSON
+  | CollateralToken.STSOLJSON
+  | CollateralToken.USDTJSON
+  | CollateralToken.ORCAJSON
+  | CollateralToken.MNDEJSON
+  | CollateralToken.HBBJSON
+  | CollateralToken.JSOLJSON
+  | CollateralToken.USHJSON
+  | CollateralToken.DAIJSON
+  | CollateralToken.LDOJSON
+  | CollateralToken.SCNSOLJSON
+  | CollateralToken.UXDJSON
+  | CollateralToken.HDGJSON
+  | CollateralToken.DUSTJSON
+  | CollateralToken.USDRJSON
+  | CollateralToken.RATIOJSON
+  | CollateralToken.UXPJSON
+
+export { GlobalConfigOption }
+
+export type GlobalConfigOptionKind =
+  | GlobalConfigOption.EmergencyMode
+  | GlobalConfigOption.BlockDeposit
+  | GlobalConfigOption.BlockInvest
+  | GlobalConfigOption.BlockWithdraw
+  | GlobalConfigOption.BlockCollectFees
+  | GlobalConfigOption.BlockCollectRewards
+  | GlobalConfigOption.BlockSwapRewards
+  | GlobalConfigOption.BlockSwapUnevenVaults
+  | GlobalConfigOption.FeesBps
+  | GlobalConfigOption.SwapDiscountBps
+  | GlobalConfigOption.ActionsAuthority
+  | GlobalConfigOption.TreasuryFeeVaults
+  | GlobalConfigOption.AdminAuthority
+  | GlobalConfigOption.ScopeProgramId
+  | GlobalConfigOption.ScopePriceId
+export type GlobalConfigOptionJSON =
+  | GlobalConfigOption.EmergencyModeJSON
+  | GlobalConfigOption.BlockDepositJSON
+  | GlobalConfigOption.BlockInvestJSON
+  | GlobalConfigOption.BlockWithdrawJSON
+  | GlobalConfigOption.BlockCollectFeesJSON
+  | GlobalConfigOption.BlockCollectRewardsJSON
+  | GlobalConfigOption.BlockSwapRewardsJSON
+  | GlobalConfigOption.BlockSwapUnevenVaultsJSON
+  | GlobalConfigOption.FeesBpsJSON
+  | GlobalConfigOption.SwapDiscountBpsJSON
+  | GlobalConfigOption.ActionsAuthorityJSON
+  | GlobalConfigOption.TreasuryFeeVaultsJSON
+  | GlobalConfigOption.AdminAuthorityJSON
+  | GlobalConfigOption.ScopeProgramIdJSON
+  | GlobalConfigOption.ScopePriceIdJSON
+
+export { StrategyConfigOption }
+
+export type StrategyConfigOptionKind =
+  | StrategyConfigOption.UpdateDepositCap
+  | StrategyConfigOption.UpdateDepositCapIxn
+  | StrategyConfigOption.UpdateWithdrawalCapACapacity
+  | StrategyConfigOption.UpdateWithdrawalCapAInterval
+  | StrategyConfigOption.UpdateWithdrawalCapACurrentTotal
+  | StrategyConfigOption.UpdateWithdrawalCapBCapacity
+  | StrategyConfigOption.UpdateWithdrawalCapBInterval
+  | StrategyConfigOption.UpdateWithdrawalCapBCurrentTotal
+  | StrategyConfigOption.UpdateMaxDeviationBps
+  | StrategyConfigOption.UpdateSwapUnevenMaxSlippage
+  | StrategyConfigOption.UpdateStrategyType
+  | StrategyConfigOption.UpdateDepositFee
+  | StrategyConfigOption.UpdateWithdrawFee
+  | StrategyConfigOption.UpdateCollectFeesFee
+  | StrategyConfigOption.UpdateReward0Fee
+  | StrategyConfigOption.UpdateReward1Fee
+  | StrategyConfigOption.UpdateReward2Fee
+  | StrategyConfigOption.UpdateAdminAuthority
+export type StrategyConfigOptionJSON =
+  | StrategyConfigOption.UpdateDepositCapJSON
+  | StrategyConfigOption.UpdateDepositCapIxnJSON
+  | StrategyConfigOption.UpdateWithdrawalCapACapacityJSON
+  | StrategyConfigOption.UpdateWithdrawalCapAIntervalJSON
+  | StrategyConfigOption.UpdateWithdrawalCapACurrentTotalJSON
+  | StrategyConfigOption.UpdateWithdrawalCapBCapacityJSON
+  | StrategyConfigOption.UpdateWithdrawalCapBIntervalJSON
+  | StrategyConfigOption.UpdateWithdrawalCapBCurrentTotalJSON
+  | StrategyConfigOption.UpdateMaxDeviationBpsJSON
+  | StrategyConfigOption.UpdateSwapUnevenMaxSlippageJSON
+  | StrategyConfigOption.UpdateStrategyTypeJSON
+  | StrategyConfigOption.UpdateDepositFeeJSON
+  | StrategyConfigOption.UpdateWithdrawFeeJSON
+  | StrategyConfigOption.UpdateCollectFeesFeeJSON
+  | StrategyConfigOption.UpdateReward0FeeJSON
+  | StrategyConfigOption.UpdateReward1FeeJSON
+  | StrategyConfigOption.UpdateReward2FeeJSON
+  | StrategyConfigOption.UpdateAdminAuthorityJSON
+
+export { StrategyStatus }
+
+export type StrategyStatusKind =
+  | StrategyStatus.Uninitialized
+  | StrategyStatus.Active
+  | StrategyStatus.Frozen
+  | StrategyStatus.Rebalancing
+export type StrategyStatusJSON =
+  | StrategyStatus.UninitializedJSON
+  | StrategyStatus.ActiveJSON
+  | StrategyStatus.FrozenJSON
+  | StrategyStatus.RebalancingJSON
+
+export { StrategyType }
+
+export type StrategyTypeKind =
+  | StrategyType.Stable
+  | StrategyType.Pegged
+  | StrategyType.Volatile
+export type StrategyTypeJSON =
+  | StrategyType.StableJSON
+  | StrategyType.PeggedJSON
+  | StrategyType.VolatileJSON
+
+export { ExecutiveWithdrawAction }
+
+export type ExecutiveWithdrawActionKind =
+  | ExecutiveWithdrawAction.Freeze
+  | ExecutiveWithdrawAction.Unfreeze
+  | ExecutiveWithdrawAction.Rebalance
+export type ExecutiveWithdrawActionJSON =
+  | ExecutiveWithdrawAction.FreezeJSON
+  | ExecutiveWithdrawAction.UnfreezeJSON
+  | ExecutiveWithdrawAction.RebalanceJSON
 
 export { LiquidityCalculationMode }
 
@@ -151,6 +254,26 @@ export type ScopePriceIdKind =
   | ScopePriceId.ORCA
   | ScopePriceId.MNDE
   | ScopePriceId.HBB
+  | ScopePriceId.CORCA_ORCA
+  | ScopePriceId.CSLND_SLND
+  | ScopePriceId.CSRM_SRM
+  | ScopePriceId.CRAY_RAY
+  | ScopePriceId.CFTT_FTT
+  | ScopePriceId.CSTSOL_STSOL
+  | ScopePriceId.SLND
+  | ScopePriceId.DAI
+  | ScopePriceId.JSOL_SOL
+  | ScopePriceId.USH
+  | ScopePriceId.UXD
+  | ScopePriceId.USDH_TWAP
+  | ScopePriceId.USH_TWAP
+  | ScopePriceId.UXD_TWAP
+  | ScopePriceId.HDG
+  | ScopePriceId.DUST
+  | ScopePriceId.USDR
+  | ScopePriceId.USDR_TWAP
+  | ScopePriceId.RATIO
+  | ScopePriceId.UXP
 export type ScopePriceIdJSON =
   | ScopePriceId.SOLJSON
   | ScopePriceId.ETHJSON
@@ -178,83 +301,28 @@ export type ScopePriceIdJSON =
   | ScopePriceId.ORCAJSON
   | ScopePriceId.MNDEJSON
   | ScopePriceId.HBBJSON
+  | ScopePriceId.CORCA_ORCAJSON
+  | ScopePriceId.CSLND_SLNDJSON
+  | ScopePriceId.CSRM_SRMJSON
+  | ScopePriceId.CRAY_RAYJSON
+  | ScopePriceId.CFTT_FTTJSON
+  | ScopePriceId.CSTSOL_STSOLJSON
+  | ScopePriceId.SLNDJSON
+  | ScopePriceId.DAIJSON
+  | ScopePriceId.JSOL_SOLJSON
+  | ScopePriceId.USHJSON
+  | ScopePriceId.UXDJSON
+  | ScopePriceId.USDH_TWAPJSON
+  | ScopePriceId.USH_TWAPJSON
+  | ScopePriceId.UXD_TWAPJSON
+  | ScopePriceId.HDGJSON
+  | ScopePriceId.DUSTJSON
+  | ScopePriceId.USDRJSON
+  | ScopePriceId.USDR_TWAPJSON
+  | ScopePriceId.RATIOJSON
+  | ScopePriceId.UXPJSON
 
-export { CollateralToken }
+export { DEX }
 
-export type CollateralTokenKind =
-  | CollateralToken.USDC
-  | CollateralToken.USDH
-  | CollateralToken.SOL
-  | CollateralToken.ETH
-  | CollateralToken.BTC
-  | CollateralToken.MSOL
-  | CollateralToken.STSOL
-  | CollateralToken.USDT
-  | CollateralToken.ORCA
-  | CollateralToken.MNDE
-  | CollateralToken.HBB
-export type CollateralTokenJSON =
-  | CollateralToken.USDCJSON
-  | CollateralToken.USDHJSON
-  | CollateralToken.SOLJSON
-  | CollateralToken.ETHJSON
-  | CollateralToken.BTCJSON
-  | CollateralToken.MSOLJSON
-  | CollateralToken.STSOLJSON
-  | CollateralToken.USDTJSON
-  | CollateralToken.ORCAJSON
-  | CollateralToken.MNDEJSON
-  | CollateralToken.HBBJSON
-
-export { GlobalConfigOption }
-
-export type GlobalConfigOptionKind =
-  | GlobalConfigOption.EmergencyMode
-  | GlobalConfigOption.BlockDeposit
-  | GlobalConfigOption.BlockInvest
-  | GlobalConfigOption.BlockWithdraw
-  | GlobalConfigOption.BlockCollectFees
-  | GlobalConfigOption.BlockCollectRewards
-  | GlobalConfigOption.BlockSwapRewards
-  | GlobalConfigOption.BlockSwapUnevenVaults
-  | GlobalConfigOption.FeesBps
-  | GlobalConfigOption.SwapDiscountBps
-  | GlobalConfigOption.ScopeProgramId
-  | GlobalConfigOption.ScopePriceId
-export type GlobalConfigOptionJSON =
-  | GlobalConfigOption.EmergencyModeJSON
-  | GlobalConfigOption.BlockDepositJSON
-  | GlobalConfigOption.BlockInvestJSON
-  | GlobalConfigOption.BlockWithdrawJSON
-  | GlobalConfigOption.BlockCollectFeesJSON
-  | GlobalConfigOption.BlockCollectRewardsJSON
-  | GlobalConfigOption.BlockSwapRewardsJSON
-  | GlobalConfigOption.BlockSwapUnevenVaultsJSON
-  | GlobalConfigOption.FeesBpsJSON
-  | GlobalConfigOption.SwapDiscountBpsJSON
-  | GlobalConfigOption.ScopeProgramIdJSON
-  | GlobalConfigOption.ScopePriceIdJSON
-
-export { StrategyStatus }
-
-export type StrategyStatusKind =
-  | StrategyStatus.Uninitialized
-  | StrategyStatus.Active
-  | StrategyStatus.Frozen
-  | StrategyStatus.Rebalancing
-export type StrategyStatusJSON =
-  | StrategyStatus.UninitializedJSON
-  | StrategyStatus.ActiveJSON
-  | StrategyStatus.FrozenJSON
-  | StrategyStatus.RebalancingJSON
-
-export { ExecutiveWithdrawAction }
-
-export type ExecutiveWithdrawActionKind =
-  | ExecutiveWithdrawAction.Freeze
-  | ExecutiveWithdrawAction.Unfreeze
-  | ExecutiveWithdrawAction.Rebalance
-export type ExecutiveWithdrawActionJSON =
-  | ExecutiveWithdrawAction.FreezeJSON
-  | ExecutiveWithdrawAction.UnfreezeJSON
-  | ExecutiveWithdrawAction.RebalanceJSON
+export type DEXKind = DEX.Raydium | DEX.Orca
+export type DEXJSON = DEX.RaydiumJSON | DEX.OrcaJSON

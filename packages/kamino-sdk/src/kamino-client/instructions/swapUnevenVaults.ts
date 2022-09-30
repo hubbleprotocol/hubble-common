@@ -5,7 +5,7 @@ import * as types from "../types" // eslint-disable-line @typescript-eslint/no-u
 import { PROGRAM_ID } from "../programId"
 
 export interface SwapUnevenVaultsAccounts {
-  payer: PublicKey
+  actionsAuthority: PublicKey
   strategy: PublicKey
   globalConfig: PublicKey
   tokenAVault: PublicKey
@@ -15,17 +15,21 @@ export interface SwapUnevenVaultsAccounts {
   position: PublicKey
   whirlpoolTokenVaultA: PublicKey
   whirlpoolTokenVaultB: PublicKey
+  /** Payer must send this correctly. */
   tickArray0: PublicKey
+  /** Payer must send this correctly. */
   tickArray1: PublicKey
+  /** Payer must send this correctly. */
   tickArray2: PublicKey
   oracle: PublicKey
   whirlpoolProgram: PublicKey
+  scopePrices: PublicKey
   tokenProgram: PublicKey
 }
 
 export function swapUnevenVaults(accounts: SwapUnevenVaultsAccounts) {
   const keys: Array<AccountMeta> = [
-    { pubkey: accounts.payer, isSigner: true, isWritable: true },
+    { pubkey: accounts.actionsAuthority, isSigner: true, isWritable: true },
     { pubkey: accounts.strategy, isSigner: false, isWritable: true },
     { pubkey: accounts.globalConfig, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenAVault, isSigner: false, isWritable: true },
@@ -48,6 +52,7 @@ export function swapUnevenVaults(accounts: SwapUnevenVaultsAccounts) {
     { pubkey: accounts.tickArray2, isSigner: false, isWritable: true },
     { pubkey: accounts.oracle, isSigner: false, isWritable: false },
     { pubkey: accounts.whirlpoolProgram, isSigner: false, isWritable: false },
+    { pubkey: accounts.scopePrices, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
   ]
   const identifier = Buffer.from([143, 212, 101, 95, 105, 209, 184, 1])

@@ -12,16 +12,23 @@ export interface CollectRewardsAccounts {
   whirlpool: PublicKey
   position: PublicKey
   positionTokenAccount: PublicKey
+  /** If rewards are uninitialized, pass this as strategy. */
   reward0Vault: PublicKey
+  /** If rewards are uninitialized, pass this as strategy. */
   reward1Vault: PublicKey
+  /** If rewards are uninitialized, pass this as strategy. */
   reward2Vault: PublicKey
+  /** If rewards are uninitialized, pass this as strategy. */
   whirlpoolRewardVault0: PublicKey
+  /** If rewards are uninitialized, pass this as strategy. */
   whirlpoolRewardVault1: PublicKey
+  /** If rewards are uninitialized, pass this as strategy. */
   whirlpoolRewardVault2: PublicKey
   tickArrayLower: PublicKey
   tickArrayUpper: PublicKey
   tokenProgram: PublicKey
   whirlpoolProgram: PublicKey
+  instructionSysvarAccount: PublicKey
 }
 
 export function collectRewards(accounts: CollectRewardsAccounts) {
@@ -59,6 +66,11 @@ export function collectRewards(accounts: CollectRewardsAccounts) {
     { pubkey: accounts.tickArrayUpper, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.whirlpoolProgram, isSigner: false, isWritable: false },
+    {
+      pubkey: accounts.instructionSysvarAccount,
+      isSigner: false,
+      isWritable: false,
+    },
   ]
   const identifier = Buffer.from([63, 130, 90, 197, 39, 16, 143, 176])
   const data = identifier

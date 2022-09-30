@@ -20,12 +20,18 @@ export interface SwapRewardsAccounts {
   tokenBVault: PublicKey
   rewardVault: PublicKey
   baseVaultAuthority: PublicKey
+  treasuryFeeTokenAVault: PublicKey
+  treasuryFeeTokenBVault: PublicKey
+  treasuryFeeVaultAuthority: PublicKey
+  tokenAMint: PublicKey
+  tokenBMint: PublicKey
   userTokenAAta: PublicKey
   userTokenBAta: PublicKey
-  userRewardAta: PublicKey
+  userRewardTokenAccount: PublicKey
   scopePrices: PublicKey
   systemProgram: PublicKey
   tokenProgram: PublicKey
+  instructionSysvarAccount: PublicKey
 }
 
 export const layout = borsh.struct([
@@ -48,12 +54,38 @@ export function swapRewards(
     { pubkey: accounts.tokenBVault, isSigner: false, isWritable: true },
     { pubkey: accounts.rewardVault, isSigner: false, isWritable: true },
     { pubkey: accounts.baseVaultAuthority, isSigner: false, isWritable: true },
+    {
+      pubkey: accounts.treasuryFeeTokenAVault,
+      isSigner: false,
+      isWritable: true,
+    },
+    {
+      pubkey: accounts.treasuryFeeTokenBVault,
+      isSigner: false,
+      isWritable: true,
+    },
+    {
+      pubkey: accounts.treasuryFeeVaultAuthority,
+      isSigner: false,
+      isWritable: false,
+    },
+    { pubkey: accounts.tokenAMint, isSigner: false, isWritable: false },
+    { pubkey: accounts.tokenBMint, isSigner: false, isWritable: false },
     { pubkey: accounts.userTokenAAta, isSigner: false, isWritable: true },
     { pubkey: accounts.userTokenBAta, isSigner: false, isWritable: true },
-    { pubkey: accounts.userRewardAta, isSigner: false, isWritable: true },
+    {
+      pubkey: accounts.userRewardTokenAccount,
+      isSigner: false,
+      isWritable: true,
+    },
     { pubkey: accounts.scopePrices, isSigner: false, isWritable: false },
     { pubkey: accounts.systemProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
+    {
+      pubkey: accounts.instructionSysvarAccount,
+      isSigner: false,
+      isWritable: false,
+    },
   ]
   const identifier = Buffer.from([92, 41, 172, 30, 190, 65, 174, 90])
   const buffer = Buffer.alloc(1000)

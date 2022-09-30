@@ -18,6 +18,9 @@ export interface DepositAccounts {
   tokenAVault: PublicKey
   tokenBVault: PublicKey
   baseVaultAuthority: PublicKey
+  treasuryFeeTokenAVault: PublicKey
+  treasuryFeeTokenBVault: PublicKey
+  treasuryFeeVaultAuthority: PublicKey
   tokenAAta: PublicKey
   tokenBAta: PublicKey
   tokenAMint: PublicKey
@@ -30,6 +33,7 @@ export interface DepositAccounts {
   rent: PublicKey
   associatedTokenProgram: PublicKey
   tokenProgram: PublicKey
+  instructionSysvarAccount: PublicKey
 }
 
 export const layout = borsh.struct([
@@ -47,10 +51,25 @@ export function deposit(args: DepositArgs, accounts: DepositAccounts) {
     { pubkey: accounts.tokenAVault, isSigner: false, isWritable: true },
     { pubkey: accounts.tokenBVault, isSigner: false, isWritable: true },
     { pubkey: accounts.baseVaultAuthority, isSigner: false, isWritable: false },
+    {
+      pubkey: accounts.treasuryFeeTokenAVault,
+      isSigner: false,
+      isWritable: true,
+    },
+    {
+      pubkey: accounts.treasuryFeeTokenBVault,
+      isSigner: false,
+      isWritable: true,
+    },
+    {
+      pubkey: accounts.treasuryFeeVaultAuthority,
+      isSigner: false,
+      isWritable: false,
+    },
     { pubkey: accounts.tokenAAta, isSigner: false, isWritable: true },
     { pubkey: accounts.tokenBAta, isSigner: false, isWritable: true },
-    { pubkey: accounts.tokenAMint, isSigner: false, isWritable: true },
-    { pubkey: accounts.tokenBMint, isSigner: false, isWritable: true },
+    { pubkey: accounts.tokenAMint, isSigner: false, isWritable: false },
+    { pubkey: accounts.tokenBMint, isSigner: false, isWritable: false },
     { pubkey: accounts.userSharesAta, isSigner: false, isWritable: true },
     { pubkey: accounts.sharesMint, isSigner: false, isWritable: true },
     {
@@ -67,6 +86,11 @@ export function deposit(args: DepositArgs, accounts: DepositAccounts) {
       isWritable: false,
     },
     { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
+    {
+      pubkey: accounts.instructionSysvarAccount,
+      isSigner: false,
+      isWritable: false,
+    },
   ]
   const identifier = Buffer.from([242, 35, 198, 137, 82, 225, 242, 182])
   const buffer = Buffer.alloc(1000)

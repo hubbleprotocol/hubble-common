@@ -17,9 +17,13 @@ export interface OpenLiquidityPositionAccounts {
   tickerArrayLower: PublicKey
   tickerArrayUpper: PublicKey
   baseVaultAuthority: PublicKey
+  /** Also whirlpools will fail if this is not set correctly */
   position: PublicKey
+  /** Also whirlpools will fail if this is not set correctly */
   positionMint: PublicKey
+  /** Also whirlpools will fail if this is not set correctly */
   positionMetadataAccount: PublicKey
+  /** Also whirlpools will fail if this is not set correctly */
   positionTokenAccount: PublicKey
   rent: PublicKey
   system: PublicKey
@@ -28,6 +32,7 @@ export interface OpenLiquidityPositionAccounts {
   metadataProgram: PublicKey
   metadataUpdateAuth: PublicKey
   whirlpoolProgram: PublicKey
+  /** Readonly (can be rent as a safe `default`) */
   oldPositionOrRent: PublicKey
 }
 

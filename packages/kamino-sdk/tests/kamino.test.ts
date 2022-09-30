@@ -1,6 +1,8 @@
-import { clusterApiUrl, Connection, PublicKey } from '@solana/web3.js';
+import { clusterApiUrl, Connection, Keypair, PublicKey } from '@solana/web3.js';
 import { Kamino } from '../src';
 import Decimal from 'decimal.js';
+import { TextEncoder } from 'util';
+import bs58 from 'bs58';
 
 describe('Scope SDK Tests', () => {
   let connection: Connection;
@@ -68,5 +70,26 @@ describe('Scope SDK Tests', () => {
   // test('should get all whirlpools', async () => {
   //   const kamino = new Kamino(cluster, connection);
   //   console.log(await kamino.getWhirlpools([]));
+  // });
+
+  // test('should withdraw shares from a strategy', async () => {
+  //   const kamino = new Kamino(cluster, connection);
+  //   const txHash = await kamino.withdrawShares(
+  //     new PublicKey('2H4xebnp2M9JYgPPfUw58uUQahWF8f1YTNxwwtmdqVYV'),
+  //     new Decimal(1),
+  //     Keypair.fromSecretKey(
+  //       bs58.decode('input phantom secret key if testing')
+  //     )
+  //   );
+  //   console.log(txHash);
+  // });
+
+  // test('should withdraw all shares from a strategy', async () => {
+  //   const kamino = new Kamino(cluster, connection);
+  //   const txHash = await kamino.withdrawAllShares(
+  //     new PublicKey('2H4xebnp2M9JYgPPfUw58uUQahWF8f1YTNxwwtmdqVYV'),
+  //     Keypair.fromSecretKey(bs58.decode('input phantom secret key if testing'))
+  //   );
+  //   console.log(txHash);
   // });
 });

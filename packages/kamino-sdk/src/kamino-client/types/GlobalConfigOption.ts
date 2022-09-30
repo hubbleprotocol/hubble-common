@@ -233,14 +233,83 @@ export class SwapDiscountBps {
   }
 }
 
+export interface ActionsAuthorityJSON {
+  kind: "ActionsAuthority"
+}
+
+export class ActionsAuthority {
+  static readonly discriminator = 10
+  static readonly kind = "ActionsAuthority"
+  readonly discriminator = 10
+  readonly kind = "ActionsAuthority"
+
+  toJSON(): ActionsAuthorityJSON {
+    return {
+      kind: "ActionsAuthority",
+    }
+  }
+
+  toEncodable() {
+    return {
+      ActionsAuthority: {},
+    }
+  }
+}
+
+export interface TreasuryFeeVaultsJSON {
+  kind: "TreasuryFeeVaults"
+}
+
+export class TreasuryFeeVaults {
+  static readonly discriminator = 11
+  static readonly kind = "TreasuryFeeVaults"
+  readonly discriminator = 11
+  readonly kind = "TreasuryFeeVaults"
+
+  toJSON(): TreasuryFeeVaultsJSON {
+    return {
+      kind: "TreasuryFeeVaults",
+    }
+  }
+
+  toEncodable() {
+    return {
+      TreasuryFeeVaults: {},
+    }
+  }
+}
+
+export interface AdminAuthorityJSON {
+  kind: "AdminAuthority"
+}
+
+export class AdminAuthority {
+  static readonly discriminator = 12
+  static readonly kind = "AdminAuthority"
+  readonly discriminator = 12
+  readonly kind = "AdminAuthority"
+
+  toJSON(): AdminAuthorityJSON {
+    return {
+      kind: "AdminAuthority",
+    }
+  }
+
+  toEncodable() {
+    return {
+      AdminAuthority: {},
+    }
+  }
+}
+
 export interface ScopeProgramIdJSON {
   kind: "ScopeProgramId"
 }
 
 export class ScopeProgramId {
-  static readonly discriminator = 10
+  static readonly discriminator = 13
   static readonly kind = "ScopeProgramId"
-  readonly discriminator = 10
+  readonly discriminator = 13
   readonly kind = "ScopeProgramId"
 
   toJSON(): ScopeProgramIdJSON {
@@ -261,9 +330,9 @@ export interface ScopePriceIdJSON {
 }
 
 export class ScopePriceId {
-  static readonly discriminator = 11
+  static readonly discriminator = 14
   static readonly kind = "ScopePriceId"
-  readonly discriminator = 11
+  readonly discriminator = 14
   readonly kind = "ScopePriceId"
 
   toJSON(): ScopePriceIdJSON {
@@ -315,6 +384,15 @@ export function fromDecoded(obj: any): types.GlobalConfigOptionKind {
   if ("SwapDiscountBps" in obj) {
     return new SwapDiscountBps()
   }
+  if ("ActionsAuthority" in obj) {
+    return new ActionsAuthority()
+  }
+  if ("TreasuryFeeVaults" in obj) {
+    return new TreasuryFeeVaults()
+  }
+  if ("AdminAuthority" in obj) {
+    return new AdminAuthority()
+  }
   if ("ScopeProgramId" in obj) {
     return new ScopeProgramId()
   }
@@ -359,6 +437,15 @@ export function fromJSON(
     case "SwapDiscountBps": {
       return new SwapDiscountBps()
     }
+    case "ActionsAuthority": {
+      return new ActionsAuthority()
+    }
+    case "TreasuryFeeVaults": {
+      return new TreasuryFeeVaults()
+    }
+    case "AdminAuthority": {
+      return new AdminAuthority()
+    }
     case "ScopeProgramId": {
       return new ScopeProgramId()
     }
@@ -380,6 +467,9 @@ export function layout(property?: string) {
     borsh.struct([], "BlockSwapUnevenVaults"),
     borsh.struct([], "FeesBps"),
     borsh.struct([], "SwapDiscountBps"),
+    borsh.struct([], "ActionsAuthority"),
+    borsh.struct([], "TreasuryFeeVaults"),
+    borsh.struct([], "AdminAuthority"),
     borsh.struct([], "ScopeProgramId"),
     borsh.struct([], "ScopePriceId"),
   ])
