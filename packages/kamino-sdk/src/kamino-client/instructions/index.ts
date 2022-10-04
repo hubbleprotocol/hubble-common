@@ -5,21 +5,42 @@ export type {
 } from "./initializeStrategy"
 export { initializeGlobalConfig } from "./initializeGlobalConfig"
 export type { InitializeGlobalConfigAccounts } from "./initializeGlobalConfig"
+export { initializeScopeChain } from "./initializeScopeChain"
+export type { InitializeScopeChainAccounts } from "./initializeScopeChain"
+export { initializeSharesMetadata } from "./initializeSharesMetadata"
+export type {
+  InitializeSharesMetadataArgs,
+  InitializeSharesMetadataAccounts,
+} from "./initializeSharesMetadata"
+export { updateSharesMetadata } from "./updateSharesMetadata"
+export type {
+  UpdateSharesMetadataArgs,
+  UpdateSharesMetadataAccounts,
+} from "./updateSharesMetadata"
 export { updateGlobalConfig } from "./updateGlobalConfig"
 export type {
   UpdateGlobalConfigArgs,
   UpdateGlobalConfigAccounts,
 } from "./updateGlobalConfig"
-export { updateDepositCap } from "./updateDepositCap"
+export { updateTreasuryFeeVault } from "./updateTreasuryFeeVault"
 export type {
-  UpdateDepositCapArgs,
-  UpdateDepositCapAccounts,
-} from "./updateDepositCap"
+  UpdateTreasuryFeeVaultArgs,
+  UpdateTreasuryFeeVaultAccounts,
+} from "./updateTreasuryFeeVault"
+export { updateAdminAuthority } from "./updateAdminAuthority"
+export type { UpdateAdminAuthorityAccounts } from "./updateAdminAuthority"
+export { updateStrategyConfig } from "./updateStrategyConfig"
+export type {
+  UpdateStrategyConfigArgs,
+  UpdateStrategyConfigAccounts,
+} from "./updateStrategyConfig"
 export { updateRewardMapping } from "./updateRewardMapping"
 export type {
   UpdateRewardMappingArgs,
   UpdateRewardMappingAccounts,
 } from "./updateRewardMapping"
+export { updateScopeChain } from "./updateScopeChain"
+export type { UpdateScopeChainAccounts } from "./updateScopeChain"
 export { openLiquidityPosition } from "./openLiquidityPosition"
 export type {
   OpenLiquidityPositionArgs,
@@ -29,6 +50,11 @@ export { deposit } from "./deposit"
 export type { DepositArgs, DepositAccounts } from "./deposit"
 export { invest } from "./invest"
 export type { InvestAccounts } from "./invest"
+export { depositAndInvest } from "./depositAndInvest"
+export type {
+  DepositAndInvestArgs,
+  DepositAndInvestAccounts,
+} from "./depositAndInvest"
 export { withdraw } from "./withdraw"
 export type { WithdrawArgs, WithdrawAccounts } from "./withdraw"
 export { executiveWithdraw } from "./executiveWithdraw"

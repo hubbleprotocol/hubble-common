@@ -48,6 +48,7 @@ export interface WhirlpoolJSON {
   rewardInfos: Array<types.WhirlpoolRewardInfoJSON>
 }
 
+/** External types */
 export class Whirlpool {
   readonly whirlpoolsConfig: PublicKey
   readonly whirlpoolBump: Array<number>

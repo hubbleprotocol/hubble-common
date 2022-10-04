@@ -13,6 +13,7 @@ export interface InitializeStrategyAccounts {
   adminAuthority: PublicKey
   strategy: PublicKey
   globalConfig: PublicKey
+  /** Program owner also checked. */
   whirlpool: PublicKey
   tokenAMint: PublicKey
   tokenBMint: PublicKey
@@ -21,8 +22,8 @@ export interface InitializeStrategyAccounts {
   baseVaultAuthority: PublicKey
   sharesMint: PublicKey
   sharesMintAuthority: PublicKey
-  scopePrices: PublicKey
-  scopeProgram: PublicKey
+  scopePriceId: PublicKey
+  scopeProgramId: PublicKey
   systemProgram: PublicKey
   rent: PublicKey
   tokenProgram: PublicKey
@@ -50,8 +51,8 @@ export function initializeStrategy(
     { pubkey: accounts.baseVaultAuthority, isSigner: false, isWritable: true },
     { pubkey: accounts.sharesMint, isSigner: false, isWritable: true },
     { pubkey: accounts.sharesMintAuthority, isSigner: false, isWritable: true },
-    { pubkey: accounts.scopePrices, isSigner: false, isWritable: false },
-    { pubkey: accounts.scopeProgram, isSigner: false, isWritable: false },
+    { pubkey: accounts.scopePriceId, isSigner: false, isWritable: false },
+    { pubkey: accounts.scopeProgramId, isSigner: false, isWritable: false },
     { pubkey: accounts.systemProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.rent, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },

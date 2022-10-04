@@ -19,7 +19,9 @@ export interface InvestAccounts {
   whirlpoolTokenVaultB: PublicKey
   tickArrayLower: PublicKey
   tickArrayUpper: PublicKey
+  scopePrices: PublicKey
   whirlpoolProgram: PublicKey
+  instructionSysvarAccount: PublicKey
 }
 
 export function invest(accounts: InvestAccounts) {
@@ -50,7 +52,13 @@ export function invest(accounts: InvestAccounts) {
     },
     { pubkey: accounts.tickArrayLower, isSigner: false, isWritable: true },
     { pubkey: accounts.tickArrayUpper, isSigner: false, isWritable: true },
+    { pubkey: accounts.scopePrices, isSigner: false, isWritable: false },
     { pubkey: accounts.whirlpoolProgram, isSigner: false, isWritable: false },
+    {
+      pubkey: accounts.instructionSysvarAccount,
+      isSigner: false,
+      isWritable: false,
+    },
   ]
   const identifier = Buffer.from([13, 245, 180, 103, 254, 182, 121, 4])
   const data = identifier

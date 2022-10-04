@@ -58,10 +58,25 @@ export interface WhirlpoolStrategyFields {
   reward0AmountCumulative: BN
   reward1AmountCumulative: BN
   reward2AmountCumulative: BN
-  padding0: BN
+  depositCapUsdPerIxn: BN
+  withdrawalCapA: types.WithdrawalCapsFields
+  withdrawalCapB: types.WithdrawalCapsFields
+  maxPriceDeviationBps: BN
+  swapUnevenMaxSlippage: BN
+  strategyType: BN
+  depositFee: BN
+  withdrawFee: BN
+  feesFee: BN
+  reward0Fee: BN
+  reward1Fee: BN
+  reward2Fee: BN
+  positionTimestamp: BN
   padding1: Array<BN>
   padding2: Array<BN>
   padding3: Array<BN>
+  padding4: Array<BN>
+  padding5: Array<BN>
+  padding6: Array<BN>
 }
 
 export interface WhirlpoolStrategyJSON {
@@ -118,10 +133,25 @@ export interface WhirlpoolStrategyJSON {
   reward0AmountCumulative: string
   reward1AmountCumulative: string
   reward2AmountCumulative: string
-  padding0: string
+  depositCapUsdPerIxn: string
+  withdrawalCapA: types.WithdrawalCapsJSON
+  withdrawalCapB: types.WithdrawalCapsJSON
+  maxPriceDeviationBps: string
+  swapUnevenMaxSlippage: string
+  strategyType: string
+  depositFee: string
+  withdrawFee: string
+  feesFee: string
+  reward0Fee: string
+  reward1Fee: string
+  reward2Fee: string
+  positionTimestamp: string
   padding1: Array<string>
   padding2: Array<string>
   padding3: Array<string>
+  padding4: Array<string>
+  padding5: Array<string>
+  padding6: Array<string>
 }
 
 export class WhirlpoolStrategy {
@@ -178,10 +208,25 @@ export class WhirlpoolStrategy {
   readonly reward0AmountCumulative: BN
   readonly reward1AmountCumulative: BN
   readonly reward2AmountCumulative: BN
-  readonly padding0: BN
+  readonly depositCapUsdPerIxn: BN
+  readonly withdrawalCapA: types.WithdrawalCaps
+  readonly withdrawalCapB: types.WithdrawalCaps
+  readonly maxPriceDeviationBps: BN
+  readonly swapUnevenMaxSlippage: BN
+  readonly strategyType: BN
+  readonly depositFee: BN
+  readonly withdrawFee: BN
+  readonly feesFee: BN
+  readonly reward0Fee: BN
+  readonly reward1Fee: BN
+  readonly reward2Fee: BN
+  readonly positionTimestamp: BN
   readonly padding1: Array<BN>
   readonly padding2: Array<BN>
   readonly padding3: Array<BN>
+  readonly padding4: Array<BN>
+  readonly padding5: Array<BN>
+  readonly padding6: Array<BN>
 
   static readonly discriminator = Buffer.from([
     190, 178, 231, 184, 49, 186, 103, 13,
@@ -241,10 +286,25 @@ export class WhirlpoolStrategy {
     borsh.u64("reward0AmountCumulative"),
     borsh.u64("reward1AmountCumulative"),
     borsh.u64("reward2AmountCumulative"),
-    borsh.u64("padding0"),
-    borsh.array(borsh.u128(), 29, "padding1"),
+    borsh.u64("depositCapUsdPerIxn"),
+    types.WithdrawalCaps.layout("withdrawalCapA"),
+    types.WithdrawalCaps.layout("withdrawalCapB"),
+    borsh.u64("maxPriceDeviationBps"),
+    borsh.u64("swapUnevenMaxSlippage"),
+    borsh.u64("strategyType"),
+    borsh.u64("depositFee"),
+    borsh.u64("withdrawFee"),
+    borsh.u64("feesFee"),
+    borsh.u64("reward0Fee"),
+    borsh.u64("reward1Fee"),
+    borsh.u64("reward2Fee"),
+    borsh.u64("positionTimestamp"),
+    borsh.array(borsh.u128(), 20, "padding1"),
     borsh.array(borsh.u128(), 32, "padding2"),
     borsh.array(borsh.u128(), 32, "padding3"),
+    borsh.array(borsh.u128(), 32, "padding4"),
+    borsh.array(borsh.u128(), 32, "padding5"),
+    borsh.array(borsh.u128(), 32, "padding6"),
   ])
 
   constructor(fields: WhirlpoolStrategyFields) {
@@ -301,10 +361,25 @@ export class WhirlpoolStrategy {
     this.reward0AmountCumulative = fields.reward0AmountCumulative
     this.reward1AmountCumulative = fields.reward1AmountCumulative
     this.reward2AmountCumulative = fields.reward2AmountCumulative
-    this.padding0 = fields.padding0
+    this.depositCapUsdPerIxn = fields.depositCapUsdPerIxn
+    this.withdrawalCapA = new types.WithdrawalCaps({ ...fields.withdrawalCapA })
+    this.withdrawalCapB = new types.WithdrawalCaps({ ...fields.withdrawalCapB })
+    this.maxPriceDeviationBps = fields.maxPriceDeviationBps
+    this.swapUnevenMaxSlippage = fields.swapUnevenMaxSlippage
+    this.strategyType = fields.strategyType
+    this.depositFee = fields.depositFee
+    this.withdrawFee = fields.withdrawFee
+    this.feesFee = fields.feesFee
+    this.reward0Fee = fields.reward0Fee
+    this.reward1Fee = fields.reward1Fee
+    this.reward2Fee = fields.reward2Fee
+    this.positionTimestamp = fields.positionTimestamp
     this.padding1 = fields.padding1
     this.padding2 = fields.padding2
     this.padding3 = fields.padding3
+    this.padding4 = fields.padding4
+    this.padding5 = fields.padding5
+    this.padding6 = fields.padding6
   }
 
   static async fetch(
@@ -402,10 +477,25 @@ export class WhirlpoolStrategy {
       reward0AmountCumulative: dec.reward0AmountCumulative,
       reward1AmountCumulative: dec.reward1AmountCumulative,
       reward2AmountCumulative: dec.reward2AmountCumulative,
-      padding0: dec.padding0,
+      depositCapUsdPerIxn: dec.depositCapUsdPerIxn,
+      withdrawalCapA: types.WithdrawalCaps.fromDecoded(dec.withdrawalCapA),
+      withdrawalCapB: types.WithdrawalCaps.fromDecoded(dec.withdrawalCapB),
+      maxPriceDeviationBps: dec.maxPriceDeviationBps,
+      swapUnevenMaxSlippage: dec.swapUnevenMaxSlippage,
+      strategyType: dec.strategyType,
+      depositFee: dec.depositFee,
+      withdrawFee: dec.withdrawFee,
+      feesFee: dec.feesFee,
+      reward0Fee: dec.reward0Fee,
+      reward1Fee: dec.reward1Fee,
+      reward2Fee: dec.reward2Fee,
+      positionTimestamp: dec.positionTimestamp,
       padding1: dec.padding1,
       padding2: dec.padding2,
       padding3: dec.padding3,
+      padding4: dec.padding4,
+      padding5: dec.padding5,
+      padding6: dec.padding6,
     })
   }
 
@@ -464,10 +554,25 @@ export class WhirlpoolStrategy {
       reward0AmountCumulative: this.reward0AmountCumulative.toString(),
       reward1AmountCumulative: this.reward1AmountCumulative.toString(),
       reward2AmountCumulative: this.reward2AmountCumulative.toString(),
-      padding0: this.padding0.toString(),
+      depositCapUsdPerIxn: this.depositCapUsdPerIxn.toString(),
+      withdrawalCapA: this.withdrawalCapA.toJSON(),
+      withdrawalCapB: this.withdrawalCapB.toJSON(),
+      maxPriceDeviationBps: this.maxPriceDeviationBps.toString(),
+      swapUnevenMaxSlippage: this.swapUnevenMaxSlippage.toString(),
+      strategyType: this.strategyType.toString(),
+      depositFee: this.depositFee.toString(),
+      withdrawFee: this.withdrawFee.toString(),
+      feesFee: this.feesFee.toString(),
+      reward0Fee: this.reward0Fee.toString(),
+      reward1Fee: this.reward1Fee.toString(),
+      reward2Fee: this.reward2Fee.toString(),
+      positionTimestamp: this.positionTimestamp.toString(),
       padding1: this.padding1.map((item) => item.toString()),
       padding2: this.padding2.map((item) => item.toString()),
       padding3: this.padding3.map((item) => item.toString()),
+      padding4: this.padding4.map((item) => item.toString()),
+      padding5: this.padding5.map((item) => item.toString()),
+      padding6: this.padding6.map((item) => item.toString()),
     }
   }
 
@@ -526,10 +631,25 @@ export class WhirlpoolStrategy {
       reward0AmountCumulative: new BN(obj.reward0AmountCumulative),
       reward1AmountCumulative: new BN(obj.reward1AmountCumulative),
       reward2AmountCumulative: new BN(obj.reward2AmountCumulative),
-      padding0: new BN(obj.padding0),
+      depositCapUsdPerIxn: new BN(obj.depositCapUsdPerIxn),
+      withdrawalCapA: types.WithdrawalCaps.fromJSON(obj.withdrawalCapA),
+      withdrawalCapB: types.WithdrawalCaps.fromJSON(obj.withdrawalCapB),
+      maxPriceDeviationBps: new BN(obj.maxPriceDeviationBps),
+      swapUnevenMaxSlippage: new BN(obj.swapUnevenMaxSlippage),
+      strategyType: new BN(obj.strategyType),
+      depositFee: new BN(obj.depositFee),
+      withdrawFee: new BN(obj.withdrawFee),
+      feesFee: new BN(obj.feesFee),
+      reward0Fee: new BN(obj.reward0Fee),
+      reward1Fee: new BN(obj.reward1Fee),
+      reward2Fee: new BN(obj.reward2Fee),
+      positionTimestamp: new BN(obj.positionTimestamp),
       padding1: obj.padding1.map((item) => new BN(item)),
       padding2: obj.padding2.map((item) => new BN(item)),
       padding3: obj.padding3.map((item) => new BN(item)),
+      padding4: obj.padding4.map((item) => new BN(item)),
+      padding5: obj.padding5.map((item) => new BN(item)),
+      padding6: obj.padding6.map((item) => new BN(item)),
     })
   }
 }

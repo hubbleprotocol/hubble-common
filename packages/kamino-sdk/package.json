@@ -27,7 +27,8 @@
   },
   "homepage": "https://github.com/hubbleprotocol/hubble-common/blob/master/packages/kamino-sdk",
   "devDependencies": {
-    "@types/bn.js": "^5.1.0"
+    "@types/bn.js": "^5.1.0",
+    "bs58": "^5.0.0"
   },
   "dependencies": {
     "@hubbleprotocol/hubble-config": "^1.0.127",

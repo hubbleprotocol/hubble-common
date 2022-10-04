@@ -28,9 +28,13 @@ export interface WithdrawAccounts {
   userSharesAta: PublicKey
   sharesMint: PublicKey
   sharesMintAuthority: PublicKey
+  treasuryFeeTokenAVault: PublicKey
+  treasuryFeeTokenBVault: PublicKey
+  treasuryFeeVaultAuthority: PublicKey
   tokenProgram: PublicKey
   positionTokenAccount: PublicKey
   whirlpoolProgram: PublicKey
+  instructionSysvarAccount: PublicKey
 }
 
 export const layout = borsh.struct([borsh.u64("sharesAmount")])
@@ -59,12 +63,27 @@ export function withdraw(args: WithdrawArgs, accounts: WithdrawAccounts) {
     },
     { pubkey: accounts.tokenAAta, isSigner: false, isWritable: true },
     { pubkey: accounts.tokenBAta, isSigner: false, isWritable: true },
-    { pubkey: accounts.tokenAMint, isSigner: false, isWritable: true },
-    { pubkey: accounts.tokenBMint, isSigner: false, isWritable: true },
+    { pubkey: accounts.tokenAMint, isSigner: false, isWritable: false },
+    { pubkey: accounts.tokenBMint, isSigner: false, isWritable: false },
     { pubkey: accounts.userSharesAta, isSigner: false, isWritable: true },
     { pubkey: accounts.sharesMint, isSigner: false, isWritable: true },
     {
       pubkey: accounts.sharesMintAuthority,
+      isSigner: false,
+      isWritable: false,
+    },
+    {
+      pubkey: accounts.treasuryFeeTokenAVault,
+      isSigner: false,
+      isWritable: true,
+    },
+    {
+      pubkey: accounts.treasuryFeeTokenBVault,
+      isSigner: false,
+      isWritable: true,
+    },
+    {
+      pubkey: accounts.treasuryFeeVaultAuthority,
       isSigner: false,
       isWritable: false,
     },
@@ -75,6 +94,11 @@ export function withdraw(args: WithdrawArgs, accounts: WithdrawAccounts) {
       isWritable: true,
     },
     { pubkey: accounts.whirlpoolProgram, isSigner: false, isWritable: false },
+    {
+      pubkey: accounts.instructionSysvarAccount,
+      isSigner: false,
+      isWritable: false,
+    },
   ]
   const identifier = Buffer.from([183, 18, 70, 156, 148, 109, 161, 34])
   const buffer = Buffer.alloc(1000)

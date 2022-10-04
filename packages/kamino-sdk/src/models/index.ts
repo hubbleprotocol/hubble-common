@@ -5,3 +5,6 @@ export * from './TokenAmounts';
 export * from './KaminoToken';
 export * from './PriceData';
 export * from './ShareData';
+export * from './TreasuryFeeVault';
+export * from './MultipleAccountsResponse';
+export * from './StrategyWithAddress';

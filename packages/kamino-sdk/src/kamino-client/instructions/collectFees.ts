@@ -10,6 +10,7 @@ export interface CollectFeesAccounts {
   globalConfig: PublicKey
   baseVaultAuthority: PublicKey
   whirlpool: PublicKey
+  /** TODO: consider removing all of these since we check in strategy */
   tickArrayLower: PublicKey
   tickArrayUpper: PublicKey
   position: PublicKey
@@ -18,8 +19,14 @@ export interface CollectFeesAccounts {
   whirlpoolTokenVaultA: PublicKey
   tokenBVault: PublicKey
   whirlpoolTokenVaultB: PublicKey
+  treasuryFeeTokenAVault: PublicKey
+  treasuryFeeTokenBVault: PublicKey
+  treasuryFeeVaultAuthority: PublicKey
+  tokenAMint: PublicKey
+  tokenBMint: PublicKey
   tokenProgram: PublicKey
   whirlpoolProgram: PublicKey
+  instructionSysvarAccount: PublicKey
 }
 
 export function collectFees(accounts: CollectFeesAccounts) {
@@ -49,8 +56,30 @@ export function collectFees(accounts: CollectFeesAccounts) {
       isSigner: false,
       isWritable: true,
     },
+    {
+      pubkey: accounts.treasuryFeeTokenAVault,
+      isSigner: false,
+      isWritable: true,
+    },
+    {
+      pubkey: accounts.treasuryFeeTokenBVault,
+      isSigner: false,
+      isWritable: true,
+    },
+    {
+      pubkey: accounts.treasuryFeeVaultAuthority,
+      isSigner: false,
+      isWritable: false,
+    },
+    { pubkey: accounts.tokenAMint, isSigner: false, isWritable: false },
+    { pubkey: accounts.tokenBMint, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.whirlpoolProgram, isSigner: false, isWritable: false },
+    {
+      pubkey: accounts.instructionSysvarAccount,
+      isSigner: false,
+      isWritable: false,
+    },
   ]
   const identifier = Buffer.from([164, 152, 207, 99, 30, 186, 19, 182])
   const data = identifier
