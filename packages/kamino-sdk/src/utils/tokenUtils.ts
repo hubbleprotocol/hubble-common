@@ -1,4 +1,11 @@
-import { AccountInfo, Connection, PublicKey, SystemProgram, TransactionInstruction } from '@solana/web3.js';
+import {
+  AccountInfo,
+  Connection,
+  PublicKey,
+  SystemProgram,
+  Transaction,
+  TransactionInstruction,
+} from '@solana/web3.js';
 import { struct, u32, u8 } from '@project-serum/borsh';
 
 export const ASSOCIATED_TOKEN_PROGRAM_ID = new PublicKey('ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL');
@@ -67,4 +74,19 @@ export function createAddExtraComputeUnitsTransaction(owner: PublicKey, units: n
     programId: p,
     data,
   });
+}
+
+export function createTransactionWithExtraBudget(payer: PublicKey) {
+  const tx = new Transaction();
+  const increaseBudgetIx = createAddExtraComputeUnitsTransaction(payer, 400000);
+  tx.add(increaseBudgetIx);
+  return tx;
+}
+
+export async function assignBlockInfoToTransaction(connection: Connection, transaction: Transaction, payer: PublicKey) {
+  const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
+  transaction.recentBlockhash = blockhash;
+  transaction.feePayer = payer;
+  transaction.lastValidBlockHeight = lastValidBlockHeight;
+  return transaction;
 }

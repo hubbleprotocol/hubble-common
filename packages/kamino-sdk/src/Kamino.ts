@@ -7,11 +7,9 @@ import {
 import {
   AccountInfo,
   Connection,
-  Keypair,
   PublicKey,
-  sendAndConfirmTransaction,
   SYSVAR_INSTRUCTIONS_PUBKEY,
-  Transaction,
+  TransactionInstruction,
 } from '@solana/web3.js';
 import { setKaminoProgramId } from './kamino-client/programId';
 import { WhirlpoolStrategy } from './kamino-client/accounts';
@@ -32,11 +30,7 @@ import { batchFetch } from './utils';
 import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import { withdraw, WithdrawAccounts, WithdrawArgs } from './kamino-client/instructions';
 import BN from 'bn.js';
-import {
-  createAddExtraComputeUnitsTransaction,
-  createAssociatedTokenAccountInstruction,
-  getAssociatedTokenAddressAndData,
-} from './utils/tokenUtils';
+import { createAssociatedTokenAccountInstruction, getAssociatedTokenAddress } from './utils';
 import { StrategyWithAddress } from './models/StrategyWithAddress';
 
 export class Kamino {
@@ -313,10 +307,18 @@ export class Kamino {
     return result;
   }
 
+  /**
+   * Get a list of whirlpools from public keys
+   * @param whirlpools
+   */
   getWhirlpools(whirlpools: PublicKey[]) {
     return batchFetch(whirlpools, (chunk) => Whirlpool.fetchMultiple(this._connection, chunk));
   }
 
+  /**
+   * Get scope token name from a kamino strategy collateral ID
+   * @param collateralId
+   */
   getTokenName(collateralId: number) {
     const tokenName = this._tokenMap.find((x) => x.id === collateralId);
     if (!tokenName) {
@@ -326,13 +328,13 @@ export class Kamino {
   }
 
   /**
-   * Withdraw shares from a strategy for a specific wallet and get back token A and token B
+   * Return transaction instruction to withdraw shares from a strategy owner (wallet) and get back token A and token B
    * @param strategy strategy public key
    * @param sharesAmount amount of shares (decimal representation), NOT in lamports
-   * @param wallet wallet keypair that will pay for the tx and has shares
-   * @returns transaction hash
+   * @param owner shares owner (wallet with shares)
+   * @returns transaction instruction
    */
-  async withdrawShares(strategy: PublicKey | StrategyWithAddress, sharesAmount: Decimal, wallet: Keypair) {
+  async withdrawShares(strategy: PublicKey | StrategyWithAddress, sharesAmount: Decimal, owner: PublicKey) {
     if (sharesAmount.lessThanOrEqualTo(0)) {
       throw Error('Shares amount cant be lower than or equal to 0.');
     }
@@ -345,28 +347,9 @@ export class Kamino {
     const { treasuryFeeTokenAVault, treasuryFeeTokenBVault, treasuryFeeVaultAuthority } =
       await this.getTreasuryFeeVaultPDAs(strategyState.strategy.tokenAMint, strategyState.strategy.tokenBMint);
 
-    const [sharesAta, sharesMintData] = await getAssociatedTokenAddressAndData(
-      this._connection,
-      strategyState.strategy.sharesMint,
-      wallet.publicKey
-    );
-    if (!sharesMintData) {
-      throw Error(
-        `Cannot withdraw from strategy (${strategy.toString()}) because strategy hasn't been initialized yet (no shares deposited).
-        Shares associated token address (${sharesAta}) does not exist.
-        Please deposit some shares into the strategy first.`
-      );
-    }
-    const [tokenAAta, tokenAData] = await getAssociatedTokenAddressAndData(
-      this._connection,
-      strategyState.strategy.tokenAMint,
-      wallet.publicKey
-    );
-    const [tokenBAta, tokenBData] = await getAssociatedTokenAddressAndData(
-      this._connection,
-      strategyState.strategy.tokenBMint,
-      wallet.publicKey
-    );
+    const sharesAta = await getAssociatedTokenAddress(strategyState.strategy.sharesMint, owner);
+    const tokenAAta = await getAssociatedTokenAddress(strategyState.strategy.tokenAMint, owner);
+    const tokenBAta = await getAssociatedTokenAddress(strategyState.strategy.tokenBMint, owner);
 
     const sharesAmountInLamports = sharesAmount.mul(
       new Decimal(10).pow(strategyState.strategy.sharesMintDecimals.toString())
@@ -374,7 +357,7 @@ export class Kamino {
 
     const args: WithdrawArgs = { sharesAmount: new BN(sharesAmountInLamports.toNumber()) };
     const accounts: WithdrawAccounts = {
-      user: wallet.publicKey,
+      user: owner,
       strategy: strategyState.address,
       globalConfig: strategyState.strategy.globalConfig,
       whirlpool: strategyState.strategy.whirlpool,
@@ -402,39 +385,23 @@ export class Kamino {
       instructionSysvarAccount: SYSVAR_INSTRUCTIONS_PUBKEY,
     };
 
-    let tx = new Transaction();
-    const increaseBudgetIx = createAddExtraComputeUnitsTransaction(wallet.publicKey, 400000);
-    tx.add(increaseBudgetIx);
-    tx = await this.addShareAtasToTransaction(
-      tx,
-      wallet,
-      strategyState,
-      tokenAData,
-      tokenAAta,
-      tokenBData,
-      tokenBAta,
-      sharesMintData,
-      sharesAta
-    );
-    const withdrawIx = withdraw(args, accounts);
-    tx.add(withdrawIx);
-
-    const { blockhash, lastValidBlockHeight } = await this._connection.getLatestBlockhash();
-    tx.recentBlockhash = blockhash;
-    tx.feePayer = wallet.publicKey;
-    tx.lastValidBlockHeight = lastValidBlockHeight;
-
-    return await sendAndConfirmTransaction(this._connection, tx, [wallet], {
-      commitment: 'confirmed',
-    });
+    return withdraw(args, accounts);
   }
 
   /**
-   * Add associated token accounts to the share transaction (token A, B and share)
+   * Get transaction instructions that create associated token accounts if they don't exist (token A, B and share)
+   * @param owner wallet owner (shareholder)
+   * @param strategyState kamino strategy state
+   * @param tokenAData token A data of the owner's wallet
+   * @param tokenAAta associated token account for token B
+   * @param tokenBData token B data of the owner's wallet
+   * @param tokenBAta associated token account for token B
+   * @param sharesMintData shares data of the owner's wallet
+   * @param sharesAta associated token account for shares
+   * @returns list of transaction instructions (empty if all accounts already exist)
    */
-  private async addShareAtasToTransaction(
-    tx: Transaction,
-    wallet: Keypair,
+  async getCreateAssociatedTokenAccountInstructionsIfNotExist(
+    owner: PublicKey,
     strategyState: StrategyWithAddress,
     tokenAData: AccountInfo<Buffer> | null,
     tokenAAta: PublicKey,
@@ -443,39 +410,31 @@ export class Kamino {
     sharesMintData: AccountInfo<Buffer> | null,
     sharesAta: PublicKey
   ) {
+    const instructions: TransactionInstruction[] = [];
     if (!tokenAData) {
-      tx.add(
-        createAssociatedTokenAccountInstruction(
-          wallet.publicKey,
-          tokenAAta,
-          wallet.publicKey,
-          strategyState.strategy.tokenAMint
-        )
+      instructions.push(
+        createAssociatedTokenAccountInstruction(owner, tokenAAta, owner, strategyState.strategy.tokenAMint)
       );
     }
     if (!tokenBData) {
-      tx.add(
-        createAssociatedTokenAccountInstruction(
-          wallet.publicKey,
-          tokenBAta,
-          wallet.publicKey,
-          strategyState.strategy.tokenBMint
-        )
+      instructions.push(
+        createAssociatedTokenAccountInstruction(owner, tokenBAta, owner, strategyState.strategy.tokenBMint)
       );
     }
     if (!sharesMintData) {
-      tx.add(
-        createAssociatedTokenAccountInstruction(
-          wallet.publicKey,
-          sharesAta,
-          wallet.publicKey,
-          strategyState.strategy.sharesMint
-        )
+      instructions.push(
+        createAssociatedTokenAccountInstruction(owner, sharesAta, owner, strategyState.strategy.sharesMint)
       );
     }
-    return tx;
+    return instructions;
   }
 
+  /**
+   * Check if strategy has already been fetched (is StrategyWithAddress type) and return that,
+   * otherwise fetch it first from PublicKey and return it
+   * @param strategy
+   * @private
+   */
   private async getStrategyStateIfNotFetched(strategy: PublicKey | StrategyWithAddress) {
     const hasStrategyBeenFetched = (object: PublicKey | StrategyWithAddress): object is StrategyWithAddress => {
       return 'strategy' in object;
@@ -492,6 +451,12 @@ export class Kamino {
     }
   }
 
+  /**
+   * Get treasury fee vault program addresses from for token A and B mints
+   * @param tokenAMint
+   * @param tokenBMint
+   * @private
+   */
   private async getTreasuryFeeVaultPDAs(tokenAMint: PublicKey, tokenBMint: PublicKey): Promise<TreasuryFeeVault> {
     const [treasuryFeeTokenAVault, _treasuryFeeTokenAVaultBump] = await PublicKey.findProgramAddress(
       [Buffer.from('treasury_fee_vault'), tokenAMint.toBuffer()],
@@ -509,23 +474,19 @@ export class Kamino {
   }
 
   /**
-   * Withdraw all strategy shares from a specific wallet into token A and B
+   * Get a transaction instruction to withdraw all strategy shares from a specific wallet into token A and B
    * @param strategy public key of the strategy
-   * @param wallet keypair of the wallet (tx payer)
-   * @returns transaction hash or null if no shares are present in the wallet
+   * @param owner public key of the owner (shareholder)
+   * @returns transaction instruction or null if no shares are present in the wallet
    */
-  async withdrawAllShares(strategy: PublicKey | StrategyWithAddress, wallet: Keypair) {
+  async withdrawAllShares(strategy: PublicKey | StrategyWithAddress, owner: PublicKey) {
     const strategyState = await this.getStrategyStateIfNotFetched(strategy);
-    const [sharesAta] = await getAssociatedTokenAddressAndData(
-      this._connection,
-      strategyState.strategy.sharesMint,
-      wallet.publicKey
-    );
+    const sharesAta = await getAssociatedTokenAddress(strategyState.strategy.sharesMint, owner);
     const balance = await this.getTokenAccountBalance(sharesAta);
     if (balance.isZero()) {
       return null;
     }
-    return this.withdrawShares(strategyState, balance, wallet);
+    return this.withdrawShares(strategyState, balance, owner);
   }
 }
 
