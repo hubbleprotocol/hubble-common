@@ -100,6 +100,7 @@ tx = await assignBlockInfoToTransaction(connection, tx, signer.publicKey);
 const txHash = await sendAndConfirmTransaction(connection, tx, [signer], {
   commitment: 'confirmed',
 });
+
 ```
 
 Withdraw all strategy shares from a specific shareholder (wallet), example code:
