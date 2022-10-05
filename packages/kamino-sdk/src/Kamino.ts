@@ -26,7 +26,7 @@ import { StrategyHolder } from './models/StrategyHolder';
 import { Scope, SupportedToken } from '@hubbleprotocol/scope-sdk';
 import { KaminoToken } from './models/KaminoToken';
 import { PriceData } from './models/PriceData';
-import { batchFetch } from './utils';
+import { batchFetch, getAssociatedTokenAddressAndData } from './utils';
 import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import { withdraw, WithdrawAccounts, WithdrawArgs } from './kamino-client/instructions';
 import BN from 'bn.js';
@@ -477,11 +477,18 @@ export class Kamino {
    * Get a transaction instruction to withdraw all strategy shares from a specific wallet into token A and B
    * @param strategy public key of the strategy
    * @param owner public key of the owner (shareholder)
-   * @returns transaction instruction or null if no shares are present in the wallet
+   * @returns transaction instruction or null if no shares or no sharesMint ATA present in the wallet
    */
   async withdrawAllShares(strategy: PublicKey | StrategyWithAddress, owner: PublicKey) {
     const strategyState = await this.getStrategyStateIfNotFetched(strategy);
-    const sharesAta = await getAssociatedTokenAddress(strategyState.strategy.sharesMint, owner);
+    const [sharesAta, sharesData] = await getAssociatedTokenAddressAndData(
+      this._connection,
+      strategyState.strategy.sharesMint,
+      owner
+    );
+    if (!sharesData) {
+      return null;
+    }
     const balance = await this.getTokenAccountBalance(sharesAta);
     if (balance.isZero()) {
       return null;
