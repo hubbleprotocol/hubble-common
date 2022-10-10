@@ -158,4 +158,40 @@ describe('Kamino SDK Tests', () => {
   //   });
   //   console.log(txHash);
   // });
+
+  // test('should deposit tokens into a strategy', async () => {
+  //   const kamino = new Kamino(cluster, connection);
+  //   const strategyPubkey = new PublicKey('2H4xebnp2M9JYgPPfUw58uUQahWF8f1YTNxwwtmdqVYV');
+  //   const owner = new PublicKey('HrwbdQYwSnAyVpVHuGQ661HiNbWmGjDp5DdDR9YMw7Bu');
+  //   const strategy = (await kamino.getStrategyByAddress(strategyPubkey))!;
+  //   const strategyWithAddress = { strategy, address: strategyPubkey };
+  //   const [sharesAta, sharesMintData] = await getAssociatedTokenAddressAndData(connection, strategy.sharesMint, owner);
+  //   const [tokenAAta, tokenAData] = await getAssociatedTokenAddressAndData(connection, strategy.tokenAMint, owner);
+  //   const [tokenBAta, tokenBData] = await getAssociatedTokenAddressAndData(connection, strategy.tokenBMint, owner);
+  //   let tx = createTransactionWithExtraBudget(owner);
+  //   const ataInstructions = await kamino.getCreateAssociatedTokenAccountInstructionsIfNotExist(
+  //     owner,
+  //     strategyWithAddress,
+  //     tokenAData,
+  //     tokenAAta,
+  //     tokenBData,
+  //     tokenBAta,
+  //     sharesMintData,
+  //     sharesAta
+  //   );
+  //   if (ataInstructions.length > 0) {
+  //     tx.add(...ataInstructions);
+  //   }
+  //
+  //   const depositIx = await kamino.deposit(strategyWithAddress, new Decimal(1), new Decimal(2), owner);
+  //   tx.add(depositIx);
+  //
+  //   tx = await assignBlockInfoToTransaction(connection, tx, owner);
+  //
+  //   const signer = Keypair.fromSecretKey(bs58.decode('phantom wallet secret key'));
+  //   const txHash = await sendAndConfirmTransaction(connection, tx, [signer], {
+  //     commitment: 'confirmed',
+  //   });
+  //   console.log(txHash);
+  // });
 });

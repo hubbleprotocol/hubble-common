@@ -8,7 +8,9 @@ import {
   AccountInfo,
   Connection,
   PublicKey,
+  SystemProgram,
   SYSVAR_INSTRUCTIONS_PUBKEY,
+  SYSVAR_RENT_PUBKEY,
   TransactionInstruction,
 } from '@solana/web3.js';
 import { setKaminoProgramId } from './kamino-client/programId';
@@ -27,8 +29,15 @@ import { Scope, SupportedToken } from '@hubbleprotocol/scope-sdk';
 import { KaminoToken } from './models/KaminoToken';
 import { PriceData } from './models/PriceData';
 import { batchFetch, getAssociatedTokenAddressAndData } from './utils';
-import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
-import { withdraw, WithdrawAccounts, WithdrawArgs } from './kamino-client/instructions';
+import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID } from '@solana/spl-token';
+import {
+  deposit,
+  DepositAccounts,
+  DepositArgs,
+  withdraw,
+  WithdrawAccounts,
+  WithdrawArgs,
+} from './kamino-client/instructions';
 import BN from 'bn.js';
 import { createAssociatedTokenAccountInstruction, getAssociatedTokenAddress } from './utils';
 import { StrategyWithAddress } from './models/StrategyWithAddress';
@@ -494,6 +503,69 @@ export class Kamino {
       return null;
     }
     return this.withdrawShares(strategyState, balance, owner);
+  }
+
+  /**
+   * Get transaction instruction to deposit token A and B into a strategy.
+   * @param strategy Kamino strategy public key or on-chain object
+   * @param amountA Amount of token A to deposit into strategy
+   * @param amountB Amount of token B to deposit into strategy
+   * @param owner Owner (wallet, shareholder) public key
+   */
+  async deposit(strategy: PublicKey | StrategyWithAddress, amountA: Decimal, amountB: Decimal, owner: PublicKey) {
+    if (amountA.lessThanOrEqualTo(0) || amountB.lessThanOrEqualTo(0)) {
+      throw Error('Token A or B amount cant be lower than or equal to 0.');
+    }
+    const strategyState = await this.getStrategyStateIfNotFetched(strategy);
+
+    const whirlpoolState = await Whirlpool.fetch(this._connection, strategyState.strategy.whirlpool);
+    if (!whirlpoolState) {
+      throw Error(`Could not fetch whirlpool state with pubkey ${strategyState.strategy.whirlpool.toString()}`);
+    }
+
+    const { treasuryFeeTokenAVault, treasuryFeeTokenBVault, treasuryFeeVaultAuthority } =
+      await this.getTreasuryFeeVaultPDAs(strategyState.strategy.tokenAMint, strategyState.strategy.tokenBMint);
+
+    const sharesAta = await getAssociatedTokenAddress(strategyState.strategy.sharesMint, owner);
+    const tokenAAta = await getAssociatedTokenAddress(strategyState.strategy.tokenAMint, owner);
+    const tokenBAta = await getAssociatedTokenAddress(strategyState.strategy.tokenBMint, owner);
+
+    const lamportsA = amountA.mul(new Decimal(10).pow(strategyState.strategy.tokenAMintDecimals.toString()));
+    const lamportsB = amountB.mul(new Decimal(10).pow(strategyState.strategy.tokenBMintDecimals.toString()));
+
+    const depositArgs: DepositArgs = {
+      tokenMaxA: new BN(lamportsA.toNumber()),
+      tokenMaxB: new BN(lamportsB.toNumber()),
+    };
+
+    const depositAccounts: DepositAccounts = {
+      user: owner,
+      strategy: strategyState.address,
+      globalConfig: strategyState.strategy.globalConfig,
+      whirlpool: strategyState.strategy.whirlpool,
+      position: strategyState.strategy.position,
+      tokenAVault: strategyState.strategy.tokenAVault,
+      tokenBVault: strategyState.strategy.tokenBVault,
+      baseVaultAuthority: strategyState.strategy.baseVaultAuthority,
+      treasuryFeeTokenAVault,
+      treasuryFeeTokenBVault,
+      treasuryFeeVaultAuthority,
+      tokenAAta,
+      tokenBAta,
+      tokenAMint: strategyState.strategy.tokenAMint,
+      tokenBMint: strategyState.strategy.tokenBMint,
+      userSharesAta: sharesAta,
+      sharesMint: strategyState.strategy.sharesMint,
+      sharesMintAuthority: strategyState.strategy.sharesMintAuthority,
+      scopePrices: strategyState.strategy.scopePrices,
+      systemProgram: SystemProgram.programId,
+      rent: SYSVAR_RENT_PUBKEY,
+      associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+      tokenProgram: TOKEN_PROGRAM_ID,
+      instructionSysvarAccount: SYSVAR_INSTRUCTIONS_PUBKEY,
+    };
+
+    return deposit(depositArgs, depositAccounts);
   }
 }
 
