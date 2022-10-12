@@ -118,7 +118,7 @@ import Decimal from 'decimal.js';
 
 // setup Kamino SDK
 const strategyPubkey = new PublicKey('2H4xebnp2M9JYgPPfUw58uUQahWF8f1YTNxwwtmdqVYV'); // you may also fetch strategies from hubble config
-const owner = new PublicKey('HrwbdQYwSnAyVpVHuGQ661HiNbWmGjDp5DdDR9YMw7Bu'); // wallet with shares
+const owner = new PublicKey('HrwbdQYwSnAyVpVHuGQ661HiNbWmGjDp5DdDR9YMw7Bu'); // wallet to deposit shares into
 const connection = new Connection(clusterApiUrl('mainnet-beta'));
 const kamino = new Kamino('mainnet-beta', connection);
 // setup fee payer (wallet) that will sign the transaction 
@@ -162,6 +162,71 @@ if (withdrawIx) {
   console.log('Wallet balance is 0 shares, cant withdraw any');
   return;
 }
+
+// assign block hash, block height and fee payer to the transaction
+tx = await assignBlockInfoToTransaction(connection, tx, signer.publicKey);
+
+const txHash = await sendAndConfirmTransaction(connection, tx, [signer], {
+  commitment: 'confirmed',
+});
+```
+
+### Deposit shares
+
+Deposit custom amount of token A and B for a specific strategy, example code:
+
+```javascript
+import { clusterApiUrl, Connection, PublicKey, sendAndConfirmTransaction, Keypair, Transaction } from '@solana/web3.js';
+import { 
+  Kamino,
+  getAssociatedTokenAddressAndData,
+  createTransactionWithExtraBudget,
+  getCreateAssociatedTokenAccountInstructionsIfNotExist,
+  assignBlockInfoToTransaction
+} from '@hubbleprotocol/kamino-sdk';
+import Decimal from 'decimal.js';
+
+// setup Kamino SDK
+const strategyPubkey = new PublicKey('2H4xebnp2M9JYgPPfUw58uUQahWF8f1YTNxwwtmdqVYV'); // you may also fetch strategies from hubble config
+const owner = new PublicKey('HrwbdQYwSnAyVpVHuGQ661HiNbWmGjDp5DdDR9YMw7Bu'); // wallet with shares
+const connection = new Connection(clusterApiUrl('mainnet-beta'));
+const kamino = new Kamino('mainnet-beta', connection);
+// setup fee payer (wallet) that will sign the transaction 
+const signer = Keypair.generate();
+
+// get on-chain data for a Kamino strategy 
+const strategy = await kamino.getStrategyByAddress(strategyPubkey);
+if (!strategy) {
+  throw Error('Could not fetch strategy from the chain');
+}
+const strategyWithAddress = { strategy, address: strategyPubkey };
+
+// check if associated token addresses exist for token A, B and shares
+const [sharesAta, sharesMintData] = await getAssociatedTokenAddressAndData(connection, strategy.sharesMint, owner);
+const [tokenAAta, tokenAData] = await getAssociatedTokenAddressAndData(connection, strategy.tokenAMint, owner);
+const [tokenBAta, tokenBData] = await getAssociatedTokenAddressAndData(connection, strategy.tokenBMint, owner);
+
+// create a transaction that has an instruction for extra compute budget (withdraw operation needs this),
+let tx = createTransactionWithExtraBudget(owner);
+
+// add creation of associated token addresses to the transaction instructions if they don't exist
+const ataInstructions = await kamino.getCreateAssociatedTokenAccountInstructionsIfNotExist(
+  owner,
+  strategyWithAddress,
+  tokenAData,
+  tokenAAta,
+  tokenBData,
+  tokenBAta,
+  sharesMintData,
+  sharesAta
+);
+if (ataInstructions.length > 0) {
+  tx.add(...ataInstructions);
+}
+
+// specify amount of token A and B to deposit, e.g. to deposit 5 USDH and 5 USDC:
+const depositIx = await kamino.deposit(strategyWithAddress, new Decimal(5), new Decimal(5), owner);
+tx.add(depositIx);
 
 // assign block hash, block height and fee payer to the transaction
 tx = await assignBlockInfoToTransaction(connection, tx, signer.publicKey);
