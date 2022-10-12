@@ -511,6 +511,7 @@ export class Kamino {
    * @param amountA Amount of token A to deposit into strategy
    * @param amountB Amount of token B to deposit into strategy
    * @param owner Owner (wallet, shareholder) public key
+   * @returns transaction instruction for depositing tokens into a strategy
    */
   async deposit(strategy: PublicKey | StrategyWithAddress, amountA: Decimal, amountB: Decimal, owner: PublicKey) {
     if (amountA.lessThanOrEqualTo(0) || amountB.lessThanOrEqualTo(0)) {

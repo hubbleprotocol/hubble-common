@@ -118,7 +118,7 @@ import Decimal from 'decimal.js';
 
 // setup Kamino SDK
 const strategyPubkey = new PublicKey('2H4xebnp2M9JYgPPfUw58uUQahWF8f1YTNxwwtmdqVYV'); // you may also fetch strategies from hubble config
-const owner = new PublicKey('HrwbdQYwSnAyVpVHuGQ661HiNbWmGjDp5DdDR9YMw7Bu'); // wallet with shares
+const owner = new PublicKey('HrwbdQYwSnAyVpVHuGQ661HiNbWmGjDp5DdDR9YMw7Bu'); // wallet to deposit shares into
 const connection = new Connection(clusterApiUrl('mainnet-beta'));
 const kamino = new Kamino('mainnet-beta', connection);
 // setup fee payer (wallet) that will sign the transaction 
