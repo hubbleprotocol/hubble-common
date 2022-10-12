@@ -5,6 +5,7 @@ export type KaminoConfig = {
   strategies: PublicKey[];
   whirlpoolsToSnapshot: WhirlpoolToSnapshot[];
   programId: PublicKey;
+  globalConfig: PublicKey;
 };
 
 export type CollateralMint = {
