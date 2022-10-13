@@ -1,5 +1,5 @@
 import { BORROWING_IDL } from '../dist';
-import { SCOPE_IDL } from '../src';
+import { KAMINO_IDL, SCOPE_IDL } from '../src';
 
 describe('IDL Tests', () => {
   test('should return Hubble borrowing IDL ', () => {
@@ -18,5 +18,14 @@ describe('IDL Tests', () => {
     expect(SCOPE_IDL.accounts.length).toBeGreaterThan(0);
     expect(SCOPE_IDL.types.length).toBeGreaterThan(0);
     expect(SCOPE_IDL.instructions.length).toBeGreaterThan(0);
+  });
+
+  test('should return Kamino IDL ', () => {
+    expect(KAMINO_IDL).not.toBeNull();
+    expect(KAMINO_IDL.name).toBe('yvaults');
+    expect(KAMINO_IDL.errors.length).toBeGreaterThan(0);
+    expect(KAMINO_IDL.accounts.length).toBeGreaterThan(0);
+    expect(KAMINO_IDL.types.length).toBeGreaterThan(0);
+    expect(KAMINO_IDL.instructions.length).toBeGreaterThan(0);
   });
 });
