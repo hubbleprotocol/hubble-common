@@ -2,7 +2,7 @@
   "name": "@hubbleprotocol/hubble-idl",
   "description": "Hubble Protocol IDL (Interface Description Language)",
   "main": "dist/index.js",
-  "version": "1.0.91",
+  "version": "1.0.133",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
