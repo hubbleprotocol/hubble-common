@@ -76,9 +76,9 @@ export function createAddExtraComputeUnitsTransaction(owner: PublicKey, units: n
   });
 }
 
-export function createTransactionWithExtraBudget(payer: PublicKey) {
+export function createTransactionWithExtraBudget(payer: PublicKey, extraUnits: number = 400000) {
   const tx = new Transaction();
-  const increaseBudgetIx = createAddExtraComputeUnitsTransaction(payer, 400000);
+  const increaseBudgetIx = createAddExtraComputeUnitsTransaction(payer, extraUnits);
   tx.add(increaseBudgetIx);
   return tx;
 }

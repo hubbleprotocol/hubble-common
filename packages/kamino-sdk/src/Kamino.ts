@@ -28,12 +28,15 @@ import { StrategyHolder } from './models/StrategyHolder';
 import { Scope, SupportedToken } from '@hubbleprotocol/scope-sdk';
 import { KaminoToken } from './models/KaminoToken';
 import { PriceData } from './models/PriceData';
-import { batchFetch, getAssociatedTokenAddressAndData } from './utils';
+import { batchFetch, getAssociatedTokenAddressAndData, getReadOnlyWallet } from './utils';
 import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import {
   deposit,
   DepositAccounts,
   DepositArgs,
+  initializeStrategy,
+  InitializeStrategyAccounts,
+  InitializeStrategyArgs,
   withdraw,
   WithdrawAccounts,
   WithdrawArgs,
@@ -41,12 +44,17 @@ import {
 import BN from 'bn.js';
 import { createAssociatedTokenAccountInstruction, getAssociatedTokenAddress } from './utils';
 import { StrategyWithAddress } from './models/StrategyWithAddress';
+import { StrategyProgramAddress } from './models/StrategyProgramAddress';
+import { Idl, Program, Provider } from '@project-serum/anchor';
+import { KAMINO_IDL } from '@hubbleprotocol/hubble-idl';
 
 export class Kamino {
   private readonly _cluster: SolanaCluster;
   private readonly _connection: Connection;
   readonly _config: HubbleConfig;
   private readonly _scope: Scope;
+  private readonly _provider: Provider;
+  private _kaminoProgram: Program;
 
   private readonly _tokenMap: KaminoToken[] = [
     { name: 'USDC', id: 0 },
@@ -81,6 +89,10 @@ export class Kamino {
     this._cluster = cluster;
     this._connection = connection;
     this._config = getConfigByCluster(cluster);
+    this._provider = new Provider(connection, getReadOnlyWallet(), {
+      commitment: connection.commitment,
+    });
+    this._kaminoProgram = new Program(KAMINO_IDL as Idl, this._config.kamino.programId, this._provider);
     this._scope = new Scope(cluster, connection);
     setKaminoProgramId(this._config.kamino.programId);
   }
@@ -325,15 +337,37 @@ export class Kamino {
   }
 
   /**
+   * Get whirlpool from public key
+   * @param whirlpool pubkey of the orca whirlpool
+   */
+  getWhirlpoolByAddress(whirlpool: PublicKey) {
+    return Whirlpool.fetch(this._connection, whirlpool);
+  }
+
+  /**
    * Get scope token name from a kamino strategy collateral ID
-   * @param collateralId
+   * @param collateralId ID of the collateral token
+   * @returns Kamino token name
    */
   getTokenName(collateralId: number) {
-    const tokenName = this._tokenMap.find((x) => x.id === collateralId);
-    if (!tokenName) {
+    const token = this._tokenMap.find((x) => x.id === collateralId);
+    if (!token) {
       throw Error(`Token with collateral ID ${collateralId} does not exist.`);
     }
-    return tokenName.name;
+    return token.name;
+  }
+
+  /**
+   * Get Kamino collateral ID from token name
+   * @param name Name of the collateral token
+   * @returns Kamino collateral ID
+   */
+  getCollateralId(name: SupportedToken) {
+    const token = this._tokenMap.find((x) => x.name === name);
+    if (!token) {
+      throw Error(`Token with collateral name ${name} does not exist.`);
+    }
+    return token.id;
   }
 
   /**
@@ -567,6 +601,125 @@ export class Kamino {
     };
 
     return deposit(depositArgs, depositAccounts);
+  }
+
+  /**
+   * Get transaction instruction to create a new Kamino strategy.
+   * Current limitations:
+   *   - strategy can only be created by the owner (admin) of the global config, we will need to allow non-admins to bypass this check
+   *   - after the strategy is created, only the owner (admin) can update the treasury fee vault with token A/B, we need to allow non-admins to be able to do (and require) this as well
+   * @param strategy public key of the new strategy to create
+   * @param whirlpool public key of the Orca whirlpool
+   * @param owner public key of the strategy owner (admin authority)
+   * @param tokenA name of the token A collateral used in the strategy
+   * @param tokenB name of the token B collateral used in the strategy
+   * @returns transaction instruction for Kamino strategy creation
+   */
+  async createStrategy(
+    strategy: PublicKey,
+    whirlpool: PublicKey,
+    owner: PublicKey,
+    tokenA: SupportedToken,
+    tokenB: SupportedToken
+  ) {
+    const whirlpoolState = await Whirlpool.fetch(this._connection, whirlpool);
+    if (!whirlpoolState) {
+      throw Error(`Could not fetch whirlpool state with pubkey ${whirlpool.toString()}`);
+    }
+    const programAddresses = await this.getStrategyProgramAddresses(strategy, whirlpoolState);
+    const strategyArgs: InitializeStrategyArgs = {
+      tokenACollateralId: new BN(this.getCollateralId(tokenA)),
+      tokenBCollateralId: new BN(this.getCollateralId(tokenB)),
+    };
+    const strategyAccounts: InitializeStrategyAccounts = {
+      adminAuthority: owner,
+      strategy,
+      globalConfig: this._config.kamino.globalConfig,
+      whirlpool: whirlpool,
+      tokenAMint: whirlpoolState.tokenMintA,
+      tokenBMint: whirlpoolState.tokenMintB,
+      tokenAVault: programAddresses.tokenAVault,
+      tokenBVault: programAddresses.tokenBVault,
+      baseVaultAuthority: programAddresses.baseVaultAuthority,
+      sharesMint: programAddresses.sharesMint,
+      sharesMintAuthority: programAddresses.sharesMintAuthority,
+      scopePriceId: this._config.scope.oraclePrices,
+      scopeProgramId: this._config.scope.programId,
+      systemProgram: SystemProgram.programId,
+      rent: SYSVAR_RENT_PUBKEY,
+      tokenProgram: TOKEN_PROGRAM_ID,
+      associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+    };
+
+    return initializeStrategy(strategyArgs, strategyAccounts);
+  }
+
+  /**
+   * Find program adresses required for kamino strategy creation
+   * @param strategy
+   * @param whirlpoolState
+   * @private
+   * @returns object with program addresses for kamino strategy creation
+   */
+  private async getStrategyProgramAddresses(
+    strategy: PublicKey,
+    whirlpoolState: Whirlpool
+  ): Promise<StrategyProgramAddress> {
+    const [tokenAVault, tokenABump] = await PublicKey.findProgramAddress(
+      [Buffer.from('svault_a'), strategy.toBuffer()],
+      this._config.kamino.programId
+    );
+    const [tokenBVault, tokenBBump] = await PublicKey.findProgramAddress(
+      [Buffer.from('svault_b'), strategy.toBuffer()],
+      this._config.kamino.programId
+    );
+    const [baseVaultAuthority, baseVaultAuthorityBump] = await PublicKey.findProgramAddress(
+      [Buffer.from('authority'), tokenAVault.toBuffer(), tokenBVault.toBuffer()],
+      this._config.kamino.programId
+    );
+    const [sharesMint, sharesMintBump] = await PublicKey.findProgramAddress(
+      [
+        Buffer.from('shares'),
+        strategy.toBuffer(),
+        whirlpoolState.tokenMintA.toBuffer(),
+        whirlpoolState.tokenMintB.toBuffer(),
+      ],
+      this._config.kamino.programId
+    );
+    const [sharesMintAuthority, sharesMintAuthorityBump] = await PublicKey.findProgramAddress(
+      [Buffer.from('authority'), sharesMint.toBuffer()],
+      this._config.kamino.programId
+    );
+    return {
+      sharesMintAuthority,
+      tokenAVault,
+      tokenBVault,
+      baseVaultAuthority,
+      baseVaultAuthorityBump,
+      sharesMintAuthorityBump,
+      sharesMintBump,
+      tokenBBump,
+      sharesMint,
+      tokenABump,
+    };
+  }
+
+  /**
+   * Get transaction instruction to create a new rent exempt strategy account
+   * @param payer transaction payer (signer) public key
+   * @param newStrategy public key of the new strategy
+   * @returns transaction instruction to create the account
+   */
+  async createStrategyAccount(payer: PublicKey, newStrategy: PublicKey) {
+    const accountSize = this._kaminoProgram.account.whirlpoolStrategy.size;
+    const lamports = await this._connection.getMinimumBalanceForRentExemption(accountSize);
+    return SystemProgram.createAccount({
+      programId: this._config.kamino.programId,
+      fromPubkey: payer,
+      newAccountPubkey: newStrategy,
+      space: accountSize,
+      lamports,
+    });
   }
 }
 
