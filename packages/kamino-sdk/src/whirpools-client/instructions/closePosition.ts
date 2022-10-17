@@ -1,16 +1,16 @@
-import { TransactionInstruction, PublicKey, AccountMeta } from "@solana/web3.js" // eslint-disable-line @typescript-eslint/no-unused-vars
-import BN from "bn.js" // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as borsh from "@project-serum/borsh" // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
-import { PROGRAM_ID } from "../programId"
+import { TransactionInstruction, PublicKey, AccountMeta } from '@solana/web3.js'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import BN from 'bn.js'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as borsh from '@project-serum/borsh'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as types from '../types'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import { WHIRLPOOL_PROGRAM_ID } from '../programId';
 
 export interface ClosePositionAccounts {
-  positionAuthority: PublicKey
-  receiver: PublicKey
-  position: PublicKey
-  positionMint: PublicKey
-  positionTokenAccount: PublicKey
-  tokenProgram: PublicKey
+  positionAuthority: PublicKey;
+  receiver: PublicKey;
+  position: PublicKey;
+  positionMint: PublicKey;
+  positionTokenAccount: PublicKey;
+  tokenProgram: PublicKey;
 }
 
 export function closePosition(accounts: ClosePositionAccounts) {
@@ -25,9 +25,9 @@ export function closePosition(accounts: ClosePositionAccounts) {
       isWritable: true,
     },
     { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
-  ]
-  const identifier = Buffer.from([123, 134, 81, 0, 49, 68, 98, 98])
-  const data = identifier
-  const ix = new TransactionInstruction({ keys, programId: PROGRAM_ID, data })
-  return ix
+  ];
+  const identifier = Buffer.from([123, 134, 81, 0, 49, 68, 98, 98]);
+  const data = identifier;
+  const ix = new TransactionInstruction({ keys, programId: WHIRLPOOL_PROGRAM_ID, data });
+  return ix;
 }

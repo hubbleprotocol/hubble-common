@@ -37,6 +37,79 @@ const holders = await kamino.getStrategyHolders(usdhUsdtStrategy);
 const strategyPrice = await kamino.getStrategySharePrice(usdhUsdtStrategy);
 ```
 
+### Create a Kamino strategy
+
+Create a new Kamino strategy for an existing Orca whirlpool.
+
+Current limitations (planned to be fixed to allow anyone to use this in the near future):
+  * Strategy can only be created by the owner (admin) of the global config, we will need to allow non-admins to bypass this check.
+  * After the strategy is created, only the owner (admin) can update the treasury fee vault with token A/B, we need to allow non-admins to be able to do (and require) this as well.
+
+```javascript
+import { clusterApiUrl, Connection, PublicKey, sendAndConfirmTransaction, Keypair, Transaction } from '@solana/web3.js';
+import { 
+  Kamino,
+  getAssociatedTokenAddressAndData,
+  createTransactionWithExtraBudget,
+  assignBlockInfoToTransaction
+} from '@hubbleprotocol/kamino-sdk';
+import Decimal from 'decimal.js';
+
+// generate a new strategy public key
+const newStrategy = Keypair.generate();
+// setup fee payer (wallet) that will sign the transaction and own the strategy
+const signer = Keypair.fromSecretKey('your secret key here');
+const owner = signer.publicKey; // or use different public key for owner (admin)
+
+// setup Kamino SDK
+const connection = new Connection(clusterApiUrl('mainnet-beta'));
+const kamino = new Kamino('mainnet-beta', connection);
+
+// get on-chain data for an existing Orca Whirlpool
+const whirlpool = new PublicKey('5vHht2PCHKsApekfPZXyn7XthAYQbsCNiwA1VEcQmL12');
+const whirlpoolState = await kamino.getWhirlpoolByAddress(whirlpool);
+if (!whirlpool) {
+  throw Error('Could not fetch Orca whirlpool from the chain');
+}
+
+// create a transaction that has an instruction for extra compute budget
+let tx = createTransactionWithExtraBudget(owner);
+
+// check if associated token addresses exist for token A or B
+const [tokenAAta, tokenAData] = await getAssociatedTokenAddressAndData(connection, whirlpoolState.tokenAMint, owner);
+const [tokenBAta, tokenBData] = await getAssociatedTokenAddressAndData(connection, whirlpoolState.tokenBMint, owner);
+if (!tokenAData) {
+  tx.add(createAssociatedTokenAccountInstruction(owner, tokenAAta, owner, whirlpoolState.tokenMintA));
+}
+if (!tokenBData) {
+  tx.add(createAssociatedTokenAccountInstruction(owner, tokenBAta, owner, whirlpoolState.tokenMintB));
+}
+
+// create a rent exempt strategy account that will contain the Kamino strategy
+const createStrategyAccountIx = await kamino.createStrategyAccount(owner, newStrategy.publicKey);
+tx.add(createStrategyAccountIx);
+
+// create the actual strategy with USDH as token A and USDC as token B
+const createStrategyIx = await kamino.createStrategy(newStrategy.publicKey, whirlpool, owner, 'USDH', 'USDC');
+tx.add(createStrategyIx);
+
+tx = await assignBlockInfoToTransaction(connection, tx, owner);
+
+const txHash = await sendAndConfirmTransaction(connection, tx, [signer, newStrategy], {
+  commitment: 'finalized',
+});
+
+console.log('transaction hash', txHash);
+console.log('new strategy has been created', newStrategy.publicKey.toString());
+
+// this will work with 'finalized' transaction commitment level, 
+// it might fail if you use anything other than that as the on-chain data won't be updated as quickly
+// and you have to wait a bit
+const strategy = await kamino.getStrategyByAddress(newStrategy.publicKey);
+console.log(strategy?.toJSON());
+
+```
+
 ### Withdraw shares
 
 Withdraw x amount of strategy shares from a specific shareholder (wallet), example code:
@@ -206,7 +279,7 @@ const [sharesAta, sharesMintData] = await getAssociatedTokenAddressAndData(conne
 const [tokenAAta, tokenAData] = await getAssociatedTokenAddressAndData(connection, strategy.tokenAMint, owner);
 const [tokenBAta, tokenBData] = await getAssociatedTokenAddressAndData(connection, strategy.tokenBMint, owner);
 
-// create a transaction that has an instruction for extra compute budget (withdraw operation needs this),
+// create a transaction that has an instruction for extra compute budget (deposit operation needs this),
 let tx = createTransactionWithExtraBudget(owner);
 
 // add creation of associated token addresses to the transaction instructions if they don't exist

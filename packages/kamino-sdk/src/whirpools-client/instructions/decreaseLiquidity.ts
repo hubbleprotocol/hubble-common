@@ -1,39 +1,32 @@
-import { TransactionInstruction, PublicKey, AccountMeta } from "@solana/web3.js" // eslint-disable-line @typescript-eslint/no-unused-vars
-import BN from "bn.js" // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as borsh from "@project-serum/borsh" // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
-import { PROGRAM_ID } from "../programId"
+import { TransactionInstruction, PublicKey, AccountMeta } from '@solana/web3.js'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import BN from 'bn.js'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as borsh from '@project-serum/borsh'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as types from '../types'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import { WHIRLPOOL_PROGRAM_ID } from '../programId';
 
 export interface DecreaseLiquidityArgs {
-  liquidityAmount: BN
-  tokenMinA: BN
-  tokenMinB: BN
+  liquidityAmount: BN;
+  tokenMinA: BN;
+  tokenMinB: BN;
 }
 
 export interface DecreaseLiquidityAccounts {
-  whirlpool: PublicKey
-  tokenProgram: PublicKey
-  positionAuthority: PublicKey
-  position: PublicKey
-  positionTokenAccount: PublicKey
-  tokenOwnerAccountA: PublicKey
-  tokenOwnerAccountB: PublicKey
-  tokenVaultA: PublicKey
-  tokenVaultB: PublicKey
-  tickArrayLower: PublicKey
-  tickArrayUpper: PublicKey
+  whirlpool: PublicKey;
+  tokenProgram: PublicKey;
+  positionAuthority: PublicKey;
+  position: PublicKey;
+  positionTokenAccount: PublicKey;
+  tokenOwnerAccountA: PublicKey;
+  tokenOwnerAccountB: PublicKey;
+  tokenVaultA: PublicKey;
+  tokenVaultB: PublicKey;
+  tickArrayLower: PublicKey;
+  tickArrayUpper: PublicKey;
 }
 
-export const layout = borsh.struct([
-  borsh.u128("liquidityAmount"),
-  borsh.u64("tokenMinA"),
-  borsh.u64("tokenMinB"),
-])
+export const layout = borsh.struct([borsh.u128('liquidityAmount'), borsh.u64('tokenMinA'), borsh.u64('tokenMinB')]);
 
-export function decreaseLiquidity(
-  args: DecreaseLiquidityArgs,
-  accounts: DecreaseLiquidityAccounts
-) {
+export function decreaseLiquidity(args: DecreaseLiquidityArgs, accounts: DecreaseLiquidityAccounts) {
   const keys: Array<AccountMeta> = [
     { pubkey: accounts.whirlpool, isSigner: false, isWritable: true },
     { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
@@ -50,9 +43,9 @@ export function decreaseLiquidity(
     { pubkey: accounts.tokenVaultB, isSigner: false, isWritable: true },
     { pubkey: accounts.tickArrayLower, isSigner: false, isWritable: true },
     { pubkey: accounts.tickArrayUpper, isSigner: false, isWritable: true },
-  ]
-  const identifier = Buffer.from([160, 38, 208, 111, 104, 91, 44, 1])
-  const buffer = Buffer.alloc(1000)
+  ];
+  const identifier = Buffer.from([160, 38, 208, 111, 104, 91, 44, 1]);
+  const buffer = Buffer.alloc(1000);
   const len = layout.encode(
     {
       liquidityAmount: args.liquidityAmount,
@@ -60,8 +53,8 @@ export function decreaseLiquidity(
       tokenMinB: args.tokenMinB,
     },
     buffer
-  )
-  const data = Buffer.concat([identifier, buffer]).slice(0, 8 + len)
-  const ix = new TransactionInstruction({ keys, programId: PROGRAM_ID, data })
-  return ix
+  );
+  const data = Buffer.concat([identifier, buffer]).slice(0, 8 + len);
+  const ix = new TransactionInstruction({ keys, programId: WHIRLPOOL_PROGRAM_ID, data });
+  return ix;
 }

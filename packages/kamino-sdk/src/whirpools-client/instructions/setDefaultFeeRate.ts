@@ -1,39 +1,36 @@
-import { TransactionInstruction, PublicKey, AccountMeta } from "@solana/web3.js" // eslint-disable-line @typescript-eslint/no-unused-vars
-import BN from "bn.js" // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as borsh from "@project-serum/borsh" // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
-import { PROGRAM_ID } from "../programId"
+import { TransactionInstruction, PublicKey, AccountMeta } from '@solana/web3.js'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import BN from 'bn.js'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as borsh from '@project-serum/borsh'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as types from '../types'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import { WHIRLPOOL_PROGRAM_ID } from '../programId';
 
 export interface SetDefaultFeeRateArgs {
-  defaultFeeRate: number
+  defaultFeeRate: number;
 }
 
 export interface SetDefaultFeeRateAccounts {
-  whirlpoolsConfig: PublicKey
-  feeTier: PublicKey
-  feeAuthority: PublicKey
+  whirlpoolsConfig: PublicKey;
+  feeTier: PublicKey;
+  feeAuthority: PublicKey;
 }
 
-export const layout = borsh.struct([borsh.u16("defaultFeeRate")])
+export const layout = borsh.struct([borsh.u16('defaultFeeRate')]);
 
-export function setDefaultFeeRate(
-  args: SetDefaultFeeRateArgs,
-  accounts: SetDefaultFeeRateAccounts
-) {
+export function setDefaultFeeRate(args: SetDefaultFeeRateArgs, accounts: SetDefaultFeeRateAccounts) {
   const keys: Array<AccountMeta> = [
     { pubkey: accounts.whirlpoolsConfig, isSigner: false, isWritable: false },
     { pubkey: accounts.feeTier, isSigner: false, isWritable: true },
     { pubkey: accounts.feeAuthority, isSigner: true, isWritable: false },
-  ]
-  const identifier = Buffer.from([118, 215, 214, 157, 182, 229, 208, 228])
-  const buffer = Buffer.alloc(1000)
+  ];
+  const identifier = Buffer.from([118, 215, 214, 157, 182, 229, 208, 228]);
+  const buffer = Buffer.alloc(1000);
   const len = layout.encode(
     {
       defaultFeeRate: args.defaultFeeRate,
     },
     buffer
-  )
-  const data = Buffer.concat([identifier, buffer]).slice(0, 8 + len)
-  const ix = new TransactionInstruction({ keys, programId: PROGRAM_ID, data })
-  return ix
+  );
+  const data = Buffer.concat([identifier, buffer]).slice(0, 8 + len);
+  const ix = new TransactionInstruction({ keys, programId: WHIRLPOOL_PROGRAM_ID, data });
+  return ix;
 }

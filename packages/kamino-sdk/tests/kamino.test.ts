@@ -1,5 +1,14 @@
-import { clusterApiUrl, Connection, Keypair, PublicKey, sendAndConfirmTransaction, Transaction } from '@solana/web3.js';
-import { Kamino } from '../src';
+import {
+  Cluster,
+  clusterApiUrl,
+  Connection,
+  Keypair,
+  PublicKey,
+  sendAndConfirmTransaction,
+  SystemProgram,
+  Transaction,
+} from '@solana/web3.js';
+import { createAssociatedTokenAccountInstruction, getAssociatedTokenAddress, Kamino } from '../src';
 import Decimal from 'decimal.js';
 import { TextEncoder } from 'util';
 import bs58 from 'bs58';
@@ -9,10 +18,11 @@ import {
   createTransactionWithExtraBudget,
   getAssociatedTokenAddressAndData,
 } from '../src/utils/tokenUtils';
+import { Whirlpool } from '../src/whirpools-client/accounts';
 
 describe('Kamino SDK Tests', () => {
   let connection: Connection;
-  const cluster = 'devnet';
+  const cluster: Cluster = 'devnet';
 
   beforeAll(() => {
     connection = new Connection(clusterApiUrl(cluster));
@@ -30,7 +40,14 @@ describe('Kamino SDK Tests', () => {
   //   expect(allStrategies.length).toBeGreaterThan(0);
   //   for (const strat of allStrategies) {
   //     expect(strat).not.toBeNull();
+  //     console.log(strat?.whirlpool.toString());
   //   }
+  // });
+  // test('should get strategy by address', async () => {
+  //   const kamino = new Kamino(cluster, connection);
+  //   const strategy = await kamino.getStrategyByAddress(new PublicKey('LXUYy5TN2Bq9BoQXx2LKYqmnq4kzZzDT15NuiZ3VAMy'));
+  //   expect(strategy).not.toBeNull();
+  //   console.log(strategy?.toJSON());
   // });
   //
   // test('should get strategy by name', async () => {
@@ -194,4 +211,51 @@ describe('Kamino SDK Tests', () => {
   //   });
   //   console.log(txHash);
   // });
+
+  // test('should create a new strategy', async () => {
+  //   const signer = Keypair.fromSecretKey(bs58.decode('phantom secret key'));
+  //   const newStrategy = Keypair.generate();
+  //   const owner = new PublicKey('HrwbdQYwSnAyVpVHuGQ661HiNbWmGjDp5DdDR9YMw7Bu');
+  //   const whirlpool = new PublicKey('5vHht2PCHKsApekfPZXyn7XthAYQbsCNiwA1VEcQmL12');
+  //
+  //   const kamino = new Kamino(cluster, connection);
+  //   const whirlpoolState = await kamino.getWhirlpoolByAddress(whirlpool);
+  //   expect(whirlpoolState).not.toBeNull();
+  //
+  //   let tx = createTransactionWithExtraBudget(owner);
+  //
+  //   const [tokenAAta, tokenAData] = await getAssociatedTokenAddressAndData(
+  //     connection,
+  //     whirlpoolState!.tokenMintA,
+  //     owner
+  //   );
+  //   if (!tokenAData) {
+  //     tx.add(createAssociatedTokenAccountInstruction(owner, tokenAAta, owner, whirlpoolState!.tokenMintA));
+  //   }
+  //   const [tokenBAta, tokenBData] = await getAssociatedTokenAddressAndData(
+  //     connection,
+  //     whirlpoolState!.tokenMintB,
+  //     owner
+  //   );
+  //   if (!tokenBData) {
+  //     tx.add(createAssociatedTokenAccountInstruction(owner, tokenBAta, owner, whirlpoolState!.tokenMintB));
+  //   }
+  //
+  //   const createStrategyAccountIx = await kamino.createStrategyAccount(owner, newStrategy.publicKey);
+  //   tx.add(createStrategyAccountIx);
+  //
+  //   const createStrategyIx = await kamino.createStrategy(newStrategy.publicKey, whirlpool, owner, 'USDH', 'USDC');
+  //   tx.add(createStrategyIx);
+  //
+  //   tx = await assignBlockInfoToTransaction(connection, tx, owner);
+  //
+  //   const txHash = await sendAndConfirmTransaction(connection, tx, [signer, newStrategy], {
+  //     commitment: 'finalized',
+  //   });
+  //   console.log('transaction hash', txHash);
+  //   console.log('new strategy has been created', newStrategy.publicKey.toString());
+  //   const strategy = await kamino.getStrategyByAddress(newStrategy.publicKey);
+  //   expect(strategy).not.toBeNull();
+  //   console.log(strategy?.toJSON());
+  // }, 30_000);
 });
