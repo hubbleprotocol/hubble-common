@@ -30,8 +30,7 @@ export type StrategyInfo = {
   tags: StrategyTag[];
 };
 
-export enum StrategyTag {
-  StableStrategy = 'Stable strategy',
-  NonPeggedStrategy = 'Non-pegged strategy',
-  PeggedStrategy = 'Pegged strategy',
-}
+export type StrategyTag = {
+  tag: string;
+  displayName: string;
+};
