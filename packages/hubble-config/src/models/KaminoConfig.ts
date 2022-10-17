@@ -27,10 +27,5 @@ export type WhirlpoolToSnapshot = {
 
 export type StrategyInfo = {
   address: PublicKey;
-  tags: StrategyTag[];
-};
-
-export type StrategyTag = {
-  tag: string;
-  displayName: string;
+  type: 'NON_PEGGED' | 'PEGGED' | 'STABLE';
 };
