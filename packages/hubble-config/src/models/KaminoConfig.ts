@@ -27,5 +27,11 @@ export type WhirlpoolToSnapshot = {
 
 export type StrategyInfo = {
   address: PublicKey;
-  tags: string[];
+  tags: StrategyTag[];
 };
+
+export enum StrategyTag {
+  StableStrategy = 'Stable strategy',
+  NonPeggedStrategy = 'Non-pegged strategy',
+  PeggedStrategy = 'Pegged strategy',
+}

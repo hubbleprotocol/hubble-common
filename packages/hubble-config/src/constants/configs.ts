@@ -1,4 +1,4 @@
-import { HubbleConfig } from '../models';
+import { HubbleConfig, StrategyTag } from '../models';
 import { PublicKey } from '@solana/web3.js';
 
 export const HUBBLE_CONFIGS: HubbleConfig[] = [
@@ -8,51 +8,51 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
       liveStrategies: [
         {
           address: new PublicKey('Cfuy5T6osdazUeLego5LFycBQebm9PP3H7VNdCndXXEN'),
-          tags: ['Stable strategy'],
+          tags: [StrategyTag.StableStrategy],
         },
         {
           address: new PublicKey('ByXB4xCxVhmUEmQj3Ut7byZ1Hbva1zhKjaVcv3jBMN7E'),
-          tags: ['Pegged strategy'],
+          tags: [StrategyTag.PeggedStrategy],
         },
         {
           address: new PublicKey('98kNMp1aqWoYAaUU8m5REBAYVwhFb4aX9yoSpgq8kUFu'),
-          tags: ['Stable strategy'],
+          tags: [StrategyTag.StableStrategy],
         },
         {
           address: new PublicKey('FshxiQWH1kTya19d186VyCSLT8PAVKn6wpVU4wP26S2M'),
-          tags: ['Stable strategy'],
+          tags: [StrategyTag.StableStrategy],
         },
         {
           address: new PublicKey('CofEPsAoV6bdn7guCPHhmb5nJ1xmnhZ4Ha2zZVx14Ppb'),
-          tags: ['Stable strategy'],
+          tags: [StrategyTag.StableStrategy],
         },
         {
           address: new PublicKey('A4ufgHTe3jLzxbR6sDdrZhLxNdR1Lw2ija1uEdDFLPbX'),
-          tags: ['Non-pegged strategy'],
+          tags: [StrategyTag.NonPeggedStrategy],
         },
         {
           address: new PublicKey('CYLt3Bs51QT3WeFhjtYnPGZNDzdd6SY5vfUMa86gT2D8'),
-          tags: ['Non-pegged strategy'],
+          tags: [StrategyTag.NonPeggedStrategy],
         },
         {
           address: new PublicKey('HoqXSSbQGZS8o6fTqtfn9d14FVCm9WiuRB13zbHNKs7d'),
-          tags: ['Non-pegged strategy'],
+          tags: [StrategyTag.NonPeggedStrategy],
         },
         {
           address: new PublicKey('7KqB3vRJQDdGwK7ewiDpAxXpTeMmgGicdDdbftQH41XC'),
-          tags: ['Non-pegged strategy'],
+          tags: [StrategyTag.NonPeggedStrategy],
         },
         {
           address: new PublicKey('BfyQYYr2T9eJfMfq5gPXcq3SUkJSh2ahtk7ZNUCzkx9e'),
-          tags: ['Stable strategy'],
+          tags: [StrategyTag.StableStrategy],
         },
         {
           address: new PublicKey('3w1MiUh6Nn4YJLue8Ut8uwonKvFupLKve9nifDaicBf2'),
-          tags: ['Non-pegged strategy'],
+          tags: [StrategyTag.NonPeggedStrategy],
         },
         {
           address: new PublicKey('9zBNQtnenpQY6mCoRqbPpeePeSy17h34DZP82oegt1fL'),
-          tags: ['Non-pegged strategy'],
+          tags: [StrategyTag.NonPeggedStrategy],
         },
       ],
       mints: [
@@ -706,7 +706,7 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
       liveStrategies: [
         {
           address: new PublicKey('2H4xebnp2M9JYgPPfUw58uUQahWF8f1YTNxwwtmdqVYV'),
-          tags: ['Stable strategy'],
+          tags: [StrategyTag.StableStrategy],
         },
       ],
       programId: new PublicKey('E6qbhrt4pFmCotNUSSEh6E5cRQCEJpMcd79Z56EG9KY'),
