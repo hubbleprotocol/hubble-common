@@ -5,6 +5,56 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
   {
     cluster: 'mainnet-beta',
     kamino: {
+      liveStrategies: [
+        {
+          address: new PublicKey('Cfuy5T6osdazUeLego5LFycBQebm9PP3H7VNdCndXXEN'),
+          tags: ['Stable strategy'],
+        },
+        {
+          address: new PublicKey('ByXB4xCxVhmUEmQj3Ut7byZ1Hbva1zhKjaVcv3jBMN7E'),
+          tags: ['Pegged strategy'],
+        },
+        {
+          address: new PublicKey('98kNMp1aqWoYAaUU8m5REBAYVwhFb4aX9yoSpgq8kUFu'),
+          tags: ['Stable strategy'],
+        },
+        {
+          address: new PublicKey('FshxiQWH1kTya19d186VyCSLT8PAVKn6wpVU4wP26S2M'),
+          tags: ['Stable strategy'],
+        },
+        {
+          address: new PublicKey('CofEPsAoV6bdn7guCPHhmb5nJ1xmnhZ4Ha2zZVx14Ppb'),
+          tags: ['Stable strategy'],
+        },
+        {
+          address: new PublicKey('A4ufgHTe3jLzxbR6sDdrZhLxNdR1Lw2ija1uEdDFLPbX'),
+          tags: ['Non-pegged strategy'],
+        },
+        {
+          address: new PublicKey('CYLt3Bs51QT3WeFhjtYnPGZNDzdd6SY5vfUMa86gT2D8'),
+          tags: ['Non-pegged strategy'],
+        },
+        {
+          address: new PublicKey('HoqXSSbQGZS8o6fTqtfn9d14FVCm9WiuRB13zbHNKs7d'),
+          tags: ['Non-pegged strategy'],
+        },
+        {
+          address: new PublicKey('7KqB3vRJQDdGwK7ewiDpAxXpTeMmgGicdDdbftQH41XC'),
+          tags: ['Non-pegged strategy'],
+        },
+        {
+          address: new PublicKey('BfyQYYr2T9eJfMfq5gPXcq3SUkJSh2ahtk7ZNUCzkx9e'),
+          tags: ['Stable strategy'],
+        },
+        {
+          address: new PublicKey('3w1MiUh6Nn4YJLue8Ut8uwonKvFupLKve9nifDaicBf2'),
+          tags: ['Non-pegged strategy'],
+        },
+        {
+          address: new PublicKey('9zBNQtnenpQY6mCoRqbPpeePeSy17h34DZP82oegt1fL'),
+          tags: ['Non-pegged strategy'],
+        },
+      ],
       mints: [
         { address: new PublicKey('USDH1SM1ojwWUga67PGrgFWUHibbjqMvuMaDkRJTgkX'), scopeToken: 'USDH' },
         { address: new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'), scopeToken: 'USDC' },
@@ -538,6 +588,7 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
     cluster: 'testnet',
     kamino: {
       programId: new PublicKey('E6qbhrt4pFmCotNUSSEh6E5cRQCEJpMcd79Z56EG9KY'),
+      liveStrategies: [],
       mints: [
         { address: new PublicKey('AcU8CfJiLEBn1x7Cgx8atX6DdebmdQtNSsJBkQyf6Q4L'), scopeToken: 'USDT' },
         { address: new PublicKey('kfZGSThBdZbZY6cDSHP7NmCWa6D2hFc5kjBuGHREzZ3'), scopeToken: 'USDH' },
@@ -652,6 +703,12 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
   {
     cluster: 'devnet',
     kamino: {
+      liveStrategies: [
+        {
+          address: new PublicKey('2H4xebnp2M9JYgPPfUw58uUQahWF8f1YTNxwwtmdqVYV'),
+          tags: ['Stable strategy'],
+        },
+      ],
       programId: new PublicKey('E6qbhrt4pFmCotNUSSEh6E5cRQCEJpMcd79Z56EG9KY'),
       globalConfig: new PublicKey('7of1j58my7FrQrPce81xUcfHARchvVFuSKEoyuB8WWZj'),
       mints: [
@@ -835,6 +892,7 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
   {
     cluster: 'localnet',
     kamino: {
+      liveStrategies: [],
       programId: new PublicKey('E6qbhrt4pFmCotNUSSEh6E5cRQCEJpMcd79Z56EG9KY'),
       globalConfig: new PublicKey('7of1j58my7FrQrPce81xUcfHARchvVFuSKEoyuB8WWZj'),
       mints: [
