@@ -8,51 +8,51 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
       liveStrategies: [
         {
           address: new PublicKey('Cfuy5T6osdazUeLego5LFycBQebm9PP3H7VNdCndXXEN'),
-          tags: [{ tag: 'STABLE', displayName: 'Stable strategy' }],
+          type: 'STABLE',
         },
         {
           address: new PublicKey('ByXB4xCxVhmUEmQj3Ut7byZ1Hbva1zhKjaVcv3jBMN7E'),
-          tags: [{ tag: 'PEGGED', displayName: 'Pegged strategy' }],
+          type: 'PEGGED',
         },
         {
           address: new PublicKey('98kNMp1aqWoYAaUU8m5REBAYVwhFb4aX9yoSpgq8kUFu'),
-          tags: [{ tag: 'STABLE', displayName: 'Stable strategy' }],
+          type: 'STABLE',
         },
         {
           address: new PublicKey('FshxiQWH1kTya19d186VyCSLT8PAVKn6wpVU4wP26S2M'),
-          tags: [{ tag: 'STABLE', displayName: 'Stable strategy' }],
+          type: 'STABLE',
         },
         {
           address: new PublicKey('CofEPsAoV6bdn7guCPHhmb5nJ1xmnhZ4Ha2zZVx14Ppb'),
-          tags: [{ tag: 'STABLE', displayName: 'Stable strategy' }],
+          type: 'STABLE',
         },
         {
           address: new PublicKey('A4ufgHTe3jLzxbR6sDdrZhLxNdR1Lw2ija1uEdDFLPbX'),
-          tags: [{ tag: 'NON-PEGGED', displayName: 'Non-pegged strategy' }],
+          type: 'NON_PEGGED',
         },
         {
           address: new PublicKey('CYLt3Bs51QT3WeFhjtYnPGZNDzdd6SY5vfUMa86gT2D8'),
-          tags: [{ tag: 'NON-PEGGED', displayName: 'Non-pegged strategy' }],
+          type: 'NON_PEGGED',
         },
         {
           address: new PublicKey('HoqXSSbQGZS8o6fTqtfn9d14FVCm9WiuRB13zbHNKs7d'),
-          tags: [{ tag: 'NON-PEGGED', displayName: 'Non-pegged strategy' }],
+          type: 'NON_PEGGED',
         },
         {
           address: new PublicKey('7KqB3vRJQDdGwK7ewiDpAxXpTeMmgGicdDdbftQH41XC'),
-          tags: [{ tag: 'NON-PEGGED', displayName: 'Non-pegged strategy' }],
+          type: 'NON_PEGGED',
         },
         {
           address: new PublicKey('BfyQYYr2T9eJfMfq5gPXcq3SUkJSh2ahtk7ZNUCzkx9e'),
-          tags: [{ tag: 'STABLE', displayName: 'Stable strategy' }],
+          type: 'STABLE',
         },
         {
           address: new PublicKey('3w1MiUh6Nn4YJLue8Ut8uwonKvFupLKve9nifDaicBf2'),
-          tags: [{ tag: 'NON-PEGGED', displayName: 'Non-pegged strategy' }],
+          type: 'NON_PEGGED',
         },
         {
           address: new PublicKey('9zBNQtnenpQY6mCoRqbPpeePeSy17h34DZP82oegt1fL'),
-          tags: [{ tag: 'NON-PEGGED', displayName: 'Non-pegged strategy' }],
+          type: 'NON_PEGGED',
         },
       ],
       mints: [
@@ -706,7 +706,7 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
       liveStrategies: [
         {
           address: new PublicKey('2H4xebnp2M9JYgPPfUw58uUQahWF8f1YTNxwwtmdqVYV'),
-          tags: [{ tag: 'STABLE', displayName: 'Stable strategy' }],
+          type: 'STABLE',
         },
       ],
       programId: new PublicKey('E6qbhrt4pFmCotNUSSEh6E5cRQCEJpMcd79Z56EG9KY'),
