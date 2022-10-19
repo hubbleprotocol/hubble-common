@@ -15,11 +15,13 @@ export * from './ShareHolderEntity';
 export * from './StrategyStateEntity';
 export * from './WhirlpoolEntity';
 export * from './WhirlpoolStateEntity';
+export * from './VaultEntity';
 
 export const CLUSTER_TABLE: string = 'cluster';
 export const COLLATERAL_TABLE: string = 'collateral';
 export const LOAN_TABLE: string = 'loan';
 export const OWNER_TABLE: string = 'owner';
+export const VAULT_TABLE: string = 'vault';
 export const TOKEN_TABLE: string = 'token';
 export const METRICS_TABLE: string = 'metrics';
 export const BORROWING_MARKET_STATE_TABLE: string = 'borrowing_market_state';
