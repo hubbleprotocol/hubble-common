@@ -5,7 +5,7 @@ export interface ShareHolderEntity {
   usd_amount: string;
   owner_id: number;
   strategy_state_id: number;
-  in_solend_vault: boolean;
+  external_vault_id: number;
 }
 
 export default ShareHolderEntity;
