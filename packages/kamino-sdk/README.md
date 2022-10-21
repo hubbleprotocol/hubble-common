@@ -308,3 +308,49 @@ const txHash = await sendAndConfirmTransaction(connection, tx, [signer], {
   commitment: 'confirmed',
 });
 ```
+
+### Collect strategy fees and rewards
+
+Collect strategy fees from the treasury fee vaults and rewards from the reward vaults:
+
+```javascript
+import { clusterApiUrl, Connection, PublicKey, sendAndConfirmTransaction, Keypair, Transaction } from '@solana/web3.js';
+import { 
+  Kamino,
+  createTransactionWithExtraBudget,
+  assignBlockInfoToTransaction
+} from '@hubbleprotocol/kamino-sdk';
+import Decimal from 'decimal.js';
+
+// setup Kamino SDK
+const strategyPubkey = new PublicKey('2H4xebnp2M9JYgPPfUw58uUQahWF8f1YTNxwwtmdqVYV'); // you may also fetch strategies from hubble config
+const owner = new PublicKey('HrwbdQYwSnAyVpVHuGQ661HiNbWmGjDp5DdDR9YMw7Bu'); // strategy owner
+const connection = new Connection(clusterApiUrl('mainnet-beta'));
+const kamino = new Kamino('mainnet-beta', connection);
+// setup fee payer (wallet) that will sign the transaction 
+const signer = Keypair.generate();
+
+// create a transaction that has an instruction for extra compute budget
+let tx = createTransactionWithExtraBudget(owner);
+
+// get on-chain data for a Kamino strategy 
+const strategy = await kamino.getStrategyByAddress(strategyPubkey);
+if (!strategy) {
+  throw Error('Could not fetch strategy from the chain');
+}
+const strategyWithAddress = { strategy, address: strategyPubkey };
+
+// create collect fee/rewards instructions
+const collectFeesIx = await kamino.collectFees(strategyWithAddress);
+const collectRewardsIx = await kamino.collectRewards(strategyWithAddress);
+
+tx.add(collectFeesIx);
+tx.add(collectRewardsIx);
+
+// assign block hash, block height and fee payer to the transaction
+tx = await assignBlockInfoToTransaction(connection, tx, signer.publicKey);
+
+const txHash = await sendAndConfirmTransaction(connection, tx, [signer], {
+  commitment: 'confirmed',
+});
+```

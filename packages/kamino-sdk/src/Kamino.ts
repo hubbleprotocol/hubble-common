@@ -31,6 +31,10 @@ import { PriceData } from './models/PriceData';
 import { batchFetch, getAssociatedTokenAddressAndData, getReadOnlyWallet } from './utils';
 import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import {
+  collectFees,
+  CollectFeesAccounts,
+  collectRewards,
+  CollectRewardsAccounts,
   deposit,
   DepositAccounts,
   DepositArgs,
@@ -720,6 +724,85 @@ export class Kamino {
       space: accountSize,
       lamports,
     });
+  }
+
+  /**
+   * Get transaction instruction to collect strategy rewards from the reward vaults.
+   * @param strategy strategy public key or already fetched object
+   * @returns transaction instruction to collect strategy rewards
+   */
+  async collectRewards(strategy: PublicKey | StrategyWithAddress) {
+    const { address: strategyPubkey, strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
+    const whirlpool = await Whirlpool.fetch(this._connection, strategyState.whirlpool);
+    if (!whirlpool) {
+      throw Error(`Could not fetch whirlpool state with pubkey ${strategyState.whirlpool.toString()}`);
+    }
+    const collectRewardsAccounts: CollectRewardsAccounts = {
+      user: strategyState.adminAuthority,
+      strategy: strategyPubkey,
+      globalConfig: strategyState.globalConfig,
+      whirlpool: strategyState.whirlpool,
+      position: strategyState.position,
+      positionTokenAccount: strategyState.positionTokenAccount,
+      baseVaultAuthority: strategyState.baseVaultAuthority,
+      reward0Vault: strategyState.reward0Vault,
+      reward1Vault: strategyState.reward1Vault,
+      reward2Vault: strategyState.reward2Vault,
+      whirlpoolRewardVault0:
+        strategyState.reward0Decimals.toNumber() > 0
+          ? whirlpool.rewardInfos[0].vault
+          : strategyState.baseVaultAuthority,
+      whirlpoolRewardVault1:
+        strategyState.reward1Decimals.toNumber() > 0
+          ? whirlpool.rewardInfos[1].vault
+          : strategyState.baseVaultAuthority,
+      whirlpoolRewardVault2:
+        strategyState.reward2Decimals.toNumber() > 0
+          ? whirlpool.rewardInfos[2].vault
+          : strategyState.baseVaultAuthority,
+      tickArrayLower: strategyState.tickArrayLower,
+      tickArrayUpper: strategyState.tickArrayUpper,
+      tokenProgram: TOKEN_PROGRAM_ID,
+      whirlpoolProgram: WHIRLPOOL_PROGRAM_ID,
+      instructionSysvarAccount: SYSVAR_INSTRUCTIONS_PUBKEY,
+    };
+    return collectRewards(collectRewardsAccounts);
+  }
+
+  /**
+   * Get transaction instruction to collect strategy fees from the treasury fee vaults.
+   * @param strategy strategy public key or already fetched object
+   * @returns transaction instruction to collect strategy fees
+   */
+  async collectFees(strategy: PublicKey | StrategyWithAddress) {
+    const { address: strategyPubkey, strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
+    const { treasuryFeeTokenAVault, treasuryFeeTokenBVault, treasuryFeeVaultAuthority } =
+      await this.getTreasuryFeeVaultPDAs(strategyState.tokenAMint, strategyState.tokenBMint);
+    const accounts: CollectFeesAccounts = {
+      user: strategyState.adminAuthority,
+      strategy: strategyPubkey,
+      globalConfig: strategyState.globalConfig,
+      whirlpool: strategyState.whirlpool,
+      position: strategyState.position,
+      positionTokenAccount: strategyState.positionTokenAccount,
+      baseVaultAuthority: strategyState.baseVaultAuthority,
+      treasuryFeeTokenAVault,
+      treasuryFeeTokenBVault,
+      treasuryFeeVaultAuthority,
+      tokenAMint: strategyState.tokenAMint,
+      tokenBMint: strategyState.tokenBMint,
+      tokenAVault: strategyState.tokenAVault,
+      tokenBVault: strategyState.tokenBVault,
+      whirlpoolTokenVaultA: strategyState.whirlpoolTokenVaultA,
+      whirlpoolTokenVaultB: strategyState.whirlpoolTokenVaultB,
+      tickArrayLower: strategyState.tickArrayLower,
+      tickArrayUpper: strategyState.tickArrayUpper,
+      tokenProgram: TOKEN_PROGRAM_ID,
+      whirlpoolProgram: WHIRLPOOL_PROGRAM_ID,
+      instructionSysvarAccount: SYSVAR_INSTRUCTIONS_PUBKEY,
+    };
+
+    return collectFees(accounts);
   }
 }
 
