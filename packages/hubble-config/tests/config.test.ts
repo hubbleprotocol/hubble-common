@@ -8,9 +8,9 @@ describe('Config Tests', () => {
     expect(config.cluster).toBe(cluster);
   });
 
-  test('should return all 4 configs', () => {
+  test('should return all 3 configs', () => {
     const configs = getAllConfigs();
-    expect(configs.length).toBe(4);
+    expect(configs.length).toBe(3);
   });
 
   test('should throw on invalid cluster name', () => {

@@ -12,6 +12,13 @@ export type KaminoConfig = {
   globalConfig: PublicKey;
 };
 
+export type KaminoLendingConfig = {
+  programId: PublicKey;
+  lendingMarket: PublicKey;
+  lendingMarketAuthority: PublicKey;
+  reserves: ReserveInfo[];
+};
+
 export type CollateralMint = {
   address: PublicKey;
   scopeToken: string;
@@ -28,4 +35,12 @@ export type WhirlpoolToSnapshot = {
 export type StrategyInfo = {
   address: PublicKey;
   type: 'NON_PEGGED' | 'PEGGED' | 'STABLE';
+};
+
+export type ReserveInfo = {
+  address: PublicKey;
+  liquidityMint: PublicKey;
+  collateralMint: PublicKey;
+  collateralSupply: PublicKey;
+  liquiditySupply: PublicKey;
 };
