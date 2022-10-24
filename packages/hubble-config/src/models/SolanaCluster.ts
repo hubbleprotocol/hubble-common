@@ -1,1 +1,1 @@
-export type SolanaCluster = 'mainnet-beta' | 'testnet' | 'devnet' | 'localnet';
+export type SolanaCluster = 'mainnet-beta' | 'devnet' | 'localnet';
