@@ -12,10 +12,12 @@ export type KaminoConfig = {
   globalConfig: PublicKey;
 };
 
-export type KaminoLendingConfig = {
-  programId: PublicKey;
+export type KaminoLendingConfig = Array<KaminoMarketConfig>;
+
+export type KaminoMarketConfig = {
   lendingMarket: PublicKey;
   lendingMarketAuthority: PublicKey;
+  isPrimary: boolean;
   reserves: ReserveInfo[];
 };
 
@@ -38,9 +40,16 @@ export type StrategyInfo = {
 };
 
 export type ReserveInfo = {
+  liquidityToken: {
+    decimals: number;
+    symbol: string;
+    mint: PublicKey;
+  };
   address: PublicKey;
-  liquidityMint: PublicKey;
   collateralMint: PublicKey;
   collateralSupply: PublicKey;
   liquiditySupply: PublicKey;
+  liquidityFeeReceiverAddress: PublicKey;
+  pythOracle: PublicKey;
+  switchboardOracle: PublicKey;
 };
