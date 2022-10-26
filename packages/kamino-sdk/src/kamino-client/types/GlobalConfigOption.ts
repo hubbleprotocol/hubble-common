@@ -302,14 +302,37 @@ export class AdminAuthority {
   }
 }
 
+export interface BlockEmergencySwapJSON {
+  kind: "BlockEmergencySwap"
+}
+
+export class BlockEmergencySwap {
+  static readonly discriminator = 13
+  static readonly kind = "BlockEmergencySwap"
+  readonly discriminator = 13
+  readonly kind = "BlockEmergencySwap"
+
+  toJSON(): BlockEmergencySwapJSON {
+    return {
+      kind: "BlockEmergencySwap",
+    }
+  }
+
+  toEncodable() {
+    return {
+      BlockEmergencySwap: {},
+    }
+  }
+}
+
 export interface ScopeProgramIdJSON {
   kind: "ScopeProgramId"
 }
 
 export class ScopeProgramId {
-  static readonly discriminator = 13
+  static readonly discriminator = 14
   static readonly kind = "ScopeProgramId"
-  readonly discriminator = 13
+  readonly discriminator = 14
   readonly kind = "ScopeProgramId"
 
   toJSON(): ScopeProgramIdJSON {
@@ -330,9 +353,9 @@ export interface ScopePriceIdJSON {
 }
 
 export class ScopePriceId {
-  static readonly discriminator = 14
+  static readonly discriminator = 15
   static readonly kind = "ScopePriceId"
-  readonly discriminator = 14
+  readonly discriminator = 15
   readonly kind = "ScopePriceId"
 
   toJSON(): ScopePriceIdJSON {
@@ -393,6 +416,9 @@ export function fromDecoded(obj: any): types.GlobalConfigOptionKind {
   if ("AdminAuthority" in obj) {
     return new AdminAuthority()
   }
+  if ("BlockEmergencySwap" in obj) {
+    return new BlockEmergencySwap()
+  }
   if ("ScopeProgramId" in obj) {
     return new ScopeProgramId()
   }
@@ -446,6 +472,9 @@ export function fromJSON(
     case "AdminAuthority": {
       return new AdminAuthority()
     }
+    case "BlockEmergencySwap": {
+      return new BlockEmergencySwap()
+    }
     case "ScopeProgramId": {
       return new ScopeProgramId()
     }
@@ -470,6 +499,7 @@ export function layout(property?: string) {
     borsh.struct([], "ActionsAuthority"),
     borsh.struct([], "TreasuryFeeVaults"),
     borsh.struct([], "AdminAuthority"),
+    borsh.struct([], "BlockEmergencySwap"),
     borsh.struct([], "ScopeProgramId"),
     borsh.struct([], "ScopePriceId"),
   ])

@@ -11,16 +11,16 @@ export interface InvestAccounts {
   tokenAVault: PublicKey
   tokenBVault: PublicKey
   baseVaultAuthority: PublicKey
-  whirlpool: PublicKey
+  pool: PublicKey
   tokenProgram: PublicKey
   position: PublicKey
   positionTokenAccount: PublicKey
-  whirlpoolTokenVaultA: PublicKey
-  whirlpoolTokenVaultB: PublicKey
+  poolTokenVaultA: PublicKey
+  poolTokenVaultB: PublicKey
   tickArrayLower: PublicKey
   tickArrayUpper: PublicKey
   scopePrices: PublicKey
-  whirlpoolProgram: PublicKey
+  poolProgram: PublicKey
   instructionSysvarAccount: PublicKey
 }
 
@@ -32,7 +32,7 @@ export function invest(accounts: InvestAccounts) {
     { pubkey: accounts.tokenAVault, isSigner: false, isWritable: true },
     { pubkey: accounts.tokenBVault, isSigner: false, isWritable: true },
     { pubkey: accounts.baseVaultAuthority, isSigner: false, isWritable: false },
-    { pubkey: accounts.whirlpool, isSigner: false, isWritable: true },
+    { pubkey: accounts.pool, isSigner: false, isWritable: true },
     { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.position, isSigner: false, isWritable: true },
     {
@@ -40,20 +40,12 @@ export function invest(accounts: InvestAccounts) {
       isSigner: false,
       isWritable: false,
     },
-    {
-      pubkey: accounts.whirlpoolTokenVaultA,
-      isSigner: false,
-      isWritable: true,
-    },
-    {
-      pubkey: accounts.whirlpoolTokenVaultB,
-      isSigner: false,
-      isWritable: true,
-    },
+    { pubkey: accounts.poolTokenVaultA, isSigner: false, isWritable: true },
+    { pubkey: accounts.poolTokenVaultB, isSigner: false, isWritable: true },
     { pubkey: accounts.tickArrayLower, isSigner: false, isWritable: true },
     { pubkey: accounts.tickArrayUpper, isSigner: false, isWritable: true },
     { pubkey: accounts.scopePrices, isSigner: false, isWritable: false },
-    { pubkey: accounts.whirlpoolProgram, isSigner: false, isWritable: false },
+    { pubkey: accounts.poolProgram, isSigner: false, isWritable: false },
     {
       pubkey: accounts.instructionSysvarAccount,
       isSigner: false,

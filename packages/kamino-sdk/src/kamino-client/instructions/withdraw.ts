@@ -12,15 +12,15 @@ export interface WithdrawAccounts {
   user: PublicKey
   strategy: PublicKey
   globalConfig: PublicKey
-  whirlpool: PublicKey
+  pool: PublicKey
   position: PublicKey
   tickArrayLower: PublicKey
   tickArrayUpper: PublicKey
   tokenAVault: PublicKey
   tokenBVault: PublicKey
   baseVaultAuthority: PublicKey
-  whirlpoolTokenVaultA: PublicKey
-  whirlpoolTokenVaultB: PublicKey
+  poolTokenVaultA: PublicKey
+  poolTokenVaultB: PublicKey
   tokenAAta: PublicKey
   tokenBAta: PublicKey
   tokenAMint: PublicKey
@@ -33,7 +33,7 @@ export interface WithdrawAccounts {
   treasuryFeeVaultAuthority: PublicKey
   tokenProgram: PublicKey
   positionTokenAccount: PublicKey
-  whirlpoolProgram: PublicKey
+  poolProgram: PublicKey
   instructionSysvarAccount: PublicKey
 }
 
@@ -44,23 +44,15 @@ export function withdraw(args: WithdrawArgs, accounts: WithdrawAccounts) {
     { pubkey: accounts.user, isSigner: true, isWritable: true },
     { pubkey: accounts.strategy, isSigner: false, isWritable: true },
     { pubkey: accounts.globalConfig, isSigner: false, isWritable: false },
-    { pubkey: accounts.whirlpool, isSigner: false, isWritable: true },
+    { pubkey: accounts.pool, isSigner: false, isWritable: true },
     { pubkey: accounts.position, isSigner: false, isWritable: true },
     { pubkey: accounts.tickArrayLower, isSigner: false, isWritable: true },
     { pubkey: accounts.tickArrayUpper, isSigner: false, isWritable: true },
     { pubkey: accounts.tokenAVault, isSigner: false, isWritable: true },
     { pubkey: accounts.tokenBVault, isSigner: false, isWritable: true },
     { pubkey: accounts.baseVaultAuthority, isSigner: false, isWritable: false },
-    {
-      pubkey: accounts.whirlpoolTokenVaultA,
-      isSigner: false,
-      isWritable: true,
-    },
-    {
-      pubkey: accounts.whirlpoolTokenVaultB,
-      isSigner: false,
-      isWritable: true,
-    },
+    { pubkey: accounts.poolTokenVaultA, isSigner: false, isWritable: true },
+    { pubkey: accounts.poolTokenVaultB, isSigner: false, isWritable: true },
     { pubkey: accounts.tokenAAta, isSigner: false, isWritable: true },
     { pubkey: accounts.tokenBAta, isSigner: false, isWritable: true },
     { pubkey: accounts.tokenAMint, isSigner: false, isWritable: false },
@@ -93,7 +85,7 @@ export function withdraw(args: WithdrawArgs, accounts: WithdrawAccounts) {
       isSigner: false,
       isWritable: true,
     },
-    { pubkey: accounts.whirlpoolProgram, isSigner: false, isWritable: false },
+    { pubkey: accounts.poolProgram, isSigner: false, isWritable: false },
     {
       pubkey: accounts.instructionSysvarAccount,
       isSigner: false,

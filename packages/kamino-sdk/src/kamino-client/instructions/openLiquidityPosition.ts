@@ -13,7 +13,7 @@ export interface OpenLiquidityPositionArgs {
 export interface OpenLiquidityPositionAccounts {
   adminAuthority: PublicKey
   strategy: PublicKey
-  whirlpool: PublicKey
+  pool: PublicKey
   tickerArrayLower: PublicKey
   tickerArrayUpper: PublicKey
   baseVaultAuthority: PublicKey
@@ -31,9 +31,13 @@ export interface OpenLiquidityPositionAccounts {
   associatedTokenProgram: PublicKey
   metadataProgram: PublicKey
   metadataUpdateAuth: PublicKey
-  whirlpoolProgram: PublicKey
-  /** Readonly (can be rent as a safe `default`) */
-  oldPositionOrRent: PublicKey
+  poolProgram: PublicKey
+  /** If strategy is uninitialized then pass base_vault_authority */
+  oldPositionOrBaseVaultAuthority: PublicKey
+  /** If strategy is uninitialized then pass base_vault_authority */
+  oldPositionMintOrBaseVaultAuthority: PublicKey
+  /** If strategy is uninitialized then pass base_vault_authority */
+  oldPositionTokenAccountOrBaseVaultAuthority: PublicKey
 }
 
 export const layout = borsh.struct([
@@ -49,7 +53,7 @@ export function openLiquidityPosition(
   const keys: Array<AccountMeta> = [
     { pubkey: accounts.adminAuthority, isSigner: true, isWritable: true },
     { pubkey: accounts.strategy, isSigner: false, isWritable: true },
-    { pubkey: accounts.whirlpool, isSigner: false, isWritable: true },
+    { pubkey: accounts.pool, isSigner: false, isWritable: true },
     { pubkey: accounts.tickerArrayLower, isSigner: false, isWritable: false },
     { pubkey: accounts.tickerArrayUpper, isSigner: false, isWritable: false },
     { pubkey: accounts.baseVaultAuthority, isSigner: false, isWritable: true },
@@ -75,8 +79,22 @@ export function openLiquidityPosition(
     },
     { pubkey: accounts.metadataProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.metadataUpdateAuth, isSigner: false, isWritable: false },
-    { pubkey: accounts.whirlpoolProgram, isSigner: false, isWritable: false },
-    { pubkey: accounts.oldPositionOrRent, isSigner: false, isWritable: false },
+    { pubkey: accounts.poolProgram, isSigner: false, isWritable: false },
+    {
+      pubkey: accounts.oldPositionOrBaseVaultAuthority,
+      isSigner: false,
+      isWritable: true,
+    },
+    {
+      pubkey: accounts.oldPositionMintOrBaseVaultAuthority,
+      isSigner: false,
+      isWritable: true,
+    },
+    {
+      pubkey: accounts.oldPositionTokenAccountOrBaseVaultAuthority,
+      isSigner: false,
+      isWritable: true,
+    },
   ]
   const identifier = Buffer.from([204, 234, 204, 219, 6, 91, 96, 241])
   const buffer = Buffer.alloc(1000)

@@ -25,6 +25,11 @@ export { Tick } from "./Tick"
 export type { TickFields, TickJSON } from "./Tick"
 export { RewardInfo } from "./RewardInfo"
 export type { RewardInfoFields, RewardInfoJSON } from "./RewardInfo"
+export { KaminoRewardInfo } from "./KaminoRewardInfo"
+export type {
+  KaminoRewardInfoFields,
+  KaminoRewardInfoJSON,
+} from "./KaminoRewardInfo"
 export { WithdrawalCaps } from "./WithdrawalCaps"
 export type { WithdrawalCapsFields, WithdrawalCapsJSON } from "./WithdrawalCaps"
 export { Price } from "./Price"
@@ -121,6 +126,7 @@ export type GlobalConfigOptionKind =
   | GlobalConfigOption.ActionsAuthority
   | GlobalConfigOption.TreasuryFeeVaults
   | GlobalConfigOption.AdminAuthority
+  | GlobalConfigOption.BlockEmergencySwap
   | GlobalConfigOption.ScopeProgramId
   | GlobalConfigOption.ScopePriceId
 export type GlobalConfigOptionJSON =
@@ -137,6 +143,7 @@ export type GlobalConfigOptionJSON =
   | GlobalConfigOption.ActionsAuthorityJSON
   | GlobalConfigOption.TreasuryFeeVaultsJSON
   | GlobalConfigOption.AdminAuthorityJSON
+  | GlobalConfigOption.BlockEmergencySwapJSON
   | GlobalConfigOption.ScopeProgramIdJSON
   | GlobalConfigOption.ScopePriceIdJSON
 
@@ -152,7 +159,7 @@ export type StrategyConfigOptionKind =
   | StrategyConfigOption.UpdateWithdrawalCapBInterval
   | StrategyConfigOption.UpdateWithdrawalCapBCurrentTotal
   | StrategyConfigOption.UpdateMaxDeviationBps
-  | StrategyConfigOption.UpdateSwapUnevenMaxSlippage
+  | StrategyConfigOption.UpdateSwapVaultMaxSlippage
   | StrategyConfigOption.UpdateStrategyType
   | StrategyConfigOption.UpdateDepositFee
   | StrategyConfigOption.UpdateWithdrawFee
@@ -161,6 +168,12 @@ export type StrategyConfigOptionKind =
   | StrategyConfigOption.UpdateReward1Fee
   | StrategyConfigOption.UpdateReward2Fee
   | StrategyConfigOption.UpdateAdminAuthority
+  | StrategyConfigOption.KaminoRewardIndex0TS
+  | StrategyConfigOption.KaminoRewardIndex1TS
+  | StrategyConfigOption.KaminoRewardIndex2TS
+  | StrategyConfigOption.KaminoRewardIndex0RewardPerSecond
+  | StrategyConfigOption.KaminoRewardIndex1RewardPerSecond
+  | StrategyConfigOption.KaminoRewardIndex2RewardPerSecond
 export type StrategyConfigOptionJSON =
   | StrategyConfigOption.UpdateDepositCapJSON
   | StrategyConfigOption.UpdateDepositCapIxnJSON
@@ -171,7 +184,7 @@ export type StrategyConfigOptionJSON =
   | StrategyConfigOption.UpdateWithdrawalCapBIntervalJSON
   | StrategyConfigOption.UpdateWithdrawalCapBCurrentTotalJSON
   | StrategyConfigOption.UpdateMaxDeviationBpsJSON
-  | StrategyConfigOption.UpdateSwapUnevenMaxSlippageJSON
+  | StrategyConfigOption.UpdateSwapVaultMaxSlippageJSON
   | StrategyConfigOption.UpdateStrategyTypeJSON
   | StrategyConfigOption.UpdateDepositFeeJSON
   | StrategyConfigOption.UpdateWithdrawFeeJSON
@@ -180,6 +193,12 @@ export type StrategyConfigOptionJSON =
   | StrategyConfigOption.UpdateReward1FeeJSON
   | StrategyConfigOption.UpdateReward2FeeJSON
   | StrategyConfigOption.UpdateAdminAuthorityJSON
+  | StrategyConfigOption.KaminoRewardIndex0TSJSON
+  | StrategyConfigOption.KaminoRewardIndex1TSJSON
+  | StrategyConfigOption.KaminoRewardIndex2TSJSON
+  | StrategyConfigOption.KaminoRewardIndex0RewardPerSecondJSON
+  | StrategyConfigOption.KaminoRewardIndex1RewardPerSecondJSON
+  | StrategyConfigOption.KaminoRewardIndex2RewardPerSecondJSON
 
 export { StrategyStatus }
 
@@ -324,5 +343,5 @@ export type ScopePriceIdJSON =
 
 export { DEX }
 
-export type DEXKind = DEX.Raydium | DEX.Orca
-export type DEXJSON = DEX.RaydiumJSON | DEX.OrcaJSON
+export type DEXKind = DEX.Crema | DEX.Raydium | DEX.Orca
+export type DEXJSON = DEX.CremaJSON | DEX.RaydiumJSON | DEX.OrcaJSON

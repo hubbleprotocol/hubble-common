@@ -341,11 +341,9 @@ if (!strategy) {
 const strategyWithAddress = { strategy, address: strategyPubkey };
 
 // create collect fee/rewards instructions
-const collectFeesIx = await kamino.collectFees(strategyWithAddress);
-const collectRewardsIx = await kamino.collectRewards(strategyWithAddress);
+const collectIx = await kamino.collectFeesAndRewards(strategyWithAddress);
 
-tx.add(collectFeesIx);
-tx.add(collectRewardsIx);
+tx.add(collectIx);
 
 // assign block hash, block height and fee payer to the transaction
 tx = await assignBlockInfoToTransaction(connection, tx, signer.publicKey);
@@ -353,4 +351,49 @@ tx = await assignBlockInfoToTransaction(connection, tx, signer.publicKey);
 const txHash = await sendAndConfirmTransaction(connection, tx, [signer], {
   commitment: 'confirmed',
 });
+```
+
+### Rebalance strategy
+
+```javascript
+import { clusterApiUrl, Connection, PublicKey, sendAndConfirmTransaction, Keypair, Transaction } from '@solana/web3.js';
+import {
+  Kamino,
+  createTransactionWithExtraBudget,
+  assignBlockInfoToTransaction
+} from '@hubbleprotocol/kamino-sdk';
+import Decimal from 'decimal.js';
+
+// setup Kamino SDK
+const strategyPubkey = new PublicKey('2H4xebnp2M9JYgPPfUw58uUQahWF8f1YTNxwwtmdqVYV'); // you may also fetch strategies from hubble config
+const owner = new PublicKey('HrwbdQYwSnAyVpVHuGQ661HiNbWmGjDp5DdDR9YMw7Bu'); // strategy owner
+const connection = new Connection(clusterApiUrl('mainnet-beta'));
+const kamino = new Kamino('mainnet-beta', connection);
+// setup fee payer (wallet) that will sign the transaction 
+const signer = Keypair.generate();
+// setup new position mint
+const newPosition = Keypair.generate();
+
+// create a transaction that has an instruction for extra compute budget
+let tx = createTransactionWithExtraBudget(owner);
+
+// rebalance a USDH-USDC strategy to range 0.9 - 1.1 
+const rebalanceInstructions = await kamino.rebalance(
+  strategy,
+  newPosition.publicKey,
+  new Decimal(0.9),
+  new Decimal(1.1),
+  signer.publicKey
+);
+
+for (const rebalanceInstruction of rebalanceInstructions) {
+  let tx = new Transaction();
+  // assign block hash, block height and fee payer to the transaction
+  tx = await assignBlockInfoToTransaction(connection, tx, owner);
+  const txHash = await sendAndConfirmTransaction(connection, tx, [signer, newPosition], {
+    commitment: 'finalized',
+  });
+  console.log('transaction hash', txHash);
+}
+
 ```

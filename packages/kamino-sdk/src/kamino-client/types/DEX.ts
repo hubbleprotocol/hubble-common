@@ -3,14 +3,37 @@ import BN from "bn.js" // eslint-disable-line @typescript-eslint/no-unused-vars
 import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
 import * as borsh from "@project-serum/borsh"
 
+export interface CremaJSON {
+  kind: "Crema"
+}
+
+export class Crema {
+  static readonly discriminator = 0
+  static readonly kind = "Crema"
+  readonly discriminator = 0
+  readonly kind = "Crema"
+
+  toJSON(): CremaJSON {
+    return {
+      kind: "Crema",
+    }
+  }
+
+  toEncodable() {
+    return {
+      Crema: {},
+    }
+  }
+}
+
 export interface RaydiumJSON {
   kind: "Raydium"
 }
 
 export class Raydium {
-  static readonly discriminator = 0
+  static readonly discriminator = 1
   static readonly kind = "Raydium"
-  readonly discriminator = 0
+  readonly discriminator = 1
   readonly kind = "Raydium"
 
   toJSON(): RaydiumJSON {
@@ -31,9 +54,9 @@ export interface OrcaJSON {
 }
 
 export class Orca {
-  static readonly discriminator = 1
+  static readonly discriminator = 2
   static readonly kind = "Orca"
-  readonly discriminator = 1
+  readonly discriminator = 2
   readonly kind = "Orca"
 
   toJSON(): OrcaJSON {
@@ -55,6 +78,9 @@ export function fromDecoded(obj: any): types.DEXKind {
     throw new Error("Invalid enum object")
   }
 
+  if ("Crema" in obj) {
+    return new Crema()
+  }
   if ("Raydium" in obj) {
     return new Raydium()
   }
@@ -67,6 +93,9 @@ export function fromDecoded(obj: any): types.DEXKind {
 
 export function fromJSON(obj: types.DEXJSON): types.DEXKind {
   switch (obj.kind) {
+    case "Crema": {
+      return new Crema()
+    }
     case "Raydium": {
       return new Raydium()
     }
@@ -78,6 +107,7 @@ export function fromJSON(obj: types.DEXJSON): types.DEXKind {
 
 export function layout(property?: string) {
   const ret = borsh.rustEnum([
+    borsh.struct([], "Crema"),
     borsh.struct([], "Raydium"),
     borsh.struct([], "Orca"),
   ])

@@ -12,7 +12,7 @@ export interface ExecutiveWithdrawAccounts {
   adminAuthority: PublicKey
   strategy: PublicKey
   globalConfig: PublicKey
-  whirlpool: PublicKey
+  pool: PublicKey
   position: PublicKey
   positionTokenAccount: PublicKey
   tickArrayLower: PublicKey
@@ -20,13 +20,13 @@ export interface ExecutiveWithdrawAccounts {
   tokenAVault: PublicKey
   tokenBVault: PublicKey
   baseVaultAuthority: PublicKey
-  whirlpoolTokenVaultA: PublicKey
-  whirlpoolTokenVaultB: PublicKey
+  poolTokenVaultA: PublicKey
+  poolTokenVaultB: PublicKey
   tokenAMint: PublicKey
   tokenBMint: PublicKey
   scopePrices: PublicKey
   tokenProgram: PublicKey
-  whirlpoolProgram: PublicKey
+  poolProgram: PublicKey
 }
 
 export const layout = borsh.struct([borsh.u8("action")])
@@ -39,7 +39,7 @@ export function executiveWithdraw(
     { pubkey: accounts.adminAuthority, isSigner: true, isWritable: true },
     { pubkey: accounts.strategy, isSigner: false, isWritable: true },
     { pubkey: accounts.globalConfig, isSigner: false, isWritable: false },
-    { pubkey: accounts.whirlpool, isSigner: false, isWritable: true },
+    { pubkey: accounts.pool, isSigner: false, isWritable: true },
     { pubkey: accounts.position, isSigner: false, isWritable: true },
     {
       pubkey: accounts.positionTokenAccount,
@@ -51,21 +51,13 @@ export function executiveWithdraw(
     { pubkey: accounts.tokenAVault, isSigner: false, isWritable: true },
     { pubkey: accounts.tokenBVault, isSigner: false, isWritable: true },
     { pubkey: accounts.baseVaultAuthority, isSigner: false, isWritable: false },
-    {
-      pubkey: accounts.whirlpoolTokenVaultA,
-      isSigner: false,
-      isWritable: true,
-    },
-    {
-      pubkey: accounts.whirlpoolTokenVaultB,
-      isSigner: false,
-      isWritable: true,
-    },
+    { pubkey: accounts.poolTokenVaultA, isSigner: false, isWritable: true },
+    { pubkey: accounts.poolTokenVaultB, isSigner: false, isWritable: true },
     { pubkey: accounts.tokenAMint, isSigner: false, isWritable: true },
     { pubkey: accounts.tokenBMint, isSigner: false, isWritable: true },
     { pubkey: accounts.scopePrices, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
-    { pubkey: accounts.whirlpoolProgram, isSigner: false, isWritable: false },
+    { pubkey: accounts.poolProgram, isSigner: false, isWritable: false },
   ]
   const identifier = Buffer.from([159, 39, 110, 137, 100, 234, 204, 141])
   const buffer = Buffer.alloc(1000)

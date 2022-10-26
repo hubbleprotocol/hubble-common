@@ -9,9 +9,9 @@ export interface WhirlpoolStrategyFields {
   globalConfig: PublicKey
   baseVaultAuthority: PublicKey
   baseVaultAuthorityBump: BN
-  whirlpool: PublicKey
-  whirlpoolTokenVaultA: PublicKey
-  whirlpoolTokenVaultB: PublicKey
+  pool: PublicKey
+  poolTokenVaultA: PublicKey
+  poolTokenVaultB: PublicKey
   tickArrayLower: PublicKey
   tickArrayUpper: PublicKey
   position: PublicKey
@@ -62,7 +62,7 @@ export interface WhirlpoolStrategyFields {
   withdrawalCapA: types.WithdrawalCapsFields
   withdrawalCapB: types.WithdrawalCapsFields
   maxPriceDeviationBps: BN
-  swapUnevenMaxSlippage: BN
+  swapVaultMaxSlippage: BN
   strategyType: BN
   depositFee: BN
   withdrawFee: BN
@@ -71,12 +71,15 @@ export interface WhirlpoolStrategyFields {
   reward1Fee: BN
   reward2Fee: BN
   positionTimestamp: BN
+  kaminoRewards: Array<types.KaminoRewardInfoFields>
+  strategyDex: BN
+  raydiumProtocolPositionOrBaseVaultAuthority: PublicKey
   padding1: Array<BN>
-  padding2: Array<BN>
   padding3: Array<BN>
   padding4: Array<BN>
   padding5: Array<BN>
   padding6: Array<BN>
+  padding7: Array<BN>
 }
 
 export interface WhirlpoolStrategyJSON {
@@ -84,9 +87,9 @@ export interface WhirlpoolStrategyJSON {
   globalConfig: string
   baseVaultAuthority: string
   baseVaultAuthorityBump: string
-  whirlpool: string
-  whirlpoolTokenVaultA: string
-  whirlpoolTokenVaultB: string
+  pool: string
+  poolTokenVaultA: string
+  poolTokenVaultB: string
   tickArrayLower: string
   tickArrayUpper: string
   position: string
@@ -137,7 +140,7 @@ export interface WhirlpoolStrategyJSON {
   withdrawalCapA: types.WithdrawalCapsJSON
   withdrawalCapB: types.WithdrawalCapsJSON
   maxPriceDeviationBps: string
-  swapUnevenMaxSlippage: string
+  swapVaultMaxSlippage: string
   strategyType: string
   depositFee: string
   withdrawFee: string
@@ -146,12 +149,15 @@ export interface WhirlpoolStrategyJSON {
   reward1Fee: string
   reward2Fee: string
   positionTimestamp: string
+  kaminoRewards: Array<types.KaminoRewardInfoJSON>
+  strategyDex: string
+  raydiumProtocolPositionOrBaseVaultAuthority: string
   padding1: Array<string>
-  padding2: Array<string>
   padding3: Array<string>
   padding4: Array<string>
   padding5: Array<string>
   padding6: Array<string>
+  padding7: Array<string>
 }
 
 export class WhirlpoolStrategy {
@@ -159,9 +165,9 @@ export class WhirlpoolStrategy {
   readonly globalConfig: PublicKey
   readonly baseVaultAuthority: PublicKey
   readonly baseVaultAuthorityBump: BN
-  readonly whirlpool: PublicKey
-  readonly whirlpoolTokenVaultA: PublicKey
-  readonly whirlpoolTokenVaultB: PublicKey
+  readonly pool: PublicKey
+  readonly poolTokenVaultA: PublicKey
+  readonly poolTokenVaultB: PublicKey
   readonly tickArrayLower: PublicKey
   readonly tickArrayUpper: PublicKey
   readonly position: PublicKey
@@ -212,7 +218,7 @@ export class WhirlpoolStrategy {
   readonly withdrawalCapA: types.WithdrawalCaps
   readonly withdrawalCapB: types.WithdrawalCaps
   readonly maxPriceDeviationBps: BN
-  readonly swapUnevenMaxSlippage: BN
+  readonly swapVaultMaxSlippage: BN
   readonly strategyType: BN
   readonly depositFee: BN
   readonly withdrawFee: BN
@@ -221,12 +227,15 @@ export class WhirlpoolStrategy {
   readonly reward1Fee: BN
   readonly reward2Fee: BN
   readonly positionTimestamp: BN
+  readonly kaminoRewards: Array<types.KaminoRewardInfo>
+  readonly strategyDex: BN
+  readonly raydiumProtocolPositionOrBaseVaultAuthority: PublicKey
   readonly padding1: Array<BN>
-  readonly padding2: Array<BN>
   readonly padding3: Array<BN>
   readonly padding4: Array<BN>
   readonly padding5: Array<BN>
   readonly padding6: Array<BN>
+  readonly padding7: Array<BN>
 
   static readonly discriminator = Buffer.from([
     190, 178, 231, 184, 49, 186, 103, 13,
@@ -237,9 +246,9 @@ export class WhirlpoolStrategy {
     borsh.publicKey("globalConfig"),
     borsh.publicKey("baseVaultAuthority"),
     borsh.u64("baseVaultAuthorityBump"),
-    borsh.publicKey("whirlpool"),
-    borsh.publicKey("whirlpoolTokenVaultA"),
-    borsh.publicKey("whirlpoolTokenVaultB"),
+    borsh.publicKey("pool"),
+    borsh.publicKey("poolTokenVaultA"),
+    borsh.publicKey("poolTokenVaultB"),
     borsh.publicKey("tickArrayLower"),
     borsh.publicKey("tickArrayUpper"),
     borsh.publicKey("position"),
@@ -290,7 +299,7 @@ export class WhirlpoolStrategy {
     types.WithdrawalCaps.layout("withdrawalCapA"),
     types.WithdrawalCaps.layout("withdrawalCapB"),
     borsh.u64("maxPriceDeviationBps"),
-    borsh.u64("swapUnevenMaxSlippage"),
+    borsh.u64("swapVaultMaxSlippage"),
     borsh.u64("strategyType"),
     borsh.u64("depositFee"),
     borsh.u64("withdrawFee"),
@@ -299,12 +308,15 @@ export class WhirlpoolStrategy {
     borsh.u64("reward1Fee"),
     borsh.u64("reward2Fee"),
     borsh.u64("positionTimestamp"),
-    borsh.array(borsh.u128(), 20, "padding1"),
-    borsh.array(borsh.u128(), 32, "padding2"),
-    borsh.array(borsh.u128(), 32, "padding3"),
+    borsh.array(types.KaminoRewardInfo.layout(), 3, "kaminoRewards"),
+    borsh.u64("strategyDex"),
+    borsh.publicKey("raydiumProtocolPositionOrBaseVaultAuthority"),
+    borsh.array(borsh.u64(), 2, "padding1"),
+    borsh.array(borsh.u128(), 26, "padding3"),
     borsh.array(borsh.u128(), 32, "padding4"),
     borsh.array(borsh.u128(), 32, "padding5"),
     borsh.array(borsh.u128(), 32, "padding6"),
+    borsh.array(borsh.u128(), 32, "padding7"),
   ])
 
   constructor(fields: WhirlpoolStrategyFields) {
@@ -312,9 +324,9 @@ export class WhirlpoolStrategy {
     this.globalConfig = fields.globalConfig
     this.baseVaultAuthority = fields.baseVaultAuthority
     this.baseVaultAuthorityBump = fields.baseVaultAuthorityBump
-    this.whirlpool = fields.whirlpool
-    this.whirlpoolTokenVaultA = fields.whirlpoolTokenVaultA
-    this.whirlpoolTokenVaultB = fields.whirlpoolTokenVaultB
+    this.pool = fields.pool
+    this.poolTokenVaultA = fields.poolTokenVaultA
+    this.poolTokenVaultB = fields.poolTokenVaultB
     this.tickArrayLower = fields.tickArrayLower
     this.tickArrayUpper = fields.tickArrayUpper
     this.position = fields.position
@@ -365,7 +377,7 @@ export class WhirlpoolStrategy {
     this.withdrawalCapA = new types.WithdrawalCaps({ ...fields.withdrawalCapA })
     this.withdrawalCapB = new types.WithdrawalCaps({ ...fields.withdrawalCapB })
     this.maxPriceDeviationBps = fields.maxPriceDeviationBps
-    this.swapUnevenMaxSlippage = fields.swapUnevenMaxSlippage
+    this.swapVaultMaxSlippage = fields.swapVaultMaxSlippage
     this.strategyType = fields.strategyType
     this.depositFee = fields.depositFee
     this.withdrawFee = fields.withdrawFee
@@ -374,12 +386,18 @@ export class WhirlpoolStrategy {
     this.reward1Fee = fields.reward1Fee
     this.reward2Fee = fields.reward2Fee
     this.positionTimestamp = fields.positionTimestamp
+    this.kaminoRewards = fields.kaminoRewards.map(
+      (item) => new types.KaminoRewardInfo({ ...item })
+    )
+    this.strategyDex = fields.strategyDex
+    this.raydiumProtocolPositionOrBaseVaultAuthority =
+      fields.raydiumProtocolPositionOrBaseVaultAuthority
     this.padding1 = fields.padding1
-    this.padding2 = fields.padding2
     this.padding3 = fields.padding3
     this.padding4 = fields.padding4
     this.padding5 = fields.padding5
     this.padding6 = fields.padding6
+    this.padding7 = fields.padding7
   }
 
   static async fetch(
@@ -428,9 +446,9 @@ export class WhirlpoolStrategy {
       globalConfig: dec.globalConfig,
       baseVaultAuthority: dec.baseVaultAuthority,
       baseVaultAuthorityBump: dec.baseVaultAuthorityBump,
-      whirlpool: dec.whirlpool,
-      whirlpoolTokenVaultA: dec.whirlpoolTokenVaultA,
-      whirlpoolTokenVaultB: dec.whirlpoolTokenVaultB,
+      pool: dec.pool,
+      poolTokenVaultA: dec.poolTokenVaultA,
+      poolTokenVaultB: dec.poolTokenVaultB,
       tickArrayLower: dec.tickArrayLower,
       tickArrayUpper: dec.tickArrayUpper,
       position: dec.position,
@@ -481,7 +499,7 @@ export class WhirlpoolStrategy {
       withdrawalCapA: types.WithdrawalCaps.fromDecoded(dec.withdrawalCapA),
       withdrawalCapB: types.WithdrawalCaps.fromDecoded(dec.withdrawalCapB),
       maxPriceDeviationBps: dec.maxPriceDeviationBps,
-      swapUnevenMaxSlippage: dec.swapUnevenMaxSlippage,
+      swapVaultMaxSlippage: dec.swapVaultMaxSlippage,
       strategyType: dec.strategyType,
       depositFee: dec.depositFee,
       withdrawFee: dec.withdrawFee,
@@ -490,12 +508,20 @@ export class WhirlpoolStrategy {
       reward1Fee: dec.reward1Fee,
       reward2Fee: dec.reward2Fee,
       positionTimestamp: dec.positionTimestamp,
+      kaminoRewards: dec.kaminoRewards.map(
+        (
+          item: any /* eslint-disable-line @typescript-eslint/no-explicit-any */
+        ) => types.KaminoRewardInfo.fromDecoded(item)
+      ),
+      strategyDex: dec.strategyDex,
+      raydiumProtocolPositionOrBaseVaultAuthority:
+        dec.raydiumProtocolPositionOrBaseVaultAuthority,
       padding1: dec.padding1,
-      padding2: dec.padding2,
       padding3: dec.padding3,
       padding4: dec.padding4,
       padding5: dec.padding5,
       padding6: dec.padding6,
+      padding7: dec.padding7,
     })
   }
 
@@ -505,9 +531,9 @@ export class WhirlpoolStrategy {
       globalConfig: this.globalConfig.toString(),
       baseVaultAuthority: this.baseVaultAuthority.toString(),
       baseVaultAuthorityBump: this.baseVaultAuthorityBump.toString(),
-      whirlpool: this.whirlpool.toString(),
-      whirlpoolTokenVaultA: this.whirlpoolTokenVaultA.toString(),
-      whirlpoolTokenVaultB: this.whirlpoolTokenVaultB.toString(),
+      pool: this.pool.toString(),
+      poolTokenVaultA: this.poolTokenVaultA.toString(),
+      poolTokenVaultB: this.poolTokenVaultB.toString(),
       tickArrayLower: this.tickArrayLower.toString(),
       tickArrayUpper: this.tickArrayUpper.toString(),
       position: this.position.toString(),
@@ -558,7 +584,7 @@ export class WhirlpoolStrategy {
       withdrawalCapA: this.withdrawalCapA.toJSON(),
       withdrawalCapB: this.withdrawalCapB.toJSON(),
       maxPriceDeviationBps: this.maxPriceDeviationBps.toString(),
-      swapUnevenMaxSlippage: this.swapUnevenMaxSlippage.toString(),
+      swapVaultMaxSlippage: this.swapVaultMaxSlippage.toString(),
       strategyType: this.strategyType.toString(),
       depositFee: this.depositFee.toString(),
       withdrawFee: this.withdrawFee.toString(),
@@ -567,12 +593,16 @@ export class WhirlpoolStrategy {
       reward1Fee: this.reward1Fee.toString(),
       reward2Fee: this.reward2Fee.toString(),
       positionTimestamp: this.positionTimestamp.toString(),
+      kaminoRewards: this.kaminoRewards.map((item) => item.toJSON()),
+      strategyDex: this.strategyDex.toString(),
+      raydiumProtocolPositionOrBaseVaultAuthority:
+        this.raydiumProtocolPositionOrBaseVaultAuthority.toString(),
       padding1: this.padding1.map((item) => item.toString()),
-      padding2: this.padding2.map((item) => item.toString()),
       padding3: this.padding3.map((item) => item.toString()),
       padding4: this.padding4.map((item) => item.toString()),
       padding5: this.padding5.map((item) => item.toString()),
       padding6: this.padding6.map((item) => item.toString()),
+      padding7: this.padding7.map((item) => item.toString()),
     }
   }
 
@@ -582,9 +612,9 @@ export class WhirlpoolStrategy {
       globalConfig: new PublicKey(obj.globalConfig),
       baseVaultAuthority: new PublicKey(obj.baseVaultAuthority),
       baseVaultAuthorityBump: new BN(obj.baseVaultAuthorityBump),
-      whirlpool: new PublicKey(obj.whirlpool),
-      whirlpoolTokenVaultA: new PublicKey(obj.whirlpoolTokenVaultA),
-      whirlpoolTokenVaultB: new PublicKey(obj.whirlpoolTokenVaultB),
+      pool: new PublicKey(obj.pool),
+      poolTokenVaultA: new PublicKey(obj.poolTokenVaultA),
+      poolTokenVaultB: new PublicKey(obj.poolTokenVaultB),
       tickArrayLower: new PublicKey(obj.tickArrayLower),
       tickArrayUpper: new PublicKey(obj.tickArrayUpper),
       position: new PublicKey(obj.position),
@@ -635,7 +665,7 @@ export class WhirlpoolStrategy {
       withdrawalCapA: types.WithdrawalCaps.fromJSON(obj.withdrawalCapA),
       withdrawalCapB: types.WithdrawalCaps.fromJSON(obj.withdrawalCapB),
       maxPriceDeviationBps: new BN(obj.maxPriceDeviationBps),
-      swapUnevenMaxSlippage: new BN(obj.swapUnevenMaxSlippage),
+      swapVaultMaxSlippage: new BN(obj.swapVaultMaxSlippage),
       strategyType: new BN(obj.strategyType),
       depositFee: new BN(obj.depositFee),
       withdrawFee: new BN(obj.withdrawFee),
@@ -644,12 +674,19 @@ export class WhirlpoolStrategy {
       reward1Fee: new BN(obj.reward1Fee),
       reward2Fee: new BN(obj.reward2Fee),
       positionTimestamp: new BN(obj.positionTimestamp),
+      kaminoRewards: obj.kaminoRewards.map((item) =>
+        types.KaminoRewardInfo.fromJSON(item)
+      ),
+      strategyDex: new BN(obj.strategyDex),
+      raydiumProtocolPositionOrBaseVaultAuthority: new PublicKey(
+        obj.raydiumProtocolPositionOrBaseVaultAuthority
+      ),
       padding1: obj.padding1.map((item) => new BN(item)),
-      padding2: obj.padding2.map((item) => new BN(item)),
       padding3: obj.padding3.map((item) => new BN(item)),
       padding4: obj.padding4.map((item) => new BN(item)),
       padding5: obj.padding5.map((item) => new BN(item)),
       padding6: obj.padding6.map((item) => new BN(item)),
+      padding7: obj.padding7.map((item) => new BN(item)),
     })
   }
 }

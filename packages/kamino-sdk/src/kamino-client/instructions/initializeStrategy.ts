@@ -14,7 +14,7 @@ export interface InitializeStrategyAccounts {
   strategy: PublicKey
   globalConfig: PublicKey
   /** Program owner also checked. */
-  whirlpool: PublicKey
+  pool: PublicKey
   tokenAMint: PublicKey
   tokenBMint: PublicKey
   tokenAVault: PublicKey
@@ -43,7 +43,7 @@ export function initializeStrategy(
     { pubkey: accounts.adminAuthority, isSigner: true, isWritable: true },
     { pubkey: accounts.strategy, isSigner: false, isWritable: true },
     { pubkey: accounts.globalConfig, isSigner: false, isWritable: false },
-    { pubkey: accounts.whirlpool, isSigner: false, isWritable: false },
+    { pubkey: accounts.pool, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenAMint, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenBMint, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenAVault, isSigner: false, isWritable: true },

@@ -4,12 +4,13 @@ import * as borsh from "@project-serum/borsh" // eslint-disable-line @typescript
 import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
 import { PROGRAM_ID } from "../programId"
 
-export interface SwapUnevenVaultsArgs {
+export interface EmergencySwapArgs {
+  aToB: boolean
   targetLimitBps: BN
 }
 
-export interface SwapUnevenVaultsAccounts {
-  actionsAuthority: PublicKey
+export interface EmergencySwapAccounts {
+  adminAuthority: PublicKey
   strategy: PublicKey
   globalConfig: PublicKey
   tokenAVault: PublicKey
@@ -31,14 +32,17 @@ export interface SwapUnevenVaultsAccounts {
   tokenProgram: PublicKey
 }
 
-export const layout = borsh.struct([borsh.u64("targetLimitBps")])
+export const layout = borsh.struct([
+  borsh.bool("aToB"),
+  borsh.u64("targetLimitBps"),
+])
 
-export function swapUnevenVaults(
-  args: SwapUnevenVaultsArgs,
-  accounts: SwapUnevenVaultsAccounts
+export function emergencySwap(
+  args: EmergencySwapArgs,
+  accounts: EmergencySwapAccounts
 ) {
   const keys: Array<AccountMeta> = [
-    { pubkey: accounts.actionsAuthority, isSigner: true, isWritable: true },
+    { pubkey: accounts.adminAuthority, isSigner: true, isWritable: true },
     { pubkey: accounts.strategy, isSigner: false, isWritable: true },
     { pubkey: accounts.globalConfig, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenAVault, isSigner: false, isWritable: true },
@@ -56,10 +60,11 @@ export function swapUnevenVaults(
     { pubkey: accounts.scopePrices, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
   ]
-  const identifier = Buffer.from([143, 212, 101, 95, 105, 209, 184, 1])
+  const identifier = Buffer.from([73, 226, 248, 215, 5, 197, 211, 229])
   const buffer = Buffer.alloc(1000)
   const len = layout.encode(
     {
+      aToB: args.aToB,
       targetLimitBps: args.targetLimitBps,
     },
     buffer
