@@ -70,6 +70,7 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
         { address: new PublicKey('USDrbBQwQbQ2oWHUPfA8QBHcyVxKUq1xHyXsSLKdUq2'), scopeToken: 'USDR' },
         { address: new PublicKey('7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs'), scopeToken: 'ETH' },
         { address: new PublicKey('9n4nbM75f5Ui33ZbPYXn59EwSgE8CGsHtAeTH5YFeJ9E'), scopeToken: 'BTC' },
+        { address: new PublicKey('HBB111SCo9jkCejsZfz8Ec8nH7T6THF8KEKSnvwT6XK6'), scopeToken: 'HBB' },
       ],
       whirlpoolsToSnapshot: [
         {
@@ -302,6 +303,13 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
           collateralB: 'ETH',
           mintA: new PublicKey('USDH1SM1ojwWUga67PGrgFWUHibbjqMvuMaDkRJTgkX'),
           mintB: new PublicKey('7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs'),
+        },
+        {
+          address: new PublicKey('7GZXejXCyJ3R78d71328wqMWT7Ejwu7pxxWRWvHSeVfb'),
+          collateralA: 'USDH',
+          collateralB: 'HBB',
+          mintA: new PublicKey('USDH1SM1ojwWUga67PGrgFWUHibbjqMvuMaDkRJTgkX'),
+          mintB: new PublicKey('HBB111SCo9jkCejsZfz8Ec8nH7T6THF8KEKSnvwT6XK6'),
         },
       ],
       strategies: [
