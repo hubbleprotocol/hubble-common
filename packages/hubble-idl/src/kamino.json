@@ -21,7 +21,7 @@
           "isSigner": false
         },
         {
-          "name": "whirlpool",
+          "name": "pool",
           "isMut": false,
           "isSigner": false,
           "docs": [
@@ -101,6 +101,126 @@
         },
         {
           "name": "tokenBCollateralId",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "initializeKaminoReward",
+      "accounts": [
+        {
+          "name": "adminAuthority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "strategy",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "rewardMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rewardVault",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "baseVaultAuthority",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "kaminoRewardIndex",
+          "type": "u8"
+        },
+        {
+          "name": "collateralToken",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "addKaminoRewards",
+      "accounts": [
+        {
+          "name": "adminAuthority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "strategy",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "rewardMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rewardVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "baseVaultAuthority",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "rewardAta",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "associatedTokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "kaminoRewardIndex",
+          "type": "u8"
+        },
+        {
+          "name": "amount",
           "type": "u64"
         }
       ]
@@ -435,7 +555,7 @@
           "isSigner": false
         },
         {
-          "name": "whirlpool",
+          "name": "pool",
           "isMut": false,
           "isSigner": false
         },
@@ -472,7 +592,7 @@
       ],
       "args": [
         {
-          "name": "rewardId",
+          "name": "rewardIndex",
           "type": "u8"
         },
         {
@@ -516,7 +636,7 @@
           "isSigner": false
         },
         {
-          "name": "whirlpool",
+          "name": "pool",
           "isMut": true,
           "isSigner": false
         },
@@ -598,16 +718,32 @@
           "isSigner": false
         },
         {
-          "name": "whirlpoolProgram",
+          "name": "poolProgram",
           "isMut": false,
           "isSigner": false
         },
         {
-          "name": "oldPositionOrRent",
-          "isMut": false,
+          "name": "oldPositionOrBaseVaultAuthority",
+          "isMut": true,
           "isSigner": false,
           "docs": [
-            "Readonly (can be rent as a safe `default`)"
+            "If strategy is uninitialized then pass base_vault_authority"
+          ]
+        },
+        {
+          "name": "oldPositionMintOrBaseVaultAuthority",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "If strategy is uninitialized then pass base_vault_authority"
+          ]
+        },
+        {
+          "name": "oldPositionTokenAccountOrBaseVaultAuthority",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "If strategy is uninitialized then pass base_vault_authority"
           ]
         }
       ],
@@ -645,7 +781,7 @@
           "isSigner": false
         },
         {
-          "name": "whirlpool",
+          "name": "pool",
           "isMut": false,
           "isSigner": false
         },
@@ -795,7 +931,7 @@
           "isSigner": false
         },
         {
-          "name": "whirlpool",
+          "name": "pool",
           "isMut": true,
           "isSigner": false
         },
@@ -815,12 +951,12 @@
           "isSigner": false
         },
         {
-          "name": "whirlpoolTokenVaultA",
+          "name": "poolTokenVaultA",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "whirlpoolTokenVaultB",
+          "name": "poolTokenVaultB",
           "isMut": true,
           "isSigner": false
         },
@@ -840,7 +976,7 @@
           "isSigner": false
         },
         {
-          "name": "whirlpoolProgram",
+          "name": "poolProgram",
           "isMut": false,
           "isSigner": false
         },
@@ -871,7 +1007,7 @@
           "isSigner": false
         },
         {
-          "name": "whirlpool",
+          "name": "pool",
           "isMut": true,
           "isSigner": false
         },
@@ -896,12 +1032,12 @@
           "isSigner": false
         },
         {
-          "name": "whirlpoolTokenVaultA",
+          "name": "poolTokenVaultA",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "whirlpoolTokenVaultB",
+          "name": "poolTokenVaultB",
           "isMut": true,
           "isSigner": false
         },
@@ -991,7 +1127,7 @@
           "isSigner": false
         },
         {
-          "name": "whirlpoolProgram",
+          "name": "poolProgram",
           "isMut": false,
           "isSigner": false
         },
@@ -1031,7 +1167,7 @@
           "isSigner": false
         },
         {
-          "name": "whirlpool",
+          "name": "pool",
           "isMut": true,
           "isSigner": false
         },
@@ -1066,12 +1202,12 @@
           "isSigner": false
         },
         {
-          "name": "whirlpoolTokenVaultA",
+          "name": "poolTokenVaultA",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "whirlpoolTokenVaultB",
+          "name": "poolTokenVaultB",
           "isMut": true,
           "isSigner": false
         },
@@ -1136,7 +1272,7 @@
           "isSigner": false
         },
         {
-          "name": "whirlpoolProgram",
+          "name": "poolProgram",
           "isMut": false,
           "isSigner": false
         },
@@ -1172,7 +1308,7 @@
           "isSigner": false
         },
         {
-          "name": "whirlpool",
+          "name": "pool",
           "isMut": true,
           "isSigner": false
         },
@@ -1212,12 +1348,12 @@
           "isSigner": false
         },
         {
-          "name": "whirlpoolTokenVaultA",
+          "name": "poolTokenVaultA",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "whirlpoolTokenVaultB",
+          "name": "poolTokenVaultB",
           "isMut": true,
           "isSigner": false
         },
@@ -1242,7 +1378,7 @@
           "isSigner": false
         },
         {
-          "name": "whirlpoolProgram",
+          "name": "poolProgram",
           "isMut": false,
           "isSigner": false
         }
@@ -1255,7 +1391,7 @@
       ]
     },
     {
-      "name": "collectFees",
+      "name": "collectFeesAndRewards",
       "accounts": [
         {
           "name": "user",
@@ -1274,21 +1410,18 @@
         },
         {
           "name": "baseVaultAuthority",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
-          "name": "whirlpool",
+          "name": "pool",
           "isMut": true,
           "isSigner": false
         },
         {
           "name": "tickArrayLower",
           "isMut": false,
-          "isSigner": false,
-          "docs": [
-            "TODO: consider removing all of these since we check in strategy"
-          ]
+          "isSigner": false
         },
         {
           "name": "tickArrayUpper",
@@ -1311,7 +1444,7 @@
           "isSigner": false
         },
         {
-          "name": "whirlpoolTokenVaultA",
+          "name": "poolTokenVaultA",
           "isMut": true,
           "isSigner": false
         },
@@ -1321,7 +1454,7 @@
           "isSigner": false
         },
         {
-          "name": "whirlpoolTokenVaultB",
+          "name": "poolTokenVaultB",
           "isMut": true,
           "isSigner": false
         },
@@ -1337,72 +1470,6 @@
         },
         {
           "name": "treasuryFeeVaultAuthority",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenAMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenBMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "whirlpoolProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "instructionSysvarAccount",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": []
-    },
-    {
-      "name": "collectRewards",
-      "accounts": [
-        {
-          "name": "user",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "strategy",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "globalConfig",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "baseVaultAuthority",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "whirlpool",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "position",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "positionTokenAccount",
           "isMut": false,
           "isSigner": false
         },
@@ -1431,7 +1498,7 @@
           ]
         },
         {
-          "name": "whirlpoolRewardVault0",
+          "name": "poolRewardVault0",
           "isMut": true,
           "isSigner": false,
           "docs": [
@@ -1439,7 +1506,7 @@
           ]
         },
         {
-          "name": "whirlpoolRewardVault1",
+          "name": "poolRewardVault1",
           "isMut": true,
           "isSigner": false,
           "docs": [
@@ -1447,7 +1514,7 @@
           ]
         },
         {
-          "name": "whirlpoolRewardVault2",
+          "name": "poolRewardVault2",
           "isMut": true,
           "isSigner": false,
           "docs": [
@@ -1455,12 +1522,12 @@
           ]
         },
         {
-          "name": "tickArrayLower",
+          "name": "tokenAMint",
           "isMut": false,
           "isSigner": false
         },
         {
-          "name": "tickArrayUpper",
+          "name": "tokenBMint",
           "isMut": false,
           "isSigner": false
         },
@@ -1470,7 +1537,7 @@
           "isSigner": false
         },
         {
-          "name": "whirlpoolProgram",
+          "name": "poolProgram",
           "isMut": false,
           "isSigner": false
         },
@@ -1501,7 +1568,7 @@
           "isSigner": false
         },
         {
-          "name": "whirlpool",
+          "name": "pool",
           "isMut": false,
           "isSigner": false
         },
@@ -1596,8 +1663,12 @@
           "type": "u64"
         },
         {
-          "name": "rewardId",
-          "type": "u8"
+          "name": "rewardIndex",
+          "type": "u64"
+        },
+        {
+          "name": "rewardCollateralId",
+          "type": "u64"
         },
         {
           "name": "minCollateralTokenOut",
@@ -1639,7 +1710,7 @@
           "isSigner": false
         },
         {
-          "name": "whirlpool",
+          "name": "pool",
           "isMut": true,
           "isSigner": false
         },
@@ -1649,12 +1720,12 @@
           "isSigner": false
         },
         {
-          "name": "whirlpoolTokenVaultA",
+          "name": "poolTokenVaultA",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "whirlpoolTokenVaultB",
+          "name": "poolTokenVaultB",
           "isMut": true,
           "isSigner": false
         },
@@ -1703,7 +1774,121 @@
           "isSigner": false
         }
       ],
-      "args": []
+      "args": [
+        {
+          "name": "targetLimitBps",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "emergencySwap",
+      "accounts": [
+        {
+          "name": "adminAuthority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "strategy",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "globalConfig",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenAVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenBVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "baseVaultAuthority",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "pool",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "position",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "poolTokenVaultA",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "poolTokenVaultB",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tickArray0",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "Payer must send this correctly."
+          ]
+        },
+        {
+          "name": "tickArray1",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "Payer must send this correctly."
+          ]
+        },
+        {
+          "name": "tickArray2",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "Payer must send this correctly."
+          ]
+        },
+        {
+          "name": "oracle",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "whirlpoolProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "scopePrices",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "aToB",
+          "type": "bool"
+        },
+        {
+          "name": "targetLimitBps",
+          "type": "u64"
+        }
+      ]
     },
     {
       "name": "orcaSwap",
@@ -2203,15 +2388,15 @@
             "type": "u64"
           },
           {
-            "name": "whirlpool",
+            "name": "pool",
             "type": "publicKey"
           },
           {
-            "name": "whirlpoolTokenVaultA",
+            "name": "poolTokenVaultA",
             "type": "publicKey"
           },
           {
-            "name": "whirlpoolTokenVaultB",
+            "name": "poolTokenVaultB",
             "type": "publicKey"
           },
           {
@@ -2419,7 +2604,7 @@
             "type": "u64"
           },
           {
-            "name": "swapUnevenMaxSlippage",
+            "name": "swapVaultMaxSlippage",
             "type": "u64"
           },
           {
@@ -2455,20 +2640,30 @@
             "type": "u64"
           },
           {
-            "name": "padding1",
+            "name": "kaminoRewards",
             "type": {
               "array": [
-                "u128",
-                20
+                {
+                  "defined": "KaminoRewardInfo"
+                },
+                3
               ]
             }
           },
           {
-            "name": "padding2",
+            "name": "strategyDex",
+            "type": "u64"
+          },
+          {
+            "name": "raydiumProtocolPositionOrBaseVaultAuthority",
+            "type": "publicKey"
+          },
+          {
+            "name": "padding1",
             "type": {
               "array": [
-                "u128",
-                32
+                "u64",
+                2
               ]
             }
           },
@@ -2477,7 +2672,7 @@
             "type": {
               "array": [
                 "u128",
-                32
+                26
               ]
             }
           },
@@ -2501,6 +2696,15 @@
           },
           {
             "name": "padding6",
+            "type": {
+              "array": [
+                "u128",
+                32
+              ]
+            }
+          },
+          {
+            "name": "padding7",
             "type": {
               "array": [
                 "u128",
@@ -2546,7 +2750,11 @@
           },
           {
             "name": "blockSwapUnevenVaults",
-            "type": "u64"
+            "type": "u32"
+          },
+          {
+            "name": "blockEmergencySwap",
+            "type": "u32"
           },
           {
             "name": "feesBps",
@@ -2784,6 +2992,50 @@
       }
     },
     {
+      "name": "KaminoRewardInfo",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "decimals",
+            "type": "u64"
+          },
+          {
+            "name": "rewardVault",
+            "type": "publicKey"
+          },
+          {
+            "name": "rewardMint",
+            "type": "publicKey"
+          },
+          {
+            "name": "rewardCollateralId",
+            "type": "u64"
+          },
+          {
+            "name": "lastIssuanceTs",
+            "type": "u64"
+          },
+          {
+            "name": "rewardPerSecond",
+            "type": "u64"
+          },
+          {
+            "name": "amountUncollected",
+            "type": "u64"
+          },
+          {
+            "name": "amountIssuedCumulative",
+            "type": "u64"
+          },
+          {
+            "name": "amountAvailable",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
       "name": "WithdrawalCaps",
       "type": {
         "kind": "struct",
@@ -2984,6 +3236,9 @@
             "name": "AdminAuthority"
           },
           {
+            "name": "BlockEmergencySwap"
+          },
+          {
             "name": "ScopeProgramId"
           },
           {
@@ -3025,7 +3280,7 @@
             "name": "UpdateMaxDeviationBps"
           },
           {
-            "name": "UpdateSwapUnevenMaxSlippage"
+            "name": "UpdateSwapVaultMaxSlippage"
           },
           {
             "name": "UpdateStrategyType"
@@ -3050,6 +3305,24 @@
           },
           {
             "name": "UpdateAdminAuthority"
+          },
+          {
+            "name": "KaminoRewardIndex0TS"
+          },
+          {
+            "name": "KaminoRewardIndex1TS"
+          },
+          {
+            "name": "KaminoRewardIndex2TS"
+          },
+          {
+            "name": "KaminoRewardIndex0RewardPerSecond"
+          },
+          {
+            "name": "KaminoRewardIndex1RewardPerSecond"
+          },
+          {
+            "name": "KaminoRewardIndex2RewardPerSecond"
           }
         ]
       }
@@ -3274,6 +3547,9 @@
         "kind": "enum",
         "variants": [
           {
+            "name": "Crema"
+          },
+          {
             "name": "Raydium"
           },
           {
@@ -3297,7 +3573,7 @@
     {
       "code": 6002,
       "name": "ZeroAmount",
-      "msg": "Zero amount"
+      "msg": "[DEPRECATED] Zero amount"
     },
     {
       "code": 6003,
@@ -3307,17 +3583,17 @@
     {
       "code": 6004,
       "name": "VaultBalanceDoesNotMatchTokenA",
-      "msg": "Vault balance does not match for token A"
+      "msg": "[DEPRECATED] Vault balance does not match for token A"
     },
     {
       "code": 6005,
       "name": "VaultBalanceDoesNotMatchTokenB",
-      "msg": "Vault balance does not match for token B"
+      "msg": "[DEPRECATED] Vault balance does not match for token B"
     },
     {
       "code": 6006,
       "name": "SharesIssuedAmountDoesNotMatch",
-      "msg": "Shares issued amount does not match"
+      "msg": "[DEPRECATED] Shares issued amount does not match"
     },
     {
       "code": 6007,
@@ -3327,7 +3603,7 @@
     {
       "code": 6008,
       "name": "SystemInEmergencyMode",
-      "msg": "System is in emergency mode"
+      "msg": "[DEPRECATED] System is in emergency mode"
     },
     {
       "code": 6009,
@@ -3352,7 +3628,7 @@
     {
       "code": 6013,
       "name": "MathOverflow",
-      "msg": "Mathematical operation with overflow"
+      "msg": "[DEPRECATED] Mathematical operation with overflow"
     },
     {
       "code": 6014,
@@ -3487,7 +3763,7 @@
     {
       "code": 6040,
       "name": "WrongCollateralID",
-      "msg": "Collateral ID invalid for strategy"
+      "msg": "[DEPRECATED] Collateral ID invalid for strategy"
     },
     {
       "code": 6041,
@@ -3517,17 +3793,17 @@
     {
       "code": 6046,
       "name": "DeltaATooLarge",
-      "msg": "Delta A too large"
+      "msg": "[DEPRECATED] Delta A too large"
     },
     {
       "code": 6047,
       "name": "DeltaBTooLarge",
-      "msg": "Delta B too large"
+      "msg": "[DEPRECATED] Delta B too large"
     },
     {
       "code": 6048,
       "name": "CannotExecutiveWithdrawZeroAmount",
-      "msg": "Cannot executive withdraw zero amount"
+      "msg": "[DEPRECATED] Cannot executive withdraw zero amount"
     },
     {
       "code": 6049,
@@ -3537,7 +3813,7 @@
     {
       "code": 6050,
       "name": "CannotCollectFeesOnZeroLiquidityPosition",
-      "msg": "Cannot collect fees on zero liquidity position"
+      "msg": "[DEPRECATED] Cannot collect fees on zero liquidity position"
     },
     {
       "code": 6051,
@@ -3628,6 +3904,66 @@
       "code": 6068,
       "name": "PriceTooDivergentFromTwap",
       "msg": "Price too divergent from twap"
+    },
+    {
+      "code": 6069,
+      "name": "ExistingRewardOverride",
+      "msg": "[DEPRECATED] Can not override the existing reward"
+    },
+    {
+      "code": 6070,
+      "name": "WrongKaminoRewardId",
+      "msg": "Kamino reward id exceeds the available slots"
+    },
+    {
+      "code": 6071,
+      "name": "KaminoRewardNotExist",
+      "msg": "Kamino reward is not initialized"
+    },
+    {
+      "code": 6072,
+      "name": "KaminoRewardAlreadyExists",
+      "msg": "Kamino reward is already initialized"
+    },
+    {
+      "code": 6073,
+      "name": "KaminoCollateralNotValid",
+      "msg": "Kamino collateral is not valid"
+    },
+    {
+      "code": 6074,
+      "name": "KaminoRewardExceedsAvailableAmount",
+      "msg": "[DEPRECATED] Expected kamino reward is bigger then the available amount within the vault"
+    },
+    {
+      "code": 6075,
+      "name": "SwapUnevenVaultsOvershoot",
+      "msg": "Swap uneven vaults result in the opposite unbalance of the vaults"
+    },
+    {
+      "code": 6076,
+      "name": "BpsNotInRange",
+      "msg": "Bps parameter passed to instruction is not in range"
+    },
+    {
+      "code": 6077,
+      "name": "EmergencySwapBlocked",
+      "msg": "Emergency Swap is blocked"
+    },
+    {
+      "code": 6078,
+      "name": "StrategyNotFrozen",
+      "msg": "Strategy is expected to be frozen for this operation"
+    },
+    {
+      "code": 6079,
+      "name": "UnexpectedTokenAmountsPostSwap",
+      "msg": "Token left in vault post swap are lower than expected"
+    },
+    {
+      "code": 6080,
+      "name": "OrcaRewardUninitialized",
+      "msg": "Cannot use uninitialized orca reward vault"
     }
   ]
 }
