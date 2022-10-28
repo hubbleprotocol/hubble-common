@@ -54,6 +54,22 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
           address: new PublicKey('9zBNQtnenpQY6mCoRqbPpeePeSy17h34DZP82oegt1fL'),
           type: 'NON_PEGGED',
         },
+        {
+          address: new PublicKey('2VQaDuSqqxeX2h9dS9WgpvN6ShaBxd8JjaaWEvbmTDY1'),
+          type: 'STABLE',
+        },
+        {
+          address: new PublicKey('5QKrn6Eua5EgmGdSTn8nEUa3dcZx2tHEYBv6AkPetojE'),
+          type: 'PEGGED',
+        },
+        {
+          address: new PublicKey('Agz8ExDrjd7UqjACotmw6XhKgXsjhnufza9Nfn6C7Ktx'),
+          type: 'NON_PEGGED',
+        },
+        {
+          address: new PublicKey('F3v6sBb5gXL98kaMkaKm5GfEoBNUaSd3ZGErbjqgzTho'),
+          type: 'NON_PEGGED',
+        },
       ],
       mints: [
         { address: new PublicKey('USDH1SM1ojwWUga67PGrgFWUHibbjqMvuMaDkRJTgkX'), scopeToken: 'USDH' },
