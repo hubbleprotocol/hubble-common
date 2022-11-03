@@ -113,7 +113,7 @@ export const SupportedTokens = [
   'RATIO',
   'UXP',
   'kUXDUSDCOrca',
-  'JITOSOL'
+  'JITOSOL',
 ] as const;
 export type SupportedToken = typeof SupportedTokens[number];
 
