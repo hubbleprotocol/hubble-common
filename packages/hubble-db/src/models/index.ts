@@ -18,6 +18,7 @@ export * from './WhirlpoolStateEntity';
 export * from './VaultEntity';
 export * from './RewardEntity';
 export * from './RewardEarnedEntity';
+export * from './PriceEntity';
 
 export const CLUSTER_TABLE: string = 'cluster';
 export const COLLATERAL_TABLE: string = 'collateral';
@@ -40,4 +41,5 @@ export const WHIRLPOOL_TABLE: string = 'whirlpool';
 export const WHIRLPOOL_STATE_TABLE: string = 'whirlpool_state';
 export const REWARD_TABLE = 'reward';
 export const REWARD_EARNED_TABLE = 'reward_earned';
+export const PRICE_EARNED_TABLE = 'reward_earned';
 export const API_SCHEMA: string = 'api';
