@@ -41,5 +41,5 @@ export const WHIRLPOOL_TABLE: string = 'whirlpool';
 export const WHIRLPOOL_STATE_TABLE: string = 'whirlpool_state';
 export const REWARD_TABLE = 'reward';
 export const REWARD_EARNED_TABLE = 'reward_earned';
-export const PRICE_EARNED_TABLE = 'reward_earned';
+export const PRICE_TABLE = 'price';
 export const API_SCHEMA: string = 'api';
