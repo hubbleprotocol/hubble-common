@@ -37,6 +37,7 @@ export type WhirlpoolToSnapshot = {
 export type StrategyInfo = {
   address: PublicKey;
   type: 'NON_PEGGED' | 'PEGGED' | 'STABLE';
+  shareMint: PublicKey;
 };
 
 export type ReserveInfo = {
