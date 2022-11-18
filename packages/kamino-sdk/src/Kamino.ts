@@ -22,13 +22,18 @@ import { Percentage, RemoveLiquidityQuote, RemoveLiquidityQuoteParam } from '@or
 import { OrcaDAL } from '@orca-so/whirlpool-sdk/dist/dal/orca-dal';
 import { OrcaPosition } from '@orca-so/whirlpool-sdk/dist/position/orca-position';
 import { PROGRAM_ID_CLI as WHIRLPOOL_PROGRAM_ID } from './whirpools-client/programId';
-import { Holdings, ShareData, StrategyBalances, StrategyVaultBalances, TreasuryFeeVault } from './models';
-import { Data } from './models';
+import { Data, Holdings, ShareData, StrategyBalances, StrategyVaultBalances, TreasuryFeeVault } from './models';
 import { StrategyHolder } from './models/StrategyHolder';
 import { Scope, SupportedToken } from '@hubbleprotocol/scope-sdk';
 import { KaminoToken } from './models/KaminoToken';
 import { PriceData } from './models/PriceData';
-import { batchFetch, getAssociatedTokenAddressAndData, getReadOnlyWallet } from './utils';
+import {
+  batchFetch,
+  createAssociatedTokenAccountInstruction,
+  getAssociatedTokenAddress,
+  getAssociatedTokenAddressAndData,
+  getReadOnlyWallet,
+} from './utils';
 import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import {
   collectFees,
@@ -46,11 +51,11 @@ import {
   WithdrawArgs,
 } from './kamino-client/instructions';
 import BN from 'bn.js';
-import { createAssociatedTokenAccountInstruction, getAssociatedTokenAddress } from './utils';
 import { StrategyWithAddress } from './models/StrategyWithAddress';
 import { StrategyProgramAddress } from './models/StrategyProgramAddress';
 import { Idl, Program, Provider } from '@project-serum/anchor';
 import { KAMINO_IDL } from '@hubbleprotocol/hubble-idl';
+import { KaminoPosition } from './models/KaminoPosition';
 
 export class Kamino {
   private readonly _cluster: SolanaCluster;
@@ -303,6 +308,17 @@ export class Kamino {
     const tokenProgram = new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA');
     return this._connection.getParsedProgramAccounts(tokenProgram, {
       filters: [{ dataSize: 165 }, { memcmp: { offset: 0, bytes: shareMint.toBase58() } }],
+    });
+  }
+
+  /**
+   * Get all token accounts for the specified wallet
+   */
+  getAllTokenAccounts(wallet: PublicKey) {
+    //how to get all token accounts for specific wallet: https://spl.solana.com/token#finding-all-token-accounts-for-a-wallet
+    const tokenProgram = new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA');
+    return this._connection.getParsedProgramAccounts(tokenProgram, {
+      filters: [{ dataSize: 165 }, { memcmp: { offset: 32, bytes: wallet.toString() } }],
     });
   }
 
@@ -803,6 +819,30 @@ export class Kamino {
     };
 
     return collectFees(accounts);
+  }
+
+  /**
+   * Get a list of user's Kamino strategy positions
+   * @param wallet user wallet address
+   * @returns list of kamino strategy positions
+   */
+  async getUserPositions(wallet: PublicKey): Promise<KaminoPosition[]> {
+    const userTokenAccounts = await this.getAllTokenAccounts(wallet);
+    const positions: KaminoPosition[] = [];
+    for (const tokenAccount of userTokenAccounts) {
+      const accountData = tokenAccount.account.data as Data;
+      const strategy = this._config.kamino.liveStrategies.find(
+        (x) => x.shareMint.toString() === accountData.parsed.info.mint.toString()
+      );
+      if (strategy) {
+        positions.push({
+          shareMint: strategy.shareMint,
+          strategy: strategy.address,
+          sharesAmount: new Decimal(accountData.parsed.info.tokenAmount.uiAmountString),
+        });
+      }
+    }
+    return positions;
   }
 }
 

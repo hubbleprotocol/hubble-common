@@ -8,3 +8,4 @@ export * from './ShareData';
 export * from './TreasuryFeeVault';
 export * from './MultipleAccountsResponse';
 export * from './StrategyWithAddress';
+export * from './KaminoPosition';
