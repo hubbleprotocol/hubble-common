@@ -305,8 +305,7 @@ export class Kamino {
     //how to get all token accounts for specific mint: https://spl.solana.com/token#finding-all-token-accounts-for-a-specific-mint
     //get it from the hardcoded token program and create a filter with the actual mint address
     //datasize:165 filter selects all token accounts, memcmp filter selects based on the mint address withing each token account
-    const tokenProgram = new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA');
-    return this._connection.getParsedProgramAccounts(tokenProgram, {
+    return this._connection.getParsedProgramAccounts(TOKEN_PROGRAM_ID, {
       filters: [{ dataSize: 165 }, { memcmp: { offset: 0, bytes: shareMint.toBase58() } }],
     });
   }
@@ -316,8 +315,7 @@ export class Kamino {
    */
   getAllTokenAccounts(wallet: PublicKey) {
     //how to get all token accounts for specific wallet: https://spl.solana.com/token#finding-all-token-accounts-for-a-wallet
-    const tokenProgram = new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA');
-    return this._connection.getParsedProgramAccounts(tokenProgram, {
+    return this._connection.getParsedProgramAccounts(TOKEN_PROGRAM_ID, {
       filters: [{ dataSize: 165 }, { memcmp: { offset: 32, bytes: wallet.toString() } }],
     });
   }
