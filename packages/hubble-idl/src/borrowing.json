@@ -21,11 +21,6 @@
           "isSigner": true
         },
         {
-          "name": "oracleMappings",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
           "name": "stablecoinMint",
           "isMut": true,
           "isSigner": false
@@ -84,11 +79,6 @@
         },
         {
           "name": "globalConfig",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "oracleMappings",
           "isMut": false,
           "isSigner": false
         },
@@ -322,78 +312,6 @@
       ]
     },
     {
-      "name": "updateOracleMapping",
-      "accounts": [
-        {
-          "name": "adminAuthority",
-          "isMut": false,
-          "isSigner": true
-        },
-        {
-          "name": "borrowingMarketState",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "globalConfig",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "oracleMappings",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "pythProductInfo",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "pythPriceInfo",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "collateral",
-          "type": "u8"
-        }
-      ]
-    },
-    {
-      "name": "updateScopeMapping",
-      "accounts": [
-        {
-          "name": "adminAuthority",
-          "isMut": false,
-          "isSigner": true
-        },
-        {
-          "name": "borrowingMarketState",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "globalConfig",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "oracleMappings",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "scopePricesAccount",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": []
-    },
-    {
       "name": "approveTrove",
       "accounts": [
         {
@@ -624,46 +542,6 @@
           "isSigner": false
         },
         {
-          "name": "oracleMappings",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "pythSolPriceInfo",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "pythEthPriceInfo",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "pythBtcPriceInfo",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "pythSrmPriceInfo",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "pythRayPriceInfo",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "pythFttPriceInfo",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "pythMsolPriceInfo",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "scopePrices",
           "isMut": false,
           "isSigner": false
@@ -750,46 +628,6 @@
         {
           "name": "treasuryVault",
           "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "oracleMappings",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "pythSolPriceInfo",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "pythEthPriceInfo",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "pythBtcPriceInfo",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "pythSrmPriceInfo",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "pythRayPriceInfo",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "pythFttPriceInfo",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "pythMsolPriceInfo",
-          "isMut": false,
           "isSigner": false
         },
         {
@@ -922,6 +760,72 @@
       ]
     },
     {
+      "name": "permisionlessRepay",
+      "accounts": [
+        {
+          "name": "owner",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "borrowingMarketState",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "globalConfig",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "borrowingVaults",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "userMetadata",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "stablecoinMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "stablecoinMintAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "stablecoinBorrowingAssociatedAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "burningVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "burningVaultAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
       "name": "withdrawCollateral",
       "accounts": [
         {
@@ -962,46 +866,6 @@
         {
           "name": "collateralTo",
           "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "oracleMappings",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "pythSolPriceInfo",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "pythEthPriceInfo",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "pythBtcPriceInfo",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "pythSrmPriceInfo",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "pythRayPriceInfo",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "pythFttPriceInfo",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "pythMsolPriceInfo",
-          "isMut": false,
           "isSigner": false
         },
         {
@@ -1340,46 +1204,6 @@
           "isSigner": false
         },
         {
-          "name": "oracleMappings",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "pythSolPriceInfo",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "pythEthPriceInfo",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "pythBtcPriceInfo",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "pythSrmPriceInfo",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "pythRayPriceInfo",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "pythFttPriceInfo",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "pythMsolPriceInfo",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "scopePrices",
           "isMut": false,
           "isSigner": false
@@ -1462,46 +1286,6 @@
         },
         {
           "name": "stablecoinStabilityPoolVaultAuthority",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "oracleMappings",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "pythSolPriceInfo",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "pythEthPriceInfo",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "pythBtcPriceInfo",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "pythSrmPriceInfo",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "pythRayPriceInfo",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "pythFttPriceInfo",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "pythMsolPriceInfo",
           "isMut": false,
           "isSigner": false
         },
@@ -1874,7 +1658,7 @@
         },
         {
           "name": "treasuryVault",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -1915,11 +1699,6 @@
         },
         {
           "name": "globalConfig",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "oracleMappings",
           "isMut": true,
           "isSigner": false
         },
@@ -2169,48 +1948,7 @@
           ]
         },
         {
-          "name": "oracleMappings",
-          "isMut": false,
-          "isSigner": false,
-          "docs": [
-            "Oracle accounts"
-          ]
-        },
-        {
-          "name": "pythSolPriceInfo",
-          "isMut": false,
-          "isSigner": false,
-          "docs": [
-            "Oracle accounts"
-          ]
-        },
-        {
-          "name": "pythEthPriceInfo",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "pythBtcPriceInfo",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "pythSrmPriceInfo",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "pythRayPriceInfo",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "pythFttPriceInfo",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "pythMsolPriceInfo",
+          "name": "scopePrices",
           "isMut": false,
           "isSigner": false
         },
@@ -3056,6 +2794,132 @@
           "type": "u8"
         }
       ]
+    },
+    {
+      "name": "redeem",
+      "accounts": [
+        {
+          "name": "redeemer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "redeemerStablecoinAta",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "The account to transfer USDH from"
+          ]
+        },
+        {
+          "name": "redeemerCollateralAta",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "The account to receive collateral to"
+          ]
+        },
+        {
+          "name": "userMetadata",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "The user metadata to redeem from"
+          ]
+        },
+        {
+          "name": "borrowingMarketState",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "borrowingFeesVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "globalConfig",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "stakingPoolState",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "borrowingVaults",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "stablecoinMintAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "collateralVault",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "Where the collateral is withdrawn from"
+          ]
+        },
+        {
+          "name": "collateralVaultsAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "stablecoinMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "burningVault",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "Where the debt will be repaid into (and burned)"
+          ]
+        },
+        {
+          "name": "burningVaultAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "scopePrices",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "clock",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "swapToken",
+          "type": {
+            "defined": "CollateralToken"
+          }
+        },
+        {
+          "name": "stablecoinProvided",
+          "type": "u64"
+        },
+        {
+          "name": "minSwapTokenToReceive",
+          "type": "u64"
+        }
+      ]
     }
   ],
   "accounts": [
@@ -3105,7 +2969,7 @@
             "type": "u64"
           },
           {
-            "name": "oracleProgramId",
+            "name": "placeholder3",
             "type": "publicKey"
           },
           {
@@ -3153,11 +3017,11 @@
             "type": "bool"
           },
           {
-            "name": "userDepositMax",
+            "name": "placeholder4",
             "type": "u64"
           },
           {
-            "name": "totalDepositMax",
+            "name": "placeholder5",
             "type": "u64"
           },
           {
@@ -3173,11 +3037,23 @@
             "type": "bool"
           },
           {
-            "name": "placeholder3",
+            "name": "btcLiqMode",
+            "type": "bool"
+          },
+          {
+            "name": "blockRedeem",
+            "type": "bool"
+          },
+          {
+            "name": "blockUndercollLiq",
+            "type": "bool"
+          },
+          {
+            "name": "placeholder6",
             "type": {
               "array": [
                 "u8",
-                7
+                4
               ]
             }
           },
@@ -3186,11 +3062,15 @@
             "type": "publicKey"
           },
           {
+            "name": "scopePrices",
+            "type": "publicKey"
+          },
+          {
             "name": "padding1",
             "type": {
               "array": [
                 "u128",
-                29
+                27
               ]
             }
           },
@@ -3357,7 +3237,7 @@
             "type": "publicKey"
           },
           {
-            "name": "oracleMappings",
+            "name": "placeholder4",
             "type": "publicKey"
           },
           {
@@ -3397,7 +3277,7 @@
             "type": "u16"
           },
           {
-            "name": "placeholder4",
+            "name": "placeholder5",
             "type": "u16"
           },
           {
@@ -3652,77 +3532,6 @@
               "array": [
                 "u64",
                 496
-              ]
-            }
-          }
-        ]
-      }
-    },
-    {
-      "name": "OracleMappings",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "placeholder0",
-            "type": "publicKey"
-          },
-          {
-            "name": "pythSolPriceInfo",
-            "type": "publicKey"
-          },
-          {
-            "name": "pythSrmPriceInfo",
-            "type": "publicKey"
-          },
-          {
-            "name": "pythEthPriceInfo",
-            "type": "publicKey"
-          },
-          {
-            "name": "pythBtcPriceInfo",
-            "type": "publicKey"
-          },
-          {
-            "name": "pythRayPriceInfo",
-            "type": "publicKey"
-          },
-          {
-            "name": "pythFttPriceInfo",
-            "type": "publicKey"
-          },
-          {
-            "name": "pythMsolPriceInfo",
-            "type": "publicKey"
-          },
-          {
-            "name": "scopePrices",
-            "type": "publicKey"
-          },
-          {
-            "name": "reserved",
-            "type": {
-              "array": [
-                "u64",
-                64
-              ]
-            }
-          },
-          {
-            "name": "reserved2",
-            "type": {
-              "array": [
-                "u64",
-                32
-              ]
-            }
-          },
-          {
-            "name": "reserved3",
-            "type": {
-              "array": [
-                "u64",
-                28
               ]
             }
           }
@@ -4115,6 +3924,200 @@
     }
   ],
   "types": [
+    {
+      "name": "TokenAmount",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "token",
+            "type": {
+              "defined": "CollateralToken"
+            }
+          },
+          {
+            "name": "amount",
+            "type": "f64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Tokens",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "sol",
+            "type": {
+              "option": "f64"
+            }
+          },
+          {
+            "name": "daosol",
+            "type": {
+              "option": "f64"
+            }
+          },
+          {
+            "name": "btc",
+            "type": {
+              "option": "f64"
+            }
+          },
+          {
+            "name": "eth",
+            "type": {
+              "option": "f64"
+            }
+          },
+          {
+            "name": "stsol",
+            "type": {
+              "option": "f64"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "Borrower",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "id",
+            "type": "u64"
+          },
+          {
+            "name": "debt",
+            "type": "f64"
+          },
+          {
+            "name": "coll",
+            "type": {
+              "defined": "Tokens"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "StabilityProvider",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "id",
+            "type": "u64"
+          },
+          {
+            "name": "amount",
+            "type": "f64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "TryLiquidateEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "user",
+            "type": "u64"
+          },
+          {
+            "name": "expectedResult",
+            "type": {
+              "defined": "TryLiquidateResult"
+            }
+          },
+          {
+            "name": "expectedCollSurplus",
+            "type": {
+              "option": {
+                "defined": "Tokens"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "TryLiquidateEventCash",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "user",
+            "type": "u64"
+          },
+          {
+            "name": "amount",
+            "type": "f64"
+          },
+          {
+            "name": "expectedResult",
+            "type": {
+              "defined": "TryLiquidateResult"
+            }
+          },
+          {
+            "name": "expectedCollSurplus",
+            "type": {
+              "option": {
+                "defined": "Tokens"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "AssertUserBalance",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "id",
+            "type": "u64"
+          },
+          {
+            "name": "debt",
+            "type": "f64"
+          },
+          {
+            "name": "coll",
+            "type": {
+              "defined": "Tokens"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "ExpectedClearGains",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "expLiquidatorGains",
+            "type": {
+              "defined": "Tokens"
+            }
+          },
+          {
+            "name": "expSpGains",
+            "type": {
+              "option": {
+                "defined": "Tokens"
+              }
+            }
+          }
+        ]
+      }
+    },
     {
       "name": "MarketCollateralAmounts",
       "type": {
@@ -4586,7 +4589,10 @@
           {
             "name": "CashBased",
             "fields": [
-              "u64"
+              {
+                "name": "amount",
+                "type": "u64"
+              }
             ]
           }
         ]
@@ -4629,7 +4635,7 @@
             "name": "Success"
           },
           {
-            "name": "Error",
+            "name": "Err",
             "fields": [
               "string"
             ]
@@ -4712,6 +4718,18 @@
             "name": "SetLiquidationPenalty",
             "fields": [
               "u64"
+            ]
+          },
+          {
+            "name": "SetBtcCashBasedLiquidation",
+            "fields": [
+              "bool"
+            ]
+          },
+          {
+            "name": "BlockUndercollLiquidations",
+            "fields": [
+              "bool"
             ]
           }
         ]
@@ -4875,12 +4893,6 @@
             "name": "EmergencyMode"
           },
           {
-            "name": "UserDepositMax"
-          },
-          {
-            "name": "TotalDepositMax"
-          },
-          {
             "name": "IssuancePerSecond"
           },
           {
@@ -4893,10 +4905,22 @@
             "name": "BlockDepositCollateral"
           },
           {
-            "name": "OracleProgramId"
+            "name": "BtcBasedLiquidations"
+          },
+          {
+            "name": "BlockRedemptions"
+          },
+          {
+            "name": "BlockUndercollLiq"
+          },
+          {
+            "name": "Placeholder0"
           },
           {
             "name": "ScopeProgramId"
+          },
+          {
+            "name": "ScopePrices"
           }
         ]
       }
@@ -4910,7 +4934,10 @@
             "name": "Market",
             "fields": [
               {
-                "defined": "&'aMarketCollateralAmounts"
+                "name": "amounts",
+                "type": {
+                  "defined": "MarketCollateralAmounts"
+                }
               }
             ]
           },
@@ -4918,7 +4945,10 @@
             "name": "User",
             "fields": [
               {
-                "defined": "&'aUserCollateralAmounts"
+                "name": "amounts",
+                "type": {
+                  "defined": "UserCollateralAmounts"
+                }
               }
             ]
           }
@@ -5029,6 +5059,21 @@
             "name": "CORCA"
           },
           {
+            "name": "KUSDHUSDCORCA"
+          },
+          {
+            "name": "KUSDCUSDTORCA"
+          },
+          {
+            "name": "KSTSOLSOLORCA"
+          },
+          {
+            "name": "KUSHUSDCORCA"
+          },
+          {
+            "name": "JSOL"
+          },
+          {
             "name": "OTHER"
           }
         ]
@@ -5058,6 +5103,9 @@
           },
           {
             "name": "BASE"
+          },
+          {
+            "name": "UNLIQUIDATABLE"
           }
         ]
       }
@@ -5330,7 +5378,7 @@
             "name": "CBTC_BTC"
           },
           {
-            "name": "CMSOL_SOL"
+            "name": "CMSOL_MSOL"
           },
           {
             "name": "wstETH"
@@ -5376,6 +5424,48 @@
           },
           {
             "name": "SLND"
+          },
+          {
+            "name": "DAI"
+          },
+          {
+            "name": "JSOL_SOL"
+          },
+          {
+            "name": "USH"
+          },
+          {
+            "name": "UXD"
+          },
+          {
+            "name": "USDH_TWAP"
+          },
+          {
+            "name": "USH_TWAP"
+          },
+          {
+            "name": "UXD_TWAP"
+          },
+          {
+            "name": "HDG"
+          },
+          {
+            "name": "DUST"
+          },
+          {
+            "name": "KUSDHUSDCORCA"
+          },
+          {
+            "name": "KSTSOLSOLORCA"
+          },
+          {
+            "name": "KUSDCUSDTORCA"
+          },
+          {
+            "name": "KUSHUSDCORCA"
+          },
+          {
+            "name": "PRICE_FACTOR"
           }
         ]
       }
@@ -5881,6 +5971,51 @@
       "code": 6099,
       "name": "TimestampDecrease",
       "msg": "Current Timestamp smaller than Last Recorded"
+    },
+    {
+      "code": 6100,
+      "name": "MarketUnliquidatable",
+      "msg": "Market cannot be liquidated"
+    },
+    {
+      "code": 6101,
+      "name": "EmergencyLiquidationBlocked",
+      "msg": "Emergency liquidations are blocked"
+    },
+    {
+      "code": 6102,
+      "name": "CannotRedeemToken",
+      "msg": "Token cannot be redeemed"
+    },
+    {
+      "code": 6103,
+      "name": "CannotRedeemZeroAmount",
+      "msg": "No collateral to be redeemed"
+    },
+    {
+      "code": 6104,
+      "name": "CannotRedeemZeroValue",
+      "msg": "Token gains to be redeemed have 0 USDH value"
+    },
+    {
+      "code": 6105,
+      "name": "CannotRedeemLessThanMinimumValue",
+      "msg": "Token gains to be redeemed have less than 1 USDH value"
+    },
+    {
+      "code": 6106,
+      "name": "CannotRedeemMoreThanAvailable",
+      "msg": "Cannot request to receive a minimum amount > collateral available"
+    },
+    {
+      "code": 6107,
+      "name": "CannotRedeemMinimumAmount",
+      "msg": "Cannot swap - redeemer will receive less than the minimum amount"
+    },
+    {
+      "code": 6108,
+      "name": "UndercollLiquidationBlocked",
+      "msg": "Undercollateralized liquidations are blocked"
     }
   ]
 }
