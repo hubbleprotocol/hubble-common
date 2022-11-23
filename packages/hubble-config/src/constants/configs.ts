@@ -119,6 +119,7 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
         { address: new PublicKey('7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs'), scopeToken: 'ETH' },
         { address: new PublicKey('9n4nbM75f5Ui33ZbPYXn59EwSgE8CGsHtAeTH5YFeJ9E'), scopeToken: 'BTC' },
         { address: new PublicKey('HBB111SCo9jkCejsZfz8Ec8nH7T6THF8KEKSnvwT6XK6'), scopeToken: 'HBB' },
+        { address: new PublicKey('J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn'), scopeToken: 'JITOSOL' },
       ],
       whirlpoolsToSnapshot: [
         {
@@ -373,6 +374,27 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
           mintA: new PublicKey('So11111111111111111111111111111111111111112'),
           mintB: new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'),
         },
+        {
+          address: new PublicKey('Hp53XEtt4S8SvPCXarsLSdGfZBuUr5mMmZmX2DRNXQKp'),
+          collateralA: 'SOL',
+          collateralB: 'JITOSOL',
+          mintA: new PublicKey('So11111111111111111111111111111111111111112'),
+          mintB: new PublicKey('J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn'),
+        },
+        {
+          address: new PublicKey('GgAqL1Lfs3zYZK6Gea9Bey5jmPbK8c4dmBbe5gPeYQEz'),
+          collateralA: 'USDC',
+          collateralB: 'JITOSOL',
+          mintA: new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'),
+          mintB: new PublicKey('J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn'),
+        },
+        {
+          address: new PublicKey('GGRzS8AmNmMmjiMKUKRp4BML4UurpTPh7ZbLyeGqX8LA'),
+          collateralA: 'USDH',
+          collateralB: 'JITOSOL',
+          mintA: new PublicKey('USDH1SM1ojwWUga67PGrgFWUHibbjqMvuMaDkRJTgkX'),
+          mintB: new PublicKey('J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn'),
+        },
       ],
       strategies: [
         new PublicKey('Cfuy5T6osdazUeLego5LFycBQebm9PP3H7VNdCndXXEN'),
@@ -498,6 +520,9 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
         new PublicKey('5EfeGn1h7m6Rx9mGEmamDoxMtdhRmUh2N9fYRiDQqteS'),
         new PublicKey('AmjRKyaLCFJFa7U9axraV9bPW5prcWYe84j6LkvfMKtS'),
         new PublicKey('8NP2J7q6swBkVoLDZAqkejKPQrWkRizZHaVVM897CKpA'),
+        new PublicKey('HCntzqDU5wXSWjwgLQP5hqh3kLHRYizKtPErvSCyggXd'),
+        new PublicKey('GwfjL2jQugK7sJdhMDj7tcGuqxi5H1qAZHubfFL8amNJ'),
+        new PublicKey('F8dVvsYwQciqe9CRuiUDUgEtqjiZm1DT93fnE67f1KsM'),
       ],
       programId: new PublicKey('6LtLpnUFNByNXLyCoK9wA2MykKAmQNZKBdY8s47dehDc'),
       globalConfig: new PublicKey('GKnHiWh3RRrE1zsNzWxRkomymHc374TvJPSTv2wPeYdB'),
