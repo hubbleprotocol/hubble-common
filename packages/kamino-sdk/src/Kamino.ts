@@ -15,7 +15,7 @@ import {
   TransactionInstruction,
 } from '@solana/web3.js';
 import { setKaminoProgramId } from './kamino-client/programId';
-import { WhirlpoolStrategy } from './kamino-client/accounts';
+import { GlobalConfig, WhirlpoolStrategy } from './kamino-client/accounts';
 import Decimal from 'decimal.js';
 import { Position, Whirlpool } from './whirpools-client/accounts';
 import { getMintDecimals } from '@project-serum/serum/lib/market';
@@ -446,6 +446,7 @@ export class Kamino {
       treasuryFeeVaultAuthority,
       tokenProgram: TOKEN_PROGRAM_ID,
       positionTokenAccount: strategyState.strategy.positionTokenAccount,
+      raydiumProtocolPositionOrBaseVaultAuthority: strategyState.strategy.raydiumProtocolPositionOrBaseVaultAuthority,
       poolProgram: WHIRLPOOL_PROGRAM_ID,
       instructionSysvarAccount: SYSVAR_INSTRUCTIONS_PUBKEY,
     };
@@ -580,6 +581,11 @@ export class Kamino {
       throw Error(`Could not fetch whirlpool state with pubkey ${strategyState.strategy.pool.toString()}`);
     }
 
+    const globalConfig = await GlobalConfig.fetch(this._connection, strategyState.strategy.globalConfig);
+    if (!globalConfig) {
+      throw Error(`Could not fetch global config with pubkey ${strategyState.strategy.globalConfig.toString()}`);
+    }
+
     const { treasuryFeeTokenAVault, treasuryFeeTokenBVault, treasuryFeeVaultAuthority } =
       await this.getTreasuryFeeVaultPDAs(strategyState.strategy.tokenAMint, strategyState.strategy.tokenBMint);
 
@@ -615,6 +621,7 @@ export class Kamino {
       sharesMint: strategyState.strategy.sharesMint,
       sharesMintAuthority: strategyState.strategy.sharesMintAuthority,
       scopePrices: strategyState.strategy.scopePrices,
+      tokenInfos: globalConfig.tokenInfos,
       systemProgram: SystemProgram.programId,
       rent: SYSVAR_RENT_PUBKEY,
       associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
@@ -648,10 +655,17 @@ export class Kamino {
     if (!whirlpoolState) {
       throw Error(`Could not fetch whirlpool state with pubkey ${whirlpool.toString()}`);
     }
+
+    const globalConfig = await GlobalConfig.fetch(this._connection, this._config.kamino.globalConfig);
+    if (!globalConfig) {
+      throw Error(`Could not fetch global config with pubkey ${this._config.kamino.globalConfig.toString()}`);
+    }
+
     const programAddresses = await this.getStrategyProgramAddresses(strategy, whirlpoolState);
     const strategyArgs: InitializeStrategyArgs = {
       tokenACollateralId: new BN(this.getCollateralId(tokenA)),
       tokenBCollateralId: new BN(this.getCollateralId(tokenB)),
+      strategyType: new BN(0), // Whirlpool, TODO
     };
     const strategyAccounts: InitializeStrategyAccounts = {
       adminAuthority: owner,
@@ -667,6 +681,7 @@ export class Kamino {
       sharesMintAuthority: programAddresses.sharesMintAuthority,
       scopePriceId: this._config.scope.oraclePrices,
       scopeProgramId: this._config.scope.programId,
+      tokenInfos: globalConfig.tokenInfos,
       systemProgram: SystemProgram.programId,
       rent: SYSVAR_RENT_PUBKEY,
       tokenProgram: TOKEN_PROGRAM_ID,
@@ -793,6 +808,7 @@ export class Kamino {
           : strategyState.baseVaultAuthority,
       tickArrayLower: strategyState.tickArrayLower,
       tickArrayUpper: strategyState.tickArrayUpper,
+      raydiumProtocolPositionOrBaseVaultAuthority: strategyState.raydiumProtocolPositionOrBaseVaultAuthority,
       tokenProgram: TOKEN_PROGRAM_ID,
       poolProgram: WHIRLPOOL_PROGRAM_ID,
       instructionSysvarAccount: SYSVAR_INSTRUCTIONS_PUBKEY,
@@ -908,8 +924,8 @@ export class Kamino {
       adminAuthority: strategyState.adminAuthority,
       strategy: strategyPubkey,
       pool: strategyState.pool,
-      tickerArrayLower: startTickIndex,
-      tickerArrayUpper: endTickIndex,
+      tickArrayLower: startTickIndex,
+      tickArrayUpper: endTickIndex,
       baseVaultAuthority: strategyState.baseVaultAuthority,
       position,
       positionMint: newPosition,
@@ -929,6 +945,11 @@ export class Kamino {
       oldPositionTokenAccountOrBaseVaultAuthority: isRebalancing
         ? strategyState.positionTokenAccount
         : strategyState.baseVaultAuthority,
+      raydiumProtocolPositionOrBaseVaultAuthority: strategyState.baseVaultAuthority,
+      adminTokenAAtaOrBaseVaultAuthority: strategyState.baseVaultAuthority,
+      adminTokenBAtaOrBaseVaultAuthority: strategyState.baseVaultAuthority,
+      poolTokenVaultAOrBaseVaultAuthority: strategyState.baseVaultAuthority,
+      poolTokenVaultBOrBaseVaultAuthority: strategyState.baseVaultAuthority,
     };
 
     return openLiquidityPosition(args, accounts);
@@ -964,6 +985,7 @@ export class Kamino {
       tokenAMint: strategyState.tokenAMint,
       tokenBMint: strategyState.tokenBMint,
       scopePrices: strategyState.scopePrices,
+      raydiumProtocolPositionOrBaseVaultAuthority: strategyState.raydiumProtocolPositionOrBaseVaultAuthority,
       tokenProgram: TOKEN_PROGRAM_ID,
       poolProgram: WHIRLPOOL_PROGRAM_ID,
     };
@@ -999,6 +1021,7 @@ export class Kamino {
       tickArrayLower: strategyState.tickArrayLower,
       tickArrayUpper: strategyState.tickArrayUpper,
       scopePrices: this._config.scope.oraclePrices,
+      raydiumProtocolPositionOrBaseVaultAuthority: strategyState.raydiumProtocolPositionOrBaseVaultAuthority,
       poolProgram: WHIRLPOOL_PROGRAM_ID,
       instructionSysvarAccount: SYSVAR_INSTRUCTIONS_PUBKEY,
     };
