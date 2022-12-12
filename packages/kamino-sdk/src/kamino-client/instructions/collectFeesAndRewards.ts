@@ -13,6 +13,7 @@ export interface CollectFeesAndRewardsAccounts {
   tickArrayLower: PublicKey
   tickArrayUpper: PublicKey
   position: PublicKey
+  raydiumProtocolPositionOrBaseVaultAuthority: PublicKey
   positionTokenAccount: PublicKey
   tokenAVault: PublicKey
   poolTokenVaultA: PublicKey
@@ -50,6 +51,11 @@ export function collectFeesAndRewards(accounts: CollectFeesAndRewardsAccounts) {
     { pubkey: accounts.tickArrayLower, isSigner: false, isWritable: false },
     { pubkey: accounts.tickArrayUpper, isSigner: false, isWritable: false },
     { pubkey: accounts.position, isSigner: false, isWritable: true },
+    {
+      pubkey: accounts.raydiumProtocolPositionOrBaseVaultAuthority,
+      isSigner: false,
+      isWritable: true,
+    },
     {
       pubkey: accounts.positionTokenAccount,
       isSigner: false,

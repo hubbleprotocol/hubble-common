@@ -509,6 +509,29 @@ export class UXP {
   }
 }
 
+export interface JITOSOLJSON {
+  kind: "JITOSOL"
+}
+
+export class JITOSOL {
+  static readonly discriminator = 22
+  static readonly kind = "JITOSOL"
+  readonly discriminator = 22
+  readonly kind = "JITOSOL"
+
+  toJSON(): JITOSOLJSON {
+    return {
+      kind: "JITOSOL",
+    }
+  }
+
+  toEncodable() {
+    return {
+      JITOSOL: {},
+    }
+  }
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function fromDecoded(obj: any): types.CollateralTokenKind {
   if (typeof obj !== "object") {
@@ -580,6 +603,9 @@ export function fromDecoded(obj: any): types.CollateralTokenKind {
   }
   if ("UXP" in obj) {
     return new UXP()
+  }
+  if ("JITOSOL" in obj) {
+    return new JITOSOL()
   }
 
   throw new Error("Invalid enum object")
@@ -655,6 +681,9 @@ export function fromJSON(
     case "UXP": {
       return new UXP()
     }
+    case "JITOSOL": {
+      return new JITOSOL()
+    }
   }
 }
 
@@ -682,6 +711,7 @@ export function layout(property?: string) {
     borsh.struct([], "USDR"),
     borsh.struct([], "RATIO"),
     borsh.struct([], "UXP"),
+    borsh.struct([], "JITOSOL"),
   ])
   if (property !== undefined) {
     return ret.replicate(property)

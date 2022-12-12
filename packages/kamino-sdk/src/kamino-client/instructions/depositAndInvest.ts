@@ -13,8 +13,10 @@ export interface DepositAndInvestAccounts {
   user: PublicKey
   strategy: PublicKey
   globalConfig: PublicKey
+  /** check that the pool is owned either by orca or by raydium */
   pool: PublicKey
   position: PublicKey
+  raydiumProtocolPositionOrBaseVaultAuthority: PublicKey
   positionTokenAccount: PublicKey
   tokenAVault: PublicKey
   tokenBVault: PublicKey
@@ -33,6 +35,7 @@ export interface DepositAndInvestAccounts {
   sharesMint: PublicKey
   sharesMintAuthority: PublicKey
   scopePrices: PublicKey
+  tokenInfos: PublicKey
   systemProgram: PublicKey
   rent: PublicKey
   associatedTokenProgram: PublicKey
@@ -57,9 +60,14 @@ export function depositAndInvest(
     { pubkey: accounts.pool, isSigner: false, isWritable: true },
     { pubkey: accounts.position, isSigner: false, isWritable: true },
     {
+      pubkey: accounts.raydiumProtocolPositionOrBaseVaultAuthority,
+      isSigner: false,
+      isWritable: true,
+    },
+    {
       pubkey: accounts.positionTokenAccount,
       isSigner: false,
-      isWritable: false,
+      isWritable: true,
     },
     { pubkey: accounts.tokenAVault, isSigner: false, isWritable: true },
     { pubkey: accounts.tokenBVault, isSigner: false, isWritable: true },
@@ -67,7 +75,7 @@ export function depositAndInvest(
     { pubkey: accounts.poolTokenVaultB, isSigner: false, isWritable: true },
     { pubkey: accounts.tickArrayLower, isSigner: false, isWritable: true },
     { pubkey: accounts.tickArrayUpper, isSigner: false, isWritable: true },
-    { pubkey: accounts.baseVaultAuthority, isSigner: false, isWritable: false },
+    { pubkey: accounts.baseVaultAuthority, isSigner: false, isWritable: true },
     {
       pubkey: accounts.treasuryFeeTokenAVault,
       isSigner: false,
@@ -90,6 +98,7 @@ export function depositAndInvest(
       isWritable: false,
     },
     { pubkey: accounts.scopePrices, isSigner: false, isWritable: false },
+    { pubkey: accounts.tokenInfos, isSigner: false, isWritable: false },
     { pubkey: accounts.systemProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.rent, isSigner: false, isWritable: false },
     {

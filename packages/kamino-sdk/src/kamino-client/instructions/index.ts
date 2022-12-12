@@ -15,6 +15,13 @@ export type {
 } from "./addKaminoRewards"
 export { initializeGlobalConfig } from "./initializeGlobalConfig"
 export type { InitializeGlobalConfigAccounts } from "./initializeGlobalConfig"
+export { initializeCollateralInfo } from "./initializeCollateralInfo"
+export type { InitializeCollateralInfoAccounts } from "./initializeCollateralInfo"
+export { updateCollateralInfo } from "./updateCollateralInfo"
+export type {
+  UpdateCollateralInfoArgs,
+  UpdateCollateralInfoAccounts,
+} from "./updateCollateralInfo"
 export { initializeScopeChain } from "./initializeScopeChain"
 export type { InitializeScopeChainAccounts } from "./initializeScopeChain"
 export { initializeSharesMetadata } from "./initializeSharesMetadata"
@@ -37,8 +44,6 @@ export type {
   UpdateTreasuryFeeVaultArgs,
   UpdateTreasuryFeeVaultAccounts,
 } from "./updateTreasuryFeeVault"
-export { updateAdminAuthority } from "./updateAdminAuthority"
-export type { UpdateAdminAuthorityAccounts } from "./updateAdminAuthority"
 export { updateStrategyConfig } from "./updateStrategyConfig"
 export type {
   UpdateStrategyConfigArgs,
@@ -81,6 +86,16 @@ export type {
   SwapUnevenVaultsArgs,
   SwapUnevenVaultsAccounts,
 } from "./swapUnevenVaults"
+export { flashSwapUnevenVaultsStart } from "./flashSwapUnevenVaultsStart"
+export type {
+  FlashSwapUnevenVaultsStartArgs,
+  FlashSwapUnevenVaultsStartAccounts,
+} from "./flashSwapUnevenVaultsStart"
+export { flashSwapUnevenVaultsEnd } from "./flashSwapUnevenVaultsEnd"
+export type {
+  FlashSwapUnevenVaultsEndArgs,
+  FlashSwapUnevenVaultsEndAccounts,
+} from "./flashSwapUnevenVaultsEnd"
 export { emergencySwap } from "./emergencySwap"
 export type { EmergencySwapArgs, EmergencySwapAccounts } from "./emergencySwap"
 export { orcaSwap } from "./orcaSwap"

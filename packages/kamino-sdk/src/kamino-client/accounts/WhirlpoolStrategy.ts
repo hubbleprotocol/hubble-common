@@ -74,12 +74,22 @@ export interface WhirlpoolStrategyFields {
   kaminoRewards: Array<types.KaminoRewardInfoFields>
   strategyDex: BN
   raydiumProtocolPositionOrBaseVaultAuthority: PublicKey
+  blockDeposit: BN
+  raydiumPoolConfigOrBaseVaultAuthority: PublicKey
+  depositBlocked: number
+  reservedFlag0: number
+  investBlocked: number
+  reservedFlag1: number
+  withdrawBlocked: number
+  reservedFlag2: number
+  localAdminBlocked: number
+  flashVaultSwapAllowed: number
   padding1: Array<BN>
+  padding2: Array<BN>
   padding3: Array<BN>
   padding4: Array<BN>
   padding5: Array<BN>
   padding6: Array<BN>
-  padding7: Array<BN>
 }
 
 export interface WhirlpoolStrategyJSON {
@@ -152,12 +162,22 @@ export interface WhirlpoolStrategyJSON {
   kaminoRewards: Array<types.KaminoRewardInfoJSON>
   strategyDex: string
   raydiumProtocolPositionOrBaseVaultAuthority: string
+  blockDeposit: string
+  raydiumPoolConfigOrBaseVaultAuthority: string
+  depositBlocked: number
+  reservedFlag0: number
+  investBlocked: number
+  reservedFlag1: number
+  withdrawBlocked: number
+  reservedFlag2: number
+  localAdminBlocked: number
+  flashVaultSwapAllowed: number
   padding1: Array<string>
+  padding2: Array<string>
   padding3: Array<string>
   padding4: Array<string>
   padding5: Array<string>
   padding6: Array<string>
-  padding7: Array<string>
 }
 
 export class WhirlpoolStrategy {
@@ -230,12 +250,22 @@ export class WhirlpoolStrategy {
   readonly kaminoRewards: Array<types.KaminoRewardInfo>
   readonly strategyDex: BN
   readonly raydiumProtocolPositionOrBaseVaultAuthority: PublicKey
+  readonly blockDeposit: BN
+  readonly raydiumPoolConfigOrBaseVaultAuthority: PublicKey
+  readonly depositBlocked: number
+  readonly reservedFlag0: number
+  readonly investBlocked: number
+  readonly reservedFlag1: number
+  readonly withdrawBlocked: number
+  readonly reservedFlag2: number
+  readonly localAdminBlocked: number
+  readonly flashVaultSwapAllowed: number
   readonly padding1: Array<BN>
+  readonly padding2: Array<BN>
   readonly padding3: Array<BN>
   readonly padding4: Array<BN>
   readonly padding5: Array<BN>
   readonly padding6: Array<BN>
-  readonly padding7: Array<BN>
 
   static readonly discriminator = Buffer.from([
     190, 178, 231, 184, 49, 186, 103, 13,
@@ -311,12 +341,22 @@ export class WhirlpoolStrategy {
     borsh.array(types.KaminoRewardInfo.layout(), 3, "kaminoRewards"),
     borsh.u64("strategyDex"),
     borsh.publicKey("raydiumProtocolPositionOrBaseVaultAuthority"),
+    borsh.u64("blockDeposit"),
+    borsh.publicKey("raydiumPoolConfigOrBaseVaultAuthority"),
+    borsh.u8("depositBlocked"),
+    borsh.u8("reservedFlag0"),
+    borsh.u8("investBlocked"),
+    borsh.u8("reservedFlag1"),
+    borsh.u8("withdrawBlocked"),
+    borsh.u8("reservedFlag2"),
+    borsh.u8("localAdminBlocked"),
+    borsh.u8("flashVaultSwapAllowed"),
     borsh.array(borsh.u64(), 2, "padding1"),
-    borsh.array(borsh.u128(), 26, "padding3"),
+    borsh.array(borsh.u128(), 23, "padding2"),
+    borsh.array(borsh.u128(), 32, "padding3"),
     borsh.array(borsh.u128(), 32, "padding4"),
     borsh.array(borsh.u128(), 32, "padding5"),
     borsh.array(borsh.u128(), 32, "padding6"),
-    borsh.array(borsh.u128(), 32, "padding7"),
   ])
 
   constructor(fields: WhirlpoolStrategyFields) {
@@ -392,12 +432,23 @@ export class WhirlpoolStrategy {
     this.strategyDex = fields.strategyDex
     this.raydiumProtocolPositionOrBaseVaultAuthority =
       fields.raydiumProtocolPositionOrBaseVaultAuthority
+    this.blockDeposit = fields.blockDeposit
+    this.raydiumPoolConfigOrBaseVaultAuthority =
+      fields.raydiumPoolConfigOrBaseVaultAuthority
+    this.depositBlocked = fields.depositBlocked
+    this.reservedFlag0 = fields.reservedFlag0
+    this.investBlocked = fields.investBlocked
+    this.reservedFlag1 = fields.reservedFlag1
+    this.withdrawBlocked = fields.withdrawBlocked
+    this.reservedFlag2 = fields.reservedFlag2
+    this.localAdminBlocked = fields.localAdminBlocked
+    this.flashVaultSwapAllowed = fields.flashVaultSwapAllowed
     this.padding1 = fields.padding1
+    this.padding2 = fields.padding2
     this.padding3 = fields.padding3
     this.padding4 = fields.padding4
     this.padding5 = fields.padding5
     this.padding6 = fields.padding6
-    this.padding7 = fields.padding7
   }
 
   static async fetch(
@@ -516,12 +567,23 @@ export class WhirlpoolStrategy {
       strategyDex: dec.strategyDex,
       raydiumProtocolPositionOrBaseVaultAuthority:
         dec.raydiumProtocolPositionOrBaseVaultAuthority,
+      blockDeposit: dec.blockDeposit,
+      raydiumPoolConfigOrBaseVaultAuthority:
+        dec.raydiumPoolConfigOrBaseVaultAuthority,
+      depositBlocked: dec.depositBlocked,
+      reservedFlag0: dec.reservedFlag0,
+      investBlocked: dec.investBlocked,
+      reservedFlag1: dec.reservedFlag1,
+      withdrawBlocked: dec.withdrawBlocked,
+      reservedFlag2: dec.reservedFlag2,
+      localAdminBlocked: dec.localAdminBlocked,
+      flashVaultSwapAllowed: dec.flashVaultSwapAllowed,
       padding1: dec.padding1,
+      padding2: dec.padding2,
       padding3: dec.padding3,
       padding4: dec.padding4,
       padding5: dec.padding5,
       padding6: dec.padding6,
-      padding7: dec.padding7,
     })
   }
 
@@ -597,12 +659,23 @@ export class WhirlpoolStrategy {
       strategyDex: this.strategyDex.toString(),
       raydiumProtocolPositionOrBaseVaultAuthority:
         this.raydiumProtocolPositionOrBaseVaultAuthority.toString(),
+      blockDeposit: this.blockDeposit.toString(),
+      raydiumPoolConfigOrBaseVaultAuthority:
+        this.raydiumPoolConfigOrBaseVaultAuthority.toString(),
+      depositBlocked: this.depositBlocked,
+      reservedFlag0: this.reservedFlag0,
+      investBlocked: this.investBlocked,
+      reservedFlag1: this.reservedFlag1,
+      withdrawBlocked: this.withdrawBlocked,
+      reservedFlag2: this.reservedFlag2,
+      localAdminBlocked: this.localAdminBlocked,
+      flashVaultSwapAllowed: this.flashVaultSwapAllowed,
       padding1: this.padding1.map((item) => item.toString()),
+      padding2: this.padding2.map((item) => item.toString()),
       padding3: this.padding3.map((item) => item.toString()),
       padding4: this.padding4.map((item) => item.toString()),
       padding5: this.padding5.map((item) => item.toString()),
       padding6: this.padding6.map((item) => item.toString()),
-      padding7: this.padding7.map((item) => item.toString()),
     }
   }
 
@@ -681,12 +754,24 @@ export class WhirlpoolStrategy {
       raydiumProtocolPositionOrBaseVaultAuthority: new PublicKey(
         obj.raydiumProtocolPositionOrBaseVaultAuthority
       ),
+      blockDeposit: new BN(obj.blockDeposit),
+      raydiumPoolConfigOrBaseVaultAuthority: new PublicKey(
+        obj.raydiumPoolConfigOrBaseVaultAuthority
+      ),
+      depositBlocked: obj.depositBlocked,
+      reservedFlag0: obj.reservedFlag0,
+      investBlocked: obj.investBlocked,
+      reservedFlag1: obj.reservedFlag1,
+      withdrawBlocked: obj.withdrawBlocked,
+      reservedFlag2: obj.reservedFlag2,
+      localAdminBlocked: obj.localAdminBlocked,
+      flashVaultSwapAllowed: obj.flashVaultSwapAllowed,
       padding1: obj.padding1.map((item) => new BN(item)),
+      padding2: obj.padding2.map((item) => new BN(item)),
       padding3: obj.padding3.map((item) => new BN(item)),
       padding4: obj.padding4.map((item) => new BN(item)),
       padding5: obj.padding5.map((item) => new BN(item)),
       padding6: obj.padding6.map((item) => new BN(item)),
-      padding7: obj.padding7.map((item) => new BN(item)),
     })
   }
 }

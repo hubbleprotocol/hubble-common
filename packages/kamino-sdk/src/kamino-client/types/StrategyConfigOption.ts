@@ -555,6 +555,213 @@ export class KaminoRewardIndex2RewardPerSecond {
   }
 }
 
+export interface UpdateDepositBlockedJSON {
+  kind: "UpdateDepositBlocked"
+}
+
+export class UpdateDepositBlocked {
+  static readonly discriminator = 24
+  static readonly kind = "UpdateDepositBlocked"
+  readonly discriminator = 24
+  readonly kind = "UpdateDepositBlocked"
+
+  toJSON(): UpdateDepositBlockedJSON {
+    return {
+      kind: "UpdateDepositBlocked",
+    }
+  }
+
+  toEncodable() {
+    return {
+      UpdateDepositBlocked: {},
+    }
+  }
+}
+
+export interface UpdateRaydiumProtocolPositionOrBaseVaultAuthorityJSON {
+  kind: "UpdateRaydiumProtocolPositionOrBaseVaultAuthority"
+}
+
+export class UpdateRaydiumProtocolPositionOrBaseVaultAuthority {
+  static readonly discriminator = 25
+  static readonly kind = "UpdateRaydiumProtocolPositionOrBaseVaultAuthority"
+  readonly discriminator = 25
+  readonly kind = "UpdateRaydiumProtocolPositionOrBaseVaultAuthority"
+
+  toJSON(): UpdateRaydiumProtocolPositionOrBaseVaultAuthorityJSON {
+    return {
+      kind: "UpdateRaydiumProtocolPositionOrBaseVaultAuthority",
+    }
+  }
+
+  toEncodable() {
+    return {
+      UpdateRaydiumProtocolPositionOrBaseVaultAuthority: {},
+    }
+  }
+}
+
+export interface UpdateRaydiumPoolConfigOrBaseVaultAuthorityJSON {
+  kind: "UpdateRaydiumPoolConfigOrBaseVaultAuthority"
+}
+
+export class UpdateRaydiumPoolConfigOrBaseVaultAuthority {
+  static readonly discriminator = 26
+  static readonly kind = "UpdateRaydiumPoolConfigOrBaseVaultAuthority"
+  readonly discriminator = 26
+  readonly kind = "UpdateRaydiumPoolConfigOrBaseVaultAuthority"
+
+  toJSON(): UpdateRaydiumPoolConfigOrBaseVaultAuthorityJSON {
+    return {
+      kind: "UpdateRaydiumPoolConfigOrBaseVaultAuthority",
+    }
+  }
+
+  toEncodable() {
+    return {
+      UpdateRaydiumPoolConfigOrBaseVaultAuthority: {},
+    }
+  }
+}
+
+export interface UpdateInvestBlockedJSON {
+  kind: "UpdateInvestBlocked"
+}
+
+export class UpdateInvestBlocked {
+  static readonly discriminator = 27
+  static readonly kind = "UpdateInvestBlocked"
+  readonly discriminator = 27
+  readonly kind = "UpdateInvestBlocked"
+
+  toJSON(): UpdateInvestBlockedJSON {
+    return {
+      kind: "UpdateInvestBlocked",
+    }
+  }
+
+  toEncodable() {
+    return {
+      UpdateInvestBlocked: {},
+    }
+  }
+}
+
+export interface UpdateWithdrawBlockedJSON {
+  kind: "UpdateWithdrawBlocked"
+}
+
+export class UpdateWithdrawBlocked {
+  static readonly discriminator = 28
+  static readonly kind = "UpdateWithdrawBlocked"
+  readonly discriminator = 28
+  readonly kind = "UpdateWithdrawBlocked"
+
+  toJSON(): UpdateWithdrawBlockedJSON {
+    return {
+      kind: "UpdateWithdrawBlocked",
+    }
+  }
+
+  toEncodable() {
+    return {
+      UpdateWithdrawBlocked: {},
+    }
+  }
+}
+
+export interface UpdateLocalAdminBlockedJSON {
+  kind: "UpdateLocalAdminBlocked"
+}
+
+export class UpdateLocalAdminBlocked {
+  static readonly discriminator = 29
+  static readonly kind = "UpdateLocalAdminBlocked"
+  readonly discriminator = 29
+  readonly kind = "UpdateLocalAdminBlocked"
+
+  toJSON(): UpdateLocalAdminBlockedJSON {
+    return {
+      kind: "UpdateLocalAdminBlocked",
+    }
+  }
+
+  toEncodable() {
+    return {
+      UpdateLocalAdminBlocked: {},
+    }
+  }
+}
+
+export interface UpdateCollateralIdAJSON {
+  kind: "UpdateCollateralIdA"
+}
+
+export class UpdateCollateralIdA {
+  static readonly discriminator = 30
+  static readonly kind = "UpdateCollateralIdA"
+  readonly discriminator = 30
+  readonly kind = "UpdateCollateralIdA"
+
+  toJSON(): UpdateCollateralIdAJSON {
+    return {
+      kind: "UpdateCollateralIdA",
+    }
+  }
+
+  toEncodable() {
+    return {
+      UpdateCollateralIdA: {},
+    }
+  }
+}
+
+export interface UpdateCollateralIdBJSON {
+  kind: "UpdateCollateralIdB"
+}
+
+export class UpdateCollateralIdB {
+  static readonly discriminator = 31
+  static readonly kind = "UpdateCollateralIdB"
+  readonly discriminator = 31
+  readonly kind = "UpdateCollateralIdB"
+
+  toJSON(): UpdateCollateralIdBJSON {
+    return {
+      kind: "UpdateCollateralIdB",
+    }
+  }
+
+  toEncodable() {
+    return {
+      UpdateCollateralIdB: {},
+    }
+  }
+}
+
+export interface UpdateFlashVaultSwapJSON {
+  kind: "UpdateFlashVaultSwap"
+}
+
+export class UpdateFlashVaultSwap {
+  static readonly discriminator = 32
+  static readonly kind = "UpdateFlashVaultSwap"
+  readonly discriminator = 32
+  readonly kind = "UpdateFlashVaultSwap"
+
+  toJSON(): UpdateFlashVaultSwapJSON {
+    return {
+      kind: "UpdateFlashVaultSwap",
+    }
+  }
+
+  toEncodable() {
+    return {
+      UpdateFlashVaultSwap: {},
+    }
+  }
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function fromDecoded(obj: any): types.StrategyConfigOptionKind {
   if (typeof obj !== "object") {
@@ -632,6 +839,33 @@ export function fromDecoded(obj: any): types.StrategyConfigOptionKind {
   }
   if ("KaminoRewardIndex2RewardPerSecond" in obj) {
     return new KaminoRewardIndex2RewardPerSecond()
+  }
+  if ("UpdateDepositBlocked" in obj) {
+    return new UpdateDepositBlocked()
+  }
+  if ("UpdateRaydiumProtocolPositionOrBaseVaultAuthority" in obj) {
+    return new UpdateRaydiumProtocolPositionOrBaseVaultAuthority()
+  }
+  if ("UpdateRaydiumPoolConfigOrBaseVaultAuthority" in obj) {
+    return new UpdateRaydiumPoolConfigOrBaseVaultAuthority()
+  }
+  if ("UpdateInvestBlocked" in obj) {
+    return new UpdateInvestBlocked()
+  }
+  if ("UpdateWithdrawBlocked" in obj) {
+    return new UpdateWithdrawBlocked()
+  }
+  if ("UpdateLocalAdminBlocked" in obj) {
+    return new UpdateLocalAdminBlocked()
+  }
+  if ("UpdateCollateralIdA" in obj) {
+    return new UpdateCollateralIdA()
+  }
+  if ("UpdateCollateralIdB" in obj) {
+    return new UpdateCollateralIdB()
+  }
+  if ("UpdateFlashVaultSwap" in obj) {
+    return new UpdateFlashVaultSwap()
   }
 
   throw new Error("Invalid enum object")
@@ -713,6 +947,33 @@ export function fromJSON(
     case "KaminoRewardIndex2RewardPerSecond": {
       return new KaminoRewardIndex2RewardPerSecond()
     }
+    case "UpdateDepositBlocked": {
+      return new UpdateDepositBlocked()
+    }
+    case "UpdateRaydiumProtocolPositionOrBaseVaultAuthority": {
+      return new UpdateRaydiumProtocolPositionOrBaseVaultAuthority()
+    }
+    case "UpdateRaydiumPoolConfigOrBaseVaultAuthority": {
+      return new UpdateRaydiumPoolConfigOrBaseVaultAuthority()
+    }
+    case "UpdateInvestBlocked": {
+      return new UpdateInvestBlocked()
+    }
+    case "UpdateWithdrawBlocked": {
+      return new UpdateWithdrawBlocked()
+    }
+    case "UpdateLocalAdminBlocked": {
+      return new UpdateLocalAdminBlocked()
+    }
+    case "UpdateCollateralIdA": {
+      return new UpdateCollateralIdA()
+    }
+    case "UpdateCollateralIdB": {
+      return new UpdateCollateralIdB()
+    }
+    case "UpdateFlashVaultSwap": {
+      return new UpdateFlashVaultSwap()
+    }
   }
 }
 
@@ -742,6 +1003,15 @@ export function layout(property?: string) {
     borsh.struct([], "KaminoRewardIndex0RewardPerSecond"),
     borsh.struct([], "KaminoRewardIndex1RewardPerSecond"),
     borsh.struct([], "KaminoRewardIndex2RewardPerSecond"),
+    borsh.struct([], "UpdateDepositBlocked"),
+    borsh.struct([], "UpdateRaydiumProtocolPositionOrBaseVaultAuthority"),
+    borsh.struct([], "UpdateRaydiumPoolConfigOrBaseVaultAuthority"),
+    borsh.struct([], "UpdateInvestBlocked"),
+    borsh.struct([], "UpdateWithdrawBlocked"),
+    borsh.struct([], "UpdateLocalAdminBlocked"),
+    borsh.struct([], "UpdateCollateralIdA"),
+    borsh.struct([], "UpdateCollateralIdB"),
+    borsh.struct([], "UpdateFlashVaultSwap"),
   ])
   if (property !== undefined) {
     return ret.replicate(property)

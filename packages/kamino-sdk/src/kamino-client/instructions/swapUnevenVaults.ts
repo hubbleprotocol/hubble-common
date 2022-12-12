@@ -17,6 +17,7 @@ export interface SwapUnevenVaultsAccounts {
   baseVaultAuthority: PublicKey
   pool: PublicKey
   position: PublicKey
+  raydiumPoolConfigOrBaseVaultAuthority: PublicKey
   poolTokenVaultA: PublicKey
   poolTokenVaultB: PublicKey
   /** Payer must send this correctly. */
@@ -26,7 +27,7 @@ export interface SwapUnevenVaultsAccounts {
   /** Payer must send this correctly. */
   tickArray2: PublicKey
   oracle: PublicKey
-  whirlpoolProgram: PublicKey
+  poolProgram: PublicKey
   scopePrices: PublicKey
   tokenProgram: PublicKey
 }
@@ -46,13 +47,18 @@ export function swapUnevenVaults(
     { pubkey: accounts.baseVaultAuthority, isSigner: false, isWritable: true },
     { pubkey: accounts.pool, isSigner: false, isWritable: true },
     { pubkey: accounts.position, isSigner: false, isWritable: true },
+    {
+      pubkey: accounts.raydiumPoolConfigOrBaseVaultAuthority,
+      isSigner: false,
+      isWritable: false,
+    },
     { pubkey: accounts.poolTokenVaultA, isSigner: false, isWritable: true },
     { pubkey: accounts.poolTokenVaultB, isSigner: false, isWritable: true },
     { pubkey: accounts.tickArray0, isSigner: false, isWritable: true },
     { pubkey: accounts.tickArray1, isSigner: false, isWritable: true },
     { pubkey: accounts.tickArray2, isSigner: false, isWritable: true },
     { pubkey: accounts.oracle, isSigner: false, isWritable: false },
-    { pubkey: accounts.whirlpoolProgram, isSigner: false, isWritable: false },
+    { pubkey: accounts.poolProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.scopePrices, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
   ]

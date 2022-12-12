@@ -4,36 +4,42 @@ import * as borsh from "@project-serum/borsh" // eslint-disable-line @typescript
 import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
 import { PROGRAM_ID } from "../programId"
 
-export interface UpdateStrategyConfigArgs {
-  mode: number
+export interface UpdateCollateralInfoArgs {
+  index: BN
+  mode: BN
   value: BN
 }
 
-export interface UpdateStrategyConfigAccounts {
+export interface UpdateCollateralInfoAccounts {
   adminAuthority: PublicKey
-  newAccount: PublicKey
-  strategy: PublicKey
   globalConfig: PublicKey
+  tokenInfos: PublicKey
+  mint: PublicKey
   systemProgram: PublicKey
 }
 
-export const layout = borsh.struct([borsh.u16("mode"), borsh.u64("value")])
+export const layout = borsh.struct([
+  borsh.u64("index"),
+  borsh.u64("mode"),
+  borsh.u64("value"),
+])
 
-export function updateStrategyConfig(
-  args: UpdateStrategyConfigArgs,
-  accounts: UpdateStrategyConfigAccounts
+export function updateCollateralInfo(
+  args: UpdateCollateralInfoArgs,
+  accounts: UpdateCollateralInfoAccounts
 ) {
   const keys: Array<AccountMeta> = [
-    { pubkey: accounts.adminAuthority, isSigner: true, isWritable: false },
-    { pubkey: accounts.newAccount, isSigner: false, isWritable: false },
-    { pubkey: accounts.strategy, isSigner: false, isWritable: true },
+    { pubkey: accounts.adminAuthority, isSigner: true, isWritable: true },
     { pubkey: accounts.globalConfig, isSigner: false, isWritable: false },
+    { pubkey: accounts.tokenInfos, isSigner: false, isWritable: true },
+    { pubkey: accounts.mint, isSigner: false, isWritable: false },
     { pubkey: accounts.systemProgram, isSigner: false, isWritable: false },
   ]
-  const identifier = Buffer.from([81, 217, 177, 65, 40, 227, 8, 165])
+  const identifier = Buffer.from([76, 94, 131, 44, 137, 61, 161, 110])
   const buffer = Buffer.alloc(1000)
   const len = layout.encode(
     {
+      index: args.index,
       mode: args.mode,
       value: args.value,
     },

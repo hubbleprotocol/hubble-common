@@ -3,25 +3,25 @@ import BN from "bn.js" // eslint-disable-line @typescript-eslint/no-unused-vars
 import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
 import * as borsh from "@project-serum/borsh"
 
-export interface CremaJSON {
-  kind: "Crema"
+export interface OrcaJSON {
+  kind: "Orca"
 }
 
-export class Crema {
+export class Orca {
   static readonly discriminator = 0
-  static readonly kind = "Crema"
+  static readonly kind = "Orca"
   readonly discriminator = 0
-  readonly kind = "Crema"
+  readonly kind = "Orca"
 
-  toJSON(): CremaJSON {
+  toJSON(): OrcaJSON {
     return {
-      kind: "Crema",
+      kind: "Orca",
     }
   }
 
   toEncodable() {
     return {
-      Crema: {},
+      Orca: {},
     }
   }
 }
@@ -49,25 +49,25 @@ export class Raydium {
   }
 }
 
-export interface OrcaJSON {
-  kind: "Orca"
+export interface CremaJSON {
+  kind: "Crema"
 }
 
-export class Orca {
+export class Crema {
   static readonly discriminator = 2
-  static readonly kind = "Orca"
+  static readonly kind = "Crema"
   readonly discriminator = 2
-  readonly kind = "Orca"
+  readonly kind = "Crema"
 
-  toJSON(): OrcaJSON {
+  toJSON(): CremaJSON {
     return {
-      kind: "Orca",
+      kind: "Crema",
     }
   }
 
   toEncodable() {
     return {
-      Orca: {},
+      Crema: {},
     }
   }
 }
@@ -78,14 +78,14 @@ export function fromDecoded(obj: any): types.DEXKind {
     throw new Error("Invalid enum object")
   }
 
-  if ("Crema" in obj) {
-    return new Crema()
+  if ("Orca" in obj) {
+    return new Orca()
   }
   if ("Raydium" in obj) {
     return new Raydium()
   }
-  if ("Orca" in obj) {
-    return new Orca()
+  if ("Crema" in obj) {
+    return new Crema()
   }
 
   throw new Error("Invalid enum object")
@@ -93,23 +93,23 @@ export function fromDecoded(obj: any): types.DEXKind {
 
 export function fromJSON(obj: types.DEXJSON): types.DEXKind {
   switch (obj.kind) {
-    case "Crema": {
-      return new Crema()
+    case "Orca": {
+      return new Orca()
     }
     case "Raydium": {
       return new Raydium()
     }
-    case "Orca": {
-      return new Orca()
+    case "Crema": {
+      return new Crema()
     }
   }
 }
 
 export function layout(property?: string) {
   const ret = borsh.rustEnum([
-    borsh.struct([], "Crema"),
-    borsh.struct([], "Raydium"),
     borsh.struct([], "Orca"),
+    borsh.struct([], "Raydium"),
+    borsh.struct([], "Crema"),
   ])
   if (property !== undefined) {
     return ret.replicate(property)

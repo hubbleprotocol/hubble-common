@@ -27,7 +27,7 @@ export interface EmergencySwapAccounts {
   /** Payer must send this correctly. */
   tickArray2: PublicKey
   oracle: PublicKey
-  whirlpoolProgram: PublicKey
+  poolProgram: PublicKey
   scopePrices: PublicKey
   tokenProgram: PublicKey
 }
@@ -56,7 +56,7 @@ export function emergencySwap(
     { pubkey: accounts.tickArray1, isSigner: false, isWritable: true },
     { pubkey: accounts.tickArray2, isSigner: false, isWritable: true },
     { pubkey: accounts.oracle, isSigner: false, isWritable: false },
-    { pubkey: accounts.whirlpoolProgram, isSigner: false, isWritable: false },
+    { pubkey: accounts.poolProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.scopePrices, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
   ]

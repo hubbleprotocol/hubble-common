@@ -14,6 +14,7 @@ export interface ExecutiveWithdrawAccounts {
   globalConfig: PublicKey
   pool: PublicKey
   position: PublicKey
+  raydiumProtocolPositionOrBaseVaultAuthority: PublicKey
   positionTokenAccount: PublicKey
   tickArrayLower: PublicKey
   tickArrayUpper: PublicKey
@@ -41,6 +42,11 @@ export function executiveWithdraw(
     { pubkey: accounts.globalConfig, isSigner: false, isWritable: false },
     { pubkey: accounts.pool, isSigner: false, isWritable: true },
     { pubkey: accounts.position, isSigner: false, isWritable: true },
+    {
+      pubkey: accounts.raydiumProtocolPositionOrBaseVaultAuthority,
+      isSigner: false,
+      isWritable: true,
+    },
     {
       pubkey: accounts.positionTokenAccount,
       isSigner: false,

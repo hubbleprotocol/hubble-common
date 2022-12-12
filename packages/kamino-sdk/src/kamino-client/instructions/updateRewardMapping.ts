@@ -12,10 +12,12 @@ export interface UpdateRewardMappingArgs {
 export interface UpdateRewardMappingAccounts {
   adminAuthority: PublicKey
   strategy: PublicKey
+  globalConfig: PublicKey
   pool: PublicKey
   rewardMint: PublicKey
   rewardVault: PublicKey
   baseVaultAuthority: PublicKey
+  tokenInfos: PublicKey
   systemProgram: PublicKey
   rent: PublicKey
   tokenProgram: PublicKey
@@ -33,10 +35,12 @@ export function updateRewardMapping(
   const keys: Array<AccountMeta> = [
     { pubkey: accounts.adminAuthority, isSigner: true, isWritable: true },
     { pubkey: accounts.strategy, isSigner: false, isWritable: true },
+    { pubkey: accounts.globalConfig, isSigner: false, isWritable: false },
     { pubkey: accounts.pool, isSigner: false, isWritable: false },
     { pubkey: accounts.rewardMint, isSigner: false, isWritable: false },
     { pubkey: accounts.rewardVault, isSigner: true, isWritable: true },
     { pubkey: accounts.baseVaultAuthority, isSigner: false, isWritable: true },
+    { pubkey: accounts.tokenInfos, isSigner: false, isWritable: false },
     { pubkey: accounts.systemProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.rent, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },

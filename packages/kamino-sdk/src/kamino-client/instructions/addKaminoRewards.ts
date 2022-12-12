@@ -5,7 +5,7 @@ import * as types from "../types" // eslint-disable-line @typescript-eslint/no-u
 import { PROGRAM_ID } from "../programId"
 
 export interface AddKaminoRewardsArgs {
-  kaminoRewardIndex: number
+  kaminoRewardIndex: BN
   amount: BN
 }
 
@@ -23,7 +23,7 @@ export interface AddKaminoRewardsAccounts {
 }
 
 export const layout = borsh.struct([
-  borsh.u8("kaminoRewardIndex"),
+  borsh.u64("kaminoRewardIndex"),
   borsh.u64("amount"),
 ])
 

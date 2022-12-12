@@ -5,15 +5,17 @@ import * as types from "../types" // eslint-disable-line @typescript-eslint/no-u
 import { PROGRAM_ID } from "../programId"
 
 export interface InitializeKaminoRewardArgs {
-  kaminoRewardIndex: number
-  collateralToken: number
+  kaminoRewardIndex: BN
+  collateralToken: BN
 }
 
 export interface InitializeKaminoRewardAccounts {
   adminAuthority: PublicKey
   strategy: PublicKey
+  globalConfig: PublicKey
   rewardMint: PublicKey
   rewardVault: PublicKey
+  tokenInfos: PublicKey
   baseVaultAuthority: PublicKey
   systemProgram: PublicKey
   rent: PublicKey
@@ -21,8 +23,8 @@ export interface InitializeKaminoRewardAccounts {
 }
 
 export const layout = borsh.struct([
-  borsh.u8("kaminoRewardIndex"),
-  borsh.u8("collateralToken"),
+  borsh.u64("kaminoRewardIndex"),
+  borsh.u64("collateralToken"),
 ])
 
 export function initializeKaminoReward(
@@ -32,8 +34,10 @@ export function initializeKaminoReward(
   const keys: Array<AccountMeta> = [
     { pubkey: accounts.adminAuthority, isSigner: true, isWritable: true },
     { pubkey: accounts.strategy, isSigner: false, isWritable: true },
+    { pubkey: accounts.globalConfig, isSigner: false, isWritable: false },
     { pubkey: accounts.rewardMint, isSigner: false, isWritable: false },
     { pubkey: accounts.rewardVault, isSigner: true, isWritable: true },
+    { pubkey: accounts.tokenInfos, isSigner: false, isWritable: false },
     { pubkey: accounts.baseVaultAuthority, isSigner: false, isWritable: true },
     { pubkey: accounts.systemProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.rent, isSigner: false, isWritable: false },

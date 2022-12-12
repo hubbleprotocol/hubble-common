@@ -14,11 +14,16 @@ export interface OpenLiquidityPositionAccounts {
   adminAuthority: PublicKey
   strategy: PublicKey
   pool: PublicKey
-  tickerArrayLower: PublicKey
-  tickerArrayUpper: PublicKey
+  tickArrayLower: PublicKey
+  tickArrayUpper: PublicKey
   baseVaultAuthority: PublicKey
   /** Also whirlpools will fail if this is not set correctly */
   position: PublicKey
+  raydiumProtocolPositionOrBaseVaultAuthority: PublicKey
+  adminTokenAAtaOrBaseVaultAuthority: PublicKey
+  adminTokenBAtaOrBaseVaultAuthority: PublicKey
+  poolTokenVaultAOrBaseVaultAuthority: PublicKey
+  poolTokenVaultBOrBaseVaultAuthority: PublicKey
   /** Also whirlpools will fail if this is not set correctly */
   positionMint: PublicKey
   /** Also whirlpools will fail if this is not set correctly */
@@ -54,10 +59,35 @@ export function openLiquidityPosition(
     { pubkey: accounts.adminAuthority, isSigner: true, isWritable: true },
     { pubkey: accounts.strategy, isSigner: false, isWritable: true },
     { pubkey: accounts.pool, isSigner: false, isWritable: true },
-    { pubkey: accounts.tickerArrayLower, isSigner: false, isWritable: false },
-    { pubkey: accounts.tickerArrayUpper, isSigner: false, isWritable: false },
+    { pubkey: accounts.tickArrayLower, isSigner: false, isWritable: true },
+    { pubkey: accounts.tickArrayUpper, isSigner: false, isWritable: true },
     { pubkey: accounts.baseVaultAuthority, isSigner: false, isWritable: true },
     { pubkey: accounts.position, isSigner: false, isWritable: true },
+    {
+      pubkey: accounts.raydiumProtocolPositionOrBaseVaultAuthority,
+      isSigner: false,
+      isWritable: true,
+    },
+    {
+      pubkey: accounts.adminTokenAAtaOrBaseVaultAuthority,
+      isSigner: false,
+      isWritable: true,
+    },
+    {
+      pubkey: accounts.adminTokenBAtaOrBaseVaultAuthority,
+      isSigner: false,
+      isWritable: true,
+    },
+    {
+      pubkey: accounts.poolTokenVaultAOrBaseVaultAuthority,
+      isSigner: false,
+      isWritable: true,
+    },
+    {
+      pubkey: accounts.poolTokenVaultBOrBaseVaultAuthority,
+      isSigner: false,
+      isWritable: true,
+    },
     { pubkey: accounts.positionMint, isSigner: true, isWritable: true },
     {
       pubkey: accounts.positionMetadataAccount,
