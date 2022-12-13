@@ -4,36 +4,24 @@ import * as borsh from "@project-serum/borsh" // eslint-disable-line @typescript
 import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
 import { PROGRAM_ID } from "../programId"
 
-export interface UpdateDepositCapArgs {
-  capInUsd: BN
-}
-
-export interface UpdateDepositCapAccounts {
+export interface InitializeCollateralInfoAccounts {
   adminAuthority: PublicKey
-  strategy: PublicKey
+  globalConfig: PublicKey
+  collInfo: PublicKey
   systemProgram: PublicKey
 }
 
-export const layout = borsh.struct([borsh.u64("capInUsd")])
-
-export function updateDepositCap(
-  args: UpdateDepositCapArgs,
-  accounts: UpdateDepositCapAccounts
+export function initializeCollateralInfo(
+  accounts: InitializeCollateralInfoAccounts
 ) {
   const keys: Array<AccountMeta> = [
-    { pubkey: accounts.adminAuthority, isSigner: true, isWritable: false },
-    { pubkey: accounts.strategy, isSigner: false, isWritable: true },
+    { pubkey: accounts.adminAuthority, isSigner: true, isWritable: true },
+    { pubkey: accounts.globalConfig, isSigner: false, isWritable: true },
+    { pubkey: accounts.collInfo, isSigner: false, isWritable: true },
     { pubkey: accounts.systemProgram, isSigner: false, isWritable: false },
   ]
-  const identifier = Buffer.from([175, 41, 137, 203, 27, 184, 245, 164])
-  const buffer = Buffer.alloc(1000)
-  const len = layout.encode(
-    {
-      capInUsd: args.capInUsd,
-    },
-    buffer
-  )
-  const data = Buffer.concat([identifier, buffer]).slice(0, 8 + len)
+  const identifier = Buffer.from([74, 61, 216, 76, 244, 91, 18, 119])
+  const data = identifier
   const ix = new TransactionInstruction({ keys, programId: PROGRAM_ID, data })
   return ix
 }
