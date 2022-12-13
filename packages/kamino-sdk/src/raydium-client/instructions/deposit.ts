@@ -1,46 +1,43 @@
-import { TransactionInstruction, PublicKey, AccountMeta } from "@solana/web3.js" // eslint-disable-line @typescript-eslint/no-unused-vars
-import BN from "bn.js" // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as borsh from "@project-serum/borsh" // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
-import { PROGRAM_ID } from "../programId"
+import { TransactionInstruction, PublicKey, AccountMeta } from '@solana/web3.js'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import BN from 'bn.js'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as borsh from '@project-serum/borsh'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as types from '../types'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import { PROGRAM_ID } from '../programId';
 
 export interface DepositArgs {
-  tokenMaxA: BN
-  tokenMaxB: BN
+  tokenMaxA: BN;
+  tokenMaxB: BN;
 }
 
 export interface DepositAccounts {
-  user: PublicKey
-  strategy: PublicKey
-  globalConfig: PublicKey
-  pool: PublicKey
-  position: PublicKey
-  tokenAVault: PublicKey
-  tokenBVault: PublicKey
-  baseVaultAuthority: PublicKey
-  treasuryFeeTokenAVault: PublicKey
-  treasuryFeeTokenBVault: PublicKey
-  treasuryFeeVaultAuthority: PublicKey
-  tokenAAta: PublicKey
-  tokenBAta: PublicKey
-  tokenAMint: PublicKey
-  tokenBMint: PublicKey
-  userSharesAta: PublicKey
-  sharesMint: PublicKey
-  sharesMintAuthority: PublicKey
-  scopePrices: PublicKey
-  tokenInfos: PublicKey
-  systemProgram: PublicKey
-  rent: PublicKey
-  associatedTokenProgram: PublicKey
-  tokenProgram: PublicKey
-  instructionSysvarAccount: PublicKey
+  user: PublicKey;
+  strategy: PublicKey;
+  globalConfig: PublicKey;
+  pool: PublicKey;
+  position: PublicKey;
+  tokenAVault: PublicKey;
+  tokenBVault: PublicKey;
+  baseVaultAuthority: PublicKey;
+  treasuryFeeTokenAVault: PublicKey;
+  treasuryFeeTokenBVault: PublicKey;
+  treasuryFeeVaultAuthority: PublicKey;
+  tokenAAta: PublicKey;
+  tokenBAta: PublicKey;
+  tokenAMint: PublicKey;
+  tokenBMint: PublicKey;
+  userSharesAta: PublicKey;
+  sharesMint: PublicKey;
+  sharesMintAuthority: PublicKey;
+  scopePrices: PublicKey;
+  tokenInfos: PublicKey;
+  systemProgram: PublicKey;
+  rent: PublicKey;
+  associatedTokenProgram: PublicKey;
+  tokenProgram: PublicKey;
+  instructionSysvarAccount: PublicKey;
 }
 
-export const layout = borsh.struct([
-  borsh.u64("tokenMaxA"),
-  borsh.u64("tokenMaxB"),
-])
+export const layout = borsh.struct([borsh.u64('tokenMaxA'), borsh.u64('tokenMaxB')]);
 
 export function deposit(args: DepositArgs, accounts: DepositAccounts) {
   const keys: Array<AccountMeta> = [
@@ -93,17 +90,17 @@ export function deposit(args: DepositArgs, accounts: DepositAccounts) {
       isSigner: false,
       isWritable: false,
     },
-  ]
-  const identifier = Buffer.from([242, 35, 198, 137, 82, 225, 242, 182])
-  const buffer = Buffer.alloc(1000)
+  ];
+  const identifier = Buffer.from([242, 35, 198, 137, 82, 225, 242, 182]);
+  const buffer = Buffer.alloc(1000);
   const len = layout.encode(
     {
       tokenMaxA: args.tokenMaxA,
       tokenMaxB: args.tokenMaxB,
     },
     buffer
-  )
-  const data = Buffer.concat([identifier, buffer]).slice(0, 8 + len)
-  const ix = new TransactionInstruction({ keys, programId: PROGRAM_ID, data })
-  return ix
+  );
+  const data = Buffer.concat([identifier, buffer]).slice(0, 8 + len);
+  const ix = new TransactionInstruction({ keys, programId: PROGRAM_ID, data });
+  return ix;
 }

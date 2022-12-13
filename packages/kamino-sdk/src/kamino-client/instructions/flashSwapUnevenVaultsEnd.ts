@@ -1,36 +1,32 @@
-import { TransactionInstruction, PublicKey, AccountMeta } from "@solana/web3.js" // eslint-disable-line @typescript-eslint/no-unused-vars
-import BN from "bn.js" // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as borsh from "@project-serum/borsh" // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
-import { PROGRAM_ID } from "../programId"
+import { TransactionInstruction, PublicKey, AccountMeta } from '@solana/web3.js'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import BN from 'bn.js'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as borsh from '@project-serum/borsh'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as types from '../types'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import { PROGRAM_ID } from '../programId';
 
 export interface FlashSwapUnevenVaultsEndArgs {
-  minRepayAmount: BN
-  amountToLeaveToUser: BN
-  aToB: boolean
+  minRepayAmount: BN;
+  amountToLeaveToUser: BN;
+  aToB: boolean;
 }
 
 export interface FlashSwapUnevenVaultsEndAccounts {
-  actionsAuthority: PublicKey
-  strategy: PublicKey
-  globalConfig: PublicKey
-  tokenAVault: PublicKey
-  tokenBVault: PublicKey
-  tokenAAta: PublicKey
-  tokenBAta: PublicKey
-  baseVaultAuthority: PublicKey
-  pool: PublicKey
-  position: PublicKey
-  scopePrices: PublicKey
-  tokenProgram: PublicKey
-  instructionSysvarAccount: PublicKey
+  actionsAuthority: PublicKey;
+  strategy: PublicKey;
+  globalConfig: PublicKey;
+  tokenAVault: PublicKey;
+  tokenBVault: PublicKey;
+  tokenAAta: PublicKey;
+  tokenBAta: PublicKey;
+  baseVaultAuthority: PublicKey;
+  pool: PublicKey;
+  position: PublicKey;
+  scopePrices: PublicKey;
+  tokenProgram: PublicKey;
+  instructionSysvarAccount: PublicKey;
 }
 
-export const layout = borsh.struct([
-  borsh.u64("minRepayAmount"),
-  borsh.u64("amountToLeaveToUser"),
-  borsh.bool("aToB"),
-])
+export const layout = borsh.struct([borsh.u64('minRepayAmount'), borsh.u64('amountToLeaveToUser'), borsh.bool('aToB')]);
 
 /**
  * End of Flash swap uneven vaults.
@@ -63,9 +59,9 @@ export function flashSwapUnevenVaultsEnd(
       isSigner: false,
       isWritable: false,
     },
-  ]
-  const identifier = Buffer.from([226, 2, 190, 101, 202, 132, 156, 20])
-  const buffer = Buffer.alloc(1000)
+  ];
+  const identifier = Buffer.from([226, 2, 190, 101, 202, 132, 156, 20]);
+  const buffer = Buffer.alloc(1000);
   const len = layout.encode(
     {
       minRepayAmount: args.minRepayAmount,
@@ -73,8 +69,8 @@ export function flashSwapUnevenVaultsEnd(
       aToB: args.aToB,
     },
     buffer
-  )
-  const data = Buffer.concat([identifier, buffer]).slice(0, 8 + len)
-  const ix = new TransactionInstruction({ keys, programId: PROGRAM_ID, data })
-  return ix
+  );
+  const data = Buffer.concat([identifier, buffer]).slice(0, 8 + len);
+  const ix = new TransactionInstruction({ keys, programId: PROGRAM_ID, data });
+  return ix;
 }

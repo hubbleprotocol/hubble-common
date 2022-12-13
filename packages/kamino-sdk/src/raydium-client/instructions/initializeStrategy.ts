@@ -1,47 +1,44 @@
-import { TransactionInstruction, PublicKey, AccountMeta } from "@solana/web3.js" // eslint-disable-line @typescript-eslint/no-unused-vars
-import BN from "bn.js" // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as borsh from "@project-serum/borsh" // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
-import { PROGRAM_ID } from "../programId"
+import { TransactionInstruction, PublicKey, AccountMeta } from '@solana/web3.js'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import BN from 'bn.js'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as borsh from '@project-serum/borsh'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as types from '../types'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import { PROGRAM_ID } from '../programId';
 
 export interface InitializeStrategyArgs {
-  strategyType: BN
-  tokenACollateralId: BN
-  tokenBCollateralId: BN
+  strategyType: BN;
+  tokenACollateralId: BN;
+  tokenBCollateralId: BN;
 }
 
 export interface InitializeStrategyAccounts {
-  adminAuthority: PublicKey
-  strategy: PublicKey
-  globalConfig: PublicKey
+  adminAuthority: PublicKey;
+  strategy: PublicKey;
+  globalConfig: PublicKey;
   /** Program owner also checked. */
-  pool: PublicKey
-  tokenAMint: PublicKey
-  tokenBMint: PublicKey
-  tokenAVault: PublicKey
-  tokenBVault: PublicKey
-  baseVaultAuthority: PublicKey
-  sharesMint: PublicKey
-  sharesMintAuthority: PublicKey
-  scopePriceId: PublicKey
-  scopeProgramId: PublicKey
-  tokenInfos: PublicKey
-  systemProgram: PublicKey
-  rent: PublicKey
-  tokenProgram: PublicKey
-  associatedTokenProgram: PublicKey
+  pool: PublicKey;
+  tokenAMint: PublicKey;
+  tokenBMint: PublicKey;
+  tokenAVault: PublicKey;
+  tokenBVault: PublicKey;
+  baseVaultAuthority: PublicKey;
+  sharesMint: PublicKey;
+  sharesMintAuthority: PublicKey;
+  scopePriceId: PublicKey;
+  scopeProgramId: PublicKey;
+  tokenInfos: PublicKey;
+  systemProgram: PublicKey;
+  rent: PublicKey;
+  tokenProgram: PublicKey;
+  associatedTokenProgram: PublicKey;
 }
 
 export const layout = borsh.struct([
-  borsh.u64("strategyType"),
-  borsh.u64("tokenACollateralId"),
-  borsh.u64("tokenBCollateralId"),
-])
+  borsh.u64('strategyType'),
+  borsh.u64('tokenACollateralId'),
+  borsh.u64('tokenBCollateralId'),
+]);
 
-export function initializeStrategy(
-  args: InitializeStrategyArgs,
-  accounts: InitializeStrategyAccounts
-) {
+export function initializeStrategy(args: InitializeStrategyArgs, accounts: InitializeStrategyAccounts) {
   const keys: Array<AccountMeta> = [
     { pubkey: accounts.adminAuthority, isSigner: true, isWritable: true },
     { pubkey: accounts.strategy, isSigner: false, isWritable: true },
@@ -65,9 +62,9 @@ export function initializeStrategy(
       isSigner: false,
       isWritable: false,
     },
-  ]
-  const identifier = Buffer.from([208, 119, 144, 145, 178, 57, 105, 252])
-  const buffer = Buffer.alloc(1000)
+  ];
+  const identifier = Buffer.from([208, 119, 144, 145, 178, 57, 105, 252]);
+  const buffer = Buffer.alloc(1000);
   const len = layout.encode(
     {
       strategyType: args.strategyType,
@@ -75,8 +72,8 @@ export function initializeStrategy(
       tokenBCollateralId: args.tokenBCollateralId,
     },
     buffer
-  )
-  const data = Buffer.concat([identifier, buffer]).slice(0, 8 + len)
-  const ix = new TransactionInstruction({ keys, programId: PROGRAM_ID, data })
-  return ix
+  );
+  const data = Buffer.concat([identifier, buffer]).slice(0, 8 + len);
+  const ix = new TransactionInstruction({ keys, programId: PROGRAM_ID, data });
+  return ix;
 }

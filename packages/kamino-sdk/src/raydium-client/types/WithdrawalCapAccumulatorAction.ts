@@ -1,92 +1,85 @@
-import { PublicKey } from "@solana/web3.js" // eslint-disable-line @typescript-eslint/no-unused-vars
-import BN from "bn.js" // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as borsh from "@project-serum/borsh"
+import { PublicKey } from '@solana/web3.js'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import BN from 'bn.js'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as types from '../types'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as borsh from '@project-serum/borsh';
 
 export interface KeepAccumulatorJSON {
-  kind: "KeepAccumulator"
+  kind: 'KeepAccumulator';
 }
 
 export class KeepAccumulator {
-  static readonly discriminator = 0
-  static readonly kind = "KeepAccumulator"
-  readonly discriminator = 0
-  readonly kind = "KeepAccumulator"
+  static readonly discriminator = 0;
+  static readonly kind = 'KeepAccumulator';
+  readonly discriminator = 0;
+  readonly kind = 'KeepAccumulator';
 
   toJSON(): KeepAccumulatorJSON {
     return {
-      kind: "KeepAccumulator",
-    }
+      kind: 'KeepAccumulator',
+    };
   }
 
   toEncodable() {
     return {
       KeepAccumulator: {},
-    }
+    };
   }
 }
 
 export interface ResetAccumulatorJSON {
-  kind: "ResetAccumulator"
+  kind: 'ResetAccumulator';
 }
 
 export class ResetAccumulator {
-  static readonly discriminator = 1
-  static readonly kind = "ResetAccumulator"
-  readonly discriminator = 1
-  readonly kind = "ResetAccumulator"
+  static readonly discriminator = 1;
+  static readonly kind = 'ResetAccumulator';
+  readonly discriminator = 1;
+  readonly kind = 'ResetAccumulator';
 
   toJSON(): ResetAccumulatorJSON {
     return {
-      kind: "ResetAccumulator",
-    }
+      kind: 'ResetAccumulator',
+    };
   }
 
   toEncodable() {
     return {
       ResetAccumulator: {},
-    }
+    };
   }
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function fromDecoded(
-  obj: any
-): types.WithdrawalCapAccumulatorActionKind {
-  if (typeof obj !== "object") {
-    throw new Error("Invalid enum object")
+export function fromDecoded(obj: any): types.WithdrawalCapAccumulatorActionKind {
+  if (typeof obj !== 'object') {
+    throw new Error('Invalid enum object');
   }
 
-  if ("KeepAccumulator" in obj) {
-    return new KeepAccumulator()
+  if ('KeepAccumulator' in obj) {
+    return new KeepAccumulator();
   }
-  if ("ResetAccumulator" in obj) {
-    return new ResetAccumulator()
+  if ('ResetAccumulator' in obj) {
+    return new ResetAccumulator();
   }
 
-  throw new Error("Invalid enum object")
+  throw new Error('Invalid enum object');
 }
 
-export function fromJSON(
-  obj: types.WithdrawalCapAccumulatorActionJSON
-): types.WithdrawalCapAccumulatorActionKind {
+export function fromJSON(obj: types.WithdrawalCapAccumulatorActionJSON): types.WithdrawalCapAccumulatorActionKind {
   switch (obj.kind) {
-    case "KeepAccumulator": {
-      return new KeepAccumulator()
+    case 'KeepAccumulator': {
+      return new KeepAccumulator();
     }
-    case "ResetAccumulator": {
-      return new ResetAccumulator()
+    case 'ResetAccumulator': {
+      return new ResetAccumulator();
     }
   }
 }
 
 export function layout(property?: string) {
-  const ret = borsh.rustEnum([
-    borsh.struct([], "KeepAccumulator"),
-    borsh.struct([], "ResetAccumulator"),
-  ])
+  const ret = borsh.rustEnum([borsh.struct([], 'KeepAccumulator'), borsh.struct([], 'ResetAccumulator')]);
   if (property !== undefined) {
-    return ret.replicate(property)
+    return ret.replicate(property);
   }
-  return ret
+  return ret;
 }

@@ -1,50 +1,50 @@
-import { PublicKey } from "@solana/web3.js" // eslint-disable-line @typescript-eslint/no-unused-vars
-import BN from "bn.js" // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as borsh from "@project-serum/borsh"
+import { PublicKey } from '@solana/web3.js'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import BN from 'bn.js'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as types from '../types'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as borsh from '@project-serum/borsh';
 
 export interface WhirlpoolRewardInfoFields {
-  mint: PublicKey
-  vault: PublicKey
-  authority: PublicKey
-  emissionsPerSecondX64: BN
-  growthGlobalX64: BN
+  mint: PublicKey;
+  vault: PublicKey;
+  authority: PublicKey;
+  emissionsPerSecondX64: BN;
+  growthGlobalX64: BN;
 }
 
 export interface WhirlpoolRewardInfoJSON {
-  mint: string
-  vault: string
-  authority: string
-  emissionsPerSecondX64: string
-  growthGlobalX64: string
+  mint: string;
+  vault: string;
+  authority: string;
+  emissionsPerSecondX64: string;
+  growthGlobalX64: string;
 }
 
 export class WhirlpoolRewardInfo {
-  readonly mint: PublicKey
-  readonly vault: PublicKey
-  readonly authority: PublicKey
-  readonly emissionsPerSecondX64: BN
-  readonly growthGlobalX64: BN
+  readonly mint: PublicKey;
+  readonly vault: PublicKey;
+  readonly authority: PublicKey;
+  readonly emissionsPerSecondX64: BN;
+  readonly growthGlobalX64: BN;
 
   constructor(fields: WhirlpoolRewardInfoFields) {
-    this.mint = fields.mint
-    this.vault = fields.vault
-    this.authority = fields.authority
-    this.emissionsPerSecondX64 = fields.emissionsPerSecondX64
-    this.growthGlobalX64 = fields.growthGlobalX64
+    this.mint = fields.mint;
+    this.vault = fields.vault;
+    this.authority = fields.authority;
+    this.emissionsPerSecondX64 = fields.emissionsPerSecondX64;
+    this.growthGlobalX64 = fields.growthGlobalX64;
   }
 
   static layout(property?: string) {
     return borsh.struct(
       [
-        borsh.publicKey("mint"),
-        borsh.publicKey("vault"),
-        borsh.publicKey("authority"),
-        borsh.u128("emissionsPerSecondX64"),
-        borsh.u128("growthGlobalX64"),
+        borsh.publicKey('mint'),
+        borsh.publicKey('vault'),
+        borsh.publicKey('authority'),
+        borsh.u128('emissionsPerSecondX64'),
+        borsh.u128('growthGlobalX64'),
       ],
       property
-    )
+    );
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -55,7 +55,7 @@ export class WhirlpoolRewardInfo {
       authority: obj.authority,
       emissionsPerSecondX64: obj.emissionsPerSecondX64,
       growthGlobalX64: obj.growthGlobalX64,
-    })
+    });
   }
 
   static toEncodable(fields: WhirlpoolRewardInfoFields) {
@@ -65,7 +65,7 @@ export class WhirlpoolRewardInfo {
       authority: fields.authority,
       emissionsPerSecondX64: fields.emissionsPerSecondX64,
       growthGlobalX64: fields.growthGlobalX64,
-    }
+    };
   }
 
   toJSON(): WhirlpoolRewardInfoJSON {
@@ -75,7 +75,7 @@ export class WhirlpoolRewardInfo {
       authority: this.authority.toString(),
       emissionsPerSecondX64: this.emissionsPerSecondX64.toString(),
       growthGlobalX64: this.growthGlobalX64.toString(),
-    }
+    };
   }
 
   static fromJSON(obj: WhirlpoolRewardInfoJSON): WhirlpoolRewardInfo {
@@ -85,10 +85,10 @@ export class WhirlpoolRewardInfo {
       authority: new PublicKey(obj.authority),
       emissionsPerSecondX64: new BN(obj.emissionsPerSecondX64),
       growthGlobalX64: new BN(obj.growthGlobalX64),
-    })
+    });
   }
 
   toEncodable() {
-    return WhirlpoolRewardInfo.toEncodable(this)
+    return WhirlpoolRewardInfo.toEncodable(this);
   }
 }

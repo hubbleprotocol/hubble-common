@@ -1,50 +1,50 @@
-import { PublicKey, Connection } from "@solana/web3.js"
-import BN from "bn.js" // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as borsh from "@project-serum/borsh" // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
-import { PROGRAM_ID } from "../programId"
+import { PublicKey, Connection } from '@solana/web3.js';
+import BN from 'bn.js'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as borsh from '@project-serum/borsh'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as types from '../types'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import { PROGRAM_ID } from '../programId';
 
 export interface PoolStateFields {
   /** Bump to identify PDA */
-  bump: number
-  ammConfig: PublicKey
-  owner: PublicKey
+  bump: number;
+  ammConfig: PublicKey;
+  owner: PublicKey;
   /** Token pair of the pool, where token_mint_0 address < token_mint_1 address */
-  tokenMint0: PublicKey
-  tokenMint1: PublicKey
+  tokenMint0: PublicKey;
+  tokenMint1: PublicKey;
   /** Token pair vault */
-  tokenVault0: PublicKey
-  tokenVault1: PublicKey
+  tokenVault0: PublicKey;
+  tokenVault1: PublicKey;
   /** observation account key */
-  observationKey: PublicKey
+  observationKey: PublicKey;
   /** mint0 and mint1 decimals */
-  mintDecimals0: number
-  mintDecimals1: number
+  mintDecimals0: number;
+  mintDecimals1: number;
   /** The minimum number of ticks between initialized ticks */
-  tickSpacing: number
+  tickSpacing: number;
   /** The currently in range liquidity available to the pool. */
-  liquidity: BN
+  liquidity: BN;
   /** The current price of the pool as a sqrt(token_1/token_0) Q64.64 value */
-  sqrtPriceX64: BN
+  sqrtPriceX64: BN;
   /** The current tick of the pool, i.e. according to the last tick transition that was run. */
-  tickCurrent: number
+  tickCurrent: number;
   /** the most-recently updated index of the observations array */
-  observationIndex: number
-  observationUpdateDuration: number
+  observationIndex: number;
+  observationUpdateDuration: number;
   /**
    * The fee growth as a Q64.64 number, i.e. fees of token_0 and token_1 collected per
    * unit of liquidity for the entire life of the pool.
    */
-  feeGrowthGlobal0X64: BN
-  feeGrowthGlobal1X64: BN
+  feeGrowthGlobal0X64: BN;
+  feeGrowthGlobal1X64: BN;
   /** The amounts of token_0 and token_1 that are owed to the protocol. */
-  protocolFeesToken0: BN
-  protocolFeesToken1: BN
+  protocolFeesToken0: BN;
+  protocolFeesToken1: BN;
   /** The amounts in and out of swap token_0 and token_1 */
-  swapInAmountToken0: BN
-  swapOutAmountToken1: BN
-  swapInAmountToken1: BN
-  swapOutAmountToken0: BN
+  swapInAmountToken0: BN;
+  swapOutAmountToken1: BN;
+  swapInAmountToken1: BN;
+  swapOutAmountToken0: BN;
   /**
    * Bitwise representation of the state of the pool
    * bit0, 1: disable open position and increase liquidity, 0: normal
@@ -53,65 +53,65 @@ export interface PoolStateFields {
    * bit3, 1: disable collect reward, 0: normal
    * bit4, 1: disable swap, 0: normal
    */
-  status: number
+  status: number;
   /** Leave blank for future use */
-  padding: Array<number>
-  rewardInfos: Array<types.RewardInfoFields>
+  padding: Array<number>;
+  rewardInfos: Array<types.RewardInfoFields>;
   /** Packed initialized tick array state */
-  tickArrayBitmap: Array<BN>
+  tickArrayBitmap: Array<BN>;
   /** except protocol_fee and fund_fee */
-  totalFeesToken0: BN
+  totalFeesToken0: BN;
   /** except protocol_fee and fund_fee */
-  totalFeesClaimedToken0: BN
-  totalFeesToken1: BN
-  totalFeesClaimedToken1: BN
-  fundFeesToken0: BN
-  fundFeesToken1: BN
-  padding1: Array<BN>
-  padding2: Array<BN>
+  totalFeesClaimedToken0: BN;
+  totalFeesToken1: BN;
+  totalFeesClaimedToken1: BN;
+  fundFeesToken0: BN;
+  fundFeesToken1: BN;
+  padding1: Array<BN>;
+  padding2: Array<BN>;
 }
 
 export interface PoolStateJSON {
   /** Bump to identify PDA */
-  bump: number
-  ammConfig: string
-  owner: string
+  bump: number;
+  ammConfig: string;
+  owner: string;
   /** Token pair of the pool, where token_mint_0 address < token_mint_1 address */
-  tokenMint0: string
-  tokenMint1: string
+  tokenMint0: string;
+  tokenMint1: string;
   /** Token pair vault */
-  tokenVault0: string
-  tokenVault1: string
+  tokenVault0: string;
+  tokenVault1: string;
   /** observation account key */
-  observationKey: string
+  observationKey: string;
   /** mint0 and mint1 decimals */
-  mintDecimals0: number
-  mintDecimals1: number
+  mintDecimals0: number;
+  mintDecimals1: number;
   /** The minimum number of ticks between initialized ticks */
-  tickSpacing: number
+  tickSpacing: number;
   /** The currently in range liquidity available to the pool. */
-  liquidity: string
+  liquidity: string;
   /** The current price of the pool as a sqrt(token_1/token_0) Q64.64 value */
-  sqrtPriceX64: string
+  sqrtPriceX64: string;
   /** The current tick of the pool, i.e. according to the last tick transition that was run. */
-  tickCurrent: number
+  tickCurrent: number;
   /** the most-recently updated index of the observations array */
-  observationIndex: number
-  observationUpdateDuration: number
+  observationIndex: number;
+  observationUpdateDuration: number;
   /**
    * The fee growth as a Q64.64 number, i.e. fees of token_0 and token_1 collected per
    * unit of liquidity for the entire life of the pool.
    */
-  feeGrowthGlobal0X64: string
-  feeGrowthGlobal1X64: string
+  feeGrowthGlobal0X64: string;
+  feeGrowthGlobal1X64: string;
   /** The amounts of token_0 and token_1 that are owed to the protocol. */
-  protocolFeesToken0: string
-  protocolFeesToken1: string
+  protocolFeesToken0: string;
+  protocolFeesToken1: string;
   /** The amounts in and out of swap token_0 and token_1 */
-  swapInAmountToken0: string
-  swapOutAmountToken1: string
-  swapInAmountToken1: string
-  swapOutAmountToken0: string
+  swapInAmountToken0: string;
+  swapOutAmountToken1: string;
+  swapInAmountToken1: string;
+  swapOutAmountToken0: string;
   /**
    * Bitwise representation of the state of the pool
    * bit0, 1: disable open position and increase liquidity, 0: normal
@@ -120,65 +120,65 @@ export interface PoolStateJSON {
    * bit3, 1: disable collect reward, 0: normal
    * bit4, 1: disable swap, 0: normal
    */
-  status: number
+  status: number;
   /** Leave blank for future use */
-  padding: Array<number>
-  rewardInfos: Array<types.RewardInfoJSON>
+  padding: Array<number>;
+  rewardInfos: Array<types.RewardInfoJSON>;
   /** Packed initialized tick array state */
-  tickArrayBitmap: Array<string>
+  tickArrayBitmap: Array<string>;
   /** except protocol_fee and fund_fee */
-  totalFeesToken0: string
+  totalFeesToken0: string;
   /** except protocol_fee and fund_fee */
-  totalFeesClaimedToken0: string
-  totalFeesToken1: string
-  totalFeesClaimedToken1: string
-  fundFeesToken0: string
-  fundFeesToken1: string
-  padding1: Array<string>
-  padding2: Array<string>
+  totalFeesClaimedToken0: string;
+  totalFeesToken1: string;
+  totalFeesClaimedToken1: string;
+  fundFeesToken0: string;
+  fundFeesToken1: string;
+  padding1: Array<string>;
+  padding2: Array<string>;
 }
 
 export class PoolState {
   /** Bump to identify PDA */
-  readonly bump: number
-  readonly ammConfig: PublicKey
-  readonly owner: PublicKey
+  readonly bump: number;
+  readonly ammConfig: PublicKey;
+  readonly owner: PublicKey;
   /** Token pair of the pool, where token_mint_0 address < token_mint_1 address */
-  readonly tokenMint0: PublicKey
-  readonly tokenMint1: PublicKey
+  readonly tokenMint0: PublicKey;
+  readonly tokenMint1: PublicKey;
   /** Token pair vault */
-  readonly tokenVault0: PublicKey
-  readonly tokenVault1: PublicKey
+  readonly tokenVault0: PublicKey;
+  readonly tokenVault1: PublicKey;
   /** observation account key */
-  readonly observationKey: PublicKey
+  readonly observationKey: PublicKey;
   /** mint0 and mint1 decimals */
-  readonly mintDecimals0: number
-  readonly mintDecimals1: number
+  readonly mintDecimals0: number;
+  readonly mintDecimals1: number;
   /** The minimum number of ticks between initialized ticks */
-  readonly tickSpacing: number
+  readonly tickSpacing: number;
   /** The currently in range liquidity available to the pool. */
-  readonly liquidity: BN
+  readonly liquidity: BN;
   /** The current price of the pool as a sqrt(token_1/token_0) Q64.64 value */
-  readonly sqrtPriceX64: BN
+  readonly sqrtPriceX64: BN;
   /** The current tick of the pool, i.e. according to the last tick transition that was run. */
-  readonly tickCurrent: number
+  readonly tickCurrent: number;
   /** the most-recently updated index of the observations array */
-  readonly observationIndex: number
-  readonly observationUpdateDuration: number
+  readonly observationIndex: number;
+  readonly observationUpdateDuration: number;
   /**
    * The fee growth as a Q64.64 number, i.e. fees of token_0 and token_1 collected per
    * unit of liquidity for the entire life of the pool.
    */
-  readonly feeGrowthGlobal0X64: BN
-  readonly feeGrowthGlobal1X64: BN
+  readonly feeGrowthGlobal0X64: BN;
+  readonly feeGrowthGlobal1X64: BN;
   /** The amounts of token_0 and token_1 that are owed to the protocol. */
-  readonly protocolFeesToken0: BN
-  readonly protocolFeesToken1: BN
+  readonly protocolFeesToken0: BN;
+  readonly protocolFeesToken1: BN;
   /** The amounts in and out of swap token_0 and token_1 */
-  readonly swapInAmountToken0: BN
-  readonly swapOutAmountToken1: BN
-  readonly swapInAmountToken1: BN
-  readonly swapOutAmountToken0: BN
+  readonly swapInAmountToken0: BN;
+  readonly swapOutAmountToken1: BN;
+  readonly swapInAmountToken1: BN;
+  readonly swapOutAmountToken0: BN;
   /**
    * Bitwise representation of the state of the pool
    * bit0, 1: disable open position and increase liquidity, 0: normal
@@ -187,147 +187,137 @@ export class PoolState {
    * bit3, 1: disable collect reward, 0: normal
    * bit4, 1: disable swap, 0: normal
    */
-  readonly status: number
+  readonly status: number;
   /** Leave blank for future use */
-  readonly padding: Array<number>
-  readonly rewardInfos: Array<types.RewardInfo>
+  readonly padding: Array<number>;
+  readonly rewardInfos: Array<types.RewardInfo>;
   /** Packed initialized tick array state */
-  readonly tickArrayBitmap: Array<BN>
+  readonly tickArrayBitmap: Array<BN>;
   /** except protocol_fee and fund_fee */
-  readonly totalFeesToken0: BN
+  readonly totalFeesToken0: BN;
   /** except protocol_fee and fund_fee */
-  readonly totalFeesClaimedToken0: BN
-  readonly totalFeesToken1: BN
-  readonly totalFeesClaimedToken1: BN
-  readonly fundFeesToken0: BN
-  readonly fundFeesToken1: BN
-  readonly padding1: Array<BN>
-  readonly padding2: Array<BN>
+  readonly totalFeesClaimedToken0: BN;
+  readonly totalFeesToken1: BN;
+  readonly totalFeesClaimedToken1: BN;
+  readonly fundFeesToken0: BN;
+  readonly fundFeesToken1: BN;
+  readonly padding1: Array<BN>;
+  readonly padding2: Array<BN>;
 
-  static readonly discriminator = Buffer.from([
-    247, 237, 227, 245, 215, 195, 222, 70,
-  ])
+  static readonly discriminator = Buffer.from([247, 237, 227, 245, 215, 195, 222, 70]);
 
   static readonly layout = borsh.struct([
-    borsh.u8("bump"),
-    borsh.publicKey("ammConfig"),
-    borsh.publicKey("owner"),
-    borsh.publicKey("tokenMint0"),
-    borsh.publicKey("tokenMint1"),
-    borsh.publicKey("tokenVault0"),
-    borsh.publicKey("tokenVault1"),
-    borsh.publicKey("observationKey"),
-    borsh.u8("mintDecimals0"),
-    borsh.u8("mintDecimals1"),
-    borsh.u16("tickSpacing"),
-    borsh.u128("liquidity"),
-    borsh.u128("sqrtPriceX64"),
-    borsh.i32("tickCurrent"),
-    borsh.u16("observationIndex"),
-    borsh.u16("observationUpdateDuration"),
-    borsh.u128("feeGrowthGlobal0X64"),
-    borsh.u128("feeGrowthGlobal1X64"),
-    borsh.u64("protocolFeesToken0"),
-    borsh.u64("protocolFeesToken1"),
-    borsh.u128("swapInAmountToken0"),
-    borsh.u128("swapOutAmountToken1"),
-    borsh.u128("swapInAmountToken1"),
-    borsh.u128("swapOutAmountToken0"),
-    borsh.u8("status"),
-    borsh.array(borsh.u8(), 7, "padding"),
-    borsh.array(types.RewardInfo.layout(), 3, "rewardInfos"),
-    borsh.array(borsh.u64(), 16, "tickArrayBitmap"),
-    borsh.u64("totalFeesToken0"),
-    borsh.u64("totalFeesClaimedToken0"),
-    borsh.u64("totalFeesToken1"),
-    borsh.u64("totalFeesClaimedToken1"),
-    borsh.u64("fundFeesToken0"),
-    borsh.u64("fundFeesToken1"),
-    borsh.array(borsh.u64(), 26, "padding1"),
-    borsh.array(borsh.u64(), 32, "padding2"),
-  ])
+    borsh.u8('bump'),
+    borsh.publicKey('ammConfig'),
+    borsh.publicKey('owner'),
+    borsh.publicKey('tokenMint0'),
+    borsh.publicKey('tokenMint1'),
+    borsh.publicKey('tokenVault0'),
+    borsh.publicKey('tokenVault1'),
+    borsh.publicKey('observationKey'),
+    borsh.u8('mintDecimals0'),
+    borsh.u8('mintDecimals1'),
+    borsh.u16('tickSpacing'),
+    borsh.u128('liquidity'),
+    borsh.u128('sqrtPriceX64'),
+    borsh.i32('tickCurrent'),
+    borsh.u16('observationIndex'),
+    borsh.u16('observationUpdateDuration'),
+    borsh.u128('feeGrowthGlobal0X64'),
+    borsh.u128('feeGrowthGlobal1X64'),
+    borsh.u64('protocolFeesToken0'),
+    borsh.u64('protocolFeesToken1'),
+    borsh.u128('swapInAmountToken0'),
+    borsh.u128('swapOutAmountToken1'),
+    borsh.u128('swapInAmountToken1'),
+    borsh.u128('swapOutAmountToken0'),
+    borsh.u8('status'),
+    borsh.array(borsh.u8(), 7, 'padding'),
+    borsh.array(types.RewardInfo.layout(), 3, 'rewardInfos'),
+    borsh.array(borsh.u64(), 16, 'tickArrayBitmap'),
+    borsh.u64('totalFeesToken0'),
+    borsh.u64('totalFeesClaimedToken0'),
+    borsh.u64('totalFeesToken1'),
+    borsh.u64('totalFeesClaimedToken1'),
+    borsh.u64('fundFeesToken0'),
+    borsh.u64('fundFeesToken1'),
+    borsh.array(borsh.u64(), 26, 'padding1'),
+    borsh.array(borsh.u64(), 32, 'padding2'),
+  ]);
 
   constructor(fields: PoolStateFields) {
-    this.bump = fields.bump
-    this.ammConfig = fields.ammConfig
-    this.owner = fields.owner
-    this.tokenMint0 = fields.tokenMint0
-    this.tokenMint1 = fields.tokenMint1
-    this.tokenVault0 = fields.tokenVault0
-    this.tokenVault1 = fields.tokenVault1
-    this.observationKey = fields.observationKey
-    this.mintDecimals0 = fields.mintDecimals0
-    this.mintDecimals1 = fields.mintDecimals1
-    this.tickSpacing = fields.tickSpacing
-    this.liquidity = fields.liquidity
-    this.sqrtPriceX64 = fields.sqrtPriceX64
-    this.tickCurrent = fields.tickCurrent
-    this.observationIndex = fields.observationIndex
-    this.observationUpdateDuration = fields.observationUpdateDuration
-    this.feeGrowthGlobal0X64 = fields.feeGrowthGlobal0X64
-    this.feeGrowthGlobal1X64 = fields.feeGrowthGlobal1X64
-    this.protocolFeesToken0 = fields.protocolFeesToken0
-    this.protocolFeesToken1 = fields.protocolFeesToken1
-    this.swapInAmountToken0 = fields.swapInAmountToken0
-    this.swapOutAmountToken1 = fields.swapOutAmountToken1
-    this.swapInAmountToken1 = fields.swapInAmountToken1
-    this.swapOutAmountToken0 = fields.swapOutAmountToken0
-    this.status = fields.status
-    this.padding = fields.padding
-    this.rewardInfos = fields.rewardInfos.map(
-      (item) => new types.RewardInfo({ ...item })
-    )
-    this.tickArrayBitmap = fields.tickArrayBitmap
-    this.totalFeesToken0 = fields.totalFeesToken0
-    this.totalFeesClaimedToken0 = fields.totalFeesClaimedToken0
-    this.totalFeesToken1 = fields.totalFeesToken1
-    this.totalFeesClaimedToken1 = fields.totalFeesClaimedToken1
-    this.fundFeesToken0 = fields.fundFeesToken0
-    this.fundFeesToken1 = fields.fundFeesToken1
-    this.padding1 = fields.padding1
-    this.padding2 = fields.padding2
+    this.bump = fields.bump;
+    this.ammConfig = fields.ammConfig;
+    this.owner = fields.owner;
+    this.tokenMint0 = fields.tokenMint0;
+    this.tokenMint1 = fields.tokenMint1;
+    this.tokenVault0 = fields.tokenVault0;
+    this.tokenVault1 = fields.tokenVault1;
+    this.observationKey = fields.observationKey;
+    this.mintDecimals0 = fields.mintDecimals0;
+    this.mintDecimals1 = fields.mintDecimals1;
+    this.tickSpacing = fields.tickSpacing;
+    this.liquidity = fields.liquidity;
+    this.sqrtPriceX64 = fields.sqrtPriceX64;
+    this.tickCurrent = fields.tickCurrent;
+    this.observationIndex = fields.observationIndex;
+    this.observationUpdateDuration = fields.observationUpdateDuration;
+    this.feeGrowthGlobal0X64 = fields.feeGrowthGlobal0X64;
+    this.feeGrowthGlobal1X64 = fields.feeGrowthGlobal1X64;
+    this.protocolFeesToken0 = fields.protocolFeesToken0;
+    this.protocolFeesToken1 = fields.protocolFeesToken1;
+    this.swapInAmountToken0 = fields.swapInAmountToken0;
+    this.swapOutAmountToken1 = fields.swapOutAmountToken1;
+    this.swapInAmountToken1 = fields.swapInAmountToken1;
+    this.swapOutAmountToken0 = fields.swapOutAmountToken0;
+    this.status = fields.status;
+    this.padding = fields.padding;
+    this.rewardInfos = fields.rewardInfos.map((item) => new types.RewardInfo({ ...item }));
+    this.tickArrayBitmap = fields.tickArrayBitmap;
+    this.totalFeesToken0 = fields.totalFeesToken0;
+    this.totalFeesClaimedToken0 = fields.totalFeesClaimedToken0;
+    this.totalFeesToken1 = fields.totalFeesToken1;
+    this.totalFeesClaimedToken1 = fields.totalFeesClaimedToken1;
+    this.fundFeesToken0 = fields.fundFeesToken0;
+    this.fundFeesToken1 = fields.fundFeesToken1;
+    this.padding1 = fields.padding1;
+    this.padding2 = fields.padding2;
   }
 
-  static async fetch(
-    c: Connection,
-    address: PublicKey
-  ): Promise<PoolState | null> {
-    const info = await c.getAccountInfo(address)
+  static async fetch(c: Connection, address: PublicKey): Promise<PoolState | null> {
+    const info = await c.getAccountInfo(address);
 
     if (info === null) {
-      return null
+      return null;
     }
     if (!info.owner.equals(PROGRAM_ID)) {
-      throw new Error("account doesn't belong to this program")
+      throw new Error("account doesn't belong to this program");
     }
 
-    return this.decode(info.data)
+    return this.decode(info.data);
   }
 
-  static async fetchMultiple(
-    c: Connection,
-    addresses: PublicKey[]
-  ): Promise<Array<PoolState | null>> {
-    const infos = await c.getMultipleAccountsInfo(addresses)
+  static async fetchMultiple(c: Connection, addresses: PublicKey[]): Promise<Array<PoolState | null>> {
+    const infos = await c.getMultipleAccountsInfo(addresses);
 
     return infos.map((info) => {
       if (info === null) {
-        return null
+        return null;
       }
       if (!info.owner.equals(PROGRAM_ID)) {
-        throw new Error("account doesn't belong to this program")
+        throw new Error("account doesn't belong to this program");
       }
 
-      return this.decode(info.data)
-    })
+      return this.decode(info.data);
+    });
   }
 
   static decode(data: Buffer): PoolState {
     if (!data.slice(0, 8).equals(PoolState.discriminator)) {
-      throw new Error("invalid account discriminator")
+      throw new Error('invalid account discriminator');
     }
 
-    const dec = PoolState.layout.decode(data.slice(8))
+    const dec = PoolState.layout.decode(data.slice(8));
 
     return new PoolState({
       bump: dec.bump,
@@ -356,10 +346,8 @@ export class PoolState {
       swapOutAmountToken0: dec.swapOutAmountToken0,
       status: dec.status,
       padding: dec.padding,
-      rewardInfos: dec.rewardInfos.map(
-        (
-          item: any /* eslint-disable-line @typescript-eslint/no-explicit-any */
-        ) => types.RewardInfo.fromDecoded(item)
+      rewardInfos: dec.rewardInfos.map((item: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) =>
+        types.RewardInfo.fromDecoded(item)
       ),
       tickArrayBitmap: dec.tickArrayBitmap,
       totalFeesToken0: dec.totalFeesToken0,
@@ -370,7 +358,7 @@ export class PoolState {
       fundFeesToken1: dec.fundFeesToken1,
       padding1: dec.padding1,
       padding2: dec.padding2,
-    })
+    });
   }
 
   toJSON(): PoolStateJSON {
@@ -411,7 +399,7 @@ export class PoolState {
       fundFeesToken1: this.fundFeesToken1.toString(),
       padding1: this.padding1.map((item) => item.toString()),
       padding2: this.padding2.map((item) => item.toString()),
-    }
+    };
   }
 
   static fromJSON(obj: PoolStateJSON): PoolState {
@@ -442,9 +430,7 @@ export class PoolState {
       swapOutAmountToken0: new BN(obj.swapOutAmountToken0),
       status: obj.status,
       padding: obj.padding,
-      rewardInfos: obj.rewardInfos.map((item) =>
-        types.RewardInfo.fromJSON(item)
-      ),
+      rewardInfos: obj.rewardInfos.map((item) => types.RewardInfo.fromJSON(item)),
       tickArrayBitmap: obj.tickArrayBitmap.map((item) => new BN(item)),
       totalFeesToken0: new BN(obj.totalFeesToken0),
       totalFeesClaimedToken0: new BN(obj.totalFeesClaimedToken0),
@@ -454,6 +440,6 @@ export class PoolState {
       fundFeesToken1: new BN(obj.fundFeesToken1),
       padding1: obj.padding1.map((item) => new BN(item)),
       padding2: obj.padding2.map((item) => new BN(item)),
-    })
+    });
   }
 }

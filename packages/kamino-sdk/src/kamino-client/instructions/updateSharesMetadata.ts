@@ -1,35 +1,28 @@
-import { TransactionInstruction, PublicKey, AccountMeta } from "@solana/web3.js" // eslint-disable-line @typescript-eslint/no-unused-vars
-import BN from "bn.js" // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as borsh from "@project-serum/borsh" // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
-import { PROGRAM_ID } from "../programId"
+import { TransactionInstruction, PublicKey, AccountMeta } from '@solana/web3.js'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import BN from 'bn.js'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as borsh from '@project-serum/borsh'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as types from '../types'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import { PROGRAM_ID } from '../programId';
 
 export interface UpdateSharesMetadataArgs {
-  name: string
-  symbol: string
-  uri: string
+  name: string;
+  symbol: string;
+  uri: string;
 }
 
 export interface UpdateSharesMetadataAccounts {
-  adminAuthority: PublicKey
-  strategy: PublicKey
-  globalConfig: PublicKey
-  sharesMint: PublicKey
-  sharesMetadata: PublicKey
-  sharesMintAuthority: PublicKey
-  metadataProgram: PublicKey
+  adminAuthority: PublicKey;
+  strategy: PublicKey;
+  globalConfig: PublicKey;
+  sharesMint: PublicKey;
+  sharesMetadata: PublicKey;
+  sharesMintAuthority: PublicKey;
+  metadataProgram: PublicKey;
 }
 
-export const layout = borsh.struct([
-  borsh.str("name"),
-  borsh.str("symbol"),
-  borsh.str("uri"),
-])
+export const layout = borsh.struct([borsh.str('name'), borsh.str('symbol'), borsh.str('uri')]);
 
-export function updateSharesMetadata(
-  args: UpdateSharesMetadataArgs,
-  accounts: UpdateSharesMetadataAccounts
-) {
+export function updateSharesMetadata(args: UpdateSharesMetadataArgs, accounts: UpdateSharesMetadataAccounts) {
   const keys: Array<AccountMeta> = [
     { pubkey: accounts.adminAuthority, isSigner: true, isWritable: true },
     { pubkey: accounts.strategy, isSigner: false, isWritable: false },
@@ -42,9 +35,9 @@ export function updateSharesMetadata(
       isWritable: false,
     },
     { pubkey: accounts.metadataProgram, isSigner: false, isWritable: false },
-  ]
-  const identifier = Buffer.from([155, 34, 122, 165, 245, 137, 147, 107])
-  const buffer = Buffer.alloc(1000)
+  ];
+  const identifier = Buffer.from([155, 34, 122, 165, 245, 137, 147, 107]);
+  const buffer = Buffer.alloc(1000);
   const len = layout.encode(
     {
       name: args.name,
@@ -52,8 +45,8 @@ export function updateSharesMetadata(
       uri: args.uri,
     },
     buffer
-  )
-  const data = Buffer.concat([identifier, buffer]).slice(0, 8 + len)
-  const ix = new TransactionInstruction({ keys, programId: PROGRAM_ID, data })
-  return ix
+  );
+  const data = Buffer.concat([identifier, buffer]).slice(0, 8 + len);
+  const ix = new TransactionInstruction({ keys, programId: PROGRAM_ID, data });
+  return ix;
 }

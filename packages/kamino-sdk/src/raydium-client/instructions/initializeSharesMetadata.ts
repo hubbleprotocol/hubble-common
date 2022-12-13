@@ -1,32 +1,28 @@
-import { TransactionInstruction, PublicKey, AccountMeta } from "@solana/web3.js" // eslint-disable-line @typescript-eslint/no-unused-vars
-import BN from "bn.js" // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as borsh from "@project-serum/borsh" // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
-import { PROGRAM_ID } from "../programId"
+import { TransactionInstruction, PublicKey, AccountMeta } from '@solana/web3.js'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import BN from 'bn.js'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as borsh from '@project-serum/borsh'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as types from '../types'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import { PROGRAM_ID } from '../programId';
 
 export interface InitializeSharesMetadataArgs {
-  name: string
-  symbol: string
-  uri: string
+  name: string;
+  symbol: string;
+  uri: string;
 }
 
 export interface InitializeSharesMetadataAccounts {
-  adminAuthority: PublicKey
-  strategy: PublicKey
-  globalConfig: PublicKey
-  sharesMint: PublicKey
-  sharesMetadata: PublicKey
-  sharesMintAuthority: PublicKey
-  systemProgram: PublicKey
-  rent: PublicKey
-  metadataProgram: PublicKey
+  adminAuthority: PublicKey;
+  strategy: PublicKey;
+  globalConfig: PublicKey;
+  sharesMint: PublicKey;
+  sharesMetadata: PublicKey;
+  sharesMintAuthority: PublicKey;
+  systemProgram: PublicKey;
+  rent: PublicKey;
+  metadataProgram: PublicKey;
 }
 
-export const layout = borsh.struct([
-  borsh.str("name"),
-  borsh.str("symbol"),
-  borsh.str("uri"),
-])
+export const layout = borsh.struct([borsh.str('name'), borsh.str('symbol'), borsh.str('uri')]);
 
 export function initializeSharesMetadata(
   args: InitializeSharesMetadataArgs,
@@ -46,9 +42,9 @@ export function initializeSharesMetadata(
     { pubkey: accounts.systemProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.rent, isSigner: false, isWritable: false },
     { pubkey: accounts.metadataProgram, isSigner: false, isWritable: false },
-  ]
-  const identifier = Buffer.from([3, 15, 172, 114, 200, 0, 131, 32])
-  const buffer = Buffer.alloc(1000)
+  ];
+  const identifier = Buffer.from([3, 15, 172, 114, 200, 0, 131, 32]);
+  const buffer = Buffer.alloc(1000);
   const len = layout.encode(
     {
       name: args.name,
@@ -56,8 +52,8 @@ export function initializeSharesMetadata(
       uri: args.uri,
     },
     buffer
-  )
-  const data = Buffer.concat([identifier, buffer]).slice(0, 8 + len)
-  const ix = new TransactionInstruction({ keys, programId: PROGRAM_ID, data })
-  return ix
+  );
+  const data = Buffer.concat([identifier, buffer]).slice(0, 8 + len);
+  const ix = new TransactionInstruction({ keys, programId: PROGRAM_ID, data });
+  return ix;
 }

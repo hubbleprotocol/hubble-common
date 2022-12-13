@@ -1,46 +1,40 @@
-import { TransactionInstruction, PublicKey, AccountMeta } from "@solana/web3.js" // eslint-disable-line @typescript-eslint/no-unused-vars
-import BN from "bn.js" // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as borsh from "@project-serum/borsh" // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
-import { PROGRAM_ID } from "../programId"
+import { TransactionInstruction, PublicKey, AccountMeta } from '@solana/web3.js'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import BN from 'bn.js'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as borsh from '@project-serum/borsh'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as types from '../types'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import { PROGRAM_ID } from '../programId';
 
 export interface EmergencySwapArgs {
-  aToB: boolean
-  targetLimitBps: BN
+  aToB: boolean;
+  targetLimitBps: BN;
 }
 
 export interface EmergencySwapAccounts {
-  adminAuthority: PublicKey
-  strategy: PublicKey
-  globalConfig: PublicKey
-  tokenAVault: PublicKey
-  tokenBVault: PublicKey
-  baseVaultAuthority: PublicKey
-  pool: PublicKey
-  position: PublicKey
-  poolTokenVaultA: PublicKey
-  poolTokenVaultB: PublicKey
+  adminAuthority: PublicKey;
+  strategy: PublicKey;
+  globalConfig: PublicKey;
+  tokenAVault: PublicKey;
+  tokenBVault: PublicKey;
+  baseVaultAuthority: PublicKey;
+  pool: PublicKey;
+  position: PublicKey;
+  poolTokenVaultA: PublicKey;
+  poolTokenVaultB: PublicKey;
   /** Payer must send this correctly. */
-  tickArray0: PublicKey
+  tickArray0: PublicKey;
   /** Payer must send this correctly. */
-  tickArray1: PublicKey
+  tickArray1: PublicKey;
   /** Payer must send this correctly. */
-  tickArray2: PublicKey
-  oracle: PublicKey
-  poolProgram: PublicKey
-  scopePrices: PublicKey
-  tokenProgram: PublicKey
+  tickArray2: PublicKey;
+  oracle: PublicKey;
+  poolProgram: PublicKey;
+  scopePrices: PublicKey;
+  tokenProgram: PublicKey;
 }
 
-export const layout = borsh.struct([
-  borsh.bool("aToB"),
-  borsh.u64("targetLimitBps"),
-])
+export const layout = borsh.struct([borsh.bool('aToB'), borsh.u64('targetLimitBps')]);
 
-export function emergencySwap(
-  args: EmergencySwapArgs,
-  accounts: EmergencySwapAccounts
-) {
+export function emergencySwap(args: EmergencySwapArgs, accounts: EmergencySwapAccounts) {
   const keys: Array<AccountMeta> = [
     { pubkey: accounts.adminAuthority, isSigner: true, isWritable: true },
     { pubkey: accounts.strategy, isSigner: false, isWritable: true },
@@ -59,17 +53,17 @@ export function emergencySwap(
     { pubkey: accounts.poolProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.scopePrices, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
-  ]
-  const identifier = Buffer.from([73, 226, 248, 215, 5, 197, 211, 229])
-  const buffer = Buffer.alloc(1000)
+  ];
+  const identifier = Buffer.from([73, 226, 248, 215, 5, 197, 211, 229]);
+  const buffer = Buffer.alloc(1000);
   const len = layout.encode(
     {
       aToB: args.aToB,
       targetLimitBps: args.targetLimitBps,
     },
     buffer
-  )
-  const data = Buffer.concat([identifier, buffer]).slice(0, 8 + len)
-  const ix = new TransactionInstruction({ keys, programId: PROGRAM_ID, data })
-  return ix
+  );
+  const data = Buffer.concat([identifier, buffer]).slice(0, 8 + len);
+  const ix = new TransactionInstruction({ keys, programId: PROGRAM_ID, data });
+  return ix;
 }

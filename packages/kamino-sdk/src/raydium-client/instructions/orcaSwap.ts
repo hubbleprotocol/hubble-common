@@ -1,40 +1,40 @@
-import { TransactionInstruction, PublicKey, AccountMeta } from "@solana/web3.js" // eslint-disable-line @typescript-eslint/no-unused-vars
-import BN from "bn.js" // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as borsh from "@project-serum/borsh" // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
-import { PROGRAM_ID } from "../programId"
+import { TransactionInstruction, PublicKey, AccountMeta } from '@solana/web3.js'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import BN from 'bn.js'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as borsh from '@project-serum/borsh'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as types from '../types'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import { PROGRAM_ID } from '../programId';
 
 export interface OrcaSwapArgs {
-  amount: BN
-  otherAmountThreshold: BN
-  sqrtPriceLimit: BN
-  amountSpecifiedIsInput: boolean
-  aToB: boolean
+  amount: BN;
+  otherAmountThreshold: BN;
+  sqrtPriceLimit: BN;
+  amountSpecifiedIsInput: boolean;
+  aToB: boolean;
 }
 
 export interface OrcaSwapAccounts {
-  funder: PublicKey
-  tokenProgram: PublicKey
-  tokenAuthority: PublicKey
-  whirlpool: PublicKey
-  tokenOwnerAccountA: PublicKey
-  tokenVaultA: PublicKey
-  tokenOwnerAccountB: PublicKey
-  tokenVaultB: PublicKey
-  tickArray0: PublicKey
-  tickArray1: PublicKey
-  tickArray2: PublicKey
-  oracle: PublicKey
-  whirlpoolProgram: PublicKey
+  funder: PublicKey;
+  tokenProgram: PublicKey;
+  tokenAuthority: PublicKey;
+  whirlpool: PublicKey;
+  tokenOwnerAccountA: PublicKey;
+  tokenVaultA: PublicKey;
+  tokenOwnerAccountB: PublicKey;
+  tokenVaultB: PublicKey;
+  tickArray0: PublicKey;
+  tickArray1: PublicKey;
+  tickArray2: PublicKey;
+  oracle: PublicKey;
+  whirlpoolProgram: PublicKey;
 }
 
 export const layout = borsh.struct([
-  borsh.u64("amount"),
-  borsh.u64("otherAmountThreshold"),
-  borsh.u128("sqrtPriceLimit"),
-  borsh.bool("amountSpecifiedIsInput"),
-  borsh.bool("aToB"),
-])
+  borsh.u64('amount'),
+  borsh.u64('otherAmountThreshold'),
+  borsh.u128('sqrtPriceLimit'),
+  borsh.bool('amountSpecifiedIsInput'),
+  borsh.bool('aToB'),
+]);
 
 export function orcaSwap(args: OrcaSwapArgs, accounts: OrcaSwapAccounts) {
   const keys: Array<AccountMeta> = [
@@ -51,9 +51,9 @@ export function orcaSwap(args: OrcaSwapArgs, accounts: OrcaSwapAccounts) {
     { pubkey: accounts.tickArray2, isSigner: false, isWritable: false },
     { pubkey: accounts.oracle, isSigner: false, isWritable: false },
     { pubkey: accounts.whirlpoolProgram, isSigner: false, isWritable: false },
-  ]
-  const identifier = Buffer.from([33, 94, 249, 97, 250, 254, 198, 93])
-  const buffer = Buffer.alloc(1000)
+  ];
+  const identifier = Buffer.from([33, 94, 249, 97, 250, 254, 198, 93]);
+  const buffer = Buffer.alloc(1000);
   const len = layout.encode(
     {
       amount: args.amount,
@@ -63,8 +63,8 @@ export function orcaSwap(args: OrcaSwapArgs, accounts: OrcaSwapAccounts) {
       aToB: args.aToB,
     },
     buffer
-  )
-  const data = Buffer.concat([identifier, buffer]).slice(0, 8 + len)
-  const ix = new TransactionInstruction({ keys, programId: PROGRAM_ID, data })
-  return ix
+  );
+  const data = Buffer.concat([identifier, buffer]).slice(0, 8 + len);
+  const ix = new TransactionInstruction({ keys, programId: PROGRAM_ID, data });
+  return ix;
 }

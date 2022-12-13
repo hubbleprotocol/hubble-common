@@ -1,44 +1,44 @@
-import { TransactionInstruction, PublicKey, AccountMeta } from "@solana/web3.js" // eslint-disable-line @typescript-eslint/no-unused-vars
-import BN from "bn.js" // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as borsh from "@project-serum/borsh" // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
-import { PROGRAM_ID } from "../programId"
+import { TransactionInstruction, PublicKey, AccountMeta } from '@solana/web3.js'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import BN from 'bn.js'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as borsh from '@project-serum/borsh'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as types from '../types'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import { PROGRAM_ID } from '../programId';
 
 export interface CollectFeesAndRewardsAccounts {
-  user: PublicKey
-  strategy: PublicKey
-  globalConfig: PublicKey
-  baseVaultAuthority: PublicKey
-  pool: PublicKey
-  tickArrayLower: PublicKey
-  tickArrayUpper: PublicKey
-  position: PublicKey
-  raydiumProtocolPositionOrBaseVaultAuthority: PublicKey
-  positionTokenAccount: PublicKey
-  tokenAVault: PublicKey
-  poolTokenVaultA: PublicKey
-  tokenBVault: PublicKey
-  poolTokenVaultB: PublicKey
-  treasuryFeeTokenAVault: PublicKey
-  treasuryFeeTokenBVault: PublicKey
-  treasuryFeeVaultAuthority: PublicKey
+  user: PublicKey;
+  strategy: PublicKey;
+  globalConfig: PublicKey;
+  baseVaultAuthority: PublicKey;
+  pool: PublicKey;
+  tickArrayLower: PublicKey;
+  tickArrayUpper: PublicKey;
+  position: PublicKey;
+  raydiumProtocolPositionOrBaseVaultAuthority: PublicKey;
+  positionTokenAccount: PublicKey;
+  tokenAVault: PublicKey;
+  poolTokenVaultA: PublicKey;
+  tokenBVault: PublicKey;
+  poolTokenVaultB: PublicKey;
+  treasuryFeeTokenAVault: PublicKey;
+  treasuryFeeTokenBVault: PublicKey;
+  treasuryFeeVaultAuthority: PublicKey;
   /** If rewards are uninitialized, pass this as strategy. */
-  reward0Vault: PublicKey
+  reward0Vault: PublicKey;
   /** If rewards are uninitialized, pass this as strategy. */
-  reward1Vault: PublicKey
+  reward1Vault: PublicKey;
   /** If rewards are uninitialized, pass this as strategy. */
-  reward2Vault: PublicKey
+  reward2Vault: PublicKey;
   /** If rewards are uninitialized, pass this as strategy. */
-  poolRewardVault0: PublicKey
+  poolRewardVault0: PublicKey;
   /** If rewards are uninitialized, pass this as strategy. */
-  poolRewardVault1: PublicKey
+  poolRewardVault1: PublicKey;
   /** If rewards are uninitialized, pass this as strategy. */
-  poolRewardVault2: PublicKey
-  tokenAMint: PublicKey
-  tokenBMint: PublicKey
-  tokenProgram: PublicKey
-  poolProgram: PublicKey
-  instructionSysvarAccount: PublicKey
+  poolRewardVault2: PublicKey;
+  tokenAMint: PublicKey;
+  tokenBMint: PublicKey;
+  tokenProgram: PublicKey;
+  poolProgram: PublicKey;
+  instructionSysvarAccount: PublicKey;
 }
 
 export function collectFeesAndRewards(accounts: CollectFeesAndRewardsAccounts) {
@@ -95,9 +95,9 @@ export function collectFeesAndRewards(accounts: CollectFeesAndRewardsAccounts) {
       isSigner: false,
       isWritable: false,
     },
-  ]
-  const identifier = Buffer.from([113, 18, 75, 8, 182, 31, 105, 186])
-  const data = identifier
-  const ix = new TransactionInstruction({ keys, programId: PROGRAM_ID, data })
-  return ix
+  ];
+  const identifier = Buffer.from([113, 18, 75, 8, 182, 31, 105, 186]);
+  const data = identifier;
+  const ix = new TransactionInstruction({ keys, programId: PROGRAM_ID, data });
+  return ix;
 }

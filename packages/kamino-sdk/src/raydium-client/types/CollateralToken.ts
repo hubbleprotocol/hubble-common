@@ -1,720 +1,718 @@
-import { PublicKey } from "@solana/web3.js" // eslint-disable-line @typescript-eslint/no-unused-vars
-import BN from "bn.js" // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as borsh from "@project-serum/borsh"
+import { PublicKey } from '@solana/web3.js'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import BN from 'bn.js'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as types from '../types'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as borsh from '@project-serum/borsh';
 
 export interface USDCJSON {
-  kind: "USDC"
+  kind: 'USDC';
 }
 
 export class USDC {
-  static readonly discriminator = 0
-  static readonly kind = "USDC"
-  readonly discriminator = 0
-  readonly kind = "USDC"
+  static readonly discriminator = 0;
+  static readonly kind = 'USDC';
+  readonly discriminator = 0;
+  readonly kind = 'USDC';
 
   toJSON(): USDCJSON {
     return {
-      kind: "USDC",
-    }
+      kind: 'USDC',
+    };
   }
 
   toEncodable() {
     return {
       USDC: {},
-    }
+    };
   }
 }
 
 export interface USDHJSON {
-  kind: "USDH"
+  kind: 'USDH';
 }
 
 export class USDH {
-  static readonly discriminator = 1
-  static readonly kind = "USDH"
-  readonly discriminator = 1
-  readonly kind = "USDH"
+  static readonly discriminator = 1;
+  static readonly kind = 'USDH';
+  readonly discriminator = 1;
+  readonly kind = 'USDH';
 
   toJSON(): USDHJSON {
     return {
-      kind: "USDH",
-    }
+      kind: 'USDH',
+    };
   }
 
   toEncodable() {
     return {
       USDH: {},
-    }
+    };
   }
 }
 
 export interface SOLJSON {
-  kind: "SOL"
+  kind: 'SOL';
 }
 
 export class SOL {
-  static readonly discriminator = 2
-  static readonly kind = "SOL"
-  readonly discriminator = 2
-  readonly kind = "SOL"
+  static readonly discriminator = 2;
+  static readonly kind = 'SOL';
+  readonly discriminator = 2;
+  readonly kind = 'SOL';
 
   toJSON(): SOLJSON {
     return {
-      kind: "SOL",
-    }
+      kind: 'SOL',
+    };
   }
 
   toEncodable() {
     return {
       SOL: {},
-    }
+    };
   }
 }
 
 export interface ETHJSON {
-  kind: "ETH"
+  kind: 'ETH';
 }
 
 export class ETH {
-  static readonly discriminator = 3
-  static readonly kind = "ETH"
-  readonly discriminator = 3
-  readonly kind = "ETH"
+  static readonly discriminator = 3;
+  static readonly kind = 'ETH';
+  readonly discriminator = 3;
+  readonly kind = 'ETH';
 
   toJSON(): ETHJSON {
     return {
-      kind: "ETH",
-    }
+      kind: 'ETH',
+    };
   }
 
   toEncodable() {
     return {
       ETH: {},
-    }
+    };
   }
 }
 
 export interface BTCJSON {
-  kind: "BTC"
+  kind: 'BTC';
 }
 
 export class BTC {
-  static readonly discriminator = 4
-  static readonly kind = "BTC"
-  readonly discriminator = 4
-  readonly kind = "BTC"
+  static readonly discriminator = 4;
+  static readonly kind = 'BTC';
+  readonly discriminator = 4;
+  readonly kind = 'BTC';
 
   toJSON(): BTCJSON {
     return {
-      kind: "BTC",
-    }
+      kind: 'BTC',
+    };
   }
 
   toEncodable() {
     return {
       BTC: {},
-    }
+    };
   }
 }
 
 export interface MSOLJSON {
-  kind: "MSOL"
+  kind: 'MSOL';
 }
 
 export class MSOL {
-  static readonly discriminator = 5
-  static readonly kind = "MSOL"
-  readonly discriminator = 5
-  readonly kind = "MSOL"
+  static readonly discriminator = 5;
+  static readonly kind = 'MSOL';
+  readonly discriminator = 5;
+  readonly kind = 'MSOL';
 
   toJSON(): MSOLJSON {
     return {
-      kind: "MSOL",
-    }
+      kind: 'MSOL',
+    };
   }
 
   toEncodable() {
     return {
       MSOL: {},
-    }
+    };
   }
 }
 
 export interface STSOLJSON {
-  kind: "STSOL"
+  kind: 'STSOL';
 }
 
 export class STSOL {
-  static readonly discriminator = 6
-  static readonly kind = "STSOL"
-  readonly discriminator = 6
-  readonly kind = "STSOL"
+  static readonly discriminator = 6;
+  static readonly kind = 'STSOL';
+  readonly discriminator = 6;
+  readonly kind = 'STSOL';
 
   toJSON(): STSOLJSON {
     return {
-      kind: "STSOL",
-    }
+      kind: 'STSOL',
+    };
   }
 
   toEncodable() {
     return {
       STSOL: {},
-    }
+    };
   }
 }
 
 export interface USDTJSON {
-  kind: "USDT"
+  kind: 'USDT';
 }
 
 export class USDT {
-  static readonly discriminator = 7
-  static readonly kind = "USDT"
-  readonly discriminator = 7
-  readonly kind = "USDT"
+  static readonly discriminator = 7;
+  static readonly kind = 'USDT';
+  readonly discriminator = 7;
+  readonly kind = 'USDT';
 
   toJSON(): USDTJSON {
     return {
-      kind: "USDT",
-    }
+      kind: 'USDT',
+    };
   }
 
   toEncodable() {
     return {
       USDT: {},
-    }
+    };
   }
 }
 
 export interface ORCAJSON {
-  kind: "ORCA"
+  kind: 'ORCA';
 }
 
 export class ORCA {
-  static readonly discriminator = 8
-  static readonly kind = "ORCA"
-  readonly discriminator = 8
-  readonly kind = "ORCA"
+  static readonly discriminator = 8;
+  static readonly kind = 'ORCA';
+  readonly discriminator = 8;
+  readonly kind = 'ORCA';
 
   toJSON(): ORCAJSON {
     return {
-      kind: "ORCA",
-    }
+      kind: 'ORCA',
+    };
   }
 
   toEncodable() {
     return {
       ORCA: {},
-    }
+    };
   }
 }
 
 export interface MNDEJSON {
-  kind: "MNDE"
+  kind: 'MNDE';
 }
 
 export class MNDE {
-  static readonly discriminator = 9
-  static readonly kind = "MNDE"
-  readonly discriminator = 9
-  readonly kind = "MNDE"
+  static readonly discriminator = 9;
+  static readonly kind = 'MNDE';
+  readonly discriminator = 9;
+  readonly kind = 'MNDE';
 
   toJSON(): MNDEJSON {
     return {
-      kind: "MNDE",
-    }
+      kind: 'MNDE',
+    };
   }
 
   toEncodable() {
     return {
       MNDE: {},
-    }
+    };
   }
 }
 
 export interface HBBJSON {
-  kind: "HBB"
+  kind: 'HBB';
 }
 
 export class HBB {
-  static readonly discriminator = 10
-  static readonly kind = "HBB"
-  readonly discriminator = 10
-  readonly kind = "HBB"
+  static readonly discriminator = 10;
+  static readonly kind = 'HBB';
+  readonly discriminator = 10;
+  readonly kind = 'HBB';
 
   toJSON(): HBBJSON {
     return {
-      kind: "HBB",
-    }
+      kind: 'HBB',
+    };
   }
 
   toEncodable() {
     return {
       HBB: {},
-    }
+    };
   }
 }
 
 export interface JSOLJSON {
-  kind: "JSOL"
+  kind: 'JSOL';
 }
 
 export class JSOL {
-  static readonly discriminator = 11
-  static readonly kind = "JSOL"
-  readonly discriminator = 11
-  readonly kind = "JSOL"
+  static readonly discriminator = 11;
+  static readonly kind = 'JSOL';
+  readonly discriminator = 11;
+  readonly kind = 'JSOL';
 
   toJSON(): JSOLJSON {
     return {
-      kind: "JSOL",
-    }
+      kind: 'JSOL',
+    };
   }
 
   toEncodable() {
     return {
       JSOL: {},
-    }
+    };
   }
 }
 
 export interface USHJSON {
-  kind: "USH"
+  kind: 'USH';
 }
 
 export class USH {
-  static readonly discriminator = 12
-  static readonly kind = "USH"
-  readonly discriminator = 12
-  readonly kind = "USH"
+  static readonly discriminator = 12;
+  static readonly kind = 'USH';
+  readonly discriminator = 12;
+  readonly kind = 'USH';
 
   toJSON(): USHJSON {
     return {
-      kind: "USH",
-    }
+      kind: 'USH',
+    };
   }
 
   toEncodable() {
     return {
       USH: {},
-    }
+    };
   }
 }
 
 export interface DAIJSON {
-  kind: "DAI"
+  kind: 'DAI';
 }
 
 export class DAI {
-  static readonly discriminator = 13
-  static readonly kind = "DAI"
-  readonly discriminator = 13
-  readonly kind = "DAI"
+  static readonly discriminator = 13;
+  static readonly kind = 'DAI';
+  readonly discriminator = 13;
+  readonly kind = 'DAI';
 
   toJSON(): DAIJSON {
     return {
-      kind: "DAI",
-    }
+      kind: 'DAI',
+    };
   }
 
   toEncodable() {
     return {
       DAI: {},
-    }
+    };
   }
 }
 
 export interface LDOJSON {
-  kind: "LDO"
+  kind: 'LDO';
 }
 
 export class LDO {
-  static readonly discriminator = 14
-  static readonly kind = "LDO"
-  readonly discriminator = 14
-  readonly kind = "LDO"
+  static readonly discriminator = 14;
+  static readonly kind = 'LDO';
+  readonly discriminator = 14;
+  readonly kind = 'LDO';
 
   toJSON(): LDOJSON {
     return {
-      kind: "LDO",
-    }
+      kind: 'LDO',
+    };
   }
 
   toEncodable() {
     return {
       LDO: {},
-    }
+    };
   }
 }
 
 export interface SCNSOLJSON {
-  kind: "SCNSOL"
+  kind: 'SCNSOL';
 }
 
 export class SCNSOL {
-  static readonly discriminator = 15
-  static readonly kind = "SCNSOL"
-  readonly discriminator = 15
-  readonly kind = "SCNSOL"
+  static readonly discriminator = 15;
+  static readonly kind = 'SCNSOL';
+  readonly discriminator = 15;
+  readonly kind = 'SCNSOL';
 
   toJSON(): SCNSOLJSON {
     return {
-      kind: "SCNSOL",
-    }
+      kind: 'SCNSOL',
+    };
   }
 
   toEncodable() {
     return {
       SCNSOL: {},
-    }
+    };
   }
 }
 
 export interface UXDJSON {
-  kind: "UXD"
+  kind: 'UXD';
 }
 
 export class UXD {
-  static readonly discriminator = 16
-  static readonly kind = "UXD"
-  readonly discriminator = 16
-  readonly kind = "UXD"
+  static readonly discriminator = 16;
+  static readonly kind = 'UXD';
+  readonly discriminator = 16;
+  readonly kind = 'UXD';
 
   toJSON(): UXDJSON {
     return {
-      kind: "UXD",
-    }
+      kind: 'UXD',
+    };
   }
 
   toEncodable() {
     return {
       UXD: {},
-    }
+    };
   }
 }
 
 export interface HDGJSON {
-  kind: "HDG"
+  kind: 'HDG';
 }
 
 export class HDG {
-  static readonly discriminator = 17
-  static readonly kind = "HDG"
-  readonly discriminator = 17
-  readonly kind = "HDG"
+  static readonly discriminator = 17;
+  static readonly kind = 'HDG';
+  readonly discriminator = 17;
+  readonly kind = 'HDG';
 
   toJSON(): HDGJSON {
     return {
-      kind: "HDG",
-    }
+      kind: 'HDG',
+    };
   }
 
   toEncodable() {
     return {
       HDG: {},
-    }
+    };
   }
 }
 
 export interface DUSTJSON {
-  kind: "DUST"
+  kind: 'DUST';
 }
 
 export class DUST {
-  static readonly discriminator = 18
-  static readonly kind = "DUST"
-  readonly discriminator = 18
-  readonly kind = "DUST"
+  static readonly discriminator = 18;
+  static readonly kind = 'DUST';
+  readonly discriminator = 18;
+  readonly kind = 'DUST';
 
   toJSON(): DUSTJSON {
     return {
-      kind: "DUST",
-    }
+      kind: 'DUST',
+    };
   }
 
   toEncodable() {
     return {
       DUST: {},
-    }
+    };
   }
 }
 
 export interface USDRJSON {
-  kind: "USDR"
+  kind: 'USDR';
 }
 
 export class USDR {
-  static readonly discriminator = 19
-  static readonly kind = "USDR"
-  readonly discriminator = 19
-  readonly kind = "USDR"
+  static readonly discriminator = 19;
+  static readonly kind = 'USDR';
+  readonly discriminator = 19;
+  readonly kind = 'USDR';
 
   toJSON(): USDRJSON {
     return {
-      kind: "USDR",
-    }
+      kind: 'USDR',
+    };
   }
 
   toEncodable() {
     return {
       USDR: {},
-    }
+    };
   }
 }
 
 export interface RATIOJSON {
-  kind: "RATIO"
+  kind: 'RATIO';
 }
 
 export class RATIO {
-  static readonly discriminator = 20
-  static readonly kind = "RATIO"
-  readonly discriminator = 20
-  readonly kind = "RATIO"
+  static readonly discriminator = 20;
+  static readonly kind = 'RATIO';
+  readonly discriminator = 20;
+  readonly kind = 'RATIO';
 
   toJSON(): RATIOJSON {
     return {
-      kind: "RATIO",
-    }
+      kind: 'RATIO',
+    };
   }
 
   toEncodable() {
     return {
       RATIO: {},
-    }
+    };
   }
 }
 
 export interface UXPJSON {
-  kind: "UXP"
+  kind: 'UXP';
 }
 
 export class UXP {
-  static readonly discriminator = 21
-  static readonly kind = "UXP"
-  readonly discriminator = 21
-  readonly kind = "UXP"
+  static readonly discriminator = 21;
+  static readonly kind = 'UXP';
+  readonly discriminator = 21;
+  readonly kind = 'UXP';
 
   toJSON(): UXPJSON {
     return {
-      kind: "UXP",
-    }
+      kind: 'UXP',
+    };
   }
 
   toEncodable() {
     return {
       UXP: {},
-    }
+    };
   }
 }
 
 export interface JITOSOLJSON {
-  kind: "JITOSOL"
+  kind: 'JITOSOL';
 }
 
 export class JITOSOL {
-  static readonly discriminator = 22
-  static readonly kind = "JITOSOL"
-  readonly discriminator = 22
-  readonly kind = "JITOSOL"
+  static readonly discriminator = 22;
+  static readonly kind = 'JITOSOL';
+  readonly discriminator = 22;
+  readonly kind = 'JITOSOL';
 
   toJSON(): JITOSOLJSON {
     return {
-      kind: "JITOSOL",
-    }
+      kind: 'JITOSOL',
+    };
   }
 
   toEncodable() {
     return {
       JITOSOL: {},
-    }
+    };
   }
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function fromDecoded(obj: any): types.CollateralTokenKind {
-  if (typeof obj !== "object") {
-    throw new Error("Invalid enum object")
+  if (typeof obj !== 'object') {
+    throw new Error('Invalid enum object');
   }
 
-  if ("USDC" in obj) {
-    return new USDC()
+  if ('USDC' in obj) {
+    return new USDC();
   }
-  if ("USDH" in obj) {
-    return new USDH()
+  if ('USDH' in obj) {
+    return new USDH();
   }
-  if ("SOL" in obj) {
-    return new SOL()
+  if ('SOL' in obj) {
+    return new SOL();
   }
-  if ("ETH" in obj) {
-    return new ETH()
+  if ('ETH' in obj) {
+    return new ETH();
   }
-  if ("BTC" in obj) {
-    return new BTC()
+  if ('BTC' in obj) {
+    return new BTC();
   }
-  if ("MSOL" in obj) {
-    return new MSOL()
+  if ('MSOL' in obj) {
+    return new MSOL();
   }
-  if ("STSOL" in obj) {
-    return new STSOL()
+  if ('STSOL' in obj) {
+    return new STSOL();
   }
-  if ("USDT" in obj) {
-    return new USDT()
+  if ('USDT' in obj) {
+    return new USDT();
   }
-  if ("ORCA" in obj) {
-    return new ORCA()
+  if ('ORCA' in obj) {
+    return new ORCA();
   }
-  if ("MNDE" in obj) {
-    return new MNDE()
+  if ('MNDE' in obj) {
+    return new MNDE();
   }
-  if ("HBB" in obj) {
-    return new HBB()
+  if ('HBB' in obj) {
+    return new HBB();
   }
-  if ("JSOL" in obj) {
-    return new JSOL()
+  if ('JSOL' in obj) {
+    return new JSOL();
   }
-  if ("USH" in obj) {
-    return new USH()
+  if ('USH' in obj) {
+    return new USH();
   }
-  if ("DAI" in obj) {
-    return new DAI()
+  if ('DAI' in obj) {
+    return new DAI();
   }
-  if ("LDO" in obj) {
-    return new LDO()
+  if ('LDO' in obj) {
+    return new LDO();
   }
-  if ("SCNSOL" in obj) {
-    return new SCNSOL()
+  if ('SCNSOL' in obj) {
+    return new SCNSOL();
   }
-  if ("UXD" in obj) {
-    return new UXD()
+  if ('UXD' in obj) {
+    return new UXD();
   }
-  if ("HDG" in obj) {
-    return new HDG()
+  if ('HDG' in obj) {
+    return new HDG();
   }
-  if ("DUST" in obj) {
-    return new DUST()
+  if ('DUST' in obj) {
+    return new DUST();
   }
-  if ("USDR" in obj) {
-    return new USDR()
+  if ('USDR' in obj) {
+    return new USDR();
   }
-  if ("RATIO" in obj) {
-    return new RATIO()
+  if ('RATIO' in obj) {
+    return new RATIO();
   }
-  if ("UXP" in obj) {
-    return new UXP()
+  if ('UXP' in obj) {
+    return new UXP();
   }
-  if ("JITOSOL" in obj) {
-    return new JITOSOL()
+  if ('JITOSOL' in obj) {
+    return new JITOSOL();
   }
 
-  throw new Error("Invalid enum object")
+  throw new Error('Invalid enum object');
 }
 
-export function fromJSON(
-  obj: types.CollateralTokenJSON
-): types.CollateralTokenKind {
+export function fromJSON(obj: types.CollateralTokenJSON): types.CollateralTokenKind {
   switch (obj.kind) {
-    case "USDC": {
-      return new USDC()
+    case 'USDC': {
+      return new USDC();
     }
-    case "USDH": {
-      return new USDH()
+    case 'USDH': {
+      return new USDH();
     }
-    case "SOL": {
-      return new SOL()
+    case 'SOL': {
+      return new SOL();
     }
-    case "ETH": {
-      return new ETH()
+    case 'ETH': {
+      return new ETH();
     }
-    case "BTC": {
-      return new BTC()
+    case 'BTC': {
+      return new BTC();
     }
-    case "MSOL": {
-      return new MSOL()
+    case 'MSOL': {
+      return new MSOL();
     }
-    case "STSOL": {
-      return new STSOL()
+    case 'STSOL': {
+      return new STSOL();
     }
-    case "USDT": {
-      return new USDT()
+    case 'USDT': {
+      return new USDT();
     }
-    case "ORCA": {
-      return new ORCA()
+    case 'ORCA': {
+      return new ORCA();
     }
-    case "MNDE": {
-      return new MNDE()
+    case 'MNDE': {
+      return new MNDE();
     }
-    case "HBB": {
-      return new HBB()
+    case 'HBB': {
+      return new HBB();
     }
-    case "JSOL": {
-      return new JSOL()
+    case 'JSOL': {
+      return new JSOL();
     }
-    case "USH": {
-      return new USH()
+    case 'USH': {
+      return new USH();
     }
-    case "DAI": {
-      return new DAI()
+    case 'DAI': {
+      return new DAI();
     }
-    case "LDO": {
-      return new LDO()
+    case 'LDO': {
+      return new LDO();
     }
-    case "SCNSOL": {
-      return new SCNSOL()
+    case 'SCNSOL': {
+      return new SCNSOL();
     }
-    case "UXD": {
-      return new UXD()
+    case 'UXD': {
+      return new UXD();
     }
-    case "HDG": {
-      return new HDG()
+    case 'HDG': {
+      return new HDG();
     }
-    case "DUST": {
-      return new DUST()
+    case 'DUST': {
+      return new DUST();
     }
-    case "USDR": {
-      return new USDR()
+    case 'USDR': {
+      return new USDR();
     }
-    case "RATIO": {
-      return new RATIO()
+    case 'RATIO': {
+      return new RATIO();
     }
-    case "UXP": {
-      return new UXP()
+    case 'UXP': {
+      return new UXP();
     }
-    case "JITOSOL": {
-      return new JITOSOL()
+    case 'JITOSOL': {
+      return new JITOSOL();
     }
   }
 }
 
 export function layout(property?: string) {
   const ret = borsh.rustEnum([
-    borsh.struct([], "USDC"),
-    borsh.struct([], "USDH"),
-    borsh.struct([], "SOL"),
-    borsh.struct([], "ETH"),
-    borsh.struct([], "BTC"),
-    borsh.struct([], "MSOL"),
-    borsh.struct([], "STSOL"),
-    borsh.struct([], "USDT"),
-    borsh.struct([], "ORCA"),
-    borsh.struct([], "MNDE"),
-    borsh.struct([], "HBB"),
-    borsh.struct([], "JSOL"),
-    borsh.struct([], "USH"),
-    borsh.struct([], "DAI"),
-    borsh.struct([], "LDO"),
-    borsh.struct([], "SCNSOL"),
-    borsh.struct([], "UXD"),
-    borsh.struct([], "HDG"),
-    borsh.struct([], "DUST"),
-    borsh.struct([], "USDR"),
-    borsh.struct([], "RATIO"),
-    borsh.struct([], "UXP"),
-    borsh.struct([], "JITOSOL"),
-  ])
+    borsh.struct([], 'USDC'),
+    borsh.struct([], 'USDH'),
+    borsh.struct([], 'SOL'),
+    borsh.struct([], 'ETH'),
+    borsh.struct([], 'BTC'),
+    borsh.struct([], 'MSOL'),
+    borsh.struct([], 'STSOL'),
+    borsh.struct([], 'USDT'),
+    borsh.struct([], 'ORCA'),
+    borsh.struct([], 'MNDE'),
+    borsh.struct([], 'HBB'),
+    borsh.struct([], 'JSOL'),
+    borsh.struct([], 'USH'),
+    borsh.struct([], 'DAI'),
+    borsh.struct([], 'LDO'),
+    borsh.struct([], 'SCNSOL'),
+    borsh.struct([], 'UXD'),
+    borsh.struct([], 'HDG'),
+    borsh.struct([], 'DUST'),
+    borsh.struct([], 'USDR'),
+    borsh.struct([], 'RATIO'),
+    borsh.struct([], 'UXP'),
+    borsh.struct([], 'JITOSOL'),
+  ]);
   if (property !== undefined) {
-    return ret.replicate(property)
+    return ret.replicate(property);
   }
-  return ret
+  return ret;
 }
