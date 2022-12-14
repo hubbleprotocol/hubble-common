@@ -10,3 +10,4 @@ export let PROGRAM_ID: PublicKey = PROGRAM_ID_CLI;
 export const setKaminoProgramId = (programId: PublicKey) => {
     PROGRAM_ID = programId;
   };
+
