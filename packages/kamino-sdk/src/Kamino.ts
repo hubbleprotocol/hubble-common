@@ -22,6 +22,7 @@ import { Percentage, RemoveLiquidityQuote, RemoveLiquidityQuoteParam } from '@or
 import { OrcaDAL } from '@orca-so/whirlpool-sdk/dist/dal/orca-dal';
 import { OrcaPosition } from '@orca-so/whirlpool-sdk/dist/position/orca-position';
 import { PROGRAM_ID_CLI as WHIRLPOOL_PROGRAM_ID } from './whirpools-client/programId';
+import { PROGRAM_ID_CLI as RAYDIUM_PROGRAM_ID } from './raydium-client/programId';
 import { Data, Holdings, ShareData, StrategyBalances, StrategyVaultBalances, TreasuryFeeVault } from './models';
 import { StrategyHolder } from './models/StrategyHolder';
 import { Scope, SupportedToken } from '@hubbleprotocol/scope-sdk';
@@ -38,10 +39,8 @@ import {
 } from './utils';
 import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import {
-  collectFees,
-  CollectFeesAccounts,
-  collectRewards,
-  CollectRewardsAccounts,
+  collectFeesAndRewards,
+  CollectFeesAndRewardsAccounts,
   deposit,
   DepositAccounts,
   DepositArgs,
@@ -505,20 +504,25 @@ export class Kamino {
       new Decimal(10).pow(strategyState.strategy.sharesMintDecimals.toString())
     );
 
+    let programId = WHIRLPOOL_PROGRAM_ID;
+    if (strategyState.strategy.strategyDex.toNumber() == dexToNumber('RAYDIUM')) {
+      programId = RAYDIUM_PROGRAM_ID;
+    }
+
     const args: WithdrawArgs = { sharesAmount: new BN(sharesAmountInLamports.toNumber()) };
     const accounts: WithdrawAccounts = {
       user: owner,
       strategy: strategyState.address,
       globalConfig: strategyState.strategy.globalConfig,
-      whirlpool: strategyState.strategy.pool,
+      pool: strategyState.strategy.pool,
       position: strategyState.strategy.position,
       tickArrayLower: strategyState.strategy.tickArrayLower,
       tickArrayUpper: strategyState.strategy.tickArrayUpper,
       tokenAVault: strategyState.strategy.tokenAVault,
       tokenBVault: strategyState.strategy.tokenBVault,
       baseVaultAuthority: strategyState.strategy.baseVaultAuthority,
-      whirlpoolTokenVaultA: strategyState.strategy.tokenAMint,
-      whirlpoolTokenVaultB: strategyState.strategy.tokenBMint,
+      poolTokenVaultA: strategyState.strategy.tokenAMint,
+      poolTokenVaultB: strategyState.strategy.tokenBMint,
       tokenAAta: tokenAAta,
       tokenBAta: tokenBAta,
       tokenAMint: strategyState.strategy.tokenAMint,
@@ -531,8 +535,9 @@ export class Kamino {
       treasuryFeeVaultAuthority,
       tokenProgram: TOKEN_PROGRAM_ID,
       positionTokenAccount: strategyState.strategy.positionTokenAccount,
-      whirlpoolProgram: WHIRLPOOL_PROGRAM_ID,
+      poolProgram: programId,
       instructionSysvarAccount: SYSVAR_INSTRUCTIONS_PUBKEY,
+      raydiumProtocolPositionOrBaseVaultAuthority: strategyState.strategy.raydiumProtocolPositionOrBaseVaultAuthority,
     };
 
     return withdraw(args, accounts);
@@ -840,76 +845,74 @@ export class Kamino {
    */
   async collectRewards(strategy: PublicKey | StrategyWithAddress) {
     const { address: strategyPubkey, strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
-    const whirlpool = await Whirlpool.fetch(this._connection, strategyState.pool);
-    if (!whirlpool) {
-      throw Error(`Could not fetch whirlpool state with pubkey ${strategyState.pool.toString()}`);
+    const { treasuryFeeTokenAVault, treasuryFeeTokenBVault, treasuryFeeVaultAuthority } =
+      await this.getTreasuryFeeVaultPDAs(strategyState.tokenAMint, strategyState.tokenBMint);
+
+    let programId = WHIRLPOOL_PROGRAM_ID;
+    let poolTokenVaultA = PublicKey.default;
+    let poolTokenVaultB = PublicKey.default;
+    let poolRewardVault0 = PublicKey.default;
+    let poolRewardVault1 = PublicKey.default;
+    let poolRewardVault2 = PublicKey.default;
+    if (strategyState.strategyDex.toNumber() == dexToNumber('ORCA')) {
+      const whirlpool = await Whirlpool.fetch(this._connection, strategyState.pool);
+      if (!whirlpool) {
+        throw Error(`Could not fetch whirlpool state with pubkey ${strategyState.pool.toString()}`);
+      }
+
+      poolTokenVaultA = whirlpool.tokenVaultA;
+      poolTokenVaultB = whirlpool.tokenVaultB;
+      poolRewardVault0 = whirlpool.rewardInfos[0].vault;
+      poolRewardVault1 = whirlpool.rewardInfos[1].vault;
+      poolRewardVault2 = whirlpool.rewardInfos[2].vault;
+    } else if (strategyState.strategyDex.toNumber() == dexToNumber('RAYDIUM')) {
+      programId = RAYDIUM_PROGRAM_ID;
+
+      const poolState = await PoolState.fetch(this._connection, strategyState.pool);
+      if (!poolState) {
+        throw Error(`Could not fetch Raydium pool state with pubkey ${strategyState.pool.toString()}`);
+      }
+      poolTokenVaultA = poolState.tokenVault0;
+      poolTokenVaultB = poolState.tokenVault1;
+      poolRewardVault0 = poolState.rewardInfos[0].tokenVault;
+      poolRewardVault1 = poolState.rewardInfos[1].tokenVault;
+      poolRewardVault2 = poolState.rewardInfos[2].tokenVault;
     }
-    const collectRewardsAccounts: CollectRewardsAccounts = {
+
+    const collectFeesAndRewardsAccounts: CollectFeesAndRewardsAccounts = {
       user: strategyState.adminAuthority,
       strategy: strategyPubkey,
       globalConfig: strategyState.globalConfig,
-      whirlpool: strategyState.pool,
+      pool: strategyState.pool,
       position: strategyState.position,
       positionTokenAccount: strategyState.positionTokenAccount,
       baseVaultAuthority: strategyState.baseVaultAuthority,
       reward0Vault: strategyState.reward0Vault,
       reward1Vault: strategyState.reward1Vault,
       reward2Vault: strategyState.reward2Vault,
-      whirlpoolRewardVault0:
-        strategyState.reward0Decimals.toNumber() > 0
-          ? whirlpool.rewardInfos[0].vault
-          : strategyState.baseVaultAuthority,
-      whirlpoolRewardVault1:
-        strategyState.reward1Decimals.toNumber() > 0
-          ? whirlpool.rewardInfos[1].vault
-          : strategyState.baseVaultAuthority,
-      whirlpoolRewardVault2:
-        strategyState.reward2Decimals.toNumber() > 0
-          ? whirlpool.rewardInfos[2].vault
-          : strategyState.baseVaultAuthority,
+      poolRewardVault0:
+        strategyState.reward0Decimals.toNumber() > 0 ? poolRewardVault0 : strategyState.baseVaultAuthority,
+      poolRewardVault1:
+        strategyState.reward1Decimals.toNumber() > 0 ? poolRewardVault1 : strategyState.baseVaultAuthority,
+      poolRewardVault2:
+        strategyState.reward2Decimals.toNumber() > 0 ? poolRewardVault2 : strategyState.baseVaultAuthority,
       tickArrayLower: strategyState.tickArrayLower,
       tickArrayUpper: strategyState.tickArrayUpper,
       tokenProgram: TOKEN_PROGRAM_ID,
-      whirlpoolProgram: WHIRLPOOL_PROGRAM_ID,
+      poolProgram: programId,
       instructionSysvarAccount: SYSVAR_INSTRUCTIONS_PUBKEY,
-    };
-    return collectRewards(collectRewardsAccounts);
-  }
-
-  /**
-   * Get transaction instruction to collect strategy fees from the treasury fee vaults.
-   * @param strategy strategy public key or already fetched object
-   * @returns transaction instruction to collect strategy fees
-   */
-  async collectFees(strategy: PublicKey | StrategyWithAddress) {
-    const { address: strategyPubkey, strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
-    const { treasuryFeeTokenAVault, treasuryFeeTokenBVault, treasuryFeeVaultAuthority } =
-      await this.getTreasuryFeeVaultPDAs(strategyState.tokenAMint, strategyState.tokenBMint);
-    const accounts: CollectFeesAccounts = {
-      user: strategyState.adminAuthority,
-      strategy: strategyPubkey,
-      globalConfig: strategyState.globalConfig,
-      whirlpool: strategyState.pool,
-      position: strategyState.position,
-      positionTokenAccount: strategyState.positionTokenAccount,
-      baseVaultAuthority: strategyState.baseVaultAuthority,
+      raydiumProtocolPositionOrBaseVaultAuthority: strategyState.raydiumProtocolPositionOrBaseVaultAuthority,
+      tokenAVault: strategyState.tokenAVault,
+      poolTokenVaultA,
+      tokenBVault: strategyState.tokenBVault,
+      poolTokenVaultB,
       treasuryFeeTokenAVault,
       treasuryFeeTokenBVault,
       treasuryFeeVaultAuthority,
       tokenAMint: strategyState.tokenAMint,
       tokenBMint: strategyState.tokenBMint,
-      tokenAVault: strategyState.tokenAVault,
-      tokenBVault: strategyState.tokenBVault,
-      whirlpoolTokenVaultA: strategyState.poolTokenVaultA,
-      whirlpoolTokenVaultB: strategyState.poolTokenVaultB,
-      tickArrayLower: strategyState.tickArrayLower,
-      tickArrayUpper: strategyState.tickArrayUpper,
-      tokenProgram: TOKEN_PROGRAM_ID,
-      whirlpoolProgram: WHIRLPOOL_PROGRAM_ID,
-      instructionSysvarAccount: SYSVAR_INSTRUCTIONS_PUBKEY,
     };
-
-    return collectFees(accounts);
+    return collectFeesAndRewards(collectFeesAndRewardsAccounts);
   }
 
   /**
