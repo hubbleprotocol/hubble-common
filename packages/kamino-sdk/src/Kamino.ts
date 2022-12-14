@@ -64,16 +64,19 @@ import { createAssociatedTokenAccountInstruction, getAssociatedTokenAddress } fr
 import { StrategyWithAddress } from './models/StrategyWithAddress';
 import { StrategyProgramAddress } from './models/StrategyProgramAddress';
 import { Idl, Program, Provider } from '@project-serum/anchor';
-import { KAMINO_IDL } from '@hubbleprotocol/hubble-idl';
 import { Rebalancing } from './kamino-client/types/StrategyStatus';
 import { METADATA_PROGRAM_ID, METADATA_UPDATE_AUTH } from './constants/metadata';
 import { ExecutiveWithdrawActionKind } from './kamino-client/types';
 import { Rebalance } from './kamino-client/types/ExecutiveWithdrawAction';
 
+import KaminoIdl from './kamino-client/kamino.json';
+export const KAMINO_IDL = KaminoIdl;
+
 export class Kamino {
   private readonly _cluster: SolanaCluster;
   private readonly _connection: Connection;
   readonly _config: HubbleConfig;
+  private _globalConfig: PublicKey;
   private readonly _scope: Scope;
   private readonly _provider: Provider;
   private _kaminoProgram: Program;
@@ -107,16 +110,33 @@ export class Kamino {
    * @param cluster Name of the Solana cluster
    * @param connection Connection to the Solana cluster
    */
-  constructor(cluster: SolanaCluster, connection: Connection) {
+  constructor(cluster: SolanaCluster, connection: Connection, globalConfig?: PublicKey) {
     this._cluster = cluster;
     this._connection = connection;
     this._config = getConfigByCluster(cluster);
+    this._globalConfig = globalConfig ? globalConfig : new PublicKey(this._config.kamino.globalConfig);
     this._provider = new Provider(connection, getReadOnlyWallet(), {
       commitment: connection.commitment,
     });
     this._kaminoProgram = new Program(KAMINO_IDL as Idl, this._config.kamino.programId, this._provider);
     this._scope = new Scope(cluster, connection);
     setKaminoProgramId(this._config.kamino.programId);
+  }
+
+  getConnection() {
+    return this._connection;
+  }
+
+  getProgram() {
+    return this._kaminoProgram;
+  }
+
+  setGlobalConfig(globalConfig: PublicKey) {
+    this._globalConfig = globalConfig;
+  }
+
+  getGlobalConfig() {
+    return this._globalConfig;
   }
 
   /**
@@ -656,7 +676,7 @@ export class Kamino {
       throw Error(`Could not fetch whirlpool state with pubkey ${whirlpool.toString()}`);
     }
 
-    const globalConfig = await GlobalConfig.fetch(this._connection, this._config.kamino.globalConfig);
+    const globalConfig = await GlobalConfig.fetch(this._connection, this._globalConfig);
     if (!globalConfig) {
       throw Error(`Could not fetch global config with pubkey ${this._config.kamino.globalConfig.toString()}`);
     }
@@ -670,7 +690,7 @@ export class Kamino {
     const strategyAccounts: InitializeStrategyAccounts = {
       adminAuthority: owner,
       strategy,
-      globalConfig: this._config.kamino.globalConfig,
+      globalConfig: this._globalConfig,
       pool: whirlpool,
       tokenAMint: whirlpoolState.tokenMintA,
       tokenBMint: whirlpoolState.tokenMintB,
@@ -679,8 +699,8 @@ export class Kamino {
       baseVaultAuthority: programAddresses.baseVaultAuthority,
       sharesMint: programAddresses.sharesMint,
       sharesMintAuthority: programAddresses.sharesMintAuthority,
-      scopePriceId: this._config.scope.oraclePrices,
-      scopeProgramId: this._config.scope.programId,
+      scopePriceId: globalConfig.scopePriceId,
+      scopeProgramId: globalConfig.scopeProgramId,
       tokenInfos: globalConfig.tokenInfos,
       systemProgram: SystemProgram.programId,
       rent: SYSVAR_RENT_PUBKEY,
@@ -749,12 +769,16 @@ export class Kamino {
    */
   async createStrategyAccount(payer: PublicKey, newStrategy: PublicKey) {
     const accountSize = this._kaminoProgram.account.whirlpoolStrategy.size;
-    const lamports = await this._connection.getMinimumBalanceForRentExemption(accountSize);
+    return this.createAccountRentExempt(payer, newStrategy, accountSize);
+  }
+
+  async createAccountRentExempt(payer: PublicKey, newAccountPubkey: PublicKey, size: number) {
+    const lamports = await this._connection.getMinimumBalanceForRentExemption(size);
     return SystemProgram.createAccount({
       programId: this._config.kamino.programId,
       fromPubkey: payer,
-      newAccountPubkey: newStrategy,
-      space: accountSize,
+      newAccountPubkey,
+      space: size,
       lamports,
     });
   }
@@ -874,7 +898,7 @@ export class Kamino {
    */
   async openPosition(
     strategy: PublicKey | StrategyWithAddress,
-    newPosition: PublicKey,
+    positionMint: PublicKey,
     priceLower: Decimal,
     priceUpper: Decimal
   ) {
@@ -903,9 +927,9 @@ export class Kamino {
       whirlpool.tickSpacing
     );
 
-    const { position, positionBump, positionMetadata } = await this.getMetadataProgramAddresses(newPosition);
+    const { position, positionBump, positionMetadata } = await this.getMetadataProgramAddresses(positionMint);
 
-    const positionTokenAccount = await getAssociatedTokenAddress(strategyState.baseVaultAuthority, newPosition);
+    const positionTokenAccount = await getAssociatedTokenAddress(positionMint, strategyState.baseVaultAuthority);
 
     const args: OpenLiquidityPositionArgs = {
       tickLowerIndex: new BN(tickLowerIndex),
@@ -920,15 +944,18 @@ export class Kamino {
       tickUpperIndex
     );
 
+    const tickArrayLower = new PublicKey('8UtrSZ5yDrniY4TGJbfeNuN7RxUKNpGZM5uEzyN2CnVG');
+    const tickArrayUpper = new PublicKey('3cTwDCQYFdWNEHFWj1GqWZAnzf9F4X3LKB5hEfuP8fiw');
+
     const accounts: OpenLiquidityPositionAccounts = {
       adminAuthority: strategyState.adminAuthority,
       strategy: strategyPubkey,
       pool: strategyState.pool,
-      tickArrayLower: startTickIndex,
-      tickArrayUpper: endTickIndex,
+      tickArrayLower: tickArrayLower,
+      tickArrayUpper: tickArrayUpper,
       baseVaultAuthority: strategyState.baseVaultAuthority,
       position,
-      positionMint: newPosition,
+      positionMint,
       positionMetadataAccount: positionMetadata,
       positionTokenAccount,
       rent: SYSVAR_RENT_PUBKEY,
@@ -951,6 +978,53 @@ export class Kamino {
       poolTokenVaultAOrBaseVaultAuthority: strategyState.baseVaultAuthority,
       poolTokenVaultBOrBaseVaultAuthority: strategyState.baseVaultAuthority,
     };
+
+    console.log('OpenPosition: adminAuthority:', accounts.adminAuthority.toString());
+    console.log('OpenPosition: strategy:', accounts.strategy.toString());
+    console.log('OpenPosition: pool:', accounts.pool.toString());
+    console.log('OpenPosition: tickArrayLower:', accounts.tickArrayLower.toString());
+    console.log('OpenPosition: tickArrayUpper:', accounts.tickArrayUpper.toString());
+    console.log('OpenPosition: baseVaultAuthority:', accounts.baseVaultAuthority.toString());
+    console.log('OpenPosition: position:', accounts.position.toString());
+    console.log(
+      'OpenPosition: raydiumProtocolPositionOrBaseVaultAuthority:',
+      accounts.raydiumProtocolPositionOrBaseVaultAuthority.toString()
+    );
+    console.log(
+      'OpenPosition: adminTokenAAtaOrBaseVaultAuthority:',
+      accounts.adminTokenAAtaOrBaseVaultAuthority.toString()
+    );
+    console.log(
+      'OpenPosition: adminTokenBAtaOrBaseVaultAuthority:',
+      accounts.adminTokenBAtaOrBaseVaultAuthority.toString()
+    );
+    console.log(
+      'OpenPosition: poolTokenVaultAOrBaseVaultAuthority:',
+      accounts.poolTokenVaultAOrBaseVaultAuthority.toString()
+    );
+    console.log(
+      'OpenPosition: poolTokenVaultBOrBaseVaultAuthority:',
+      accounts.poolTokenVaultBOrBaseVaultAuthority.toString()
+    );
+    console.log('OpenPosition: positionMint:', accounts.positionMint.toString());
+    console.log('OpenPosition: positionMetadataAccount:', accounts.positionMetadataAccount.toString());
+    console.log('OpenPosition: positionTokenAccount:', accounts.positionTokenAccount.toString());
+    console.log('OpenPosition: rent:', accounts.rent.toString());
+    console.log('OpenPosition: system:', accounts.system.toString());
+    console.log('OpenPosition: tokenProgram:', accounts.tokenProgram.toString());
+    console.log('OpenPosition: associatedTokenProgram:', accounts.associatedTokenProgram.toString());
+    console.log('OpenPosition: metadataProgram:', accounts.metadataProgram.toString());
+    console.log('OpenPosition: metadataUpdateAuth:', accounts.metadataUpdateAuth.toString());
+    console.log('OpenPosition: poolProgram:', accounts.poolProgram.toString());
+    console.log('OpenPosition: oldPositionOrBaseVaultAuthority:', accounts.oldPositionOrBaseVaultAuthority.toString());
+    console.log(
+      'OpenPosition: oldPositionMintOrBaseVaultAuthority:',
+      accounts.oldPositionMintOrBaseVaultAuthority.toString()
+    );
+    console.log(
+      'OpenPosition: oldPositionTokenAccountOrBaseVaultAuthority:',
+      accounts.oldPositionTokenAccountOrBaseVaultAuthority.toString()
+    );
 
     return openLiquidityPosition(args, accounts);
   }

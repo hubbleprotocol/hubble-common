@@ -1,12 +1,17 @@
 import {
   AccountInfo,
+  Commitment,
   Connection,
   PublicKey,
+  sendAndConfirmTransaction,
+  Signer,
   SystemProgram,
   Transaction,
   TransactionInstruction,
+  TransactionSignature,
 } from '@solana/web3.js';
 import { struct, u32, u8 } from '@project-serum/borsh';
+import { sleep } from '@project-serum/common';
 
 export const ASSOCIATED_TOKEN_PROGRAM_ID = new PublicKey('ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL');
 export const TOKEN_PROGRAM_ID = new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA');
@@ -24,7 +29,7 @@ export async function getAssociatedTokenAddressAndData(
 export async function getAssociatedTokenAddress(
   mint: PublicKey,
   owner: PublicKey,
-  allowOwnerOffCurve = false,
+  allowOwnerOffCurve = true,
   programId = TOKEN_PROGRAM_ID,
   associatedTokenProgramId = ASSOCIATED_TOKEN_PROGRAM_ID
 ): Promise<PublicKey> {
@@ -89,4 +94,34 @@ export async function assignBlockInfoToTransaction(connection: Connection, trans
   transaction.feePayer = payer;
   transaction.lastValidBlockHeight = lastValidBlockHeight;
   return transaction;
+}
+
+export async function sendTransactionWithLogs(
+  connection: Connection,
+  tx: Transaction,
+  payer: PublicKey,
+  signers: Signer[],
+  args: { skipPreflight?: boolean; commitment: Commitment } = {
+    skipPreflight: true,
+    commitment: 'finalized',
+  }
+): Promise<TransactionSignature | null> {
+  let txn = await assignBlockInfoToTransaction(connection, tx, payer);
+  try {
+    let res = await sendAndConfirmTransaction(connection, txn, signers, {
+      skipPreflight: args.skipPreflight ? args.skipPreflight : true,
+      commitment: args.commitment,
+    });
+    return res;
+  } catch (e) {
+    console.log('ERROR:', e);
+    await sleep(5000);
+    // @ts-ignore
+    const sig = e.toString().split(' failed ')[0].split('Transaction ')[1];
+    let res = await connection.getTransaction(sig, { commitment: 'confirmed' });
+    if (res && res.meta) {
+      console.log('Txn', res.meta.logMessages);
+    }
+    return null;
+  }
 }
