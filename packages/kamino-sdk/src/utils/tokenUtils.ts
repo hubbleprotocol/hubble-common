@@ -11,7 +11,6 @@ import {
   TransactionSignature,
 } from '@solana/web3.js';
 import { struct, u32, u8 } from '@project-serum/borsh';
-import { sleep } from '@project-serum/common';
 
 export const ASSOCIATED_TOKEN_PROGRAM_ID = new PublicKey('ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL');
 export const TOKEN_PROGRAM_ID = new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA');
