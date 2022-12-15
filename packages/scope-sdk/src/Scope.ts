@@ -56,6 +56,8 @@ export const ScopePairs = [
   'USDRTwap/USD',
   'RATIO/USD',
   'UXP/USD',
+  'kUXDUSDCOrca/USD',
+  'JITOSOL/SOL',
 ] as const;
 export type ScopePair = typeof ScopePairs[number];
 
@@ -110,6 +112,8 @@ export const SupportedTokens = [
   'USDR',
   'RATIO',
   'UXP',
+  'kUXDUSDCOrca',
+  'JITOSOL',
 ] as const;
 export type SupportedToken = typeof SupportedTokens[number];
 
@@ -194,6 +198,8 @@ export class Scope {
     { id: 47, pair: 'USDRTwap/USD', name: 'USDRTwap', price: new Decimal(0) },
     { id: 48, pair: 'RATIO/USD', name: 'RATIO', price: new Decimal(0) },
     { id: 49, pair: 'UXP/USD', name: 'UXP', price: new Decimal(0) },
+    { id: 50, pair: 'kUXDUSDCOrca/USD', name: 'kUXDUSDCOrca', price: new Decimal(0) },
+    { id: 51, pair: 'JITOSOL/SOL', name: 'JITOSOL', price: new Decimal(0), nonUsdPairId: 0 },
   ];
 
   /**
