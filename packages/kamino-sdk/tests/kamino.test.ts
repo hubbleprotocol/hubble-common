@@ -21,7 +21,6 @@ import * as Instructions from '../src/kamino-client/instructions';
 import { GlobalConfigOption, GlobalConfigOptionKind } from '../src/kamino-client/types';
 import { SupportedToken } from '@hubbleprotocol/scope-sdk';
 import BN from 'bn.js';
-import { sleep } from '@project-serum/common';
 import { Uninitialized } from '../src/kamino-client/types/StrategyStatus';
 
 describe('Kamino SDK Tests', () => {
