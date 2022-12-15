@@ -21,6 +21,8 @@ import * as Instructions from '../src/kamino-client/instructions';
 import { GlobalConfigOption, GlobalConfigOptionKind } from '../src/kamino-client/types';
 import { SupportedToken } from '@hubbleprotocol/scope-sdk';
 import BN from 'bn.js';
+import { sleep } from '@project-serum/common';
+import { Uninitialized } from '../src/kamino-client/types/StrategyStatus';
 
 describe('Kamino SDK Tests', () => {
   let connection: Connection;
@@ -207,34 +209,6 @@ describe('Kamino SDK Tests', () => {
     console.log(txHash);
   });
 
-  test.skip('create a new strategy', async () => {
-    const signer = Keypair.fromSecretKey(Uint8Array.from(fixtures.signerPrivateKey));
-    const newStrategy = Keypair.generate();
-    const owner = signer.publicKey;
-    const whirlpool = fixtures.existingWhirlpool;
-
-    const kamino = new Kamino(cluster, connection, fixtures.globalConfig);
-    const whirlpoolState = await kamino.getWhirlpoolByAddress(whirlpool);
-    expect(whirlpoolState).not.toBeNull();
-
-    let tx = createTransactionWithExtraBudget(owner);
-
-    const createStrategyAccountIx = await kamino.createStrategyAccount(owner, newStrategy.publicKey);
-    tx.add(createStrategyAccountIx);
-
-    const createStrategyIx = await kamino.createStrategy(newStrategy.publicKey, whirlpool, owner, 'USDH', 'USDC');
-    tx.add(createStrategyIx);
-
-    const txHash = await sendTransactionWithLogs(connection, tx, owner, [signer, newStrategy], {
-      commitment: 'finalized',
-    });
-    console.log('transaction hash', txHash);
-    console.log('new strategy has been created', newStrategy.publicKey.toString());
-    const strategy = await kamino.getStrategyByAddress(newStrategy.publicKey);
-    expect(strategy).not.toBeNull();
-    console.log(strategy?.toJSON());
-  }, 30_000);
-
   test.skip('should create a new strategy', async () => {
     const signer = Keypair.fromSecretKey(Uint8Array.from(fixtures.signerPrivateKey));
     const newStrategy = Keypair.generate();
@@ -246,23 +220,6 @@ describe('Kamino SDK Tests', () => {
     expect(whirlpoolState).not.toBeNull();
 
     let tx = createTransactionWithExtraBudget(owner);
-
-    const [tokenAAta, tokenAData] = await getAssociatedTokenAddressAndData(
-      connection,
-      whirlpoolState!.tokenMintA,
-      owner
-    );
-    if (!tokenAData) {
-      tx.add(createAssociatedTokenAccountInstruction(owner, tokenAAta, owner, whirlpoolState!.tokenMintA));
-    }
-    const [tokenBAta, tokenBData] = await getAssociatedTokenAddressAndData(
-      connection,
-      whirlpoolState!.tokenMintB,
-      owner
-    );
-    if (!tokenBData) {
-      tx.add(createAssociatedTokenAccountInstruction(owner, tokenBAta, owner, whirlpoolState!.tokenMintB));
-    }
 
     const createStrategyAccountIx = await kamino.createStrategyAccount(owner, newStrategy.publicKey);
     tx.add(createStrategyAccountIx);
@@ -306,22 +263,14 @@ describe('Kamino SDK Tests', () => {
     console.log('transaction hash', txHash);
   }, 30_000);
 
-  test('create a new strategy and open a position', async () => {
-    // Existing stuff from Orca
-    const whirlpool = fixtures.existingWhirlpool;
+  test.skip('create a new strategy and open a position', async () => {
     const owner = Keypair.fromSecretKey(Uint8Array.from(fixtures.signerPrivateKey));
-
     const kamino = new Kamino(cluster, connection);
 
-    // Setup
-    let globalConfig = await setUpGlobalConfig(kamino, owner, fixtures.scopeProgram, fixtures.scopePrices);
-
-    let whirlpoolState = await kamino.getWhirlpoolByAddress(whirlpool);
-    expect(whirlpoolState).not.toBeNull();
-
-    await setUpCollateralInfo(kamino, owner);
-    await updateCollateralInfo(kamino, owner, globalConfig, 'USDH', whirlpoolState!!.tokenMintA);
-    await updateCollateralInfo(kamino, owner, globalConfig, 'USDC', whirlpoolState!!.tokenMintB);
+    // Setup (this is not required on devnet/mainnet)
+    // Note: this modifies Kamino
+    const whirlpool = fixtures.existingWhirlpool;
+    await setUpEnvironmentForWhirlpool(kamino, owner, whirlpool, fixtures.scopeProgram, fixtures.scopePrices);
 
     // Create strategy
     const newStrategy = Keypair.generate();
@@ -358,32 +307,108 @@ describe('Kamino SDK Tests', () => {
     }
   }, 200_000);
 
-  test.skip('should rebalance a strategy', async () => {
-    const signer = Keypair.fromSecretKey(bs58.decode('enter phantom key'));
-    const newPosition = Keypair.generate();
-    const owner = new PublicKey('HrwbdQYwSnAyVpVHuGQ661HiNbWmGjDp5DdDR9YMw7Bu');
-    const strategy = new PublicKey('7rEfrXFWvNBeWPSCwtTSvAtuU1uptBKpkvEN3YAgxX49');
-
+  test('should rebalance a strategy', async () => {
+    const owner = Keypair.fromSecretKey(Uint8Array.from(fixtures.signerPrivateKey));
     const kamino = new Kamino(cluster, connection);
 
-    const rebalanceInstructions = await kamino.rebalance(
+    // Setup (this is not required on devnet/mainnet)
+    // Note: this modifies Kamino
+    const whirlpool = fixtures.existingWhirlpool;
+    await setUpEnvironmentForWhirlpool(kamino, owner, whirlpool, fixtures.scopeProgram, fixtures.scopePrices);
+
+    const strategy = await createStrategy(kamino, owner, whirlpool);
+    const _ = await openPosition(kamino, owner, strategy, new Decimal(0.9), new Decimal(1.1));
+
+    // New position to rebalance into
+    const newPosition = Keypair.generate();
+
+    const [executiveWithdrawIx, collectFeesIx, openPositionIx] = await kamino.rebalance(
       strategy,
       newPosition.publicKey,
       new Decimal(0.9),
       new Decimal(1.1),
-      signer.publicKey
+      owner.publicKey
     );
 
-    for (const rebalanceInstruction of rebalanceInstructions) {
-      let tx = new Transaction();
-      tx = await assignBlockInfoToTransaction(connection, tx, owner);
-      const txHash = await sendAndConfirmTransaction(connection, tx, [signer, newPosition], {
-        commitment: 'finalized',
-      });
-      console.log('transaction hash', txHash);
+    {
+      let tx = new Transaction().add(executiveWithdrawIx, collectFeesIx);
+      let sig = await sendTransactionWithLogs(connection, tx, owner.publicKey, [owner]);
+      expect(sig).not.toBeNull();
+      console.log('executive withdraw and collect fees have been executed');
     }
-  }, 60_000);
+    {
+      let tx = new Transaction().add(openPositionIx);
+      let sig = await sendTransactionWithLogs(connection, tx, owner.publicKey, [owner, newPosition]);
+      expect(sig).not.toBeNull();
+      console.log('new position has been opened');
+    }
+    {
+      let invextIx = await kamino.invest(strategy, owner.publicKey);
+      let tx = new Transaction().add(invextIx);
+      let sig = await sendTransactionWithLogs(connection, tx, owner.publicKey, [owner]);
+      // Cannot invest zero amount, this is expected to fail
+      // expect(sig).not.toBeNull();
+      // console.log('invested');
+    }
+  }, 300_000);
 });
+
+export async function setUpEnvironmentForWhirlpool(
+  kamino: Kamino,
+  owner: Keypair,
+  whirlpool: PublicKey,
+  scopeProgramId: PublicKey,
+  scopePrices: PublicKey
+) {
+  // Setup (this is not required on devnet/mainnet)
+  let globalConfig = await setUpGlobalConfig(kamino, owner, scopeProgramId, scopePrices);
+
+  let whirlpoolState = await kamino.getWhirlpoolByAddress(whirlpool);
+  expect(whirlpoolState).not.toBeNull();
+
+  await setUpCollateralInfo(kamino, owner);
+  await updateCollateralInfo(kamino, owner, globalConfig, 'USDH', whirlpoolState!!.tokenMintA);
+  await updateCollateralInfo(kamino, owner, globalConfig, 'USDC', whirlpoolState!!.tokenMintB);
+}
+
+export async function createStrategy(kamino: Kamino, owner: Keypair, whirlpool: PublicKey): Promise<PublicKey> {
+  // Create strategy
+  const newStrategy = Keypair.generate();
+  const createStrategyAccountIx = await kamino.createStrategyAccount(owner.publicKey, newStrategy.publicKey);
+  const createStrategyIx = await kamino.createStrategy(
+    newStrategy.publicKey,
+    whirlpool,
+    owner.publicKey,
+    'USDH',
+    'USDC'
+  );
+
+  let tx = createTransactionWithExtraBudget(owner.publicKey).add(createStrategyAccountIx).add(createStrategyIx);
+
+  await sendTransactionWithLogs(kamino.getConnection(), tx, owner.publicKey, [owner, newStrategy]);
+  const strategy = await kamino.getStrategyByAddress(newStrategy.publicKey);
+  expect(strategy).not.toBeNull();
+
+  return newStrategy.publicKey;
+}
+
+export async function openPosition(
+  kamino: Kamino,
+  owner: Keypair,
+  strategy: PublicKey,
+  priceLower: Decimal,
+  priceUpper: Decimal
+) {
+  // Open position
+  const positionMint = Keypair.generate();
+  {
+    const openPositionIx = await kamino.openPosition(strategy, positionMint.publicKey, priceLower, priceUpper);
+
+    let tx = new Transaction().add(openPositionIx);
+    await sendTransactionWithLogs(kamino.getConnection(), tx, owner.publicKey, [owner, positionMint]);
+    console.log('new position has been opened', positionMint.publicKey.toString());
+  }
+}
 
 export async function setUpGlobalConfig(
   kamino: Kamino,
@@ -461,7 +486,7 @@ export async function setUpCollateralInfo(kamino: Kamino, owner: Keypair): Promi
   const sig = await sendTransactionWithLogs(kamino.getConnection(), tx, owner.publicKey, [owner, collInfo]);
 
   console.log('Initialize Coll Infp: ' + collInfo.toString());
-  console.log('Initialize Coll Infp txn: ' + sig);
+  console.log('Initialize Coll Info txn: ' + sig);
 
   // Now set the collateral infos into the global config
   await updateGlobalConfig(

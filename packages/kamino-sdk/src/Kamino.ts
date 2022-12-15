@@ -64,9 +64,9 @@ import { createAssociatedTokenAccountInstruction, getAssociatedTokenAddress } fr
 import { StrategyWithAddress } from './models/StrategyWithAddress';
 import { StrategyProgramAddress } from './models/StrategyProgramAddress';
 import { Idl, Program, Provider } from '@project-serum/anchor';
-import { Rebalancing } from './kamino-client/types/StrategyStatus';
+import { Rebalancing, Uninitialized } from './kamino-client/types/StrategyStatus';
 import { METADATA_PROGRAM_ID, METADATA_UPDATE_AUTH } from './constants/metadata';
-import { ExecutiveWithdrawActionKind } from './kamino-client/types';
+import { ExecutiveWithdrawActionKind, StrategyStatus, StrategyStatusKind } from './kamino-client/types';
 import { Rebalance } from './kamino-client/types/ExecutiveWithdrawAction';
 
 import KaminoIdl from './kamino-client/kamino.json';
@@ -897,18 +897,23 @@ export class Kamino {
    * @param priceUpper new position's upper price of the range
    */
   async openPosition(
-    strategy: PublicKey | StrategyWithAddress,
+    strategy: PublicKey,
     positionMint: PublicKey,
     priceLower: Decimal,
-    priceUpper: Decimal
+    priceUpper: Decimal,
+    status: StrategyStatusKind = new Uninitialized()
   ) {
-    const { address: strategyPubkey, strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
+    const strategyState: WhirlpoolStrategy | null = await this.getStrategyByAddress(strategy);
+    if (!strategyState) {
+      throw Error(`Could not fetch strategy state with pubkey ${strategy.toString()}`);
+    }
+
     const whirlpool = await Whirlpool.fetch(this._connection, strategyState.pool);
     if (!whirlpool) {
       throw Error(`Could not fetch whirlpool state with pubkey ${strategyState.pool.toString()}`);
     }
 
-    const isRebalancing = strategyState.status.toNumber() == Rebalancing.discriminator;
+    const isRebalancing = status.discriminator === Rebalancing.discriminator;
 
     const tickLowerIndex = getNearestValidTickIndexFromTickIndex(
       priceToTickIndex(
@@ -944,15 +949,12 @@ export class Kamino {
       tickUpperIndex
     );
 
-    const tickArrayLower = new PublicKey('8UtrSZ5yDrniY4TGJbfeNuN7RxUKNpGZM5uEzyN2CnVG');
-    const tickArrayUpper = new PublicKey('3cTwDCQYFdWNEHFWj1GqWZAnzf9F4X3LKB5hEfuP8fiw');
-
     const accounts: OpenLiquidityPositionAccounts = {
       adminAuthority: strategyState.adminAuthority,
-      strategy: strategyPubkey,
+      strategy,
       pool: strategyState.pool,
-      tickArrayLower: tickArrayLower,
-      tickArrayUpper: tickArrayUpper,
+      tickArrayLower: startTickIndex,
+      tickArrayUpper: endTickIndex,
       baseVaultAuthority: strategyState.baseVaultAuthority,
       position,
       positionMint,
@@ -978,53 +980,6 @@ export class Kamino {
       poolTokenVaultAOrBaseVaultAuthority: strategyState.baseVaultAuthority,
       poolTokenVaultBOrBaseVaultAuthority: strategyState.baseVaultAuthority,
     };
-
-    console.log('OpenPosition: adminAuthority:', accounts.adminAuthority.toString());
-    console.log('OpenPosition: strategy:', accounts.strategy.toString());
-    console.log('OpenPosition: pool:', accounts.pool.toString());
-    console.log('OpenPosition: tickArrayLower:', accounts.tickArrayLower.toString());
-    console.log('OpenPosition: tickArrayUpper:', accounts.tickArrayUpper.toString());
-    console.log('OpenPosition: baseVaultAuthority:', accounts.baseVaultAuthority.toString());
-    console.log('OpenPosition: position:', accounts.position.toString());
-    console.log(
-      'OpenPosition: raydiumProtocolPositionOrBaseVaultAuthority:',
-      accounts.raydiumProtocolPositionOrBaseVaultAuthority.toString()
-    );
-    console.log(
-      'OpenPosition: adminTokenAAtaOrBaseVaultAuthority:',
-      accounts.adminTokenAAtaOrBaseVaultAuthority.toString()
-    );
-    console.log(
-      'OpenPosition: adminTokenBAtaOrBaseVaultAuthority:',
-      accounts.adminTokenBAtaOrBaseVaultAuthority.toString()
-    );
-    console.log(
-      'OpenPosition: poolTokenVaultAOrBaseVaultAuthority:',
-      accounts.poolTokenVaultAOrBaseVaultAuthority.toString()
-    );
-    console.log(
-      'OpenPosition: poolTokenVaultBOrBaseVaultAuthority:',
-      accounts.poolTokenVaultBOrBaseVaultAuthority.toString()
-    );
-    console.log('OpenPosition: positionMint:', accounts.positionMint.toString());
-    console.log('OpenPosition: positionMetadataAccount:', accounts.positionMetadataAccount.toString());
-    console.log('OpenPosition: positionTokenAccount:', accounts.positionTokenAccount.toString());
-    console.log('OpenPosition: rent:', accounts.rent.toString());
-    console.log('OpenPosition: system:', accounts.system.toString());
-    console.log('OpenPosition: tokenProgram:', accounts.tokenProgram.toString());
-    console.log('OpenPosition: associatedTokenProgram:', accounts.associatedTokenProgram.toString());
-    console.log('OpenPosition: metadataProgram:', accounts.metadataProgram.toString());
-    console.log('OpenPosition: metadataUpdateAuth:', accounts.metadataUpdateAuth.toString());
-    console.log('OpenPosition: poolProgram:', accounts.poolProgram.toString());
-    console.log('OpenPosition: oldPositionOrBaseVaultAuthority:', accounts.oldPositionOrBaseVaultAuthority.toString());
-    console.log(
-      'OpenPosition: oldPositionMintOrBaseVaultAuthority:',
-      accounts.oldPositionMintOrBaseVaultAuthority.toString()
-    );
-    console.log(
-      'OpenPosition: oldPositionTokenAccountOrBaseVaultAuthority:',
-      accounts.oldPositionTokenAccountOrBaseVaultAuthority.toString()
-    );
 
     return openLiquidityPosition(args, accounts);
   }
@@ -1072,11 +1027,20 @@ export class Kamino {
    * @param strategy strategy pubkey or object
    * @param payer transaction payer
    */
-  async invest(strategy: PublicKey | StrategyWithAddress, payer: PublicKey) {
-    const { address: strategyPubkey, strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
+  async invest(strategy: PublicKey, payer: PublicKey) {
+    const strategyState: WhirlpoolStrategy | null = await this.getStrategyByAddress(strategy);
+    if (!strategyState) {
+      throw Error(`Could not fetch strategy state with pubkey ${strategy.toString()}`);
+    }
+
     const whirlpool = await Whirlpool.fetch(this._connection, strategyState.pool);
     if (!whirlpool) {
       throw Error(`Could not fetch whirlpool state with pubkey ${strategyState.pool.toString()}`);
+    }
+
+    const globalConfig = await GlobalConfig.fetch(this._connection, strategyState.globalConfig);
+    if (!globalConfig) {
+      throw Error(`Could not fetch global config with pubkey ${strategyState.globalConfig.toString()}`);
     }
 
     const accounts: InvestAccounts = {
@@ -1087,14 +1051,14 @@ export class Kamino {
       tokenBVault: strategyState.tokenBVault,
       baseVaultAuthority: strategyState.baseVaultAuthority,
       payer,
-      strategy: strategyPubkey,
+      strategy: strategy,
       globalConfig: strategyState.globalConfig,
       tokenProgram: TOKEN_PROGRAM_ID,
       poolTokenVaultA: whirlpool.tokenVaultA,
       poolTokenVaultB: whirlpool.tokenVaultB,
       tickArrayLower: strategyState.tickArrayLower,
       tickArrayUpper: strategyState.tickArrayUpper,
-      scopePrices: this._config.scope.oraclePrices,
+      scopePrices: globalConfig.scopePriceId,
       raydiumProtocolPositionOrBaseVaultAuthority: strategyState.raydiumProtocolPositionOrBaseVaultAuthority,
       poolProgram: WHIRLPOOL_PROGRAM_ID,
       instructionSysvarAccount: SYSVAR_INSTRUCTIONS_PUBKEY,
@@ -1113,7 +1077,7 @@ export class Kamino {
    * @returns list of transactions to rebalance (executive withdraw, collect fees/rewards, open new position, invest)
    */
   async rebalance(
-    strategy: PublicKey | StrategyWithAddress,
+    strategy: PublicKey,
     newPosition: PublicKey,
     priceLower: Decimal,
     priceUpper: Decimal,
@@ -1122,8 +1086,7 @@ export class Kamino {
     return [
       await this.executiveWithdraw(strategy, new Rebalance()),
       await this.collectFeesAndRewards(strategy),
-      await this.openPosition(strategy, newPosition, priceLower, priceUpper),
-      await this.invest(strategy, payer),
+      await this.openPosition(strategy, newPosition, priceLower, priceUpper, new Rebalancing()),
     ];
   }
 }
