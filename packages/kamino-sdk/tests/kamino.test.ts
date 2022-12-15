@@ -306,7 +306,7 @@ describe('Kamino SDK Tests', () => {
     }
   }, 200_000);
 
-  test('should rebalance a strategy', async () => {
+  test.skip('should rebalance a strategy', async () => {
     const owner = Keypair.fromSecretKey(Uint8Array.from(fixtures.signerPrivateKey));
     const kamino = new Kamino(cluster, connection);
 
