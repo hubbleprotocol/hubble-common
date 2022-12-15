@@ -3,8 +3,25 @@ export type {
   InitializeStrategyArgs,
   InitializeStrategyAccounts,
 } from "./initializeStrategy"
+export { initializeKaminoReward } from "./initializeKaminoReward"
+export type {
+  InitializeKaminoRewardArgs,
+  InitializeKaminoRewardAccounts,
+} from "./initializeKaminoReward"
+export { addKaminoRewards } from "./addKaminoRewards"
+export type {
+  AddKaminoRewardsArgs,
+  AddKaminoRewardsAccounts,
+} from "./addKaminoRewards"
 export { initializeGlobalConfig } from "./initializeGlobalConfig"
 export type { InitializeGlobalConfigAccounts } from "./initializeGlobalConfig"
+export { initializeCollateralInfo } from "./initializeCollateralInfo"
+export type { InitializeCollateralInfoAccounts } from "./initializeCollateralInfo"
+export { updateCollateralInfo } from "./updateCollateralInfo"
+export type {
+  UpdateCollateralInfoArgs,
+  UpdateCollateralInfoAccounts,
+} from "./updateCollateralInfo"
 export { initializeScopeChain } from "./initializeScopeChain"
 export type { InitializeScopeChainAccounts } from "./initializeScopeChain"
 export { initializeSharesMetadata } from "./initializeSharesMetadata"
@@ -27,8 +44,6 @@ export type {
   UpdateTreasuryFeeVaultArgs,
   UpdateTreasuryFeeVaultAccounts,
 } from "./updateTreasuryFeeVault"
-export { updateAdminAuthority } from "./updateAdminAuthority"
-export type { UpdateAdminAuthorityAccounts } from "./updateAdminAuthority"
 export { updateStrategyConfig } from "./updateStrategyConfig"
 export type {
   UpdateStrategyConfigArgs,
@@ -62,13 +77,26 @@ export type {
   ExecutiveWithdrawArgs,
   ExecutiveWithdrawAccounts,
 } from "./executiveWithdraw"
-export { collectFees } from "./collectFees"
-export type { CollectFeesAccounts } from "./collectFees"
-export { collectRewards } from "./collectRewards"
-export type { CollectRewardsAccounts } from "./collectRewards"
+export { collectFeesAndRewards } from "./collectFeesAndRewards"
+export type { CollectFeesAndRewardsAccounts } from "./collectFeesAndRewards"
 export { swapRewards } from "./swapRewards"
 export type { SwapRewardsArgs, SwapRewardsAccounts } from "./swapRewards"
 export { swapUnevenVaults } from "./swapUnevenVaults"
-export type { SwapUnevenVaultsAccounts } from "./swapUnevenVaults"
+export type {
+  SwapUnevenVaultsArgs,
+  SwapUnevenVaultsAccounts,
+} from "./swapUnevenVaults"
+export { flashSwapUnevenVaultsStart } from "./flashSwapUnevenVaultsStart"
+export type {
+  FlashSwapUnevenVaultsStartArgs,
+  FlashSwapUnevenVaultsStartAccounts,
+} from "./flashSwapUnevenVaultsStart"
+export { flashSwapUnevenVaultsEnd } from "./flashSwapUnevenVaultsEnd"
+export type {
+  FlashSwapUnevenVaultsEndArgs,
+  FlashSwapUnevenVaultsEndAccounts,
+} from "./flashSwapUnevenVaultsEnd"
+export { emergencySwap } from "./emergencySwap"
+export type { EmergencySwapArgs, EmergencySwapAccounts } from "./emergencySwap"
 export { orcaSwap } from "./orcaSwap"
 export type { OrcaSwapArgs, OrcaSwapAccounts } from "./orcaSwap"

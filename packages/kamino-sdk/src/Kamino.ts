@@ -11,18 +11,34 @@ import {
   SystemProgram,
   SYSVAR_INSTRUCTIONS_PUBKEY,
   SYSVAR_RENT_PUBKEY,
+  Transaction,
   TransactionInstruction,
 } from '@solana/web3.js';
 import { setKaminoProgramId } from './kamino-client/programId';
-import { WhirlpoolStrategy } from './kamino-client/accounts';
+import { GlobalConfig, WhirlpoolStrategy } from './kamino-client/accounts';
 import Decimal from 'decimal.js';
 import { Position, Whirlpool } from './whirpools-client/accounts';
 import { getMintDecimals } from '@project-serum/serum/lib/market';
-import { Percentage, RemoveLiquidityQuote, RemoveLiquidityQuoteParam } from '@orca-so/whirlpool-sdk';
+import {
+  getNearestValidTickIndexFromTickIndex,
+  getStartTickIndex,
+  Percentage,
+  priceToTickIndex,
+  RemoveLiquidityQuote,
+  RemoveLiquidityQuoteParam,
+} from '@orca-so/whirlpool-sdk';
 import { OrcaDAL } from '@orca-so/whirlpool-sdk/dist/dal/orca-dal';
 import { OrcaPosition } from '@orca-so/whirlpool-sdk/dist/position/orca-position';
+import {
+  Data,
+  Holdings,
+  KaminoPosition,
+  ShareData,
+  StrategyBalances,
+  StrategyVaultBalances,
+  TreasuryFeeVault,
+} from './models';
 import { PROGRAM_ID_CLI as WHIRLPOOL_PROGRAM_ID } from './whirpools-client/programId';
-import { Data, Holdings, ShareData, StrategyBalances, StrategyVaultBalances, TreasuryFeeVault } from './models';
 import { StrategyHolder } from './models/StrategyHolder';
 import { Scope, SupportedToken } from '@hubbleprotocol/scope-sdk';
 import { KaminoToken } from './models/KaminoToken';
@@ -36,16 +52,22 @@ import {
 } from './utils';
 import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import {
-  collectFees,
-  CollectFeesAccounts,
-  collectRewards,
-  CollectRewardsAccounts,
+  collectFeesAndRewards,
+  CollectFeesAndRewardsAccounts,
   deposit,
   DepositAccounts,
   DepositArgs,
+  executiveWithdraw,
+  ExecutiveWithdrawAccounts,
+  ExecutiveWithdrawArgs,
   initializeStrategy,
   InitializeStrategyAccounts,
   InitializeStrategyArgs,
+  invest,
+  InvestAccounts,
+  openLiquidityPosition,
+  OpenLiquidityPositionAccounts,
+  OpenLiquidityPositionArgs,
   withdraw,
   WithdrawAccounts,
   WithdrawArgs,
@@ -54,13 +76,19 @@ import BN from 'bn.js';
 import { StrategyWithAddress } from './models/StrategyWithAddress';
 import { StrategyProgramAddress } from './models/StrategyProgramAddress';
 import { Idl, Program, Provider } from '@project-serum/anchor';
-import { KAMINO_IDL } from '@hubbleprotocol/hubble-idl';
-import { KaminoPosition } from './models/KaminoPosition';
+import { Rebalancing, Uninitialized } from './kamino-client/types/StrategyStatus';
+import { METADATA_PROGRAM_ID, METADATA_UPDATE_AUTH } from './constants/metadata';
+import { ExecutiveWithdrawActionKind, StrategyStatus, StrategyStatusKind } from './kamino-client/types';
+import { Rebalance } from './kamino-client/types/ExecutiveWithdrawAction';
+
+import KaminoIdl from './kamino-client/kamino.json';
+export const KAMINO_IDL = KaminoIdl;
 
 export class Kamino {
   private readonly _cluster: SolanaCluster;
   private readonly _connection: Connection;
   readonly _config: HubbleConfig;
+  private _globalConfig: PublicKey;
   private readonly _scope: Scope;
   private readonly _provider: Provider;
   private _kaminoProgram: Program;
@@ -96,16 +124,33 @@ export class Kamino {
    * @param cluster Name of the Solana cluster
    * @param connection Connection to the Solana cluster
    */
-  constructor(cluster: SolanaCluster, connection: Connection) {
+  constructor(cluster: SolanaCluster, connection: Connection, globalConfig?: PublicKey) {
     this._cluster = cluster;
     this._connection = connection;
     this._config = getConfigByCluster(cluster);
+    this._globalConfig = globalConfig ? globalConfig : new PublicKey(this._config.kamino.globalConfig);
     this._provider = new Provider(connection, getReadOnlyWallet(), {
       commitment: connection.commitment,
     });
     this._kaminoProgram = new Program(KAMINO_IDL as Idl, this._config.kamino.programId, this._provider);
     this._scope = new Scope(cluster, connection);
     setKaminoProgramId(this._config.kamino.programId);
+  }
+
+  getConnection() {
+    return this._connection;
+  }
+
+  getProgram() {
+    return this._kaminoProgram;
+  }
+
+  setGlobalConfig(globalConfig: PublicKey) {
+    this._globalConfig = globalConfig;
+  }
+
+  getGlobalConfig() {
+    return this._globalConfig;
   }
 
   /**
@@ -167,14 +212,14 @@ export class Kamino {
   }
 
   private async getStrategyBalances(strategy: WhirlpoolStrategy) {
-    const whirlpool = await Whirlpool.fetch(this._connection, strategy.whirlpool);
+    const whirlpool = await Whirlpool.fetch(this._connection, strategy.pool);
     const position = await Position.fetch(this._connection, strategy.position);
 
     if (!position) {
       throw new Error(`Position ${strategy.position.toString()} could not be found.`);
     }
     if (!whirlpool) {
-      throw new Error(`Whirlpool ${strategy.whirlpool.toString()} could not be found.`);
+      throw new Error(`Whirlpool ${strategy.pool.toString()} could not be found.`);
     }
 
     const decimalsA = await getMintDecimals(this._connection, whirlpool.tokenMintA);
@@ -403,9 +448,9 @@ export class Kamino {
     }
     const strategyState = await this.getStrategyStateIfNotFetched(strategy);
 
-    const whirlpoolState = await Whirlpool.fetch(this._connection, strategyState.strategy.whirlpool);
+    const whirlpoolState = await Whirlpool.fetch(this._connection, strategyState.strategy.pool);
     if (!whirlpoolState) {
-      throw Error(`Could not fetch whirlpool state with pubkey ${strategyState.strategy.whirlpool.toString()}`);
+      throw Error(`Could not fetch whirlpool state with pubkey ${strategyState.strategy.pool.toString()}`);
     }
     const { treasuryFeeTokenAVault, treasuryFeeTokenBVault, treasuryFeeVaultAuthority } =
       await this.getTreasuryFeeVaultPDAs(strategyState.strategy.tokenAMint, strategyState.strategy.tokenBMint);
@@ -423,15 +468,15 @@ export class Kamino {
       user: owner,
       strategy: strategyState.address,
       globalConfig: strategyState.strategy.globalConfig,
-      whirlpool: strategyState.strategy.whirlpool,
+      pool: strategyState.strategy.pool,
       position: strategyState.strategy.position,
       tickArrayLower: strategyState.strategy.tickArrayLower,
       tickArrayUpper: strategyState.strategy.tickArrayUpper,
       tokenAVault: strategyState.strategy.tokenAVault,
       tokenBVault: strategyState.strategy.tokenBVault,
       baseVaultAuthority: strategyState.strategy.baseVaultAuthority,
-      whirlpoolTokenVaultA: whirlpoolState.tokenVaultA,
-      whirlpoolTokenVaultB: whirlpoolState.tokenVaultB,
+      poolTokenVaultA: whirlpoolState.tokenVaultA,
+      poolTokenVaultB: whirlpoolState.tokenVaultB,
       tokenAAta: tokenAAta,
       tokenBAta: tokenBAta,
       tokenAMint: strategyState.strategy.tokenAMint,
@@ -444,7 +489,8 @@ export class Kamino {
       treasuryFeeVaultAuthority,
       tokenProgram: TOKEN_PROGRAM_ID,
       positionTokenAccount: strategyState.strategy.positionTokenAccount,
-      whirlpoolProgram: WHIRLPOOL_PROGRAM_ID,
+      raydiumProtocolPositionOrBaseVaultAuthority: strategyState.strategy.raydiumProtocolPositionOrBaseVaultAuthority,
+      poolProgram: WHIRLPOOL_PROGRAM_ID,
       instructionSysvarAccount: SYSVAR_INSTRUCTIONS_PUBKEY,
     };
 
@@ -573,9 +619,14 @@ export class Kamino {
     }
     const strategyState = await this.getStrategyStateIfNotFetched(strategy);
 
-    const whirlpoolState = await Whirlpool.fetch(this._connection, strategyState.strategy.whirlpool);
+    const whirlpoolState = await Whirlpool.fetch(this._connection, strategyState.strategy.pool);
     if (!whirlpoolState) {
-      throw Error(`Could not fetch whirlpool state with pubkey ${strategyState.strategy.whirlpool.toString()}`);
+      throw Error(`Could not fetch whirlpool state with pubkey ${strategyState.strategy.pool.toString()}`);
+    }
+
+    const globalConfig = await GlobalConfig.fetch(this._connection, strategyState.strategy.globalConfig);
+    if (!globalConfig) {
+      throw Error(`Could not fetch global config with pubkey ${strategyState.strategy.globalConfig.toString()}`);
     }
 
     const { treasuryFeeTokenAVault, treasuryFeeTokenBVault, treasuryFeeVaultAuthority } =
@@ -597,7 +648,7 @@ export class Kamino {
       user: owner,
       strategy: strategyState.address,
       globalConfig: strategyState.strategy.globalConfig,
-      whirlpool: strategyState.strategy.whirlpool,
+      pool: strategyState.strategy.pool,
       position: strategyState.strategy.position,
       tokenAVault: strategyState.strategy.tokenAVault,
       tokenBVault: strategyState.strategy.tokenBVault,
@@ -613,6 +664,7 @@ export class Kamino {
       sharesMint: strategyState.strategy.sharesMint,
       sharesMintAuthority: strategyState.strategy.sharesMintAuthority,
       scopePrices: strategyState.strategy.scopePrices,
+      tokenInfos: globalConfig.tokenInfos,
       systemProgram: SystemProgram.programId,
       rent: SYSVAR_RENT_PUBKEY,
       associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
@@ -646,16 +698,23 @@ export class Kamino {
     if (!whirlpoolState) {
       throw Error(`Could not fetch whirlpool state with pubkey ${whirlpool.toString()}`);
     }
+
+    const globalConfig = await GlobalConfig.fetch(this._connection, this._globalConfig);
+    if (!globalConfig) {
+      throw Error(`Could not fetch global config with pubkey ${this._config.kamino.globalConfig.toString()}`);
+    }
+
     const programAddresses = await this.getStrategyProgramAddresses(strategy, whirlpoolState);
     const strategyArgs: InitializeStrategyArgs = {
       tokenACollateralId: new BN(this.getCollateralId(tokenA)),
       tokenBCollateralId: new BN(this.getCollateralId(tokenB)),
+      strategyType: new BN(0), // Whirlpool, TODO
     };
     const strategyAccounts: InitializeStrategyAccounts = {
       adminAuthority: owner,
       strategy,
-      globalConfig: this._config.kamino.globalConfig,
-      whirlpool: whirlpool,
+      globalConfig: this._globalConfig,
+      pool: whirlpool,
       tokenAMint: whirlpoolState.tokenMintA,
       tokenBMint: whirlpoolState.tokenMintB,
       tokenAVault: programAddresses.tokenAVault,
@@ -663,8 +722,9 @@ export class Kamino {
       baseVaultAuthority: programAddresses.baseVaultAuthority,
       sharesMint: programAddresses.sharesMint,
       sharesMintAuthority: programAddresses.sharesMintAuthority,
-      scopePriceId: this._config.scope.oraclePrices,
-      scopeProgramId: this._config.scope.programId,
+      scopePriceId: globalConfig.scopePriceId,
+      scopeProgramId: globalConfig.scopeProgramId,
+      tokenInfos: globalConfig.tokenInfos,
       systemProgram: SystemProgram.programId,
       rent: SYSVAR_RENT_PUBKEY,
       tokenProgram: TOKEN_PROGRAM_ID,
@@ -732,76 +792,42 @@ export class Kamino {
    */
   async createStrategyAccount(payer: PublicKey, newStrategy: PublicKey) {
     const accountSize = this._kaminoProgram.account.whirlpoolStrategy.size;
-    const lamports = await this._connection.getMinimumBalanceForRentExemption(accountSize);
+    return this.createAccountRentExempt(payer, newStrategy, accountSize);
+  }
+
+  async createAccountRentExempt(payer: PublicKey, newAccountPubkey: PublicKey, size: number) {
+    const lamports = await this._connection.getMinimumBalanceForRentExemption(size);
     return SystemProgram.createAccount({
       programId: this._config.kamino.programId,
       fromPubkey: payer,
-      newAccountPubkey: newStrategy,
-      space: accountSize,
+      newAccountPubkey,
+      space: size,
       lamports,
     });
   }
 
   /**
-   * Get transaction instruction to collect strategy rewards from the reward vaults.
+   * Get transaction instruction to collect strategy fees from the treasury fee
+   * vaults and rewards from the reward vaults.
    * @param strategy strategy public key or already fetched object
-   * @returns transaction instruction to collect strategy rewards
+   * @returns transaction instruction to collect strategy fees and rewards
    */
-  async collectRewards(strategy: PublicKey | StrategyWithAddress) {
+  async collectFeesAndRewards(strategy: PublicKey | StrategyWithAddress) {
     const { address: strategyPubkey, strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
-    const whirlpool = await Whirlpool.fetch(this._connection, strategyState.whirlpool);
+    const whirlpool = await Whirlpool.fetch(this._connection, strategyState.pool);
     if (!whirlpool) {
-      throw Error(`Could not fetch whirlpool state with pubkey ${strategyState.whirlpool.toString()}`);
+      throw Error(`Could not fetch whirlpool state with pubkey ${strategyState.pool.toString()}`);
     }
-    const collectRewardsAccounts: CollectRewardsAccounts = {
-      user: strategyState.adminAuthority,
-      strategy: strategyPubkey,
-      globalConfig: strategyState.globalConfig,
-      whirlpool: strategyState.whirlpool,
-      position: strategyState.position,
-      positionTokenAccount: strategyState.positionTokenAccount,
-      baseVaultAuthority: strategyState.baseVaultAuthority,
-      reward0Vault: strategyState.reward0Vault,
-      reward1Vault: strategyState.reward1Vault,
-      reward2Vault: strategyState.reward2Vault,
-      whirlpoolRewardVault0:
-        strategyState.reward0Decimals.toNumber() > 0
-          ? whirlpool.rewardInfos[0].vault
-          : strategyState.baseVaultAuthority,
-      whirlpoolRewardVault1:
-        strategyState.reward1Decimals.toNumber() > 0
-          ? whirlpool.rewardInfos[1].vault
-          : strategyState.baseVaultAuthority,
-      whirlpoolRewardVault2:
-        strategyState.reward2Decimals.toNumber() > 0
-          ? whirlpool.rewardInfos[2].vault
-          : strategyState.baseVaultAuthority,
-      tickArrayLower: strategyState.tickArrayLower,
-      tickArrayUpper: strategyState.tickArrayUpper,
-      tokenProgram: TOKEN_PROGRAM_ID,
-      whirlpoolProgram: WHIRLPOOL_PROGRAM_ID,
-      instructionSysvarAccount: SYSVAR_INSTRUCTIONS_PUBKEY,
-    };
-    return collectRewards(collectRewardsAccounts);
-  }
-
-  /**
-   * Get transaction instruction to collect strategy fees from the treasury fee vaults.
-   * @param strategy strategy public key or already fetched object
-   * @returns transaction instruction to collect strategy fees
-   */
-  async collectFees(strategy: PublicKey | StrategyWithAddress) {
-    const { address: strategyPubkey, strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
     const { treasuryFeeTokenAVault, treasuryFeeTokenBVault, treasuryFeeVaultAuthority } =
       await this.getTreasuryFeeVaultPDAs(strategyState.tokenAMint, strategyState.tokenBMint);
-    const accounts: CollectFeesAccounts = {
+
+    const accounts: CollectFeesAndRewardsAccounts = {
       user: strategyState.adminAuthority,
       strategy: strategyPubkey,
       globalConfig: strategyState.globalConfig,
-      whirlpool: strategyState.whirlpool,
+      pool: strategyState.pool,
       position: strategyState.position,
       positionTokenAccount: strategyState.positionTokenAccount,
-      baseVaultAuthority: strategyState.baseVaultAuthority,
       treasuryFeeTokenAVault,
       treasuryFeeTokenBVault,
       treasuryFeeVaultAuthority,
@@ -809,16 +835,282 @@ export class Kamino {
       tokenBMint: strategyState.tokenBMint,
       tokenAVault: strategyState.tokenAVault,
       tokenBVault: strategyState.tokenBVault,
-      whirlpoolTokenVaultA: strategyState.whirlpoolTokenVaultA,
-      whirlpoolTokenVaultB: strategyState.whirlpoolTokenVaultB,
+      poolTokenVaultA: strategyState.poolTokenVaultA,
+      poolTokenVaultB: strategyState.poolTokenVaultB,
+      baseVaultAuthority: strategyState.baseVaultAuthority,
+      reward0Vault: strategyState.reward0Vault,
+      reward1Vault: strategyState.reward1Vault,
+      reward2Vault: strategyState.reward2Vault,
+      poolRewardVault0:
+        strategyState.reward0Decimals.toNumber() > 0
+          ? whirlpool.rewardInfos[0].vault
+          : strategyState.baseVaultAuthority,
+      poolRewardVault1:
+        strategyState.reward1Decimals.toNumber() > 0
+          ? whirlpool.rewardInfos[1].vault
+          : strategyState.baseVaultAuthority,
+      poolRewardVault2:
+        strategyState.reward2Decimals.toNumber() > 0
+          ? whirlpool.rewardInfos[2].vault
+          : strategyState.baseVaultAuthority,
       tickArrayLower: strategyState.tickArrayLower,
       tickArrayUpper: strategyState.tickArrayUpper,
+      raydiumProtocolPositionOrBaseVaultAuthority: strategyState.raydiumProtocolPositionOrBaseVaultAuthority,
       tokenProgram: TOKEN_PROGRAM_ID,
-      whirlpoolProgram: WHIRLPOOL_PROGRAM_ID,
+      poolProgram: WHIRLPOOL_PROGRAM_ID,
       instructionSysvarAccount: SYSVAR_INSTRUCTIONS_PUBKEY,
     };
 
-    return collectFees(accounts);
+    return collectFeesAndRewards(accounts);
+  }
+
+  /**
+   * Get orca position metadata program addresses
+   * @param positionMint mint account of the position
+   */
+  async getMetadataProgramAddresses(positionMint: PublicKey) {
+    const [position, positionBump] = await PublicKey.findProgramAddress(
+      [Buffer.from('position'), positionMint.toBuffer()],
+      WHIRLPOOL_PROGRAM_ID
+    );
+
+    const [positionMetadata, positionMetadataBump] = await PublicKey.findProgramAddress(
+      [Buffer.from('metadata'), METADATA_PROGRAM_ID.toBuffer(), positionMint.toBuffer()],
+      METADATA_PROGRAM_ID
+    );
+
+    return {
+      position,
+      positionBump,
+      positionMetadata,
+      positionMetadataBump,
+    };
+  }
+
+  private async getStartEndTicketIndexProgramAddresses(
+    whirlpool: PublicKey,
+    whirlpoolState: Whirlpool,
+    tickLowerIndex: number,
+    tickUpperIndex: number
+  ) {
+    const startTickIndex = getStartTickIndex(tickLowerIndex, whirlpoolState.tickSpacing, 0);
+    const endTickIndex = getStartTickIndex(tickUpperIndex, whirlpoolState.tickSpacing, 0);
+
+    const [startTickIndexPubkey, startTickIndexBump] = await PublicKey.findProgramAddress(
+      [Buffer.from('tick_array'), whirlpool.toBuffer(), Buffer.from(startTickIndex.toString())],
+      WHIRLPOOL_PROGRAM_ID
+    );
+    const [endTickIndexPubkey, endTickIndexBump] = await PublicKey.findProgramAddress(
+      [Buffer.from('tick_array'), whirlpool.toBuffer(), Buffer.from(endTickIndex.toString())],
+      WHIRLPOOL_PROGRAM_ID
+    );
+    return {
+      startTickIndex: startTickIndexPubkey,
+      startTickIndexBump,
+      endTickIndex: endTickIndexPubkey,
+      endTickIndexBump,
+    };
+  }
+
+  /**
+   * Get a transaction to open liquidity position for a Kamino strategy
+   * @param strategy strategy you want to open liquidity position for
+   * @param newPosition new liquidity position account pubkey
+   * @param priceLower new position's lower price of the range
+   * @param priceUpper new position's upper price of the range
+   */
+  async openPosition(
+    strategy: PublicKey,
+    positionMint: PublicKey,
+    priceLower: Decimal,
+    priceUpper: Decimal,
+    status: StrategyStatusKind = new Uninitialized()
+  ) {
+    const strategyState: WhirlpoolStrategy | null = await this.getStrategyByAddress(strategy);
+    if (!strategyState) {
+      throw Error(`Could not fetch strategy state with pubkey ${strategy.toString()}`);
+    }
+
+    const whirlpool = await Whirlpool.fetch(this._connection, strategyState.pool);
+    if (!whirlpool) {
+      throw Error(`Could not fetch whirlpool state with pubkey ${strategyState.pool.toString()}`);
+    }
+
+    const isRebalancing = status.discriminator === Rebalancing.discriminator;
+
+    const tickLowerIndex = getNearestValidTickIndexFromTickIndex(
+      priceToTickIndex(
+        priceLower,
+        strategyState.tokenAMintDecimals.toNumber(),
+        strategyState.tokenBMintDecimals.toNumber()
+      ),
+      whirlpool.tickSpacing
+    );
+    const tickUpperIndex = getNearestValidTickIndexFromTickIndex(
+      priceToTickIndex(
+        priceUpper,
+        strategyState.tokenAMintDecimals.toNumber(),
+        strategyState.tokenBMintDecimals.toNumber()
+      ),
+      whirlpool.tickSpacing
+    );
+
+    const { position, positionBump, positionMetadata } = await this.getMetadataProgramAddresses(positionMint);
+
+    const positionTokenAccount = await getAssociatedTokenAddress(positionMint, strategyState.baseVaultAuthority);
+
+    const args: OpenLiquidityPositionArgs = {
+      tickLowerIndex: new BN(tickLowerIndex),
+      tickUpperIndex: new BN(tickUpperIndex),
+      bump: positionBump,
+    };
+
+    const { startTickIndex, endTickIndex } = await this.getStartEndTicketIndexProgramAddresses(
+      strategyState.pool,
+      whirlpool,
+      tickLowerIndex,
+      tickUpperIndex
+    );
+
+    const accounts: OpenLiquidityPositionAccounts = {
+      adminAuthority: strategyState.adminAuthority,
+      strategy,
+      pool: strategyState.pool,
+      tickArrayLower: startTickIndex,
+      tickArrayUpper: endTickIndex,
+      baseVaultAuthority: strategyState.baseVaultAuthority,
+      position,
+      positionMint,
+      positionMetadataAccount: positionMetadata,
+      positionTokenAccount,
+      rent: SYSVAR_RENT_PUBKEY,
+      system: SystemProgram.programId,
+      tokenProgram: TOKEN_PROGRAM_ID,
+      associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+      metadataProgram: METADATA_PROGRAM_ID,
+      metadataUpdateAuth: METADATA_UPDATE_AUTH,
+      poolProgram: WHIRLPOOL_PROGRAM_ID,
+      oldPositionOrBaseVaultAuthority: isRebalancing ? strategyState.position : strategyState.baseVaultAuthority,
+      oldPositionMintOrBaseVaultAuthority: isRebalancing
+        ? strategyState.positionMint
+        : strategyState.baseVaultAuthority,
+      oldPositionTokenAccountOrBaseVaultAuthority: isRebalancing
+        ? strategyState.positionTokenAccount
+        : strategyState.baseVaultAuthority,
+      raydiumProtocolPositionOrBaseVaultAuthority: strategyState.baseVaultAuthority,
+      adminTokenAAtaOrBaseVaultAuthority: strategyState.baseVaultAuthority,
+      adminTokenBAtaOrBaseVaultAuthority: strategyState.baseVaultAuthority,
+      poolTokenVaultAOrBaseVaultAuthority: strategyState.baseVaultAuthority,
+      poolTokenVaultBOrBaseVaultAuthority: strategyState.baseVaultAuthority,
+    };
+
+    return openLiquidityPosition(args, accounts);
+  }
+
+  /**
+   * Get a transaction for executive withdrawal from a Kamino strategy.
+   * @param strategy strategy pubkey or object
+   * @param action withdrawal action
+   * @returns transaction for executive withdrawal
+   */
+  async executiveWithdraw(strategy: PublicKey | StrategyWithAddress, action: ExecutiveWithdrawActionKind) {
+    const { address: strategyPubkey, strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
+
+    const args: ExecutiveWithdrawArgs = {
+      action: action.discriminator,
+    };
+
+    const accounts: ExecutiveWithdrawAccounts = {
+      adminAuthority: strategyState.adminAuthority,
+      strategy: strategyPubkey,
+      globalConfig: strategyState.globalConfig,
+      pool: strategyState.pool,
+      position: strategyState.position,
+      positionTokenAccount: strategyState.positionTokenAccount,
+      baseVaultAuthority: strategyState.baseVaultAuthority,
+      tickArrayLower: strategyState.tickArrayLower,
+      tickArrayUpper: strategyState.tickArrayUpper,
+      tokenAVault: strategyState.tokenAVault,
+      tokenBVault: strategyState.tokenBVault,
+      poolTokenVaultA: strategyState.poolTokenVaultA,
+      poolTokenVaultB: strategyState.poolTokenVaultB,
+      tokenAMint: strategyState.tokenAMint,
+      tokenBMint: strategyState.tokenBMint,
+      scopePrices: strategyState.scopePrices,
+      raydiumProtocolPositionOrBaseVaultAuthority: strategyState.raydiumProtocolPositionOrBaseVaultAuthority,
+      tokenProgram: TOKEN_PROGRAM_ID,
+      poolProgram: WHIRLPOOL_PROGRAM_ID,
+    };
+
+    return executiveWithdraw(args, accounts);
+  }
+
+  /**
+   * Get a transaction to invest funds from the Kamino vaults and put them into Orca whirlpool as liquidity.
+   * @param strategy strategy pubkey or object
+   * @param payer transaction payer
+   */
+  async invest(strategy: PublicKey, payer: PublicKey) {
+    const strategyState: WhirlpoolStrategy | null = await this.getStrategyByAddress(strategy);
+    if (!strategyState) {
+      throw Error(`Could not fetch strategy state with pubkey ${strategy.toString()}`);
+    }
+
+    const whirlpool = await Whirlpool.fetch(this._connection, strategyState.pool);
+    if (!whirlpool) {
+      throw Error(`Could not fetch whirlpool state with pubkey ${strategyState.pool.toString()}`);
+    }
+
+    const globalConfig = await GlobalConfig.fetch(this._connection, strategyState.globalConfig);
+    if (!globalConfig) {
+      throw Error(`Could not fetch global config with pubkey ${strategyState.globalConfig.toString()}`);
+    }
+
+    const accounts: InvestAccounts = {
+      position: strategyState.position,
+      positionTokenAccount: strategyState.positionTokenAccount,
+      pool: strategyState.pool,
+      tokenAVault: strategyState.tokenAVault,
+      tokenBVault: strategyState.tokenBVault,
+      baseVaultAuthority: strategyState.baseVaultAuthority,
+      payer,
+      strategy: strategy,
+      globalConfig: strategyState.globalConfig,
+      tokenProgram: TOKEN_PROGRAM_ID,
+      poolTokenVaultA: whirlpool.tokenVaultA,
+      poolTokenVaultB: whirlpool.tokenVaultB,
+      tickArrayLower: strategyState.tickArrayLower,
+      tickArrayUpper: strategyState.tickArrayUpper,
+      scopePrices: globalConfig.scopePriceId,
+      raydiumProtocolPositionOrBaseVaultAuthority: strategyState.raydiumProtocolPositionOrBaseVaultAuthority,
+      poolProgram: WHIRLPOOL_PROGRAM_ID,
+      instructionSysvarAccount: SYSVAR_INSTRUCTIONS_PUBKEY,
+    };
+
+    return invest(accounts);
+  }
+
+  /**
+   * Get a list of transactions to rebalance a Kamino strategy.
+   * @param strategy strategy pubkey or object
+   * @param newPosition new liquidity position account pubkey
+   * @param priceLower new position's lower price of the range
+   * @param priceUpper new position's upper price of the range
+   * @param payer transaction payer pubkey
+   * @returns list of transactions to rebalance (executive withdraw, collect fees/rewards, open new position, invest)
+   */
+  async rebalance(
+    strategy: PublicKey,
+    newPosition: PublicKey,
+    priceLower: Decimal,
+    priceUpper: Decimal,
+    payer: PublicKey
+  ) {
+    return [
+      await this.executiveWithdraw(strategy, new Rebalance()),
+      await this.collectFeesAndRewards(strategy),
+      await this.openPosition(strategy, newPosition, priceLower, priceUpper, new Rebalancing()),
+    ];
   }
 
   /**

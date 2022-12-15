@@ -12,7 +12,8 @@ export interface GlobalConfigFields {
   blockCollectFees: BN
   blockCollectRewards: BN
   blockSwapRewards: BN
-  blockSwapUnevenVaults: BN
+  blockSwapUnevenVaults: number
+  blockEmergencySwap: number
   feesBps: BN
   scopeProgramId: PublicKey
   scopePriceId: PublicKey
@@ -20,6 +21,8 @@ export interface GlobalConfigFields {
   actionsAuthority: PublicKey
   adminAuthority: PublicKey
   treasuryFeeVaults: Array<PublicKey>
+  tokenInfos: PublicKey
+  blockLocalAdmin: BN
   padding: Array<BN>
 }
 
@@ -31,7 +34,8 @@ export interface GlobalConfigJSON {
   blockCollectFees: string
   blockCollectRewards: string
   blockSwapRewards: string
-  blockSwapUnevenVaults: string
+  blockSwapUnevenVaults: number
+  blockEmergencySwap: number
   feesBps: string
   scopeProgramId: string
   scopePriceId: string
@@ -39,6 +43,8 @@ export interface GlobalConfigJSON {
   actionsAuthority: string
   adminAuthority: string
   treasuryFeeVaults: Array<string>
+  tokenInfos: string
+  blockLocalAdmin: string
   padding: Array<string>
 }
 
@@ -50,7 +56,8 @@ export class GlobalConfig {
   readonly blockCollectFees: BN
   readonly blockCollectRewards: BN
   readonly blockSwapRewards: BN
-  readonly blockSwapUnevenVaults: BN
+  readonly blockSwapUnevenVaults: number
+  readonly blockEmergencySwap: number
   readonly feesBps: BN
   readonly scopeProgramId: PublicKey
   readonly scopePriceId: PublicKey
@@ -58,6 +65,8 @@ export class GlobalConfig {
   readonly actionsAuthority: PublicKey
   readonly adminAuthority: PublicKey
   readonly treasuryFeeVaults: Array<PublicKey>
+  readonly tokenInfos: PublicKey
+  readonly blockLocalAdmin: BN
   readonly padding: Array<BN>
 
   static readonly discriminator = Buffer.from([
@@ -72,7 +81,8 @@ export class GlobalConfig {
     borsh.u64("blockCollectFees"),
     borsh.u64("blockCollectRewards"),
     borsh.u64("blockSwapRewards"),
-    borsh.u64("blockSwapUnevenVaults"),
+    borsh.u32("blockSwapUnevenVaults"),
+    borsh.u32("blockEmergencySwap"),
     borsh.u64("feesBps"),
     borsh.publicKey("scopeProgramId"),
     borsh.publicKey("scopePriceId"),
@@ -80,7 +90,9 @@ export class GlobalConfig {
     borsh.publicKey("actionsAuthority"),
     borsh.publicKey("adminAuthority"),
     borsh.array(borsh.publicKey(), 256, "treasuryFeeVaults"),
-    borsh.array(borsh.u64(), 2048, "padding"),
+    borsh.publicKey("tokenInfos"),
+    borsh.u64("blockLocalAdmin"),
+    borsh.array(borsh.u64(), 2043, "padding"),
   ])
 
   constructor(fields: GlobalConfigFields) {
@@ -92,6 +104,7 @@ export class GlobalConfig {
     this.blockCollectRewards = fields.blockCollectRewards
     this.blockSwapRewards = fields.blockSwapRewards
     this.blockSwapUnevenVaults = fields.blockSwapUnevenVaults
+    this.blockEmergencySwap = fields.blockEmergencySwap
     this.feesBps = fields.feesBps
     this.scopeProgramId = fields.scopeProgramId
     this.scopePriceId = fields.scopePriceId
@@ -99,6 +112,8 @@ export class GlobalConfig {
     this.actionsAuthority = fields.actionsAuthority
     this.adminAuthority = fields.adminAuthority
     this.treasuryFeeVaults = fields.treasuryFeeVaults
+    this.tokenInfos = fields.tokenInfos
+    this.blockLocalAdmin = fields.blockLocalAdmin
     this.padding = fields.padding
   }
 
@@ -152,6 +167,7 @@ export class GlobalConfig {
       blockCollectRewards: dec.blockCollectRewards,
       blockSwapRewards: dec.blockSwapRewards,
       blockSwapUnevenVaults: dec.blockSwapUnevenVaults,
+      blockEmergencySwap: dec.blockEmergencySwap,
       feesBps: dec.feesBps,
       scopeProgramId: dec.scopeProgramId,
       scopePriceId: dec.scopePriceId,
@@ -159,6 +175,8 @@ export class GlobalConfig {
       actionsAuthority: dec.actionsAuthority,
       adminAuthority: dec.adminAuthority,
       treasuryFeeVaults: dec.treasuryFeeVaults,
+      tokenInfos: dec.tokenInfos,
+      blockLocalAdmin: dec.blockLocalAdmin,
       padding: dec.padding,
     })
   }
@@ -172,7 +190,8 @@ export class GlobalConfig {
       blockCollectFees: this.blockCollectFees.toString(),
       blockCollectRewards: this.blockCollectRewards.toString(),
       blockSwapRewards: this.blockSwapRewards.toString(),
-      blockSwapUnevenVaults: this.blockSwapUnevenVaults.toString(),
+      blockSwapUnevenVaults: this.blockSwapUnevenVaults,
+      blockEmergencySwap: this.blockEmergencySwap,
       feesBps: this.feesBps.toString(),
       scopeProgramId: this.scopeProgramId.toString(),
       scopePriceId: this.scopePriceId.toString(),
@@ -182,6 +201,8 @@ export class GlobalConfig {
       actionsAuthority: this.actionsAuthority.toString(),
       adminAuthority: this.adminAuthority.toString(),
       treasuryFeeVaults: this.treasuryFeeVaults.map((item) => item.toString()),
+      tokenInfos: this.tokenInfos.toString(),
+      blockLocalAdmin: this.blockLocalAdmin.toString(),
       padding: this.padding.map((item) => item.toString()),
     }
   }
@@ -195,7 +216,8 @@ export class GlobalConfig {
       blockCollectFees: new BN(obj.blockCollectFees),
       blockCollectRewards: new BN(obj.blockCollectRewards),
       blockSwapRewards: new BN(obj.blockSwapRewards),
-      blockSwapUnevenVaults: new BN(obj.blockSwapUnevenVaults),
+      blockSwapUnevenVaults: obj.blockSwapUnevenVaults,
+      blockEmergencySwap: obj.blockEmergencySwap,
       feesBps: new BN(obj.feesBps),
       scopeProgramId: new PublicKey(obj.scopeProgramId),
       scopePriceId: new PublicKey(obj.scopePriceId),
@@ -207,6 +229,8 @@ export class GlobalConfig {
       treasuryFeeVaults: obj.treasuryFeeVaults.map(
         (item) => new PublicKey(item)
       ),
+      tokenInfos: new PublicKey(obj.tokenInfos),
+      blockLocalAdmin: new BN(obj.blockLocalAdmin),
       padding: obj.padding.map((item) => new BN(item)),
     })
   }

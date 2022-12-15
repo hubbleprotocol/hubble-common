@@ -302,14 +302,83 @@ export class AdminAuthority {
   }
 }
 
+export interface BlockEmergencySwapJSON {
+  kind: "BlockEmergencySwap"
+}
+
+export class BlockEmergencySwap {
+  static readonly discriminator = 13
+  static readonly kind = "BlockEmergencySwap"
+  readonly discriminator = 13
+  readonly kind = "BlockEmergencySwap"
+
+  toJSON(): BlockEmergencySwapJSON {
+    return {
+      kind: "BlockEmergencySwap",
+    }
+  }
+
+  toEncodable() {
+    return {
+      BlockEmergencySwap: {},
+    }
+  }
+}
+
+export interface BlockLocalAdminJSON {
+  kind: "BlockLocalAdmin"
+}
+
+export class BlockLocalAdmin {
+  static readonly discriminator = 14
+  static readonly kind = "BlockLocalAdmin"
+  readonly discriminator = 14
+  readonly kind = "BlockLocalAdmin"
+
+  toJSON(): BlockLocalAdminJSON {
+    return {
+      kind: "BlockLocalAdmin",
+    }
+  }
+
+  toEncodable() {
+    return {
+      BlockLocalAdmin: {},
+    }
+  }
+}
+
+export interface UpdateTokenInfosJSON {
+  kind: "UpdateTokenInfos"
+}
+
+export class UpdateTokenInfos {
+  static readonly discriminator = 15
+  static readonly kind = "UpdateTokenInfos"
+  readonly discriminator = 15
+  readonly kind = "UpdateTokenInfos"
+
+  toJSON(): UpdateTokenInfosJSON {
+    return {
+      kind: "UpdateTokenInfos",
+    }
+  }
+
+  toEncodable() {
+    return {
+      UpdateTokenInfos: {},
+    }
+  }
+}
+
 export interface ScopeProgramIdJSON {
   kind: "ScopeProgramId"
 }
 
 export class ScopeProgramId {
-  static readonly discriminator = 13
+  static readonly discriminator = 16
   static readonly kind = "ScopeProgramId"
-  readonly discriminator = 13
+  readonly discriminator = 16
   readonly kind = "ScopeProgramId"
 
   toJSON(): ScopeProgramIdJSON {
@@ -330,9 +399,9 @@ export interface ScopePriceIdJSON {
 }
 
 export class ScopePriceId {
-  static readonly discriminator = 14
+  static readonly discriminator = 17
   static readonly kind = "ScopePriceId"
-  readonly discriminator = 14
+  readonly discriminator = 17
   readonly kind = "ScopePriceId"
 
   toJSON(): ScopePriceIdJSON {
@@ -393,6 +462,15 @@ export function fromDecoded(obj: any): types.GlobalConfigOptionKind {
   if ("AdminAuthority" in obj) {
     return new AdminAuthority()
   }
+  if ("BlockEmergencySwap" in obj) {
+    return new BlockEmergencySwap()
+  }
+  if ("BlockLocalAdmin" in obj) {
+    return new BlockLocalAdmin()
+  }
+  if ("UpdateTokenInfos" in obj) {
+    return new UpdateTokenInfos()
+  }
   if ("ScopeProgramId" in obj) {
     return new ScopeProgramId()
   }
@@ -446,6 +524,15 @@ export function fromJSON(
     case "AdminAuthority": {
       return new AdminAuthority()
     }
+    case "BlockEmergencySwap": {
+      return new BlockEmergencySwap()
+    }
+    case "BlockLocalAdmin": {
+      return new BlockLocalAdmin()
+    }
+    case "UpdateTokenInfos": {
+      return new UpdateTokenInfos()
+    }
     case "ScopeProgramId": {
       return new ScopeProgramId()
     }
@@ -470,6 +557,9 @@ export function layout(property?: string) {
     borsh.struct([], "ActionsAuthority"),
     borsh.struct([], "TreasuryFeeVaults"),
     borsh.struct([], "AdminAuthority"),
+    borsh.struct([], "BlockEmergencySwap"),
+    borsh.struct([], "BlockLocalAdmin"),
+    borsh.struct([], "UpdateTokenInfos"),
     borsh.struct([], "ScopeProgramId"),
     borsh.struct([], "ScopePriceId"),
   ])

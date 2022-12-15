@@ -4,52 +4,50 @@ import * as borsh from "@project-serum/borsh" // eslint-disable-line @typescript
 import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
 import { PROGRAM_ID } from "../programId"
 
-export interface UpdateRewardMappingArgs {
-  rewardIndex: number
-  collateralToken: number
+export interface InitializeKaminoRewardArgs {
+  kaminoRewardIndex: BN
+  collateralToken: BN
 }
 
-export interface UpdateRewardMappingAccounts {
+export interface InitializeKaminoRewardAccounts {
   adminAuthority: PublicKey
   strategy: PublicKey
   globalConfig: PublicKey
-  pool: PublicKey
   rewardMint: PublicKey
   rewardVault: PublicKey
-  baseVaultAuthority: PublicKey
   tokenInfos: PublicKey
+  baseVaultAuthority: PublicKey
   systemProgram: PublicKey
   rent: PublicKey
   tokenProgram: PublicKey
 }
 
 export const layout = borsh.struct([
-  borsh.u8("rewardIndex"),
-  borsh.u8("collateralToken"),
+  borsh.u64("kaminoRewardIndex"),
+  borsh.u64("collateralToken"),
 ])
 
-export function updateRewardMapping(
-  args: UpdateRewardMappingArgs,
-  accounts: UpdateRewardMappingAccounts
+export function initializeKaminoReward(
+  args: InitializeKaminoRewardArgs,
+  accounts: InitializeKaminoRewardAccounts
 ) {
   const keys: Array<AccountMeta> = [
     { pubkey: accounts.adminAuthority, isSigner: true, isWritable: true },
     { pubkey: accounts.strategy, isSigner: false, isWritable: true },
     { pubkey: accounts.globalConfig, isSigner: false, isWritable: false },
-    { pubkey: accounts.pool, isSigner: false, isWritable: false },
     { pubkey: accounts.rewardMint, isSigner: false, isWritable: false },
     { pubkey: accounts.rewardVault, isSigner: true, isWritable: true },
-    { pubkey: accounts.baseVaultAuthority, isSigner: false, isWritable: true },
     { pubkey: accounts.tokenInfos, isSigner: false, isWritable: false },
+    { pubkey: accounts.baseVaultAuthority, isSigner: false, isWritable: true },
     { pubkey: accounts.systemProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.rent, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
   ]
-  const identifier = Buffer.from([203, 37, 37, 96, 23, 85, 233, 42])
+  const identifier = Buffer.from([203, 212, 8, 90, 91, 118, 111, 50])
   const buffer = Buffer.alloc(1000)
   const len = layout.encode(
     {
-      rewardIndex: args.rewardIndex,
+      kaminoRewardIndex: args.kaminoRewardIndex,
       collateralToken: args.collateralToken,
     },
     buffer

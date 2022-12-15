@@ -1,6 +1,7 @@
 import * as WithdrawalCapAction from "./WithdrawalCapAction"
 import * as WithdrawalCapOverflowAction from "./WithdrawalCapOverflowAction"
 import * as WithdrawalCapAccumulatorAction from "./WithdrawalCapAccumulatorAction"
+import * as SwapLimit from "./SwapLimit"
 import * as CollateralToken from "./CollateralToken"
 import * as GlobalConfigOption from "./GlobalConfigOption"
 import * as StrategyConfigOption from "./StrategyConfigOption"
@@ -8,6 +9,7 @@ import * as StrategyStatus from "./StrategyStatus"
 import * as StrategyType from "./StrategyType"
 import * as ExecutiveWithdrawAction from "./ExecutiveWithdrawAction"
 import * as LiquidityCalculationMode from "./LiquidityCalculationMode"
+import * as UpdateCollateralInfoMode from "./UpdateCollateralInfoMode"
 import * as ScopePriceId from "./ScopePriceId"
 import * as DEX from "./DEX"
 
@@ -25,6 +27,13 @@ export { Tick } from "./Tick"
 export type { TickFields, TickJSON } from "./Tick"
 export { RewardInfo } from "./RewardInfo"
 export type { RewardInfoFields, RewardInfoJSON } from "./RewardInfo"
+export { CollateralInfo } from "./CollateralInfo"
+export type { CollateralInfoFields, CollateralInfoJSON } from "./CollateralInfo"
+export { KaminoRewardInfo } from "./KaminoRewardInfo"
+export type {
+  KaminoRewardInfoFields,
+  KaminoRewardInfoJSON,
+} from "./KaminoRewardInfo"
 export { WithdrawalCaps } from "./WithdrawalCaps"
 export type { WithdrawalCapsFields, WithdrawalCapsJSON } from "./WithdrawalCaps"
 export { Price } from "./Price"
@@ -56,6 +65,11 @@ export type WithdrawalCapAccumulatorActionJSON =
   | WithdrawalCapAccumulatorAction.KeepAccumulatorJSON
   | WithdrawalCapAccumulatorAction.ResetAccumulatorJSON
 
+export { SwapLimit }
+
+export type SwapLimitKind = SwapLimit.Bps | SwapLimit.Absolute
+export type SwapLimitJSON = SwapLimit.BpsJSON | SwapLimit.AbsoluteJSON
+
 export { CollateralToken }
 
 export type CollateralTokenKind =
@@ -81,6 +95,7 @@ export type CollateralTokenKind =
   | CollateralToken.USDR
   | CollateralToken.RATIO
   | CollateralToken.UXP
+  | CollateralToken.JITOSOL
 export type CollateralTokenJSON =
   | CollateralToken.USDCJSON
   | CollateralToken.USDHJSON
@@ -104,6 +119,7 @@ export type CollateralTokenJSON =
   | CollateralToken.USDRJSON
   | CollateralToken.RATIOJSON
   | CollateralToken.UXPJSON
+  | CollateralToken.JITOSOLJSON
 
 export { GlobalConfigOption }
 
@@ -121,6 +137,9 @@ export type GlobalConfigOptionKind =
   | GlobalConfigOption.ActionsAuthority
   | GlobalConfigOption.TreasuryFeeVaults
   | GlobalConfigOption.AdminAuthority
+  | GlobalConfigOption.BlockEmergencySwap
+  | GlobalConfigOption.BlockLocalAdmin
+  | GlobalConfigOption.UpdateTokenInfos
   | GlobalConfigOption.ScopeProgramId
   | GlobalConfigOption.ScopePriceId
 export type GlobalConfigOptionJSON =
@@ -137,6 +156,9 @@ export type GlobalConfigOptionJSON =
   | GlobalConfigOption.ActionsAuthorityJSON
   | GlobalConfigOption.TreasuryFeeVaultsJSON
   | GlobalConfigOption.AdminAuthorityJSON
+  | GlobalConfigOption.BlockEmergencySwapJSON
+  | GlobalConfigOption.BlockLocalAdminJSON
+  | GlobalConfigOption.UpdateTokenInfosJSON
   | GlobalConfigOption.ScopeProgramIdJSON
   | GlobalConfigOption.ScopePriceIdJSON
 
@@ -152,7 +174,7 @@ export type StrategyConfigOptionKind =
   | StrategyConfigOption.UpdateWithdrawalCapBInterval
   | StrategyConfigOption.UpdateWithdrawalCapBCurrentTotal
   | StrategyConfigOption.UpdateMaxDeviationBps
-  | StrategyConfigOption.UpdateSwapUnevenMaxSlippage
+  | StrategyConfigOption.UpdateSwapVaultMaxSlippage
   | StrategyConfigOption.UpdateStrategyType
   | StrategyConfigOption.UpdateDepositFee
   | StrategyConfigOption.UpdateWithdrawFee
@@ -161,6 +183,21 @@ export type StrategyConfigOptionKind =
   | StrategyConfigOption.UpdateReward1Fee
   | StrategyConfigOption.UpdateReward2Fee
   | StrategyConfigOption.UpdateAdminAuthority
+  | StrategyConfigOption.KaminoRewardIndex0TS
+  | StrategyConfigOption.KaminoRewardIndex1TS
+  | StrategyConfigOption.KaminoRewardIndex2TS
+  | StrategyConfigOption.KaminoRewardIndex0RewardPerSecond
+  | StrategyConfigOption.KaminoRewardIndex1RewardPerSecond
+  | StrategyConfigOption.KaminoRewardIndex2RewardPerSecond
+  | StrategyConfigOption.UpdateDepositBlocked
+  | StrategyConfigOption.UpdateRaydiumProtocolPositionOrBaseVaultAuthority
+  | StrategyConfigOption.UpdateRaydiumPoolConfigOrBaseVaultAuthority
+  | StrategyConfigOption.UpdateInvestBlocked
+  | StrategyConfigOption.UpdateWithdrawBlocked
+  | StrategyConfigOption.UpdateLocalAdminBlocked
+  | StrategyConfigOption.UpdateCollateralIdA
+  | StrategyConfigOption.UpdateCollateralIdB
+  | StrategyConfigOption.UpdateFlashVaultSwap
 export type StrategyConfigOptionJSON =
   | StrategyConfigOption.UpdateDepositCapJSON
   | StrategyConfigOption.UpdateDepositCapIxnJSON
@@ -171,7 +208,7 @@ export type StrategyConfigOptionJSON =
   | StrategyConfigOption.UpdateWithdrawalCapBIntervalJSON
   | StrategyConfigOption.UpdateWithdrawalCapBCurrentTotalJSON
   | StrategyConfigOption.UpdateMaxDeviationBpsJSON
-  | StrategyConfigOption.UpdateSwapUnevenMaxSlippageJSON
+  | StrategyConfigOption.UpdateSwapVaultMaxSlippageJSON
   | StrategyConfigOption.UpdateStrategyTypeJSON
   | StrategyConfigOption.UpdateDepositFeeJSON
   | StrategyConfigOption.UpdateWithdrawFeeJSON
@@ -180,6 +217,21 @@ export type StrategyConfigOptionJSON =
   | StrategyConfigOption.UpdateReward1FeeJSON
   | StrategyConfigOption.UpdateReward2FeeJSON
   | StrategyConfigOption.UpdateAdminAuthorityJSON
+  | StrategyConfigOption.KaminoRewardIndex0TSJSON
+  | StrategyConfigOption.KaminoRewardIndex1TSJSON
+  | StrategyConfigOption.KaminoRewardIndex2TSJSON
+  | StrategyConfigOption.KaminoRewardIndex0RewardPerSecondJSON
+  | StrategyConfigOption.KaminoRewardIndex1RewardPerSecondJSON
+  | StrategyConfigOption.KaminoRewardIndex2RewardPerSecondJSON
+  | StrategyConfigOption.UpdateDepositBlockedJSON
+  | StrategyConfigOption.UpdateRaydiumProtocolPositionOrBaseVaultAuthorityJSON
+  | StrategyConfigOption.UpdateRaydiumPoolConfigOrBaseVaultAuthorityJSON
+  | StrategyConfigOption.UpdateInvestBlockedJSON
+  | StrategyConfigOption.UpdateWithdrawBlockedJSON
+  | StrategyConfigOption.UpdateLocalAdminBlockedJSON
+  | StrategyConfigOption.UpdateCollateralIdAJSON
+  | StrategyConfigOption.UpdateCollateralIdBJSON
+  | StrategyConfigOption.UpdateFlashVaultSwapJSON
 
 export { StrategyStatus }
 
@@ -224,6 +276,19 @@ export type LiquidityCalculationModeKind =
 export type LiquidityCalculationModeJSON =
   | LiquidityCalculationMode.DepositJSON
   | LiquidityCalculationMode.WithdrawJSON
+
+export { UpdateCollateralInfoMode }
+
+export type UpdateCollateralInfoModeKind =
+  | UpdateCollateralInfoMode.CollateralId
+  | UpdateCollateralInfoMode.LowerHeuristic
+  | UpdateCollateralInfoMode.UpperHeuristic
+  | UpdateCollateralInfoMode.ExpHeuristic
+export type UpdateCollateralInfoModeJSON =
+  | UpdateCollateralInfoMode.CollateralIdJSON
+  | UpdateCollateralInfoMode.LowerHeuristicJSON
+  | UpdateCollateralInfoMode.UpperHeuristicJSON
+  | UpdateCollateralInfoMode.ExpHeuristicJSON
 
 export { ScopePriceId }
 
@@ -274,6 +339,24 @@ export type ScopePriceIdKind =
   | ScopePriceId.USDR_TWAP
   | ScopePriceId.RATIO
   | ScopePriceId.UXP
+  | ScopePriceId.KUXDUSDCORCA
+  | ScopePriceId.JITOSOL_SOL
+  | ScopePriceId.SOL_EMA
+  | ScopePriceId.ETH_EMA
+  | ScopePriceId.BTC_EMA
+  | ScopePriceId.SRM_EMA
+  | ScopePriceId.RAY_EMA
+  | ScopePriceId.FTT_EMA
+  | ScopePriceId.MSOL_EMA
+  | ScopePriceId.BNB_EMA
+  | ScopePriceId.AVAX_EMA
+  | ScopePriceId.STSOL_EMA
+  | ScopePriceId.USDC_EMA
+  | ScopePriceId.USDT_EMA
+  | ScopePriceId.SLND_EMA
+  | ScopePriceId.DAI_EMA
+  | ScopePriceId.wstETH_TWAP
+  | ScopePriceId.DUST_TWAP
 export type ScopePriceIdJSON =
   | ScopePriceId.SOLJSON
   | ScopePriceId.ETHJSON
@@ -321,8 +404,26 @@ export type ScopePriceIdJSON =
   | ScopePriceId.USDR_TWAPJSON
   | ScopePriceId.RATIOJSON
   | ScopePriceId.UXPJSON
+  | ScopePriceId.KUXDUSDCORCAJSON
+  | ScopePriceId.JITOSOL_SOLJSON
+  | ScopePriceId.SOL_EMAJSON
+  | ScopePriceId.ETH_EMAJSON
+  | ScopePriceId.BTC_EMAJSON
+  | ScopePriceId.SRM_EMAJSON
+  | ScopePriceId.RAY_EMAJSON
+  | ScopePriceId.FTT_EMAJSON
+  | ScopePriceId.MSOL_EMAJSON
+  | ScopePriceId.BNB_EMAJSON
+  | ScopePriceId.AVAX_EMAJSON
+  | ScopePriceId.STSOL_EMAJSON
+  | ScopePriceId.USDC_EMAJSON
+  | ScopePriceId.USDT_EMAJSON
+  | ScopePriceId.SLND_EMAJSON
+  | ScopePriceId.DAI_EMAJSON
+  | ScopePriceId.wstETH_TWAPJSON
+  | ScopePriceId.DUST_TWAPJSON
 
 export { DEX }
 
-export type DEXKind = DEX.Raydium | DEX.Orca
-export type DEXJSON = DEX.RaydiumJSON | DEX.OrcaJSON
+export type DEXKind = DEX.Orca | DEX.Raydium | DEX.Crema
+export type DEXJSON = DEX.OrcaJSON | DEX.RaydiumJSON | DEX.CremaJSON

@@ -1,6 +1,5 @@
 import { clusterApiUrl, Connection, PublicKey } from '@solana/web3.js';
 import { findInExtraCollateralByName, HBB_DECIMALS, STABLECOIN_DECIMALS } from '../src/constants';
-import { BN } from '@project-serum/anchor';
 import Decimal from 'decimal.js';
 import Hubble from '../src/Hubble';
 import { SolanaCluster } from '@hubbleprotocol/hubble-config';

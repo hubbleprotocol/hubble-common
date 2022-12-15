@@ -8,9 +8,9 @@ export type CustomError =
   | SharesIssuedAmountDoesNotMatch
   | GlobalConfigKeyError
   | SystemInEmergencyMode
-  | DepositBlocked
-  | WithdrawBlocked
-  | InvestBlocked
+  | GlobalDepositBlocked
+  | GlobalWithdrawBlocked
+  | GlobalInvestBlocked
   | OutOfRangeIntegralConversion
   | MathOverflow
   | TooMuchLiquidityToWithdraw
@@ -68,6 +68,38 @@ export type CustomError =
   | CannotResizeAccount
   | ScopeChainUpdateFailed
   | PriceTooDivergentFromTwap
+  | ExistingRewardOverride
+  | WrongKaminoRewardId
+  | KaminoRewardNotExist
+  | KaminoRewardAlreadyExists
+  | KaminoCollateralNotValid
+  | KaminoRewardExceedsAvailableAmount
+  | SwapUnevenVaultsOvershoot
+  | BpsNotInRange
+  | EmergencySwapBlocked
+  | StrategyNotFrozen
+  | UnexpectedTokenAmountsPostSwap
+  | AccountNotBelongToDEX
+  | WrongDEXProgramID
+  | OrcaRewardUninitialized
+  | InvalidAdminAuthority
+  | PriceIsBiggerThanHeuristic
+  | PriceIsLowerThanHeuristic
+  | AccountDifferentThanExpected
+  | SwapAmountsTooSmall
+  | InvalidDexProgramId
+  | StrategyDepositBlocked
+  | StrategyInvestBlocked
+  | StrategyWithdrawBlocked
+  | WrongSwapVaultDirection
+  | SwapVaultsTooBig
+  | SwapVaultsCashOutputBelowMinimum
+  | FlashIxsNotEnded
+  | FlashTxWithUnexpectedIxs
+  | FlashIxsAccountMismatch
+  | FlashIxsIncludeScope
+  | FlashVaultSwapBlocked
+  | FlashVaultSwapWrongAmountToLeave
 
 export class IntegerOverflow extends Error {
   static readonly code = 6000
@@ -95,10 +127,10 @@ export class ZeroAmount extends Error {
   static readonly code = 6002
   readonly code = 6002
   readonly name = "ZeroAmount"
-  readonly msg = "Zero amount"
+  readonly msg = "[DEPRECATED] Zero amount"
 
   constructor(readonly logs?: string[]) {
-    super("6002: Zero amount")
+    super("6002: [DEPRECATED] Zero amount")
   }
 }
 
@@ -117,10 +149,10 @@ export class VaultBalanceDoesNotMatchTokenA extends Error {
   static readonly code = 6004
   readonly code = 6004
   readonly name = "VaultBalanceDoesNotMatchTokenA"
-  readonly msg = "Vault balance does not match for token A"
+  readonly msg = "[DEPRECATED] Vault balance does not match for token A"
 
   constructor(readonly logs?: string[]) {
-    super("6004: Vault balance does not match for token A")
+    super("6004: [DEPRECATED] Vault balance does not match for token A")
   }
 }
 
@@ -128,10 +160,10 @@ export class VaultBalanceDoesNotMatchTokenB extends Error {
   static readonly code = 6005
   readonly code = 6005
   readonly name = "VaultBalanceDoesNotMatchTokenB"
-  readonly msg = "Vault balance does not match for token B"
+  readonly msg = "[DEPRECATED] Vault balance does not match for token B"
 
   constructor(readonly logs?: string[]) {
-    super("6005: Vault balance does not match for token B")
+    super("6005: [DEPRECATED] Vault balance does not match for token B")
   }
 }
 
@@ -139,10 +171,10 @@ export class SharesIssuedAmountDoesNotMatch extends Error {
   static readonly code = 6006
   readonly code = 6006
   readonly name = "SharesIssuedAmountDoesNotMatch"
-  readonly msg = "Shares issued amount does not match"
+  readonly msg = "[DEPRECATED] Shares issued amount does not match"
 
   constructor(readonly logs?: string[]) {
-    super("6006: Shares issued amount does not match")
+    super("6006: [DEPRECATED] Shares issued amount does not match")
   }
 }
 
@@ -161,43 +193,43 @@ export class SystemInEmergencyMode extends Error {
   static readonly code = 6008
   readonly code = 6008
   readonly name = "SystemInEmergencyMode"
-  readonly msg = "System is in emergency mode"
+  readonly msg = "[DEPRECATED] System is in emergency mode"
 
   constructor(readonly logs?: string[]) {
-    super("6008: System is in emergency mode")
+    super("6008: [DEPRECATED] System is in emergency mode")
   }
 }
 
-export class DepositBlocked extends Error {
+export class GlobalDepositBlocked extends Error {
   static readonly code = 6009
   readonly code = 6009
-  readonly name = "DepositBlocked"
-  readonly msg = "Deposit is currently blocked"
+  readonly name = "GlobalDepositBlocked"
+  readonly msg = "Global deposit is currently blocked"
 
   constructor(readonly logs?: string[]) {
-    super("6009: Deposit is currently blocked")
+    super("6009: Global deposit is currently blocked")
   }
 }
 
-export class WithdrawBlocked extends Error {
+export class GlobalWithdrawBlocked extends Error {
   static readonly code = 6010
   readonly code = 6010
-  readonly name = "WithdrawBlocked"
-  readonly msg = "Withdraw is currently blocked"
+  readonly name = "GlobalWithdrawBlocked"
+  readonly msg = "Global withdraw is currently blocked"
 
   constructor(readonly logs?: string[]) {
-    super("6010: Withdraw is currently blocked")
+    super("6010: Global withdraw is currently blocked")
   }
 }
 
-export class InvestBlocked extends Error {
+export class GlobalInvestBlocked extends Error {
   static readonly code = 6011
   readonly code = 6011
-  readonly name = "InvestBlocked"
-  readonly msg = "Invest is currently blocked"
+  readonly name = "GlobalInvestBlocked"
+  readonly msg = "Global invest is currently blocked"
 
   constructor(readonly logs?: string[]) {
-    super("6011: Invest is currently blocked")
+    super("6011: Global invest is currently blocked")
   }
 }
 
@@ -216,10 +248,10 @@ export class MathOverflow extends Error {
   static readonly code = 6013
   readonly code = 6013
   readonly name = "MathOverflow"
-  readonly msg = "Mathematical operation with overflow"
+  readonly msg = "[DEPRECATED] Mathematical operation with overflow"
 
   constructor(readonly logs?: string[]) {
-    super("6013: Mathematical operation with overflow")
+    super("6013: [DEPRECATED] Mathematical operation with overflow")
   }
 }
 
@@ -513,10 +545,10 @@ export class WrongCollateralID extends Error {
   static readonly code = 6040
   readonly code = 6040
   readonly name = "WrongCollateralID"
-  readonly msg = "Collateral ID invalid for strategy"
+  readonly msg = "[DEPRECATED] Collateral ID invalid for strategy"
 
   constructor(readonly logs?: string[]) {
-    super("6040: Collateral ID invalid for strategy")
+    super("6040: [DEPRECATED] Collateral ID invalid for strategy")
   }
 }
 
@@ -579,10 +611,10 @@ export class DeltaATooLarge extends Error {
   static readonly code = 6046
   readonly code = 6046
   readonly name = "DeltaATooLarge"
-  readonly msg = "Delta A too large"
+  readonly msg = "[DEPRECATED] Delta A too large"
 
   constructor(readonly logs?: string[]) {
-    super("6046: Delta A too large")
+    super("6046: [DEPRECATED] Delta A too large")
   }
 }
 
@@ -590,10 +622,10 @@ export class DeltaBTooLarge extends Error {
   static readonly code = 6047
   readonly code = 6047
   readonly name = "DeltaBTooLarge"
-  readonly msg = "Delta B too large"
+  readonly msg = "[DEPRECATED] Delta B too large"
 
   constructor(readonly logs?: string[]) {
-    super("6047: Delta B too large")
+    super("6047: [DEPRECATED] Delta B too large")
   }
 }
 
@@ -601,10 +633,10 @@ export class CannotExecutiveWithdrawZeroAmount extends Error {
   static readonly code = 6048
   readonly code = 6048
   readonly name = "CannotExecutiveWithdrawZeroAmount"
-  readonly msg = "Cannot executive withdraw zero amount"
+  readonly msg = "[DEPRECATED] Cannot executive withdraw zero amount"
 
   constructor(readonly logs?: string[]) {
-    super("6048: Cannot executive withdraw zero amount")
+    super("6048: [DEPRECATED] Cannot executive withdraw zero amount")
   }
 }
 
@@ -623,10 +655,10 @@ export class CannotCollectFeesOnZeroLiquidityPosition extends Error {
   static readonly code = 6050
   readonly code = 6050
   readonly name = "CannotCollectFeesOnZeroLiquidityPosition"
-  readonly msg = "Cannot collect fees on zero liquidity position"
+  readonly msg = "[DEPRECATED] Cannot collect fees on zero liquidity position"
 
   constructor(readonly logs?: string[]) {
-    super("6050: Cannot collect fees on zero liquidity position")
+    super("6050: [DEPRECATED] Cannot collect fees on zero liquidity position")
   }
 }
 
@@ -828,6 +860,370 @@ export class PriceTooDivergentFromTwap extends Error {
   }
 }
 
+export class ExistingRewardOverride extends Error {
+  static readonly code = 6069
+  readonly code = 6069
+  readonly name = "ExistingRewardOverride"
+  readonly msg = "[DEPRECATED] Can not override the existing reward"
+
+  constructor(readonly logs?: string[]) {
+    super("6069: [DEPRECATED] Can not override the existing reward")
+  }
+}
+
+export class WrongKaminoRewardId extends Error {
+  static readonly code = 6070
+  readonly code = 6070
+  readonly name = "WrongKaminoRewardId"
+  readonly msg = "Kamino reward id exceeds the available slots"
+
+  constructor(readonly logs?: string[]) {
+    super("6070: Kamino reward id exceeds the available slots")
+  }
+}
+
+export class KaminoRewardNotExist extends Error {
+  static readonly code = 6071
+  readonly code = 6071
+  readonly name = "KaminoRewardNotExist"
+  readonly msg = "Kamino reward is not initialized"
+
+  constructor(readonly logs?: string[]) {
+    super("6071: Kamino reward is not initialized")
+  }
+}
+
+export class KaminoRewardAlreadyExists extends Error {
+  static readonly code = 6072
+  readonly code = 6072
+  readonly name = "KaminoRewardAlreadyExists"
+  readonly msg = "Kamino reward is already initialized"
+
+  constructor(readonly logs?: string[]) {
+    super("6072: Kamino reward is already initialized")
+  }
+}
+
+export class KaminoCollateralNotValid extends Error {
+  static readonly code = 6073
+  readonly code = 6073
+  readonly name = "KaminoCollateralNotValid"
+  readonly msg = "Kamino collateral is not valid"
+
+  constructor(readonly logs?: string[]) {
+    super("6073: Kamino collateral is not valid")
+  }
+}
+
+export class KaminoRewardExceedsAvailableAmount extends Error {
+  static readonly code = 6074
+  readonly code = 6074
+  readonly name = "KaminoRewardExceedsAvailableAmount"
+  readonly msg =
+    "[DEPRECATED] Expected kamino reward is bigger then the available amount within the vault"
+
+  constructor(readonly logs?: string[]) {
+    super(
+      "6074: [DEPRECATED] Expected kamino reward is bigger then the available amount within the vault"
+    )
+  }
+}
+
+export class SwapUnevenVaultsOvershoot extends Error {
+  static readonly code = 6075
+  readonly code = 6075
+  readonly name = "SwapUnevenVaultsOvershoot"
+  readonly msg =
+    "Swap uneven vaults result in the opposite unbalance of the vaults"
+
+  constructor(readonly logs?: string[]) {
+    super(
+      "6075: Swap uneven vaults result in the opposite unbalance of the vaults"
+    )
+  }
+}
+
+export class BpsNotInRange extends Error {
+  static readonly code = 6076
+  readonly code = 6076
+  readonly name = "BpsNotInRange"
+  readonly msg = "Bps parameter passed to instruction is not in range"
+
+  constructor(readonly logs?: string[]) {
+    super("6076: Bps parameter passed to instruction is not in range")
+  }
+}
+
+export class EmergencySwapBlocked extends Error {
+  static readonly code = 6077
+  readonly code = 6077
+  readonly name = "EmergencySwapBlocked"
+  readonly msg = "Emergency Swap is blocked"
+
+  constructor(readonly logs?: string[]) {
+    super("6077: Emergency Swap is blocked")
+  }
+}
+
+export class StrategyNotFrozen extends Error {
+  static readonly code = 6078
+  readonly code = 6078
+  readonly name = "StrategyNotFrozen"
+  readonly msg = "Strategy is expected to be frozen for this operation"
+
+  constructor(readonly logs?: string[]) {
+    super("6078: Strategy is expected to be frozen for this operation")
+  }
+}
+
+export class UnexpectedTokenAmountsPostSwap extends Error {
+  static readonly code = 6079
+  readonly code = 6079
+  readonly name = "UnexpectedTokenAmountsPostSwap"
+  readonly msg = "Token left in vault post swap are lower than expected"
+
+  constructor(readonly logs?: string[]) {
+    super("6079: Token left in vault post swap are lower than expected")
+  }
+}
+
+export class AccountNotBelongToDEX extends Error {
+  static readonly code = 6080
+  readonly code = 6080
+  readonly name = "AccountNotBelongToDEX"
+  readonly msg = "Account doesn't belong to the DEX"
+
+  constructor(readonly logs?: string[]) {
+    super("6080: Account doesn't belong to the DEX")
+  }
+}
+
+export class WrongDEXProgramID extends Error {
+  static readonly code = 6081
+  readonly code = 6081
+  readonly name = "WrongDEXProgramID"
+  readonly msg = "Wrong DEX program ID"
+
+  constructor(readonly logs?: string[]) {
+    super("6081: Wrong DEX program ID")
+  }
+}
+
+export class OrcaRewardUninitialized extends Error {
+  static readonly code = 6082
+  readonly code = 6082
+  readonly name = "OrcaRewardUninitialized"
+  readonly msg = "Cannot use uninitialized orca reward vault"
+
+  constructor(readonly logs?: string[]) {
+    super("6082: Cannot use uninitialized orca reward vault")
+  }
+}
+
+export class InvalidAdminAuthority extends Error {
+  static readonly code = 6083
+  readonly code = 6083
+  readonly name = "InvalidAdminAuthority"
+  readonly msg = "Invalid admin authority"
+
+  constructor(readonly logs?: string[]) {
+    super("6083: Invalid admin authority")
+  }
+}
+
+export class PriceIsBiggerThanHeuristic extends Error {
+  static readonly code = 6084
+  readonly code = 6084
+  readonly name = "PriceIsBiggerThanHeuristic"
+  readonly msg = "Token price is bigger than heuristic"
+
+  constructor(readonly logs?: string[]) {
+    super("6084: Token price is bigger than heuristic")
+  }
+}
+
+export class PriceIsLowerThanHeuristic extends Error {
+  static readonly code = 6085
+  readonly code = 6085
+  readonly name = "PriceIsLowerThanHeuristic"
+  readonly msg = "Token price is lower than heuristic"
+
+  constructor(readonly logs?: string[]) {
+    super("6085: Token price is lower than heuristic")
+  }
+}
+
+export class AccountDifferentThanExpected extends Error {
+  static readonly code = 6086
+  readonly code = 6086
+  readonly name = "AccountDifferentThanExpected"
+  readonly msg = "Account different than expected"
+
+  constructor(readonly logs?: string[]) {
+    super("6086: Account different than expected")
+  }
+}
+
+export class SwapAmountsTooSmall extends Error {
+  static readonly code = 6087
+  readonly code = 6087
+  readonly name = "SwapAmountsTooSmall"
+  readonly msg = "Swap amount below the minimum value"
+
+  constructor(readonly logs?: string[]) {
+    super("6087: Swap amount below the minimum value")
+  }
+}
+
+export class InvalidDexProgramId extends Error {
+  static readonly code = 6088
+  readonly code = 6088
+  readonly name = "InvalidDexProgramId"
+  readonly msg = "Invalid dex program id"
+
+  constructor(readonly logs?: string[]) {
+    super("6088: Invalid dex program id")
+  }
+}
+
+export class StrategyDepositBlocked extends Error {
+  static readonly code = 6089
+  readonly code = 6089
+  readonly name = "StrategyDepositBlocked"
+  readonly msg = "Strategy deposit is currently blocked"
+
+  constructor(readonly logs?: string[]) {
+    super("6089: Strategy deposit is currently blocked")
+  }
+}
+
+export class StrategyInvestBlocked extends Error {
+  static readonly code = 6090
+  readonly code = 6090
+  readonly name = "StrategyInvestBlocked"
+  readonly msg = "Strategy invest is currently blocked"
+
+  constructor(readonly logs?: string[]) {
+    super("6090: Strategy invest is currently blocked")
+  }
+}
+
+export class StrategyWithdrawBlocked extends Error {
+  static readonly code = 6091
+  readonly code = 6091
+  readonly name = "StrategyWithdrawBlocked"
+  readonly msg = "Strategy withdraw is currently blocked"
+
+  constructor(readonly logs?: string[]) {
+    super("6091: Strategy withdraw is currently blocked")
+  }
+}
+
+export class WrongSwapVaultDirection extends Error {
+  static readonly code = 6092
+  readonly code = 6092
+  readonly name = "WrongSwapVaultDirection"
+  readonly msg = "Vault swap can't be performed in the required direction"
+
+  constructor(readonly logs?: string[]) {
+    super("6092: Vault swap can't be performed in the required direction")
+  }
+}
+
+export class SwapVaultsTooBig extends Error {
+  static readonly code = 6093
+  readonly code = 6093
+  readonly name = "SwapVaultsTooBig"
+  readonly msg = "Provided amount for vault swap is over the limit"
+
+  constructor(readonly logs?: string[]) {
+    super("6093: Provided amount for vault swap is over the limit")
+  }
+}
+
+export class SwapVaultsCashOutputBelowMinimum extends Error {
+  static readonly code = 6094
+  readonly code = 6094
+  readonly name = "SwapVaultsCashOutputBelowMinimum"
+  readonly msg = "Token out for cash based vault swap is below minimum expected"
+
+  constructor(readonly logs?: string[]) {
+    super("6094: Token out for cash based vault swap is below minimum expected")
+  }
+}
+
+export class FlashIxsNotEnded extends Error {
+  static readonly code = 6095
+  readonly code = 6095
+  readonly name = "FlashIxsNotEnded"
+  readonly msg = "Flash ixs initiated without the closing ix in the transaction"
+
+  constructor(readonly logs?: string[]) {
+    super("6095: Flash ixs initiated without the closing ix in the transaction")
+  }
+}
+
+export class FlashTxWithUnexpectedIxs extends Error {
+  static readonly code = 6096
+  readonly code = 6096
+  readonly name = "FlashTxWithUnexpectedIxs"
+  readonly msg =
+    "Some unexpected instructions are present in the tx. Either before or after the flash ixs, or some ix target the same program between"
+
+  constructor(readonly logs?: string[]) {
+    super(
+      "6096: Some unexpected instructions are present in the tx. Either before or after the flash ixs, or some ix target the same program between"
+    )
+  }
+}
+
+export class FlashIxsAccountMismatch extends Error {
+  static readonly code = 6097
+  readonly code = 6097
+  readonly name = "FlashIxsAccountMismatch"
+  readonly msg = "Some accounts differ between the two flash ixs"
+
+  constructor(readonly logs?: string[]) {
+    super("6097: Some accounts differ between the two flash ixs")
+  }
+}
+
+export class FlashIxsIncludeScope extends Error {
+  static readonly code = 6098
+  readonly code = 6098
+  readonly name = "FlashIxsIncludeScope"
+  readonly msg = "A scope ix is present in a flash tx"
+
+  constructor(readonly logs?: string[]) {
+    super("6098: A scope ix is present in a flash tx")
+  }
+}
+
+export class FlashVaultSwapBlocked extends Error {
+  static readonly code = 6099
+  readonly code = 6099
+  readonly name = "FlashVaultSwapBlocked"
+  readonly msg = "Flash vault swap is blocked on this strategy"
+
+  constructor(readonly logs?: string[]) {
+    super("6099: Flash vault swap is blocked on this strategy")
+  }
+}
+
+export class FlashVaultSwapWrongAmountToLeave extends Error {
+  static readonly code = 6100
+  readonly code = 6100
+  readonly name = "FlashVaultSwapWrongAmountToLeave"
+  readonly msg =
+    "Unexpected amount of tokens in ata prior flash vault swap (wrong amount_to_leave_to_user)"
+
+  constructor(readonly logs?: string[]) {
+    super(
+      "6100: Unexpected amount of tokens in ata prior flash vault swap (wrong amount_to_leave_to_user)"
+    )
+  }
+}
+
 export function fromCode(code: number, logs?: string[]): CustomError | null {
   switch (code) {
     case 6000:
@@ -849,11 +1245,11 @@ export function fromCode(code: number, logs?: string[]): CustomError | null {
     case 6008:
       return new SystemInEmergencyMode(logs)
     case 6009:
-      return new DepositBlocked(logs)
+      return new GlobalDepositBlocked(logs)
     case 6010:
-      return new WithdrawBlocked(logs)
+      return new GlobalWithdrawBlocked(logs)
     case 6011:
-      return new InvestBlocked(logs)
+      return new GlobalInvestBlocked(logs)
     case 6012:
       return new OutOfRangeIntegralConversion(logs)
     case 6013:
@@ -968,6 +1364,70 @@ export function fromCode(code: number, logs?: string[]): CustomError | null {
       return new ScopeChainUpdateFailed(logs)
     case 6068:
       return new PriceTooDivergentFromTwap(logs)
+    case 6069:
+      return new ExistingRewardOverride(logs)
+    case 6070:
+      return new WrongKaminoRewardId(logs)
+    case 6071:
+      return new KaminoRewardNotExist(logs)
+    case 6072:
+      return new KaminoRewardAlreadyExists(logs)
+    case 6073:
+      return new KaminoCollateralNotValid(logs)
+    case 6074:
+      return new KaminoRewardExceedsAvailableAmount(logs)
+    case 6075:
+      return new SwapUnevenVaultsOvershoot(logs)
+    case 6076:
+      return new BpsNotInRange(logs)
+    case 6077:
+      return new EmergencySwapBlocked(logs)
+    case 6078:
+      return new StrategyNotFrozen(logs)
+    case 6079:
+      return new UnexpectedTokenAmountsPostSwap(logs)
+    case 6080:
+      return new AccountNotBelongToDEX(logs)
+    case 6081:
+      return new WrongDEXProgramID(logs)
+    case 6082:
+      return new OrcaRewardUninitialized(logs)
+    case 6083:
+      return new InvalidAdminAuthority(logs)
+    case 6084:
+      return new PriceIsBiggerThanHeuristic(logs)
+    case 6085:
+      return new PriceIsLowerThanHeuristic(logs)
+    case 6086:
+      return new AccountDifferentThanExpected(logs)
+    case 6087:
+      return new SwapAmountsTooSmall(logs)
+    case 6088:
+      return new InvalidDexProgramId(logs)
+    case 6089:
+      return new StrategyDepositBlocked(logs)
+    case 6090:
+      return new StrategyInvestBlocked(logs)
+    case 6091:
+      return new StrategyWithdrawBlocked(logs)
+    case 6092:
+      return new WrongSwapVaultDirection(logs)
+    case 6093:
+      return new SwapVaultsTooBig(logs)
+    case 6094:
+      return new SwapVaultsCashOutputBelowMinimum(logs)
+    case 6095:
+      return new FlashIxsNotEnded(logs)
+    case 6096:
+      return new FlashTxWithUnexpectedIxs(logs)
+    case 6097:
+      return new FlashIxsAccountMismatch(logs)
+    case 6098:
+      return new FlashIxsIncludeScope(logs)
+    case 6099:
+      return new FlashVaultSwapBlocked(logs)
+    case 6100:
+      return new FlashVaultSwapWrongAmountToLeave(logs)
   }
 
   return null

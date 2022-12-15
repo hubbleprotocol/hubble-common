@@ -7,7 +7,8 @@ import { PROGRAM_ID } from "../programId"
 export interface SwapRewardsArgs {
   tokenAIn: BN
   tokenBIn: BN
-  rewardId: number
+  rewardIndex: BN
+  rewardCollateralId: BN
   minCollateralTokenOut: BN
 }
 
@@ -15,7 +16,7 @@ export interface SwapRewardsAccounts {
   user: PublicKey
   strategy: PublicKey
   globalConfig: PublicKey
-  whirlpool: PublicKey
+  pool: PublicKey
   tokenAVault: PublicKey
   tokenBVault: PublicKey
   rewardVault: PublicKey
@@ -37,7 +38,8 @@ export interface SwapRewardsAccounts {
 export const layout = borsh.struct([
   borsh.u64("tokenAIn"),
   borsh.u64("tokenBIn"),
-  borsh.u8("rewardId"),
+  borsh.u64("rewardIndex"),
+  borsh.u64("rewardCollateralId"),
   borsh.u64("minCollateralTokenOut"),
 ])
 
@@ -49,7 +51,7 @@ export function swapRewards(
     { pubkey: accounts.user, isSigner: true, isWritable: true },
     { pubkey: accounts.strategy, isSigner: false, isWritable: true },
     { pubkey: accounts.globalConfig, isSigner: false, isWritable: false },
-    { pubkey: accounts.whirlpool, isSigner: false, isWritable: false },
+    { pubkey: accounts.pool, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenAVault, isSigner: false, isWritable: true },
     { pubkey: accounts.tokenBVault, isSigner: false, isWritable: true },
     { pubkey: accounts.rewardVault, isSigner: false, isWritable: true },
@@ -93,7 +95,8 @@ export function swapRewards(
     {
       tokenAIn: args.tokenAIn,
       tokenBIn: args.tokenBIn,
-      rewardId: args.rewardId,
+      rewardIndex: args.rewardIndex,
+      rewardCollateralId: args.rewardCollateralId,
       minCollateralTokenOut: args.minCollateralTokenOut,
     },
     buffer

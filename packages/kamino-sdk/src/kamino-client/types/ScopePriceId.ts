@@ -1061,6 +1061,420 @@ export class UXP {
   }
 }
 
+export interface KUXDUSDCORCAJSON {
+  kind: "KUXDUSDCORCA"
+}
+
+export class KUXDUSDCORCA {
+  static readonly discriminator = 46
+  static readonly kind = "KUXDUSDCORCA"
+  readonly discriminator = 46
+  readonly kind = "KUXDUSDCORCA"
+
+  toJSON(): KUXDUSDCORCAJSON {
+    return {
+      kind: "KUXDUSDCORCA",
+    }
+  }
+
+  toEncodable() {
+    return {
+      KUXDUSDCORCA: {},
+    }
+  }
+}
+
+export interface JITOSOL_SOLJSON {
+  kind: "JITOSOL_SOL"
+}
+
+export class JITOSOL_SOL {
+  static readonly discriminator = 47
+  static readonly kind = "JITOSOL_SOL"
+  readonly discriminator = 47
+  readonly kind = "JITOSOL_SOL"
+
+  toJSON(): JITOSOL_SOLJSON {
+    return {
+      kind: "JITOSOL_SOL",
+    }
+  }
+
+  toEncodable() {
+    return {
+      JITOSOL_SOL: {},
+    }
+  }
+}
+
+export interface SOL_EMAJSON {
+  kind: "SOL_EMA"
+}
+
+export class SOL_EMA {
+  static readonly discriminator = 48
+  static readonly kind = "SOL_EMA"
+  readonly discriminator = 48
+  readonly kind = "SOL_EMA"
+
+  toJSON(): SOL_EMAJSON {
+    return {
+      kind: "SOL_EMA",
+    }
+  }
+
+  toEncodable() {
+    return {
+      SOL_EMA: {},
+    }
+  }
+}
+
+export interface ETH_EMAJSON {
+  kind: "ETH_EMA"
+}
+
+export class ETH_EMA {
+  static readonly discriminator = 49
+  static readonly kind = "ETH_EMA"
+  readonly discriminator = 49
+  readonly kind = "ETH_EMA"
+
+  toJSON(): ETH_EMAJSON {
+    return {
+      kind: "ETH_EMA",
+    }
+  }
+
+  toEncodable() {
+    return {
+      ETH_EMA: {},
+    }
+  }
+}
+
+export interface BTC_EMAJSON {
+  kind: "BTC_EMA"
+}
+
+export class BTC_EMA {
+  static readonly discriminator = 50
+  static readonly kind = "BTC_EMA"
+  readonly discriminator = 50
+  readonly kind = "BTC_EMA"
+
+  toJSON(): BTC_EMAJSON {
+    return {
+      kind: "BTC_EMA",
+    }
+  }
+
+  toEncodable() {
+    return {
+      BTC_EMA: {},
+    }
+  }
+}
+
+export interface SRM_EMAJSON {
+  kind: "SRM_EMA"
+}
+
+export class SRM_EMA {
+  static readonly discriminator = 51
+  static readonly kind = "SRM_EMA"
+  readonly discriminator = 51
+  readonly kind = "SRM_EMA"
+
+  toJSON(): SRM_EMAJSON {
+    return {
+      kind: "SRM_EMA",
+    }
+  }
+
+  toEncodable() {
+    return {
+      SRM_EMA: {},
+    }
+  }
+}
+
+export interface RAY_EMAJSON {
+  kind: "RAY_EMA"
+}
+
+export class RAY_EMA {
+  static readonly discriminator = 52
+  static readonly kind = "RAY_EMA"
+  readonly discriminator = 52
+  readonly kind = "RAY_EMA"
+
+  toJSON(): RAY_EMAJSON {
+    return {
+      kind: "RAY_EMA",
+    }
+  }
+
+  toEncodable() {
+    return {
+      RAY_EMA: {},
+    }
+  }
+}
+
+export interface FTT_EMAJSON {
+  kind: "FTT_EMA"
+}
+
+export class FTT_EMA {
+  static readonly discriminator = 53
+  static readonly kind = "FTT_EMA"
+  readonly discriminator = 53
+  readonly kind = "FTT_EMA"
+
+  toJSON(): FTT_EMAJSON {
+    return {
+      kind: "FTT_EMA",
+    }
+  }
+
+  toEncodable() {
+    return {
+      FTT_EMA: {},
+    }
+  }
+}
+
+export interface MSOL_EMAJSON {
+  kind: "MSOL_EMA"
+}
+
+export class MSOL_EMA {
+  static readonly discriminator = 54
+  static readonly kind = "MSOL_EMA"
+  readonly discriminator = 54
+  readonly kind = "MSOL_EMA"
+
+  toJSON(): MSOL_EMAJSON {
+    return {
+      kind: "MSOL_EMA",
+    }
+  }
+
+  toEncodable() {
+    return {
+      MSOL_EMA: {},
+    }
+  }
+}
+
+export interface BNB_EMAJSON {
+  kind: "BNB_EMA"
+}
+
+export class BNB_EMA {
+  static readonly discriminator = 55
+  static readonly kind = "BNB_EMA"
+  readonly discriminator = 55
+  readonly kind = "BNB_EMA"
+
+  toJSON(): BNB_EMAJSON {
+    return {
+      kind: "BNB_EMA",
+    }
+  }
+
+  toEncodable() {
+    return {
+      BNB_EMA: {},
+    }
+  }
+}
+
+export interface AVAX_EMAJSON {
+  kind: "AVAX_EMA"
+}
+
+export class AVAX_EMA {
+  static readonly discriminator = 56
+  static readonly kind = "AVAX_EMA"
+  readonly discriminator = 56
+  readonly kind = "AVAX_EMA"
+
+  toJSON(): AVAX_EMAJSON {
+    return {
+      kind: "AVAX_EMA",
+    }
+  }
+
+  toEncodable() {
+    return {
+      AVAX_EMA: {},
+    }
+  }
+}
+
+export interface STSOL_EMAJSON {
+  kind: "STSOL_EMA"
+}
+
+export class STSOL_EMA {
+  static readonly discriminator = 57
+  static readonly kind = "STSOL_EMA"
+  readonly discriminator = 57
+  readonly kind = "STSOL_EMA"
+
+  toJSON(): STSOL_EMAJSON {
+    return {
+      kind: "STSOL_EMA",
+    }
+  }
+
+  toEncodable() {
+    return {
+      STSOL_EMA: {},
+    }
+  }
+}
+
+export interface USDC_EMAJSON {
+  kind: "USDC_EMA"
+}
+
+export class USDC_EMA {
+  static readonly discriminator = 58
+  static readonly kind = "USDC_EMA"
+  readonly discriminator = 58
+  readonly kind = "USDC_EMA"
+
+  toJSON(): USDC_EMAJSON {
+    return {
+      kind: "USDC_EMA",
+    }
+  }
+
+  toEncodable() {
+    return {
+      USDC_EMA: {},
+    }
+  }
+}
+
+export interface USDT_EMAJSON {
+  kind: "USDT_EMA"
+}
+
+export class USDT_EMA {
+  static readonly discriminator = 59
+  static readonly kind = "USDT_EMA"
+  readonly discriminator = 59
+  readonly kind = "USDT_EMA"
+
+  toJSON(): USDT_EMAJSON {
+    return {
+      kind: "USDT_EMA",
+    }
+  }
+
+  toEncodable() {
+    return {
+      USDT_EMA: {},
+    }
+  }
+}
+
+export interface SLND_EMAJSON {
+  kind: "SLND_EMA"
+}
+
+export class SLND_EMA {
+  static readonly discriminator = 60
+  static readonly kind = "SLND_EMA"
+  readonly discriminator = 60
+  readonly kind = "SLND_EMA"
+
+  toJSON(): SLND_EMAJSON {
+    return {
+      kind: "SLND_EMA",
+    }
+  }
+
+  toEncodable() {
+    return {
+      SLND_EMA: {},
+    }
+  }
+}
+
+export interface DAI_EMAJSON {
+  kind: "DAI_EMA"
+}
+
+export class DAI_EMA {
+  static readonly discriminator = 61
+  static readonly kind = "DAI_EMA"
+  readonly discriminator = 61
+  readonly kind = "DAI_EMA"
+
+  toJSON(): DAI_EMAJSON {
+    return {
+      kind: "DAI_EMA",
+    }
+  }
+
+  toEncodable() {
+    return {
+      DAI_EMA: {},
+    }
+  }
+}
+
+export interface wstETH_TWAPJSON {
+  kind: "wstETH_TWAP"
+}
+
+export class wstETH_TWAP {
+  static readonly discriminator = 62
+  static readonly kind = "wstETH_TWAP"
+  readonly discriminator = 62
+  readonly kind = "wstETH_TWAP"
+
+  toJSON(): wstETH_TWAPJSON {
+    return {
+      kind: "wstETH_TWAP",
+    }
+  }
+
+  toEncodable() {
+    return {
+      wstETH_TWAP: {},
+    }
+  }
+}
+
+export interface DUST_TWAPJSON {
+  kind: "DUST_TWAP"
+}
+
+export class DUST_TWAP {
+  static readonly discriminator = 63
+  static readonly kind = "DUST_TWAP"
+  readonly discriminator = 63
+  readonly kind = "DUST_TWAP"
+
+  toJSON(): DUST_TWAPJSON {
+    return {
+      kind: "DUST_TWAP",
+    }
+  }
+
+  toEncodable() {
+    return {
+      DUST_TWAP: {},
+    }
+  }
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function fromDecoded(obj: any): types.ScopePriceIdKind {
   if (typeof obj !== "object") {
@@ -1204,6 +1618,60 @@ export function fromDecoded(obj: any): types.ScopePriceIdKind {
   }
   if ("UXP" in obj) {
     return new UXP()
+  }
+  if ("KUXDUSDCORCA" in obj) {
+    return new KUXDUSDCORCA()
+  }
+  if ("JITOSOL_SOL" in obj) {
+    return new JITOSOL_SOL()
+  }
+  if ("SOL_EMA" in obj) {
+    return new SOL_EMA()
+  }
+  if ("ETH_EMA" in obj) {
+    return new ETH_EMA()
+  }
+  if ("BTC_EMA" in obj) {
+    return new BTC_EMA()
+  }
+  if ("SRM_EMA" in obj) {
+    return new SRM_EMA()
+  }
+  if ("RAY_EMA" in obj) {
+    return new RAY_EMA()
+  }
+  if ("FTT_EMA" in obj) {
+    return new FTT_EMA()
+  }
+  if ("MSOL_EMA" in obj) {
+    return new MSOL_EMA()
+  }
+  if ("BNB_EMA" in obj) {
+    return new BNB_EMA()
+  }
+  if ("AVAX_EMA" in obj) {
+    return new AVAX_EMA()
+  }
+  if ("STSOL_EMA" in obj) {
+    return new STSOL_EMA()
+  }
+  if ("USDC_EMA" in obj) {
+    return new USDC_EMA()
+  }
+  if ("USDT_EMA" in obj) {
+    return new USDT_EMA()
+  }
+  if ("SLND_EMA" in obj) {
+    return new SLND_EMA()
+  }
+  if ("DAI_EMA" in obj) {
+    return new DAI_EMA()
+  }
+  if ("wstETH_TWAP" in obj) {
+    return new wstETH_TWAP()
+  }
+  if ("DUST_TWAP" in obj) {
+    return new DUST_TWAP()
   }
 
   throw new Error("Invalid enum object")
@@ -1349,6 +1817,60 @@ export function fromJSON(obj: types.ScopePriceIdJSON): types.ScopePriceIdKind {
     case "UXP": {
       return new UXP()
     }
+    case "KUXDUSDCORCA": {
+      return new KUXDUSDCORCA()
+    }
+    case "JITOSOL_SOL": {
+      return new JITOSOL_SOL()
+    }
+    case "SOL_EMA": {
+      return new SOL_EMA()
+    }
+    case "ETH_EMA": {
+      return new ETH_EMA()
+    }
+    case "BTC_EMA": {
+      return new BTC_EMA()
+    }
+    case "SRM_EMA": {
+      return new SRM_EMA()
+    }
+    case "RAY_EMA": {
+      return new RAY_EMA()
+    }
+    case "FTT_EMA": {
+      return new FTT_EMA()
+    }
+    case "MSOL_EMA": {
+      return new MSOL_EMA()
+    }
+    case "BNB_EMA": {
+      return new BNB_EMA()
+    }
+    case "AVAX_EMA": {
+      return new AVAX_EMA()
+    }
+    case "STSOL_EMA": {
+      return new STSOL_EMA()
+    }
+    case "USDC_EMA": {
+      return new USDC_EMA()
+    }
+    case "USDT_EMA": {
+      return new USDT_EMA()
+    }
+    case "SLND_EMA": {
+      return new SLND_EMA()
+    }
+    case "DAI_EMA": {
+      return new DAI_EMA()
+    }
+    case "wstETH_TWAP": {
+      return new wstETH_TWAP()
+    }
+    case "DUST_TWAP": {
+      return new DUST_TWAP()
+    }
   }
 }
 
@@ -1400,6 +1922,24 @@ export function layout(property?: string) {
     borsh.struct([], "USDR_TWAP"),
     borsh.struct([], "RATIO"),
     borsh.struct([], "UXP"),
+    borsh.struct([], "KUXDUSDCORCA"),
+    borsh.struct([], "JITOSOL_SOL"),
+    borsh.struct([], "SOL_EMA"),
+    borsh.struct([], "ETH_EMA"),
+    borsh.struct([], "BTC_EMA"),
+    borsh.struct([], "SRM_EMA"),
+    borsh.struct([], "RAY_EMA"),
+    borsh.struct([], "FTT_EMA"),
+    borsh.struct([], "MSOL_EMA"),
+    borsh.struct([], "BNB_EMA"),
+    borsh.struct([], "AVAX_EMA"),
+    borsh.struct([], "STSOL_EMA"),
+    borsh.struct([], "USDC_EMA"),
+    borsh.struct([], "USDT_EMA"),
+    borsh.struct([], "SLND_EMA"),
+    borsh.struct([], "DAI_EMA"),
+    borsh.struct([], "wstETH_TWAP"),
+    borsh.struct([], "DUST_TWAP"),
   ])
   if (property !== undefined) {
     return ret.replicate(property)

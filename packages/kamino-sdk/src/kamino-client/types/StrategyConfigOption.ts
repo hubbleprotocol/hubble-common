@@ -210,25 +210,25 @@ export class UpdateMaxDeviationBps {
   }
 }
 
-export interface UpdateSwapUnevenMaxSlippageJSON {
-  kind: "UpdateSwapUnevenMaxSlippage"
+export interface UpdateSwapVaultMaxSlippageJSON {
+  kind: "UpdateSwapVaultMaxSlippage"
 }
 
-export class UpdateSwapUnevenMaxSlippage {
+export class UpdateSwapVaultMaxSlippage {
   static readonly discriminator = 9
-  static readonly kind = "UpdateSwapUnevenMaxSlippage"
+  static readonly kind = "UpdateSwapVaultMaxSlippage"
   readonly discriminator = 9
-  readonly kind = "UpdateSwapUnevenMaxSlippage"
+  readonly kind = "UpdateSwapVaultMaxSlippage"
 
-  toJSON(): UpdateSwapUnevenMaxSlippageJSON {
+  toJSON(): UpdateSwapVaultMaxSlippageJSON {
     return {
-      kind: "UpdateSwapUnevenMaxSlippage",
+      kind: "UpdateSwapVaultMaxSlippage",
     }
   }
 
   toEncodable() {
     return {
-      UpdateSwapUnevenMaxSlippage: {},
+      UpdateSwapVaultMaxSlippage: {},
     }
   }
 }
@@ -417,6 +417,351 @@ export class UpdateAdminAuthority {
   }
 }
 
+export interface KaminoRewardIndex0TSJSON {
+  kind: "KaminoRewardIndex0TS"
+}
+
+export class KaminoRewardIndex0TS {
+  static readonly discriminator = 18
+  static readonly kind = "KaminoRewardIndex0TS"
+  readonly discriminator = 18
+  readonly kind = "KaminoRewardIndex0TS"
+
+  toJSON(): KaminoRewardIndex0TSJSON {
+    return {
+      kind: "KaminoRewardIndex0TS",
+    }
+  }
+
+  toEncodable() {
+    return {
+      KaminoRewardIndex0TS: {},
+    }
+  }
+}
+
+export interface KaminoRewardIndex1TSJSON {
+  kind: "KaminoRewardIndex1TS"
+}
+
+export class KaminoRewardIndex1TS {
+  static readonly discriminator = 19
+  static readonly kind = "KaminoRewardIndex1TS"
+  readonly discriminator = 19
+  readonly kind = "KaminoRewardIndex1TS"
+
+  toJSON(): KaminoRewardIndex1TSJSON {
+    return {
+      kind: "KaminoRewardIndex1TS",
+    }
+  }
+
+  toEncodable() {
+    return {
+      KaminoRewardIndex1TS: {},
+    }
+  }
+}
+
+export interface KaminoRewardIndex2TSJSON {
+  kind: "KaminoRewardIndex2TS"
+}
+
+export class KaminoRewardIndex2TS {
+  static readonly discriminator = 20
+  static readonly kind = "KaminoRewardIndex2TS"
+  readonly discriminator = 20
+  readonly kind = "KaminoRewardIndex2TS"
+
+  toJSON(): KaminoRewardIndex2TSJSON {
+    return {
+      kind: "KaminoRewardIndex2TS",
+    }
+  }
+
+  toEncodable() {
+    return {
+      KaminoRewardIndex2TS: {},
+    }
+  }
+}
+
+export interface KaminoRewardIndex0RewardPerSecondJSON {
+  kind: "KaminoRewardIndex0RewardPerSecond"
+}
+
+export class KaminoRewardIndex0RewardPerSecond {
+  static readonly discriminator = 21
+  static readonly kind = "KaminoRewardIndex0RewardPerSecond"
+  readonly discriminator = 21
+  readonly kind = "KaminoRewardIndex0RewardPerSecond"
+
+  toJSON(): KaminoRewardIndex0RewardPerSecondJSON {
+    return {
+      kind: "KaminoRewardIndex0RewardPerSecond",
+    }
+  }
+
+  toEncodable() {
+    return {
+      KaminoRewardIndex0RewardPerSecond: {},
+    }
+  }
+}
+
+export interface KaminoRewardIndex1RewardPerSecondJSON {
+  kind: "KaminoRewardIndex1RewardPerSecond"
+}
+
+export class KaminoRewardIndex1RewardPerSecond {
+  static readonly discriminator = 22
+  static readonly kind = "KaminoRewardIndex1RewardPerSecond"
+  readonly discriminator = 22
+  readonly kind = "KaminoRewardIndex1RewardPerSecond"
+
+  toJSON(): KaminoRewardIndex1RewardPerSecondJSON {
+    return {
+      kind: "KaminoRewardIndex1RewardPerSecond",
+    }
+  }
+
+  toEncodable() {
+    return {
+      KaminoRewardIndex1RewardPerSecond: {},
+    }
+  }
+}
+
+export interface KaminoRewardIndex2RewardPerSecondJSON {
+  kind: "KaminoRewardIndex2RewardPerSecond"
+}
+
+export class KaminoRewardIndex2RewardPerSecond {
+  static readonly discriminator = 23
+  static readonly kind = "KaminoRewardIndex2RewardPerSecond"
+  readonly discriminator = 23
+  readonly kind = "KaminoRewardIndex2RewardPerSecond"
+
+  toJSON(): KaminoRewardIndex2RewardPerSecondJSON {
+    return {
+      kind: "KaminoRewardIndex2RewardPerSecond",
+    }
+  }
+
+  toEncodable() {
+    return {
+      KaminoRewardIndex2RewardPerSecond: {},
+    }
+  }
+}
+
+export interface UpdateDepositBlockedJSON {
+  kind: "UpdateDepositBlocked"
+}
+
+export class UpdateDepositBlocked {
+  static readonly discriminator = 24
+  static readonly kind = "UpdateDepositBlocked"
+  readonly discriminator = 24
+  readonly kind = "UpdateDepositBlocked"
+
+  toJSON(): UpdateDepositBlockedJSON {
+    return {
+      kind: "UpdateDepositBlocked",
+    }
+  }
+
+  toEncodable() {
+    return {
+      UpdateDepositBlocked: {},
+    }
+  }
+}
+
+export interface UpdateRaydiumProtocolPositionOrBaseVaultAuthorityJSON {
+  kind: "UpdateRaydiumProtocolPositionOrBaseVaultAuthority"
+}
+
+export class UpdateRaydiumProtocolPositionOrBaseVaultAuthority {
+  static readonly discriminator = 25
+  static readonly kind = "UpdateRaydiumProtocolPositionOrBaseVaultAuthority"
+  readonly discriminator = 25
+  readonly kind = "UpdateRaydiumProtocolPositionOrBaseVaultAuthority"
+
+  toJSON(): UpdateRaydiumProtocolPositionOrBaseVaultAuthorityJSON {
+    return {
+      kind: "UpdateRaydiumProtocolPositionOrBaseVaultAuthority",
+    }
+  }
+
+  toEncodable() {
+    return {
+      UpdateRaydiumProtocolPositionOrBaseVaultAuthority: {},
+    }
+  }
+}
+
+export interface UpdateRaydiumPoolConfigOrBaseVaultAuthorityJSON {
+  kind: "UpdateRaydiumPoolConfigOrBaseVaultAuthority"
+}
+
+export class UpdateRaydiumPoolConfigOrBaseVaultAuthority {
+  static readonly discriminator = 26
+  static readonly kind = "UpdateRaydiumPoolConfigOrBaseVaultAuthority"
+  readonly discriminator = 26
+  readonly kind = "UpdateRaydiumPoolConfigOrBaseVaultAuthority"
+
+  toJSON(): UpdateRaydiumPoolConfigOrBaseVaultAuthorityJSON {
+    return {
+      kind: "UpdateRaydiumPoolConfigOrBaseVaultAuthority",
+    }
+  }
+
+  toEncodable() {
+    return {
+      UpdateRaydiumPoolConfigOrBaseVaultAuthority: {},
+    }
+  }
+}
+
+export interface UpdateInvestBlockedJSON {
+  kind: "UpdateInvestBlocked"
+}
+
+export class UpdateInvestBlocked {
+  static readonly discriminator = 27
+  static readonly kind = "UpdateInvestBlocked"
+  readonly discriminator = 27
+  readonly kind = "UpdateInvestBlocked"
+
+  toJSON(): UpdateInvestBlockedJSON {
+    return {
+      kind: "UpdateInvestBlocked",
+    }
+  }
+
+  toEncodable() {
+    return {
+      UpdateInvestBlocked: {},
+    }
+  }
+}
+
+export interface UpdateWithdrawBlockedJSON {
+  kind: "UpdateWithdrawBlocked"
+}
+
+export class UpdateWithdrawBlocked {
+  static readonly discriminator = 28
+  static readonly kind = "UpdateWithdrawBlocked"
+  readonly discriminator = 28
+  readonly kind = "UpdateWithdrawBlocked"
+
+  toJSON(): UpdateWithdrawBlockedJSON {
+    return {
+      kind: "UpdateWithdrawBlocked",
+    }
+  }
+
+  toEncodable() {
+    return {
+      UpdateWithdrawBlocked: {},
+    }
+  }
+}
+
+export interface UpdateLocalAdminBlockedJSON {
+  kind: "UpdateLocalAdminBlocked"
+}
+
+export class UpdateLocalAdminBlocked {
+  static readonly discriminator = 29
+  static readonly kind = "UpdateLocalAdminBlocked"
+  readonly discriminator = 29
+  readonly kind = "UpdateLocalAdminBlocked"
+
+  toJSON(): UpdateLocalAdminBlockedJSON {
+    return {
+      kind: "UpdateLocalAdminBlocked",
+    }
+  }
+
+  toEncodable() {
+    return {
+      UpdateLocalAdminBlocked: {},
+    }
+  }
+}
+
+export interface UpdateCollateralIdAJSON {
+  kind: "UpdateCollateralIdA"
+}
+
+export class UpdateCollateralIdA {
+  static readonly discriminator = 30
+  static readonly kind = "UpdateCollateralIdA"
+  readonly discriminator = 30
+  readonly kind = "UpdateCollateralIdA"
+
+  toJSON(): UpdateCollateralIdAJSON {
+    return {
+      kind: "UpdateCollateralIdA",
+    }
+  }
+
+  toEncodable() {
+    return {
+      UpdateCollateralIdA: {},
+    }
+  }
+}
+
+export interface UpdateCollateralIdBJSON {
+  kind: "UpdateCollateralIdB"
+}
+
+export class UpdateCollateralIdB {
+  static readonly discriminator = 31
+  static readonly kind = "UpdateCollateralIdB"
+  readonly discriminator = 31
+  readonly kind = "UpdateCollateralIdB"
+
+  toJSON(): UpdateCollateralIdBJSON {
+    return {
+      kind: "UpdateCollateralIdB",
+    }
+  }
+
+  toEncodable() {
+    return {
+      UpdateCollateralIdB: {},
+    }
+  }
+}
+
+export interface UpdateFlashVaultSwapJSON {
+  kind: "UpdateFlashVaultSwap"
+}
+
+export class UpdateFlashVaultSwap {
+  static readonly discriminator = 32
+  static readonly kind = "UpdateFlashVaultSwap"
+  readonly discriminator = 32
+  readonly kind = "UpdateFlashVaultSwap"
+
+  toJSON(): UpdateFlashVaultSwapJSON {
+    return {
+      kind: "UpdateFlashVaultSwap",
+    }
+  }
+
+  toEncodable() {
+    return {
+      UpdateFlashVaultSwap: {},
+    }
+  }
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function fromDecoded(obj: any): types.StrategyConfigOptionKind {
   if (typeof obj !== "object") {
@@ -450,8 +795,8 @@ export function fromDecoded(obj: any): types.StrategyConfigOptionKind {
   if ("UpdateMaxDeviationBps" in obj) {
     return new UpdateMaxDeviationBps()
   }
-  if ("UpdateSwapUnevenMaxSlippage" in obj) {
-    return new UpdateSwapUnevenMaxSlippage()
+  if ("UpdateSwapVaultMaxSlippage" in obj) {
+    return new UpdateSwapVaultMaxSlippage()
   }
   if ("UpdateStrategyType" in obj) {
     return new UpdateStrategyType()
@@ -476,6 +821,51 @@ export function fromDecoded(obj: any): types.StrategyConfigOptionKind {
   }
   if ("UpdateAdminAuthority" in obj) {
     return new UpdateAdminAuthority()
+  }
+  if ("KaminoRewardIndex0TS" in obj) {
+    return new KaminoRewardIndex0TS()
+  }
+  if ("KaminoRewardIndex1TS" in obj) {
+    return new KaminoRewardIndex1TS()
+  }
+  if ("KaminoRewardIndex2TS" in obj) {
+    return new KaminoRewardIndex2TS()
+  }
+  if ("KaminoRewardIndex0RewardPerSecond" in obj) {
+    return new KaminoRewardIndex0RewardPerSecond()
+  }
+  if ("KaminoRewardIndex1RewardPerSecond" in obj) {
+    return new KaminoRewardIndex1RewardPerSecond()
+  }
+  if ("KaminoRewardIndex2RewardPerSecond" in obj) {
+    return new KaminoRewardIndex2RewardPerSecond()
+  }
+  if ("UpdateDepositBlocked" in obj) {
+    return new UpdateDepositBlocked()
+  }
+  if ("UpdateRaydiumProtocolPositionOrBaseVaultAuthority" in obj) {
+    return new UpdateRaydiumProtocolPositionOrBaseVaultAuthority()
+  }
+  if ("UpdateRaydiumPoolConfigOrBaseVaultAuthority" in obj) {
+    return new UpdateRaydiumPoolConfigOrBaseVaultAuthority()
+  }
+  if ("UpdateInvestBlocked" in obj) {
+    return new UpdateInvestBlocked()
+  }
+  if ("UpdateWithdrawBlocked" in obj) {
+    return new UpdateWithdrawBlocked()
+  }
+  if ("UpdateLocalAdminBlocked" in obj) {
+    return new UpdateLocalAdminBlocked()
+  }
+  if ("UpdateCollateralIdA" in obj) {
+    return new UpdateCollateralIdA()
+  }
+  if ("UpdateCollateralIdB" in obj) {
+    return new UpdateCollateralIdB()
+  }
+  if ("UpdateFlashVaultSwap" in obj) {
+    return new UpdateFlashVaultSwap()
   }
 
   throw new Error("Invalid enum object")
@@ -512,8 +902,8 @@ export function fromJSON(
     case "UpdateMaxDeviationBps": {
       return new UpdateMaxDeviationBps()
     }
-    case "UpdateSwapUnevenMaxSlippage": {
-      return new UpdateSwapUnevenMaxSlippage()
+    case "UpdateSwapVaultMaxSlippage": {
+      return new UpdateSwapVaultMaxSlippage()
     }
     case "UpdateStrategyType": {
       return new UpdateStrategyType()
@@ -539,6 +929,51 @@ export function fromJSON(
     case "UpdateAdminAuthority": {
       return new UpdateAdminAuthority()
     }
+    case "KaminoRewardIndex0TS": {
+      return new KaminoRewardIndex0TS()
+    }
+    case "KaminoRewardIndex1TS": {
+      return new KaminoRewardIndex1TS()
+    }
+    case "KaminoRewardIndex2TS": {
+      return new KaminoRewardIndex2TS()
+    }
+    case "KaminoRewardIndex0RewardPerSecond": {
+      return new KaminoRewardIndex0RewardPerSecond()
+    }
+    case "KaminoRewardIndex1RewardPerSecond": {
+      return new KaminoRewardIndex1RewardPerSecond()
+    }
+    case "KaminoRewardIndex2RewardPerSecond": {
+      return new KaminoRewardIndex2RewardPerSecond()
+    }
+    case "UpdateDepositBlocked": {
+      return new UpdateDepositBlocked()
+    }
+    case "UpdateRaydiumProtocolPositionOrBaseVaultAuthority": {
+      return new UpdateRaydiumProtocolPositionOrBaseVaultAuthority()
+    }
+    case "UpdateRaydiumPoolConfigOrBaseVaultAuthority": {
+      return new UpdateRaydiumPoolConfigOrBaseVaultAuthority()
+    }
+    case "UpdateInvestBlocked": {
+      return new UpdateInvestBlocked()
+    }
+    case "UpdateWithdrawBlocked": {
+      return new UpdateWithdrawBlocked()
+    }
+    case "UpdateLocalAdminBlocked": {
+      return new UpdateLocalAdminBlocked()
+    }
+    case "UpdateCollateralIdA": {
+      return new UpdateCollateralIdA()
+    }
+    case "UpdateCollateralIdB": {
+      return new UpdateCollateralIdB()
+    }
+    case "UpdateFlashVaultSwap": {
+      return new UpdateFlashVaultSwap()
+    }
   }
 }
 
@@ -553,7 +988,7 @@ export function layout(property?: string) {
     borsh.struct([], "UpdateWithdrawalCapBInterval"),
     borsh.struct([], "UpdateWithdrawalCapBCurrentTotal"),
     borsh.struct([], "UpdateMaxDeviationBps"),
-    borsh.struct([], "UpdateSwapUnevenMaxSlippage"),
+    borsh.struct([], "UpdateSwapVaultMaxSlippage"),
     borsh.struct([], "UpdateStrategyType"),
     borsh.struct([], "UpdateDepositFee"),
     borsh.struct([], "UpdateWithdrawFee"),
@@ -562,6 +997,21 @@ export function layout(property?: string) {
     borsh.struct([], "UpdateReward1Fee"),
     borsh.struct([], "UpdateReward2Fee"),
     borsh.struct([], "UpdateAdminAuthority"),
+    borsh.struct([], "KaminoRewardIndex0TS"),
+    borsh.struct([], "KaminoRewardIndex1TS"),
+    borsh.struct([], "KaminoRewardIndex2TS"),
+    borsh.struct([], "KaminoRewardIndex0RewardPerSecond"),
+    borsh.struct([], "KaminoRewardIndex1RewardPerSecond"),
+    borsh.struct([], "KaminoRewardIndex2RewardPerSecond"),
+    borsh.struct([], "UpdateDepositBlocked"),
+    borsh.struct([], "UpdateRaydiumProtocolPositionOrBaseVaultAuthority"),
+    borsh.struct([], "UpdateRaydiumPoolConfigOrBaseVaultAuthority"),
+    borsh.struct([], "UpdateInvestBlocked"),
+    borsh.struct([], "UpdateWithdrawBlocked"),
+    borsh.struct([], "UpdateLocalAdminBlocked"),
+    borsh.struct([], "UpdateCollateralIdA"),
+    borsh.struct([], "UpdateCollateralIdB"),
+    borsh.struct([], "UpdateFlashVaultSwap"),
   ])
   if (property !== undefined) {
     return ret.replicate(property)
