@@ -532,6 +532,29 @@ export class JITOSOL {
   }
 }
 
+export interface RAYJSON {
+  kind: "RAY"
+}
+
+export class RAY {
+  static readonly discriminator = 23
+  static readonly kind = "RAY"
+  readonly discriminator = 23
+  readonly kind = "RAY"
+
+  toJSON(): RAYJSON {
+    return {
+      kind: "RAY",
+    }
+  }
+
+  toEncodable() {
+    return {
+      RAY: {},
+    }
+  }
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function fromDecoded(obj: any): types.CollateralTokenKind {
   if (typeof obj !== "object") {
@@ -606,6 +629,9 @@ export function fromDecoded(obj: any): types.CollateralTokenKind {
   }
   if ("JITOSOL" in obj) {
     return new JITOSOL()
+  }
+  if ("RAY" in obj) {
+    return new RAY()
   }
 
   throw new Error("Invalid enum object")
@@ -684,6 +710,9 @@ export function fromJSON(
     case "JITOSOL": {
       return new JITOSOL()
     }
+    case "RAY": {
+      return new RAY()
+    }
   }
 }
 
@@ -712,6 +741,7 @@ export function layout(property?: string) {
     borsh.struct([], "RATIO"),
     borsh.struct([], "UXP"),
     borsh.struct([], "JITOSOL"),
+    borsh.struct([], "RAY"),
   ])
   if (property !== undefined) {
     return ret.replicate(property)

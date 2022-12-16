@@ -80,6 +80,8 @@ import { Rebalancing, Uninitialized } from './kamino-client/types/StrategyStatus
 import { METADATA_PROGRAM_ID, METADATA_UPDATE_AUTH } from './constants/metadata';
 import { ExecutiveWithdrawActionKind, StrategyStatus, StrategyStatusKind } from './kamino-client/types';
 import { Rebalance } from './kamino-client/types/ExecutiveWithdrawAction';
+import { PoolState, PersonalPositionState } from './raydium-client/accounts';
+import { LiquidityMath, SqrtPriceMath, TickMath } from '@raydium-io/raydium-sdk/lib/ammV3/utils/math';
 
 import KaminoIdl from './kamino-client/kamino.json';
 export const KAMINO_IDL = KaminoIdl;

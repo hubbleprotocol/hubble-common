@@ -48,8 +48,8 @@ export function collectFeesAndRewards(accounts: CollectFeesAndRewardsAccounts) {
     { pubkey: accounts.globalConfig, isSigner: false, isWritable: false },
     { pubkey: accounts.baseVaultAuthority, isSigner: false, isWritable: true },
     { pubkey: accounts.pool, isSigner: false, isWritable: true },
-    { pubkey: accounts.tickArrayLower, isSigner: false, isWritable: false },
-    { pubkey: accounts.tickArrayUpper, isSigner: false, isWritable: false },
+    { pubkey: accounts.tickArrayLower, isSigner: false, isWritable: true },
+    { pubkey: accounts.tickArrayUpper, isSigner: false, isWritable: true },
     { pubkey: accounts.position, isSigner: false, isWritable: true },
     {
       pubkey: accounts.raydiumProtocolPositionOrBaseVaultAuthority,

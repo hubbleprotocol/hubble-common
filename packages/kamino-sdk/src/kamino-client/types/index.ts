@@ -96,6 +96,7 @@ export type CollateralTokenKind =
   | CollateralToken.RATIO
   | CollateralToken.UXP
   | CollateralToken.JITOSOL
+  | CollateralToken.RAY
 export type CollateralTokenJSON =
   | CollateralToken.USDCJSON
   | CollateralToken.USDHJSON
@@ -120,6 +121,7 @@ export type CollateralTokenJSON =
   | CollateralToken.RATIOJSON
   | CollateralToken.UXPJSON
   | CollateralToken.JITOSOLJSON
+  | CollateralToken.RAYJSON
 
 export { GlobalConfigOption }
 
