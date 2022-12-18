@@ -88,7 +88,7 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
           address: new PublicKey('5QKrn6Eua5EgmGdSTn8nEUa3dcZx2tHEYBv6AkPetojE'),
           type: 'PEGGED',
           shareMint: new PublicKey('FNW11gyh5NkR5c97atgtiDayhNQxTAgjzBhpXRgzLb6S'),
-          status: 'LIVE',
+          status: 'DEPRECATED',
         },
         {
           address: new PublicKey('Agz8ExDrjd7UqjACotmw6XhKgXsjhnufza9Nfn6C7Ktx'),
