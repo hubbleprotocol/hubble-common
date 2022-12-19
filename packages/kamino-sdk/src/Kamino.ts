@@ -80,8 +80,9 @@ import { Rebalancing, Uninitialized } from './kamino-client/types/StrategyStatus
 import { METADATA_PROGRAM_ID, METADATA_UPDATE_AUTH } from './constants/metadata';
 import { ExecutiveWithdrawActionKind, StrategyStatus, StrategyStatusKind } from './kamino-client/types';
 import { Rebalance } from './kamino-client/types/ExecutiveWithdrawAction';
-import { PoolState, PersonalPositionState } from './raydium-client/accounts';
+import { PoolState, PersonalPositionState } from './raydium_client/accounts';
 import { LiquidityMath, SqrtPriceMath, TickMath } from '@raydium-io/raydium-sdk/lib/ammV3/utils/math';
+import { PROGRAM_ID_CLI as RAYDIUM_PROGRAM_ID } from './raydium_client/programId';
 
 import KaminoIdl from './kamino-client/kamino.json';
 export const KAMINO_IDL = KaminoIdl;
@@ -119,6 +120,7 @@ export class Kamino {
     { name: 'RATIO', id: 20 },
     { name: 'UXP', id: 21 },
     { name: 'JITOSOL', id: 22 },
+    { name: 'RAY', id: 23 },
   ];
 
   /**
@@ -250,6 +252,66 @@ export class Kamino {
     const bAvailable = new Decimal(strategy.tokenBAmounts.toNumber());
     const aInvested = new Decimal(removeLiquidityQuote.estTokenA.toNumber());
     const bInvested = new Decimal(removeLiquidityQuote.estTokenB.toNumber());
+
+    let computedHoldings: Holdings = this.getStrategyHoldingsUsd(
+      aAvailable,
+      bAvailable,
+      aInvested,
+      bInvested,
+      decimalsA,
+      decimalsB,
+      prices.aPrice,
+      prices.bPrice
+    );
+
+    const balances: StrategyBalances = {
+      computedHoldings,
+      vaultBalances,
+      prices,
+      tokenAAmounts: aAvailable.plus(aInvested),
+      tokenBAmounts: bAvailable.plus(bInvested),
+    };
+    return balances;
+  }
+
+  private async getStrategyBalancesRaydium(strategy: WhirlpoolStrategy) {
+    let poolState = await PoolState.fetch(this._connection, strategy.pool);
+    let positionState = await PersonalPositionState.fetch(this._connection, strategy.position);
+
+    if (!positionState) {
+      throw new Error(`Raydium position ${strategy.position.toString()} could not be found.`);
+    }
+    if (!poolState) {
+      throw new Error(`Raydium pool ${strategy.pool.toString()} could not be found.`);
+    }
+
+    const decimalsA = await getMintDecimals(this._connection, poolState.tokenMint0);
+    const decimalsB = await getMintDecimals(this._connection, poolState.tokenMint1);
+
+    const aVault = await this.getTokenAccountBalance(strategy.tokenAVault);
+    const bVault = await this.getTokenAccountBalance(strategy.tokenBVault);
+    let lowerSqrtPriceX64 = SqrtPriceMath.getSqrtPriceX64FromTick(positionState.tickLowerIndex);
+    let upperSqrtPriceX64 = SqrtPriceMath.getSqrtPriceX64FromTick(positionState.tickUpperIndex);
+
+    positionState.tickLowerIndex;
+
+    const { amountA, amountB } = LiquidityMath.getAmountsFromLiquidity(
+      poolState.sqrtPriceX64,
+      new anchor.BN(lowerSqrtPriceX64),
+      new anchor.BN(upperSqrtPriceX64),
+      positionState.liquidity,
+      true
+    );
+
+    const vaultBalances: StrategyVaultBalances = {
+      a: aVault,
+      b: bVault,
+    };
+    const prices = await this.getPrices(strategy);
+    const aAvailable = new Decimal(strategy.tokenAAmounts.toNumber());
+    const bAvailable = new Decimal(strategy.tokenBAmounts.toNumber());
+    const aInvested = new Decimal(amountA.toNumber());
+    const bInvested = new Decimal(amountB.toNumber());
 
     let computedHoldings: Holdings = this.getStrategyHoldingsUsd(
       aAvailable,

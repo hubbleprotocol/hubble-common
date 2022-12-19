@@ -40,7 +40,8 @@
     "@project-serum/serum": "^0.13.65",
     "@solana/buffer-layout": "^4.0.0",
     "@solana/wallet-adapter-base": "^0.9.8",
-    "bn.js": "^5.2.1"
+    "bn.js": "^5.2.1",
+    "@raydium-io/raydium-sdk": "^1.1.0-beta.44"
   },
   "peerDependencies": {
     "@solana/web3.js": "^1.47.3",
