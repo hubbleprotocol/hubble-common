@@ -46,6 +46,8 @@ import { PriceData } from './models/PriceData';
 import {
   batchFetch,
   createAssociatedTokenAccountInstruction,
+  Dex,
+  dexToNumber,
   getAssociatedTokenAddress,
   getAssociatedTokenAddressAndData,
   getReadOnlyWallet,
@@ -216,6 +218,16 @@ export class Kamino {
   }
 
   private async getStrategyBalances(strategy: WhirlpoolStrategy) {
+    if (strategy.strategyDex.toNumber() == dexToNumber('ORCA')) {
+      return this.getStrategyBalancesOrca(strategy);
+    } else if (strategy.strategyDex.toNumber() == dexToNumber('RAYDIUM')) {
+      return this.getStrategyBalancesRaydium(strategy);
+    } else {
+      throw new Error(`Invalid dex ${strategy.strategyDex.toString()}`);
+    }
+  }
+
+  private async getStrategyBalancesOrca(strategy: WhirlpoolStrategy) {
     const whirlpool = await Whirlpool.fetch(this._connection, strategy.pool);
     const position = await Position.fetch(this._connection, strategy.position);
 
@@ -297,8 +309,8 @@ export class Kamino {
 
     const { amountA, amountB } = LiquidityMath.getAmountsFromLiquidity(
       poolState.sqrtPriceX64,
-      new anchor.BN(lowerSqrtPriceX64),
-      new anchor.BN(upperSqrtPriceX64),
+      new BN(lowerSqrtPriceX64),
+      new BN(upperSqrtPriceX64),
       positionState.liquidity,
       true
     );
@@ -474,6 +486,22 @@ export class Kamino {
   }
 
   /**
+   * Get a list of Raydium pools from public keys
+   * @param pools
+   */
+  getRaydiumPools(pools: PublicKey[]) {
+    return batchFetch(pools, (chunk) => PoolState.fetchMultiple(this._connection, chunk));
+  }
+
+  /**
+   * Get Raydium pool from public key
+   * @param pool pubkey of the orca whirlpool
+   */
+  getRaydiumPoollByAddress(pool: PublicKey) {
+    return Whirlpool.fetch(this._connection, pool);
+  }
+
+  /**
    * Get scope token name from a kamino strategy collateral ID
    * @param collateralId ID of the collateral token
    * @returns Kamino token name
@@ -527,6 +555,11 @@ export class Kamino {
       new Decimal(10).pow(strategyState.strategy.sharesMintDecimals.toString())
     );
 
+    let programId = WHIRLPOOL_PROGRAM_ID;
+    if (strategyState.strategy.strategyDex.toNumber() == dexToNumber('RAYDIUM')) {
+      programId = RAYDIUM_PROGRAM_ID;
+    }
+
     const args: WithdrawArgs = { sharesAmount: new BN(sharesAmountInLamports.toNumber()) };
     const accounts: WithdrawAccounts = {
       user: owner,
@@ -554,7 +587,7 @@ export class Kamino {
       tokenProgram: TOKEN_PROGRAM_ID,
       positionTokenAccount: strategyState.strategy.positionTokenAccount,
       raydiumProtocolPositionOrBaseVaultAuthority: strategyState.strategy.raydiumProtocolPositionOrBaseVaultAuthority,
-      poolProgram: WHIRLPOOL_PROGRAM_ID,
+      poolProgram: programId,
       instructionSysvarAccount: SYSVAR_INSTRUCTIONS_PUBKEY,
     };
 
@@ -683,11 +716,6 @@ export class Kamino {
     }
     const strategyState = await this.getStrategyStateIfNotFetched(strategy);
 
-    const whirlpoolState = await Whirlpool.fetch(this._connection, strategyState.strategy.pool);
-    if (!whirlpoolState) {
-      throw Error(`Could not fetch whirlpool state with pubkey ${strategyState.strategy.pool.toString()}`);
-    }
-
     const globalConfig = await GlobalConfig.fetch(this._connection, strategyState.strategy.globalConfig);
     if (!globalConfig) {
       throw Error(`Could not fetch global config with pubkey ${strategyState.strategy.globalConfig.toString()}`);
@@ -745,7 +773,7 @@ export class Kamino {
    *   - strategy can only be created by the owner (admin) of the global config, we will need to allow non-admins to bypass this check
    *   - after the strategy is created, only the owner (admin) can update the treasury fee vault with token A/B, we need to allow non-admins to be able to do (and require) this as well
    * @param strategy public key of the new strategy to create
-   * @param whirlpool public key of the Orca whirlpool
+   * @param pool public key of the CLMM pool (either Orca or Raydium)
    * @param owner public key of the strategy owner (admin authority)
    * @param tokenA name of the token A collateral used in the strategy
    * @param tokenB name of the token B collateral used in the strategy
@@ -753,32 +781,34 @@ export class Kamino {
    */
   async createStrategy(
     strategy: PublicKey,
-    whirlpool: PublicKey,
+    pool: PublicKey,
     owner: PublicKey,
     tokenA: SupportedToken,
-    tokenB: SupportedToken
+    tokenB: SupportedToken,
+    dex: Dex
   ) {
-    const whirlpoolState = await Whirlpool.fetch(this._connection, whirlpool);
+    const whirlpoolState = await Whirlpool.fetch(this._connection, pool);
     if (!whirlpoolState) {
-      throw Error(`Could not fetch whirlpool state with pubkey ${whirlpool.toString()}`);
+      throw Error(`Could not fetch whirlpool state with pubkey ${pool.toString()}`);
     }
 
-    const globalConfig = await GlobalConfig.fetch(this._connection, this._globalConfig);
-    if (!globalConfig) {
-      throw Error(`Could not fetch global config with pubkey ${this._config.kamino.globalConfig.toString()}`);
+    let config = await GlobalConfig.fetch(this._connection, this._config.kamino.globalConfig);
+    if (!config) {
+      throw Error(`Could not fetch globalConfig  with pubkey ${this._config.kamino.globalConfig.toString()}`);
     }
+    let tokenInfos = config.tokenInfos;
 
     const programAddresses = await this.getStrategyProgramAddresses(strategy, whirlpoolState);
     const strategyArgs: InitializeStrategyArgs = {
       tokenACollateralId: new BN(this.getCollateralId(tokenA)),
       tokenBCollateralId: new BN(this.getCollateralId(tokenB)),
-      strategyType: new BN(0), // Whirlpool, TODO
+      strategyType: new BN(dexToNumber(dex)),
     };
     const strategyAccounts: InitializeStrategyAccounts = {
       adminAuthority: owner,
       strategy,
       globalConfig: this._globalConfig,
-      pool: whirlpool,
+      pool,
       tokenAMint: whirlpoolState.tokenMintA,
       tokenBMint: whirlpoolState.tokenMintB,
       tokenAVault: programAddresses.tokenAVault,
@@ -786,9 +816,9 @@ export class Kamino {
       baseVaultAuthority: programAddresses.baseVaultAuthority,
       sharesMint: programAddresses.sharesMint,
       sharesMintAuthority: programAddresses.sharesMintAuthority,
-      scopePriceId: globalConfig.scopePriceId,
-      scopeProgramId: globalConfig.scopeProgramId,
-      tokenInfos: globalConfig.tokenInfos,
+      scopePriceId: config.scopePriceId,
+      scopeProgramId: config.scopeProgramId,
+      tokenInfos: config.tokenInfos,
       systemProgram: SystemProgram.programId,
       rent: SYSVAR_RENT_PUBKEY,
       tokenProgram: TOKEN_PROGRAM_ID,
@@ -878,12 +908,40 @@ export class Kamino {
    */
   async collectFeesAndRewards(strategy: PublicKey | StrategyWithAddress) {
     const { address: strategyPubkey, strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
-    const whirlpool = await Whirlpool.fetch(this._connection, strategyState.pool);
-    if (!whirlpool) {
-      throw Error(`Could not fetch whirlpool state with pubkey ${strategyState.pool.toString()}`);
-    }
+
     const { treasuryFeeTokenAVault, treasuryFeeTokenBVault, treasuryFeeVaultAuthority } =
       await this.getTreasuryFeeVaultPDAs(strategyState.tokenAMint, strategyState.tokenBMint);
+
+    let programId = WHIRLPOOL_PROGRAM_ID;
+    let poolTokenVaultA = PublicKey.default;
+    let poolTokenVaultB = PublicKey.default;
+    let poolRewardVault0 = PublicKey.default;
+    let poolRewardVault1 = PublicKey.default;
+    let poolRewardVault2 = PublicKey.default;
+    if (strategyState.strategyDex.toNumber() == dexToNumber('ORCA')) {
+      const whirlpool = await Whirlpool.fetch(this._connection, strategyState.pool);
+      if (!whirlpool) {
+        throw Error(`Could not fetch whirlpool state with pubkey ${strategyState.pool.toString()}`);
+      }
+
+      poolTokenVaultA = whirlpool.tokenVaultA;
+      poolTokenVaultB = whirlpool.tokenVaultB;
+      poolRewardVault0 = whirlpool.rewardInfos[0].vault;
+      poolRewardVault1 = whirlpool.rewardInfos[1].vault;
+      poolRewardVault2 = whirlpool.rewardInfos[2].vault;
+    } else if (strategyState.strategyDex.toNumber() == dexToNumber('RAYDIUM')) {
+      programId = RAYDIUM_PROGRAM_ID;
+
+      const poolState = await PoolState.fetch(this._connection, strategyState.pool);
+      if (!poolState) {
+        throw Error(`Could not fetch Raydium pool state with pubkey ${strategyState.pool.toString()}`);
+      }
+      poolTokenVaultA = poolState.tokenVault0;
+      poolTokenVaultB = poolState.tokenVault1;
+      poolRewardVault0 = poolState.rewardInfos[0].tokenVault;
+      poolRewardVault1 = poolState.rewardInfos[1].tokenVault;
+      poolRewardVault2 = poolState.rewardInfos[2].tokenVault;
+    }
 
     const accounts: CollectFeesAndRewardsAccounts = {
       user: strategyState.adminAuthority,
@@ -906,22 +964,16 @@ export class Kamino {
       reward1Vault: strategyState.reward1Vault,
       reward2Vault: strategyState.reward2Vault,
       poolRewardVault0:
-        strategyState.reward0Decimals.toNumber() > 0
-          ? whirlpool.rewardInfos[0].vault
-          : strategyState.baseVaultAuthority,
+        strategyState.reward0Decimals.toNumber() > 0 ? poolRewardVault0 : strategyState.baseVaultAuthority,
       poolRewardVault1:
-        strategyState.reward1Decimals.toNumber() > 0
-          ? whirlpool.rewardInfos[1].vault
-          : strategyState.baseVaultAuthority,
+        strategyState.reward1Decimals.toNumber() > 0 ? poolRewardVault1 : strategyState.baseVaultAuthority,
       poolRewardVault2:
-        strategyState.reward2Decimals.toNumber() > 0
-          ? whirlpool.rewardInfos[2].vault
-          : strategyState.baseVaultAuthority,
+        strategyState.reward2Decimals.toNumber() > 0 ? poolRewardVault2 : strategyState.baseVaultAuthority,
       tickArrayLower: strategyState.tickArrayLower,
       tickArrayUpper: strategyState.tickArrayUpper,
       raydiumProtocolPositionOrBaseVaultAuthority: strategyState.raydiumProtocolPositionOrBaseVaultAuthority,
       tokenProgram: TOKEN_PROGRAM_ID,
-      poolProgram: WHIRLPOOL_PROGRAM_ID,
+      poolProgram: programId,
       instructionSysvarAccount: SYSVAR_INSTRUCTIONS_PUBKEY,
     };
 
