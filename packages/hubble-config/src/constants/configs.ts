@@ -108,6 +108,12 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
           shareMint: new PublicKey('GxRNe8dB8iksy1GcNH3du152QdoDoeer9wYMKnCnWTtk'),
           status: 'LIVE',
         },
+        {
+          address: new PublicKey('5EfeGn1h7m6Rx9mGEmamDoxMtdhRmUh2N9fYRiDQqteS'),
+          type: 'NON_PEGGED',
+          shareMint: new PublicKey('8aRT9m1wJ63mnFxeZ3qyBCrwbNMuPKPCEYxpXB41WzYd'),
+          status: 'LIVE',
+        },
       ],
       mints: [
         { address: new PublicKey('USDH1SM1ojwWUga67PGrgFWUHibbjqMvuMaDkRJTgkX'), scopeToken: 'USDH' },
