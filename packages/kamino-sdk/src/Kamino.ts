@@ -1003,7 +1003,32 @@ export class Kamino {
     };
   }
 
-  private async getStartEndTicketIndexProgramAddresses(
+  private async getStartEndTicketIndexProgramAddressesOrca(
+    whirlpool: PublicKey,
+    whirlpoolState: Whirlpool,
+    tickLowerIndex: number,
+    tickUpperIndex: number
+  ) {
+    const startTickIndex = getStartTickIndex(tickLowerIndex, whirlpoolState.tickSpacing, 0);
+    const endTickIndex = getStartTickIndex(tickUpperIndex, whirlpoolState.tickSpacing, 0);
+
+    const [startTickIndexPubkey, startTickIndexBump] = await PublicKey.findProgramAddress(
+      [Buffer.from('tick_array'), whirlpool.toBuffer(), Buffer.from(startTickIndex.toString())],
+      WHIRLPOOL_PROGRAM_ID
+    );
+    const [endTickIndexPubkey, endTickIndexBump] = await PublicKey.findProgramAddress(
+      [Buffer.from('tick_array'), whirlpool.toBuffer(), Buffer.from(endTickIndex.toString())],
+      WHIRLPOOL_PROGRAM_ID
+    );
+    return {
+      startTickIndex: startTickIndexPubkey,
+      startTickIndexBump,
+      endTickIndex: endTickIndexPubkey,
+      endTickIndexBump,
+    };
+  }
+
+  private async getStartEndTicketIndexProgramAddressesRaydium(
     whirlpool: PublicKey,
     whirlpoolState: Whirlpool,
     tickLowerIndex: number,
@@ -1045,6 +1070,12 @@ export class Kamino {
     const strategyState: WhirlpoolStrategy | null = await this.getStrategyByAddress(strategy);
     if (!strategyState) {
       throw Error(`Could not fetch strategy state with pubkey ${strategy.toString()}`);
+    }
+
+    if (strategyState.strategyDex.toNumber() == dexToNumber('ORCA')) {
+
+    } else if (strategyState.strategyDex.toNumber() == dexToNumber('RAYDIUM')) {
+      
     }
 
     const whirlpool = await Whirlpool.fetch(this._connection, strategyState.pool);
