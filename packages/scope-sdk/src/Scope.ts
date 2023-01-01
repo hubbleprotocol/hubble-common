@@ -58,6 +58,22 @@ export const ScopePairs = [
   'UXP/USD',
   'kUXDUSDCOrca/USD',
   'JITOSOL/SOL',
+  'SOLEma/USD',
+  'ETHEma/USD',
+  'SRMEma/USD',
+  'BTCEma/USD',
+  'RAYEma/USD',
+  'FTTEma/USD',
+  'MSOLEma/USD',
+  'BNBEma/USD',
+  'AVAXEma/USD',
+  'STSOLEma/USD',
+  'USDCEma/USD',
+  'USDTEma/USD',
+  'DAIEma/USD',
+  'DUSTTwap/USD',
+  'BONK/USD',
+  'BONKTwap/USD',
 ] as const;
 export type ScopePair = typeof ScopePairs[number];
 
@@ -114,6 +130,7 @@ export const SupportedTokens = [
   'UXP',
   'kUXDUSDCOrca',
   'JITOSOL',
+  'BONK',
 ] as const;
 export type SupportedToken = typeof SupportedTokens[number];
 
@@ -200,6 +217,7 @@ export class Scope {
     { id: 49, pair: 'UXP/USD', name: 'UXP', price: new Decimal(0) },
     { id: 50, pair: 'kUXDUSDCOrca/USD', name: 'kUXDUSDCOrca', price: new Decimal(0) },
     { id: 51, pair: 'JITOSOL/SOL', name: 'JITOSOL', price: new Decimal(0), nonUsdPairId: 0 },
+    { id: 52, pair: 'BONK/USD', name: 'BONK', price: new Decimal(0) },
   ];
 
   /**
