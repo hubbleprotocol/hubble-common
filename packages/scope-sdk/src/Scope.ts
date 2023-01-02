@@ -217,7 +217,7 @@ export class Scope {
     { id: 49, pair: 'UXP/USD', name: 'UXP', price: new Decimal(0) },
     { id: 50, pair: 'kUXDUSDCOrca/USD', name: 'kUXDUSDCOrca', price: new Decimal(0) },
     { id: 51, pair: 'JITOSOL/SOL', name: 'JITOSOL', price: new Decimal(0), nonUsdPairId: 0 },
-    { id: 52, pair: 'BONK/USD', name: 'BONK', price: new Decimal(0) },
+    { id: 68, pair: 'BONK/USD', name: 'BONK', price: new Decimal(0) },
   ];
 
   /**
