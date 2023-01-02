@@ -132,6 +132,8 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
         { address: new PublicKey('9n4nbM75f5Ui33ZbPYXn59EwSgE8CGsHtAeTH5YFeJ9E'), scopeToken: 'BTC' },
         { address: new PublicKey('HBB111SCo9jkCejsZfz8Ec8nH7T6THF8KEKSnvwT6XK6'), scopeToken: 'HBB' },
         { address: new PublicKey('J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn'), scopeToken: 'JITOSOL' },
+        { address: new PublicKey('4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R'), scopeToken: 'RAY' },
+        { address: new PublicKey('DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263'), scopeToken: 'BONK' },
       ],
       whirlpoolsToSnapshot: [
         {
@@ -407,6 +409,20 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
           mintA: new PublicKey('USDH1SM1ojwWUga67PGrgFWUHibbjqMvuMaDkRJTgkX'),
           mintB: new PublicKey('J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn'),
         },
+        {
+          address: new PublicKey('GMx3g7HZCVzLuE6Ckdu9sgExgiZQ7kiF7xfCrPnwVzbr'),
+          collateralA: 'BONK',
+          collateralB: 'USDH',
+          mintA: new PublicKey('DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263'),
+          mintB: new PublicKey('USDH1SM1ojwWUga67PGrgFWUHibbjqMvuMaDkRJTgkX'),
+        },
+        {
+          address: new PublicKey('3ne4mWqdYuNiYrYZC9TrA3FcfuFdErghH97vNPbjicr1'),
+          collateralA: 'BONK',
+          collateralB: 'SOL',
+          mintA: new PublicKey('DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263'),
+          mintB: new PublicKey('So11111111111111111111111111111111111111112'),
+        },
       ],
       strategies: [
         new PublicKey('Cfuy5T6osdazUeLego5LFycBQebm9PP3H7VNdCndXXEN'),
@@ -591,6 +607,8 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
         new PublicKey('Cbgo7WrxWW46cy49TzxhzpoJVcCzEd8r6pVWJFiiPkTL'),
         new PublicKey('H7gU74WroNC6DLHBywHTWEnfEsamxLiUn66uRpYueEPA'),
         new PublicKey('FC6yGPRKoeJz8iVPgvUjyzuie5sBa3FLhuP2tfdNfBpa'),
+        new PublicKey('HWg7yB3C1BnmTKFMU3KGD7E96xx2rUhv4gxrwbZLXHBt'),
+        new PublicKey('8XgX1EkSHC43mwdaUCZeXL2JVFz15JJynFrcxrQa3jss'),
       ],
       programId: new PublicKey('6LtLpnUFNByNXLyCoK9wA2MykKAmQNZKBdY8s47dehDc'),
       globalConfig: new PublicKey('GKnHiWh3RRrE1zsNzWxRkomymHc374TvJPSTv2wPeYdB'),
