@@ -118,6 +118,7 @@ export class Kamino {
     { name: 'UXP', id: 21 },
     { name: 'JITOSOL', id: 22 },
     { name: 'RAY', id: 23 },
+    { name: 'BONK', id: 24 },
   ];
 
   /**
