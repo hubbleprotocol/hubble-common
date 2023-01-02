@@ -61,7 +61,6 @@ export const ScopePairs = [
   'SOLEma/USD',
   'ETHEma/USD',
   'SRMEma/USD',
-  'BTCEma/USD',
   'RAYEma/USD',
   'FTTEma/USD',
   'MSOLTwap/USD',
