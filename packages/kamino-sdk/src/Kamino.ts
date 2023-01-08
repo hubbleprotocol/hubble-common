@@ -1104,7 +1104,7 @@ export class Kamino {
     priceLower: Decimal,
     priceUpper: Decimal,
     status: StrategyStatusKind = new Uninitialized()
-  ) {
+  ): Promise<TransactionInstruction> {
     const strategyState: WhirlpoolStrategy | null = await this.getStrategyByAddress(strategy);
     if (!strategyState) {
       throw Error(`Could not fetch strategy state with pubkey ${strategy.toString()}`);
@@ -1115,6 +1115,8 @@ export class Kamino {
       return this.openPositionOrca(strategy, positionMint, priceLower, priceUpper, status);
     } else if (strategyState.strategyDex.toNumber() == dexToNumber('RAYDIUM')) {
       return this.openPositionRaydium(strategy, positionMint, priceLower, priceUpper, status);
+    } else {
+      throw new Error(`Invalid dex ${strategyState.strategyDex.toString()}`);
     }
   }
 
@@ -1131,7 +1133,7 @@ export class Kamino {
     priceLower: Decimal,
     priceUpper: Decimal,
     status: StrategyStatusKind = new Uninitialized()
-  ) {
+  ): Promise<TransactionInstruction> {
     const strategyState: WhirlpoolStrategy | null = await this.getStrategyByAddress(strategy);
     if (!strategyState) {
       throw Error(`Could not fetch strategy state with pubkey ${strategy.toString()}`);
@@ -1226,7 +1228,7 @@ export class Kamino {
     priceLower: Decimal,
     priceUpper: Decimal,
     status: StrategyStatusKind = new Uninitialized()
-  ) {
+  ): Promise<TransactionInstruction> {
     const strategyState: WhirlpoolStrategy | null = await this.getStrategyByAddress(strategy);
     if (!strategyState) {
       throw Error(`Could not fetch strategy state with pubkey ${strategy.toString()}`);
