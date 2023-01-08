@@ -186,7 +186,7 @@ export class Kamino {
    */
   async getStrategyShareData(strategy: PublicKey | StrategyWithAddress): Promise<ShareData> {
     const strategyState = await this.getStrategyStateIfNotFetched(strategy);
-    const sharesFactor = Decimal.pow(10, strategyState.strategy.sharesMintDecimals.toNumber());
+    const sharesFactor = Decimal.pow(10, strategyState.strategy.sharesMintDecimals.toString());
     const sharesIssued = new Decimal(strategyState.strategy.sharesIssued.toString());
     const balances = await this.getStrategyBalances(strategyState.strategy);
     if (sharesIssued.isZero()) {
@@ -202,7 +202,7 @@ export class Kamino {
    */
   async getStrategySharePrice(strategy: PublicKey | StrategyWithAddress): Promise<Decimal> {
     const strategyState = await this.getStrategyStateIfNotFetched(strategy);
-    const sharesFactor = Decimal.pow(10, strategyState.strategy.sharesMintDecimals.toNumber());
+    const sharesFactor = Decimal.pow(10, strategyState.strategy.sharesMintDecimals.toString());
     const sharesIssued = new Decimal(strategyState.strategy.sharesIssued.toString());
     const balances = await this.getStrategyBalances(strategyState.strategy);
     if (sharesIssued.isZero()) {
@@ -263,10 +263,10 @@ export class Kamino {
       b: bVault,
     };
     const prices = await this.getPrices(strategy);
-    const aAvailable = new Decimal(strategy.tokenAAmounts.toNumber());
-    const bAvailable = new Decimal(strategy.tokenBAmounts.toNumber());
-    const aInvested = new Decimal(removeLiquidityQuote.estTokenA.toNumber());
-    const bInvested = new Decimal(removeLiquidityQuote.estTokenB.toNumber());
+    const aAvailable = new Decimal(strategy.tokenAAmounts.toString());
+    const bAvailable = new Decimal(strategy.tokenBAmounts.toString());
+    const aInvested = new Decimal(removeLiquidityQuote.estTokenA.toString());
+    const bInvested = new Decimal(removeLiquidityQuote.estTokenB.toString());
 
     let computedHoldings: Holdings = this.getStrategyHoldingsUsd(
       aAvailable,
