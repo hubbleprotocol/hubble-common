@@ -14,22 +14,22 @@
   resolved "https://registry.npmjs.org/@colors/colors/-/colors-1.5.0.tgz"
   integrity sha512-ooWCrlZP11i8GImSjTHYHLkvFDP48nS4+204nGb1RiX/WXYHmJA2III9/e2DWVabCESdW7hBAEzHRqUn9OUVvQ==
 
-"@hubbleprotocol/hubble-config@^1.0.167":
-  version "1.0.167"
-  resolved "https://registry.yarnpkg.com/@hubbleprotocol/hubble-config/-/hubble-config-1.0.167.tgz#0c7a2812e9f497f3933c8aba881f00373ad0e8a0"
-  integrity sha512-FKktQd6onUqRDf739bLWv+x1fuxcNnsS7Xlhbj+J7GHIhZrhkHBuwu767IVCY3qy15pANKIu1Rt5I2W3+4ZQVg==
+"@hubbleprotocol/hubble-config@^1.0.168":
+  version "1.0.168"
+  resolved "https://registry.yarnpkg.com/@hubbleprotocol/hubble-config/-/hubble-config-1.0.168.tgz#e7a4a2f723ddfde1df849df4fea8d53ba5fce483"
+  integrity sha512-s2JQaUXpStTHnQHL68DI7pWlXkJ0BCX6aZ9xnG/IPvrN3Cs5zlClFETbp4tCGCm38opZgQyK0tYNEuqSOCjheA==
 
 "@hubbleprotocol/hubble-idl@^1.0.158":
   version "1.0.158"
   resolved "https://registry.npmjs.org/@hubbleprotocol/hubble-idl/-/hubble-idl-1.0.158.tgz"
   integrity sha512-ELU57eqEcJJCCkoC8hspXYKEUXgQ1VMnPDIKN6i4Z6Leu4tfeHLS3RLeBY9HHIUQNygnd//FSAuLdSTSjjfd/g==
 
-"@hubbleprotocol/scope-sdk@^1.0.167":
-  version "1.0.167"
-  resolved "https://registry.yarnpkg.com/@hubbleprotocol/scope-sdk/-/scope-sdk-1.0.167.tgz#e2b23500d0420610bb7803b0f7b8c6c5b736ccc0"
-  integrity sha512-0lj8ZYiyoc2N86GDLmH9hcmUrlfAol5ZvVEMBjEobmi9izCs1Nw4VzEHWtgA+S7ThAKb4285TNeSwomvgwgpyw==
+"@hubbleprotocol/scope-sdk@^1.0.168":
+  version "1.0.168"
+  resolved "https://registry.yarnpkg.com/@hubbleprotocol/scope-sdk/-/scope-sdk-1.0.168.tgz#f242b1b56d91ee1807c543f064e484f274f67f3b"
+  integrity sha512-NcJeFq9r9AwaSJXKmCOCwscUgBMDvKy+0XmUf6gJ6qAJqrQN1cDI035P1CT+f+9xVpzs8UJd2ZHi/HbVbVOKMw==
   dependencies:
-    "@hubbleprotocol/hubble-config" "^1.0.167"
+    "@hubbleprotocol/hubble-config" "^1.0.168"
     "@project-serum/anchor" "^0.21.0"
     "@project-serum/serum" "^0.13.65"
     "@solana/buffer-layout" "^4.0.0"

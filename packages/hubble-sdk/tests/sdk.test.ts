@@ -5,7 +5,6 @@ import Hubble from '../src/Hubble';
 import { SolanaCluster } from '@hubbleprotocol/hubble-config';
 import { PsmReserve } from '../src';
 
-
 describe('Hubble SDK Tests', () => {
   const cluster: SolanaCluster = 'devnet';
   let connection: Connection;

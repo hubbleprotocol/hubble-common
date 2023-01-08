@@ -554,7 +554,7 @@ export class Kamino {
       new Decimal(10).pow(strategyState.strategy.sharesMintDecimals.toString())
     );
 
-    let programId = getDexProgramId(strategyState,s);
+    let programId = getDexProgramId(strategyState.strategy);
 
     const args: WithdrawArgs = { sharesAmount: new BN(sharesAmountInLamports.toNumber()) };
     const accounts: WithdrawAccounts = {
