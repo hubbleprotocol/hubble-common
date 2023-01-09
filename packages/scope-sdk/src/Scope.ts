@@ -74,7 +74,7 @@ export const ScopePairs = [
   'BONK/USD',
   'BONKTwap/USD',
 ] as const;
-export type ScopePair = typeof ScopePairs[number];
+export type ScopePair = (typeof ScopePairs)[number];
 
 export const SupportedTokens = [
   'SOL',
@@ -145,7 +145,7 @@ export const SupportedTokens = [
   'BONK',
   'BONKTwap',
 ] as const;
-export type SupportedToken = typeof SupportedTokens[number];
+export type SupportedToken = (typeof SupportedTokens)[number];
 
 export interface ScopeToken {
   /**
