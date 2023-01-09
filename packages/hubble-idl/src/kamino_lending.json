@@ -1,0 +1,1999 @@
+{
+  "version": "0.1.0",
+  "name": "kamino_lending",
+  "instructions": [
+    {
+      "name": "initLendingMarket",
+      "accounts": [
+        {
+          "name": "owner",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "lendingMarket",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "lendingMarketAuthority",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "oracleProgramId",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "switchboardOracleProgramId",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgramId",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "quoteCurrency",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "setLendingMarketOwner",
+      "accounts": [
+        {
+          "name": "lendingMarketOwner",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "lendingMarket",
+          "isMut": true,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "newOwner",
+          "type": "publicKey"
+        }
+      ]
+    },
+    {
+      "name": "initReserve",
+      "accounts": [
+        {
+          "name": "userTransferAuthority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "lendingMarketOwner",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "lendingMarket",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "lendingMarketAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "reserve",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "reserveLiquidityMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "reserveLiquiditySupply",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "feeReceiver",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "reserveCollateralMint",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "reserveCollateralSupply",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "sourceLiquidity",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "destinationCollateral",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "pythProductInfo",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "pythPriceInfo",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "switchboardFeedInfo",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "liquidityAmount",
+          "type": "u64"
+        },
+        {
+          "name": "config",
+          "type": {
+            "defined": "ReserveConfig"
+          }
+        }
+      ]
+    },
+    {
+      "name": "refreshReserve",
+      "accounts": [
+        {
+          "name": "reserve",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "pythOracle",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "switchboardOracle",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "depositReserveLiquidity",
+      "accounts": [
+        {
+          "name": "userTransferAuthority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "lendingMarket",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "lendingMarketAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "reserve",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "reserveLiquiditySupply",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "reserveCollateralMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "sourceLiquidity",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "destinationCollateral",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "liquidityAmount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "redeemReserveCollateral",
+      "accounts": [
+        {
+          "name": "userTransferAuthority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "lendingMarket",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "lendingMarketAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "reserve",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "reserveCollateralMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "reserveLiquiditySupply",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "sourceCollateral",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "destinationLiquidity",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "collateralAmount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "initObligation",
+      "accounts": [
+        {
+          "name": "obligationOwner",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "obligation",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "lendingMarket",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "refreshObligation",
+      "accounts": [
+        {
+          "name": "obligation",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "clock",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "depositObligationCollateral",
+      "accounts": [
+        {
+          "name": "userTransferAuthority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "obligation",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "obligationOwner",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "lendingMarket",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "depositReserve",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "destinationCollateral",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "sourceCollateral",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "collateralAmount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "withdrawObligationCollateral",
+      "accounts": [
+        {
+          "name": "obligationOwner",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "obligation",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "lendingMarket",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "lendingMarketAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "withdrawReserve",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "sourceCollateral",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "destinationCollateral",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "collateralAmount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "borrowObligationLiquidity",
+      "accounts": [
+        {
+          "name": "obligationOwner",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "obligation",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "lendingMarket",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "lendingMarketAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "borrowReserve",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "sourceLiquidity",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "borrowReserveLiquidityFeeReceiver",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "destinationLiquidity",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "liquidityAmount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "repayObligationLiquidity",
+      "accounts": [
+        {
+          "name": "userTransferAuthority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "obligation",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "lendingMarket",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "repayReserve",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "destinationLiquidity",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "sourceLiquidity",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "liquidityAmount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "depositReserveLiquidityAndObligationCollateral",
+      "accounts": [
+        {
+          "name": "userTransferAuthority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "obligationOwner",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "obligation",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "lendingMarket",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "lendingMarketAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "reserve",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "reserveLiquiditySupply",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "reserveCollateralMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "destinationDepositCollateral",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "sourceLiquidity",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "destinationCollateral",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "reserveLiquidityPythOracle",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "reserveLiquiditySwitchboardOracle",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "liquidityAmount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "withdrawObligationCollateralAndRedeemReserveCollateral",
+      "accounts": [
+        {
+          "name": "userTransferAuthority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "obligationOwner",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "obligation",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "lendingMarket",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "lendingMarketAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "withdrawReserve",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "sourceCollateral",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "reserveCollateralMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "reserveLiquiditySupply",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "destinationLiquidity",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "destinationCollateral",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "collateralAmount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "updateReserveConfig",
+      "accounts": [
+        {
+          "name": "lendingMarketOwner",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "lendingMarket",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "lendingMarketAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "reserve",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "pythProduct",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "pythPrice",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "switchboardFeed",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "config",
+          "type": {
+            "defined": "ReserveConfig"
+          }
+        }
+      ]
+    },
+    {
+      "name": "liquidateObligationAndRedeemReserveCollateral",
+      "accounts": [
+        {
+          "name": "userTransferAuthority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "obligation",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "lendingMarket",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "lendingMarketAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "repayReserve",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "repayReserveLiquiditySupply",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "withdrawReserve",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "withdrawReserveCollateralMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "withdrawReserveCollateralSupply",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "withdrawReserveLiquiditySupply",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "withdrawReserveLiquidityFeeReceiver",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "sourceLiquidity",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "destinationCollateral",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "destinationLiquidity",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "liquidityAmount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "redeemFees",
+      "accounts": [
+        {
+          "name": "reserve",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "reserveLiquidityFeeReceiver",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "reserveSupplyLiquidity",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "lendingMarket",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "lendingMarketAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "flashRepayReserveLiquidity",
+      "accounts": [
+        {
+          "name": "userTransferAuthority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "lendingMarket",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "reserve",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "destinationLiquidity",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "hostFeeReceiver",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "reserveLiquidityFeeReceiver",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "sourceLiquidity",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "sysvarInfo",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "liquidityAmount",
+          "type": "u64"
+        },
+        {
+          "name": "borrowInstructionIndex",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "flashBorrowReserveLiquidity",
+      "accounts": [
+        {
+          "name": "lendingMarket",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "lendingMarketAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "sourceLiquidity",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "reserve",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "destinationLiquidity",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "sysvarInfo",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "liquidityAmount",
+          "type": "u64"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "LendingMarket",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "version",
+            "docs": [
+              "Version of lending market"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "bumpSeed",
+            "docs": [
+              "Bump seed for derived authority address"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "owner",
+            "docs": [
+              "Owner authority which can add new reserves"
+            ],
+            "type": "publicKey"
+          },
+          {
+            "name": "quoteCurrency",
+            "docs": [
+              "Currency market prices are quoted in",
+              "e.g. \"USD\" null padded (`*b\"USD\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\"`) or a SPL token mint pubkey"
+            ],
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "tokenProgramId",
+            "docs": [
+              "Token program id"
+            ],
+            "type": "publicKey"
+          },
+          {
+            "name": "oracleProgramId",
+            "docs": [
+              "Oracle (Pyth) program id"
+            ],
+            "type": "publicKey"
+          },
+          {
+            "name": "switchboardOracleProgramId",
+            "docs": [
+              "Oracle (Switchboard) program id"
+            ],
+            "type": "publicKey"
+          },
+          {
+            "name": "padding",
+            "type": {
+              "array": [
+                "u8",
+                256
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "Obligation",
+      "docs": [
+        "Lending market obligation state"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "version",
+            "docs": [
+              "Version of the struct"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "lastUpdate",
+            "docs": [
+              "Last update to collateral, liquidity, or their market values"
+            ],
+            "type": {
+              "defined": "LastUpdate"
+            }
+          },
+          {
+            "name": "lendingMarket",
+            "docs": [
+              "Lending market address"
+            ],
+            "type": "publicKey"
+          },
+          {
+            "name": "owner",
+            "docs": [
+              "Owner authority which can borrow liquidity"
+            ],
+            "type": "publicKey"
+          },
+          {
+            "name": "depositsLen",
+            "type": "u64"
+          },
+          {
+            "name": "borrowsLen",
+            "type": "u64"
+          },
+          {
+            "name": "deposits",
+            "docs": [
+              "TODO: Does this break the stack size when copied onto the stack, if too big?",
+              "Deposited collateral for the obligation, unique by deposit reserve address"
+            ],
+            "type": {
+              "array": [
+                {
+                  "defined": "ObligationCollateral"
+                },
+                10
+              ]
+            }
+          },
+          {
+            "name": "borrows",
+            "docs": [
+              "Borrowed liquidity for the obligation, unique by borrow reserve address"
+            ],
+            "type": {
+              "array": [
+                {
+                  "defined": "ObligationLiquidity"
+                },
+                10
+              ]
+            }
+          },
+          {
+            "name": "depositedValue",
+            "docs": [
+              "Market value of deposits"
+            ],
+            "type": "u128"
+          },
+          {
+            "name": "borrowedValue",
+            "docs": [
+              "Market value of borrows"
+            ],
+            "type": "u128"
+          },
+          {
+            "name": "allowedBorrowValue",
+            "docs": [
+              "The maximum borrow value at the weighted average loan to value ratio"
+            ],
+            "type": "u128"
+          },
+          {
+            "name": "unhealthyBorrowValue",
+            "docs": [
+              "The dangerous borrow value at the weighted average liquidation threshold"
+            ],
+            "type": "u128"
+          },
+          {
+            "name": "padding",
+            "type": {
+              "array": [
+                "u8",
+                256
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "Reserve",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "version",
+            "docs": [
+              "Version of the reserve"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "lastUpdate",
+            "docs": [
+              "Last slot when supply and rates updated"
+            ],
+            "type": {
+              "defined": "LastUpdate"
+            }
+          },
+          {
+            "name": "lendingMarket",
+            "docs": [
+              "Lending market address"
+            ],
+            "type": "publicKey"
+          },
+          {
+            "name": "liquidity",
+            "docs": [
+              "Reserve liquidity"
+            ],
+            "type": {
+              "defined": "ReserveLiquidity"
+            }
+          },
+          {
+            "name": "collateral",
+            "docs": [
+              "Reserve collateral"
+            ],
+            "type": {
+              "defined": "ReserveCollateral"
+            }
+          },
+          {
+            "name": "config",
+            "docs": [
+              "Reserve configuration values"
+            ],
+            "type": {
+              "defined": "ReserveConfig"
+            }
+          },
+          {
+            "name": "padding",
+            "type": {
+              "array": [
+                "u8",
+                512
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "types": [
+    {
+      "name": "LastUpdate",
+      "docs": [
+        "Last update state"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "slot",
+            "docs": [
+              "Last slot when updated"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "stale",
+            "docs": [
+              "True when marked stale, false when slot updated"
+            ],
+            "type": "bool"
+          },
+          {
+            "name": "placeholder",
+            "type": {
+              "array": [
+                "u8",
+                7
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "ObligationCollateral",
+      "docs": [
+        "Obligation collateral state"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "depositReserve",
+            "docs": [
+              "Reserve collateral is deposited to"
+            ],
+            "type": "publicKey"
+          },
+          {
+            "name": "depositedAmount",
+            "docs": [
+              "Amount of collateral deposited"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "marketValue",
+            "docs": [
+              "Collateral market value in quote currency"
+            ],
+            "type": "u128"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ObligationLiquidity",
+      "docs": [
+        "Obligation liquidity state"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "borrowReserve",
+            "docs": [
+              "Reserve liquidity is borrowed from"
+            ],
+            "type": "publicKey"
+          },
+          {
+            "name": "cumulativeBorrowRateWads",
+            "docs": [
+              "Borrow rate used for calculating interest"
+            ],
+            "type": "u128"
+          },
+          {
+            "name": "borrowedAmountWads",
+            "docs": [
+              "Amount of liquidity borrowed plus interest"
+            ],
+            "type": "u128"
+          },
+          {
+            "name": "marketValue",
+            "docs": [
+              "Liquidity market value in quote currency"
+            ],
+            "type": "u128"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ReserveLiquidity",
+      "docs": [
+        "Reserve liquidity"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "mintPubkey",
+            "docs": [
+              "Reserve liquidity mint address"
+            ],
+            "type": "publicKey"
+          },
+          {
+            "name": "supplyPubkey",
+            "docs": [
+              "Reserve liquidity supply address"
+            ],
+            "type": "publicKey"
+          },
+          {
+            "name": "pythOraclePubkey",
+            "docs": [
+              "Reserve liquidity pyth oracle account"
+            ],
+            "type": "publicKey"
+          },
+          {
+            "name": "switchboardOraclePubkey",
+            "docs": [
+              "Reserve liquidity switchboard oracle account"
+            ],
+            "type": "publicKey"
+          },
+          {
+            "name": "availableAmount",
+            "docs": [
+              "Reserve liquidity available"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "borrowedAmountWads",
+            "docs": [
+              "Reserve liquidity borrowed"
+            ],
+            "type": "u128"
+          },
+          {
+            "name": "cumulativeBorrowRateWads",
+            "docs": [
+              "Reserve liquidity cumulative borrow rate"
+            ],
+            "type": "u128"
+          },
+          {
+            "name": "accumulatedProtocolFeesWads",
+            "docs": [
+              "Reserve cumulative protocol fees"
+            ],
+            "type": "u128"
+          },
+          {
+            "name": "marketPrice",
+            "docs": [
+              "Reserve liquidity market price in quote currency"
+            ],
+            "type": "u128"
+          },
+          {
+            "name": "mintDecimals",
+            "docs": [
+              "Reserve liquidity mint decimals"
+            ],
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ReserveCollateral",
+      "docs": [
+        "Reserve collateral"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "mintPubkey",
+            "docs": [
+              "Reserve collateral mint address"
+            ],
+            "type": "publicKey"
+          },
+          {
+            "name": "mintTotalSupply",
+            "docs": [
+              "Reserve collateral mint supply, used for exchange rate"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "supplyPubkey",
+            "docs": [
+              "Reserve collateral supply address"
+            ],
+            "type": "publicKey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ReserveConfig",
+      "docs": [
+        "Reserve configuration values"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "optimalUtilizationRate",
+            "docs": [
+              "Optimal utilization rate, as a percentage"
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "loanToValueRatio",
+            "docs": [
+              "Target ratio of the value of borrows to deposits, as a percentage",
+              "0 if use as collateral is disabled"
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "liquidationBonus",
+            "docs": [
+              "Bonus a liquidator gets when repaying part of an unhealthy obligation, as a percentage"
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "liquidationThreshold",
+            "docs": [
+              "Loan to value ratio at which an obligation can be liquidated, as a percentage"
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "minBorrowRate",
+            "docs": [
+              "Min borrow APY"
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "optimalBorrowRate",
+            "docs": [
+              "Optimal (utilization) borrow APY"
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "maxBorrowRate",
+            "docs": [
+              "Max borrow APY"
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "protocolLiquidationFee",
+            "docs": [
+              "Cut of the liquidation bonus that the protocol receives, as a percentage"
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "protocolTakeRate",
+            "docs": [
+              "Protocol take rate is the amount borrowed interest protocol receives, as a percentage"
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "placeholder",
+            "type": {
+              "array": [
+                "u8",
+                7
+              ]
+            }
+          },
+          {
+            "name": "fees",
+            "docs": [
+              "Program owner fees assessed, separate from gains due to interest accrual"
+            ],
+            "type": {
+              "defined": "ReserveFees"
+            }
+          },
+          {
+            "name": "depositLimit",
+            "docs": [
+              "Maximum deposit limit of liquidity in native units, u64::MAX for inf"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "borrowLimit",
+            "docs": [
+              "Borrows disabled"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "feeReceiver",
+            "docs": [
+              "Reserve liquidity fee receiver address"
+            ],
+            "type": "publicKey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ReserveFees",
+      "docs": [
+        "Additional fee information on a reserve",
+        "",
+        "These exist separately from interest accrual fees, and are specifically for the program owner",
+        "and frontend host. The fees are paid out as a percentage of liquidity token amounts during",
+        "repayments and liquidations."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "borrowFeeWad",
+            "docs": [
+              "Fee assessed on `BorrowObligationLiquidity`, expressed as a Wad.",
+              "Must be between 0 and 10^18, such that 10^18 = 1.  A few examples for",
+              "clarity:",
+              "1% = 10_000_000_000_000_000",
+              "0.01% (1 basis point) = 100_000_000_000_000",
+              "0.00001% (Aave borrow fee) = 100_000_000_000"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "flashLoanFeeWad",
+            "docs": [
+              "Fee for flash loan, expressed as a Wad.",
+              "0.3% (Aave flash loan fee) = 3_000_000_000_000_000"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "hostFeePercentage",
+            "docs": [
+              "Amount of fee going to host account, if provided in liquidate and repay",
+              "TODO: Enforce max value"
+            ],
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "FeeCalculation",
+      "docs": [
+        "Calculate fees exlusive or inclusive of an amount"
+      ],
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Exclusive"
+          },
+          {
+            "name": "Inclusive"
+          }
+        ]
+      }
+    },
+    {
+      "name": "AccountType",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Unknown"
+          },
+          {
+            "name": "Mapping"
+          },
+          {
+            "name": "Product"
+          },
+          {
+            "name": "Price"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PriceStatus",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Unknown"
+          },
+          {
+            "name": "Trading"
+          },
+          {
+            "name": "Halted"
+          },
+          {
+            "name": "Auction"
+          }
+        ]
+      }
+    },
+    {
+      "name": "CorpAction",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "NoCorpAct"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PriceType",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Unknown"
+          },
+          {
+            "name": "Price"
+          }
+        ]
+      }
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "InstructionUnpackError",
+      "msg": "Failed to unpack instruction data"
+    },
+    {
+      "code": 6001,
+      "name": "AlreadyInitialized",
+      "msg": "Account is already initialized"
+    },
+    {
+      "code": 6002,
+      "name": "NotRentExempt",
+      "msg": "Lamport balance below rent-exempt threshold"
+    },
+    {
+      "code": 6003,
+      "name": "InvalidMarketAuthority",
+      "msg": "Market authority is invalid"
+    },
+    {
+      "code": 6004,
+      "name": "InvalidMarketOwner",
+      "msg": "Market owner is invalid"
+    },
+    {
+      "code": 6005,
+      "name": "InvalidAccountOwner",
+      "msg": "Input account owner is not the program address"
+    },
+    {
+      "code": 6006,
+      "name": "InvalidTokenOwner",
+      "msg": "Input token account is not owned by the correct token program id"
+    },
+    {
+      "code": 6007,
+      "name": "InvalidTokenAccount",
+      "msg": "Input token account is not valid"
+    },
+    {
+      "code": 6008,
+      "name": "InvalidTokenMint",
+      "msg": "Input token mint account is not valid"
+    },
+    {
+      "code": 6009,
+      "name": "InvalidTokenProgram",
+      "msg": "Input token program account is not valid"
+    },
+    {
+      "code": 6010,
+      "name": "InvalidAmount",
+      "msg": "Input amount is invalid"
+    },
+    {
+      "code": 6011,
+      "name": "InvalidConfig",
+      "msg": "Input config value is invalid"
+    },
+    {
+      "code": 6012,
+      "name": "InvalidSigner",
+      "msg": "Input account must be a signer"
+    },
+    {
+      "code": 6013,
+      "name": "InvalidAccountInput",
+      "msg": "Invalid account input"
+    },
+    {
+      "code": 6014,
+      "name": "MathOverflow",
+      "msg": "Math operation overflow"
+    },
+    {
+      "code": 6015,
+      "name": "TokenInitializeMintFailed",
+      "msg": "Token initialize mint failed"
+    },
+    {
+      "code": 6016,
+      "name": "TokenInitializeAccountFailed",
+      "msg": "Token initialize account failed"
+    },
+    {
+      "code": 6017,
+      "name": "TokenTransferFailed",
+      "msg": "Token transfer failed"
+    },
+    {
+      "code": 6018,
+      "name": "TokenMintToFailed",
+      "msg": "Token mint to failed"
+    },
+    {
+      "code": 6019,
+      "name": "TokenBurnFailed",
+      "msg": "Token burn failed"
+    },
+    {
+      "code": 6020,
+      "name": "InsufficientLiquidity",
+      "msg": "Insufficient liquidity available"
+    },
+    {
+      "code": 6021,
+      "name": "ReserveCollateralDisabled",
+      "msg": "Input reserve has collateral disabled"
+    },
+    {
+      "code": 6022,
+      "name": "ReserveStale",
+      "msg": "Reserve state needs to be refreshed"
+    },
+    {
+      "code": 6023,
+      "name": "WithdrawTooSmall",
+      "msg": "Withdraw amount too small"
+    },
+    {
+      "code": 6024,
+      "name": "WithdrawTooLarge",
+      "msg": "Withdraw amount too large"
+    },
+    {
+      "code": 6025,
+      "name": "BorrowTooSmall",
+      "msg": "Borrow amount too small to receive liquidity after fees"
+    },
+    {
+      "code": 6026,
+      "name": "BorrowTooLarge",
+      "msg": "Borrow amount too large for deposited collateral"
+    },
+    {
+      "code": 6027,
+      "name": "RepayTooSmall",
+      "msg": "Repay amount too small to transfer liquidity"
+    },
+    {
+      "code": 6028,
+      "name": "LiquidationTooSmall",
+      "msg": "Liquidation amount too small to receive collateral"
+    },
+    {
+      "code": 6029,
+      "name": "ObligationHealthy",
+      "msg": "Cannot liquidate healthy obligations"
+    },
+    {
+      "code": 6030,
+      "name": "ObligationStale",
+      "msg": "Obligation state needs to be refreshed"
+    },
+    {
+      "code": 6031,
+      "name": "ObligationReserveLimit",
+      "msg": "Obligation reserve limit exceeded"
+    },
+    {
+      "code": 6032,
+      "name": "InvalidObligationOwner",
+      "msg": "Obligation owner is invalid"
+    },
+    {
+      "code": 6033,
+      "name": "ObligationDepositsEmpty",
+      "msg": "Obligation deposits are empty"
+    },
+    {
+      "code": 6034,
+      "name": "ObligationBorrowsEmpty",
+      "msg": "Obligation borrows are empty"
+    },
+    {
+      "code": 6035,
+      "name": "ObligationDepositsZero",
+      "msg": "Obligation deposits have zero value"
+    },
+    {
+      "code": 6036,
+      "name": "ObligationBorrowsZero",
+      "msg": "Obligation borrows have zero value"
+    },
+    {
+      "code": 6037,
+      "name": "InvalidObligationCollateral",
+      "msg": "Invalid obligation collateral"
+    },
+    {
+      "code": 6038,
+      "name": "InvalidObligationLiquidity",
+      "msg": "Invalid obligation liquidity"
+    },
+    {
+      "code": 6039,
+      "name": "ObligationCollateralEmpty",
+      "msg": "Obligation collateral is empty"
+    },
+    {
+      "code": 6040,
+      "name": "ObligationLiquidityEmpty",
+      "msg": "Obligation liquidity is empty"
+    },
+    {
+      "code": 6041,
+      "name": "NegativeInterestRate",
+      "msg": "Interest rate is negative"
+    },
+    {
+      "code": 6042,
+      "name": "InvalidOracleConfig",
+      "msg": "Input oracle config is invalid"
+    },
+    {
+      "code": 6043,
+      "name": "InvalidFlashLoanReceiverProgram",
+      "msg": "Input flash loan receiver program account is not valid"
+    },
+    {
+      "code": 6044,
+      "name": "NotEnoughLiquidityAfterFlashLoan",
+      "msg": "Not enough liquidity after flash loan"
+    },
+    {
+      "code": 6045,
+      "name": "NullOracleConfig",
+      "msg": "Null oracle config"
+    },
+    {
+      "code": 6046,
+      "name": "InsufficientProtocolFeesToRedeem",
+      "msg": "Insufficent protocol fees to claim or no liquidity availible"
+    },
+    {
+      "code": 6047,
+      "name": "FlashBorrowCpi",
+      "msg": "No cpi flash borrows allowed"
+    },
+    {
+      "code": 6048,
+      "name": "NoFlashRepayFound",
+      "msg": "No corresponding repay found for flash borrow"
+    },
+    {
+      "code": 6049,
+      "name": "InvalidFlashRepay",
+      "msg": "Invalid repay found"
+    },
+    {
+      "code": 6050,
+      "name": "FlashRepayCpi",
+      "msg": "No cpi flash repays allowed"
+    },
+    {
+      "code": 6051,
+      "name": "MultipleFlashBorrows",
+      "msg": "Multiple flash borrows not allowed in the same transaction"
+    },
+    {
+      "code": 6052,
+      "name": "FlashLoansDisabled",
+      "msg": "Flash loans are disabled for this reserve"
+    },
+    {
+      "code": 6053,
+      "name": "DeprecatedInstruction",
+      "msg": "Instruction is deprecated"
+    },
+    {
+      "code": 6054,
+      "name": "SwitchboardV2Error",
+      "msg": "Switchboard error"
+    }
+  ]
+}
