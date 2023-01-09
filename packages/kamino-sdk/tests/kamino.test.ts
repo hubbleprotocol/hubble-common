@@ -28,12 +28,12 @@ describe('Kamino SDK Tests', () => {
   // const cluster: Cluster = 'localnet';
   const cluster = 'localnet';
   const clusterUrl: string = 'http://127.0.0.1:8899';
-  const fixtures = {
+  let fixtures = {
     globalConfig: new PublicKey('981uJhuXAtmrnJiJ3Z4wthnHSDnQTgaHzakABg1CKczW'),
     existingWhirlpool: new PublicKey('Fvtf8VCjnkqbETA6KtyHYqHm26ut6w184Jqm4MQjPvv7'),
     existingRaydiumPool: new PublicKey('DJ78peEetZfMu4fttt9Eg7hsfza5JM7rZig1mgh8kAQz'),
     existingOrcaStrategy: new PublicKey('E5sW8oNa6iMHRbjpSPb8h3MWaPzeazPyY3ZcSFaejASZ'),
-    existingRaydiumStrategy: new PublicKey('RAYDIUM'),
+    existingRaydiumStrategy: new PublicKey('E5sW8oNa6iMHRbjpSPb8h3MWaPzeazPyY3ZcSFaejASZ'), // todo: see what has to go here
     scopePrices: new PublicKey('3NJYftD5sjVfxSnUdZ1wVML8f3aC6mp1CXCL6L7TnU8C'),
     scopeProgram: new PublicKey('HFn8GnPADiny6XqUoWE8uRPPxb29ikn4yTuPa9MF2fWJ'),
     signerPrivateKey: [
@@ -45,16 +45,18 @@ describe('Kamino SDK Tests', () => {
 
   beforeAll(() => {
     connection = new Connection(clusterUrl);
+
+    
     // connection = new Connection(clusterApiUrl(cluster));
   });
 
-  test.skip('should throw on invalid cluster', () => {
+  test('should throw on invalid cluster', () => {
     // @ts-ignore
     const init = () => new Kamino('invalid-clusters', undefined);
     expect(init).toThrow(Error);
   });
 
-  test.skip('should get all strategies', async () => {
+  test('should get all strategies', async () => {
     const kamino = new Kamino(cluster, connection);
     const allStrategies = await kamino.getStrategies();
     expect(allStrategies.length).toBeGreaterThan(0);
