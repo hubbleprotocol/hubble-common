@@ -3,7 +3,7 @@
   "description": "Hubble Protocol configuration",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "version": "1.0.170",
+  "version": "1.0.171",
   "scripts": {
     "build": "tsc",
     "build:watch": "tsc -w"
