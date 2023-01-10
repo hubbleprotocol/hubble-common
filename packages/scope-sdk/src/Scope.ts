@@ -73,6 +73,10 @@ export const ScopePairs = [
   'DUSTTwap/USD',
   'BONK/USD',
   'BONKTwap/USD',
+  'SAMO/USD',
+  'SAMOTwap/USD',
+  'bSOL/SOL',
+  'LaineSOL/SOL',
 ] as const;
 export type ScopePair = (typeof ScopePairs)[number];
 
@@ -144,6 +148,10 @@ export const SupportedTokens = [
   'DUSTTwap',
   'BONK',
   'BONKTwap',
+  'SAMO',
+  'SAMOTwap',
+  'bSOL',
+  'LaineSOL',
 ] as const;
 export type SupportedToken = (typeof SupportedTokens)[number];
 
@@ -230,21 +238,25 @@ export class Scope {
     { id: 49, pair: 'UXP/USD', name: 'UXP', price: new Decimal(0) },
     { id: 50, pair: 'kUXDUSDCOrca/USD', name: 'kUXDUSDCOrca', price: new Decimal(0) },
     { id: 51, pair: 'JITOSOL/SOL', name: 'JITOSOL', price: new Decimal(0), nonUsdPairId: 0 },
-    { id: 52, pair: 'SOLEma/USD', name: 'SOLEma', price: new Decimal(0), nonUsdPairId: 0 },
-    { id: 53, pair: 'ETHEma/USD', name: 'ETHEma', price: new Decimal(0), nonUsdPairId: 0 },
-    { id: 55, pair: 'SRMEma/USD', name: 'SRMEma', price: new Decimal(0), nonUsdPairId: 0 },
-    { id: 56, pair: 'RAYEma/USD', name: 'RAYEma', price: new Decimal(0), nonUsdPairId: 0 },
-    { id: 57, pair: 'FTTEma/USD', name: 'FTTEma', price: new Decimal(0), nonUsdPairId: 0 },
-    { id: 58, pair: 'MSOLTwap/USD', name: 'MSOLTwap', price: new Decimal(0), nonUsdPairId: 0 },
-    { id: 59, pair: 'BNBEma/USD', name: 'BNBEma', price: new Decimal(0), nonUsdPairId: 0 },
-    { id: 60, pair: 'AVAXEma/USD', name: 'AVAXEma', price: new Decimal(0), nonUsdPairId: 0 },
-    { id: 61, pair: 'STSOLTwap/USD', name: 'STSOLTwap', price: new Decimal(0), nonUsdPairId: 0 },
-    { id: 62, pair: 'USDCEma/USD', name: 'USDCEma', price: new Decimal(0), nonUsdPairId: 0 },
-    { id: 63, pair: 'USDTEma/USD', name: 'USDTEma', price: new Decimal(0), nonUsdPairId: 0 },
-    { id: 65, pair: 'DAIEma/USD', name: 'DAIEma', price: new Decimal(0), nonUsdPairId: 0 },
-    { id: 67, pair: 'DUSTTwap/USD', name: 'DUSTTwap', price: new Decimal(0), nonUsdPairId: 0 },
+    { id: 52, pair: 'SOLEma/USD', name: 'SOLEma', price: new Decimal(0) },
+    { id: 53, pair: 'ETHEma/USD', name: 'ETHEma', price: new Decimal(0) },
+    { id: 55, pair: 'SRMEma/USD', name: 'SRMEma', price: new Decimal(0) },
+    { id: 56, pair: 'RAYEma/USD', name: 'RAYEma', price: new Decimal(0) },
+    { id: 57, pair: 'FTTEma/USD', name: 'FTTEma', price: new Decimal(0) },
+    { id: 58, pair: 'MSOLTwap/USD', name: 'MSOLTwap', price: new Decimal(0) },
+    { id: 59, pair: 'BNBEma/USD', name: 'BNBEma', price: new Decimal(0) },
+    { id: 60, pair: 'AVAXEma/USD', name: 'AVAXEma', price: new Decimal(0) },
+    { id: 61, pair: 'STSOLTwap/USD', name: 'STSOLTwap', price: new Decimal(0) },
+    { id: 62, pair: 'USDCEma/USD', name: 'USDCEma', price: new Decimal(0) },
+    { id: 63, pair: 'USDTEma/USD', name: 'USDTEma', price: new Decimal(0) },
+    { id: 65, pair: 'DAIEma/USD', name: 'DAIEma', price: new Decimal(0) },
+    { id: 67, pair: 'DUSTTwap/USD', name: 'DUSTTwap', price: new Decimal(0) },
     { id: 68, pair: 'BONK/USD', name: 'BONK', price: new Decimal(0) },
     { id: 69, pair: 'BONKTwap/USD', name: 'BONKTwap', price: new Decimal(0) },
+    { id: 70, pair: 'SAMO/USD', name: 'SAMO', price: new Decimal(0) },
+    { id: 71, pair: 'SAMOTwap/USD', name: 'SAMOTwap', price: new Decimal(0) },
+    { id: 72, pair: 'bSOL/SOL', name: 'bSOL', price: new Decimal(0), nonUsdPairId: 0 },
+    { id: 73, pair: 'LaineSOL/SOL', name: 'LaineSOL', price: new Decimal(0), nonUsdPairId: 0 },
   ];
 
   /**
