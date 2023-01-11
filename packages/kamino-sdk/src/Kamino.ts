@@ -143,7 +143,8 @@ export class Kamino {
     });
     this._kaminoProgram = new Program(KAMINO_IDL as Idl, this._config.kamino.programId, this._provider);
     this._scope = new Scope(cluster, connection);
-    setKaminoProgramId(this._config.kamino.programId);
+    // setKaminoProgramId(this._config.kamino.programId);
+    setKaminoProgramId(new PublicKey("6LtLpnUFNByNXLyCoK9wA2MykKAmQNZKBdY8s47dehDc"));
   }
 
   getConnection() {

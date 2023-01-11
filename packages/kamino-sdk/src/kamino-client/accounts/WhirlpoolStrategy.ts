@@ -478,6 +478,8 @@ export class WhirlpoolStrategy {
         return null
       }
       if (!info.owner.equals(PROGRAM_ID)) {
+        console.log('SILVIU info.owner', info.owner.toString());
+        console.log('SILVIU PROGRAM_ID', PROGRAM_ID.toString());
         throw new Error("account doesn't belong to this program")
       }
 

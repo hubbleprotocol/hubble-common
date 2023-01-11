@@ -22,20 +22,25 @@ import { GlobalConfigOption, GlobalConfigOptionKind } from '../src/kamino-client
 import { SupportedToken } from '@hubbleprotocol/scope-sdk';
 import BN from 'bn.js';
 import { Uninitialized } from '../src/kamino-client/types/StrategyStatus';
+import { initializeRaydiumPool } from './raydium_utils';
 
 describe('Kamino SDK Tests', () => {
   let connection: Connection;
   // const cluster: Cluster = 'localnet';
   const cluster = 'localnet';
   const clusterUrl: string = 'http://127.0.0.1:8899';
+  connection = new Connection(clusterUrl);
+
   let fixtures = {
     globalConfig: new PublicKey('981uJhuXAtmrnJiJ3Z4wthnHSDnQTgaHzakABg1CKczW'),
     existingWhirlpool: new PublicKey('Fvtf8VCjnkqbETA6KtyHYqHm26ut6w184Jqm4MQjPvv7'),
     existingRaydiumPool: new PublicKey('DJ78peEetZfMu4fttt9Eg7hsfza5JM7rZig1mgh8kAQz'),
-    existingOrcaStrategy: new PublicKey('E5sW8oNa6iMHRbjpSPb8h3MWaPzeazPyY3ZcSFaejASZ'),
+    existingOrcaStrategy: new PublicKey('Cfuy5T6osdazUeLego5LFycBQebm9PP3H7VNdCndXXEN'),
     existingRaydiumStrategy: new PublicKey('E5sW8oNa6iMHRbjpSPb8h3MWaPzeazPyY3ZcSFaejASZ'), // todo: see what has to go here
     scopePrices: new PublicKey('3NJYftD5sjVfxSnUdZ1wVML8f3aC6mp1CXCL6L7TnU8C'),
     scopeProgram: new PublicKey('HFn8GnPADiny6XqUoWE8uRPPxb29ikn4yTuPa9MF2fWJ'),
+    tokenMintA: new PublicKey('USDH1SM1ojwWUga67PGrgFWUHibbjqMvuMaDkRJTgkX'),
+    tokenMintB: new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'),
     signerPrivateKey: [
       243, 40, 114, 191, 142, 196, 87, 228, 207, 36, 182, 90, 227, 157, 113, 142, 144, 182, 242, 100, 81, 173, 42, 201,
       95, 86, 24, 160, 85, 13, 75, 165, 19, 134, 236, 53, 139, 222, 86, 12, 231, 163, 29, 94, 127, 22, 32, 59, 201, 57,
@@ -43,12 +48,14 @@ describe('Kamino SDK Tests', () => {
     ],
   };
 
-  beforeAll(() => {
-    connection = new Connection(clusterUrl);
+  const signer = Keypair.fromSecretKey(Uint8Array.from(fixtures.signerPrivateKey));
 
-    
+  beforeAll(async () => {
+    connection = new Connection(clusterUrl);
+    let raydiumPool = await initializeRaydiumPool(connection, signer, 1, fixtures.tokenMintA, fixtures.tokenMintB);
+    // const signer = Keypair.fromSecretKey(Uint8Array.from(fixtures.signerPrivateKey));
     // connection = new Connection(clusterApiUrl(cluster));
-  });
+  }, 500000);
 
   test('should throw on invalid cluster', () => {
     // @ts-ignore
@@ -58,34 +65,34 @@ describe('Kamino SDK Tests', () => {
 
   test('should get all strategies', async () => {
     const kamino = new Kamino(cluster, connection);
-    const allStrategies = await kamino.getStrategies();
+    const allStrategies = await kamino.getStrategies([fixtures.existingOrcaStrategy]);
     expect(allStrategies.length).toBeGreaterThan(0);
     for (const strat of allStrategies) {
       expect(strat).not.toBeNull();
       console.log(strat?.pool.toString());
     }
   });
-  test.skip('should get strategy by address', async () => {
+  test('should get strategy by address', async () => {
     const kamino = new Kamino(cluster, connection);
-    const strategy = await kamino.getStrategyByAddress(new PublicKey('LXUYy5TN2Bq9BoQXx2LKYqmnq4kzZzDT15NuiZ3VAMy'));
+    const strategy = await kamino.getStrategyByAddress(fixtures.existingOrcaStrategy);
     expect(strategy).not.toBeNull();
     console.log(strategy?.toJSON());
   });
 
-  test.skip('should get Orca strategy share price', async () => {
-    const kamino = new Kamino(cluster, connection);
-    const strategy = await kamino.getStrategyByAddress(new PublicKey('LXUYy5TN2Bq9BoQXx2LKYqmnq4kzZzDT15NuiZ3VAMy'));
-    expect(strategy).not.toBeNull();
-    const price = await kamino.getStrategyShareData(new PublicKey('LXUYy5TN2Bq9BoQXx2LKYqmnq4kzZzDT15NuiZ3VAMy'));
-    expect(price.price.toNumber()).toBeGreaterThanOrEqual(0);
-    console.log(price);
-  });
-
-  test.skip('should get RAYDIUM strategy share price', async () => {
+  test('should get RAYDIUM strategy share price', async () => {
     const kamino = new Kamino(cluster, connection);
     const strategy = await kamino.getStrategyByAddress(new PublicKey('RAYDIUM'));
     expect(strategy).not.toBeNull();
     const price = await kamino.getStrategyShareData(new PublicKey('RAYDIUM'));
+    expect(price.price.toNumber()).toBeGreaterThanOrEqual(0);
+    console.log(price);
+  }, 500000);
+
+  test('should get Orca strategy share price', async () => {
+    const kamino = new Kamino(cluster, connection);
+    const strategy = await kamino.getStrategyByAddress(fixtures.existingOrcaStrategy);
+    expect(strategy).not.toBeNull();
+    const price = await kamino.getStrategyShareData(fixtures.existingOrcaStrategy);
     expect(price.price.toNumber()).toBeGreaterThanOrEqual(0);
     console.log(price);
   });
@@ -454,9 +461,7 @@ describe('Kamino SDK Tests', () => {
     );
     tx.add(openPositionIx);
 
-    const txHash = await sendTransactionWithLogs(connection, tx, owner, [signer, positionMint], {
-      commitment: 'finalized',
-    });
+    const txHash = await sendTransactionWithLogs(connection, tx, owner, [signer, positionMint]);
 
     console.log('transaction hash', txHash);
   }, 30_000);
