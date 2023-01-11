@@ -23,6 +23,7 @@ import { SupportedToken } from '@hubbleprotocol/scope-sdk';
 import BN from 'bn.js';
 import { Uninitialized } from '../src/kamino-client/types/StrategyStatus';
 import { initializeRaydiumPool } from './raydium_utils';
+import { initializeWhirlpool } from './orca_utils';
 
 describe('Kamino SDK Tests', () => {
   let connection: Connection;
@@ -52,9 +53,9 @@ describe('Kamino SDK Tests', () => {
 
   beforeAll(async () => {
     connection = new Connection(clusterUrl);
-    let raydiumPool = await initializeRaydiumPool(connection, signer, 1, fixtures.tokenMintA, fixtures.tokenMintB);
-    // const signer = Keypair.fromSecretKey(Uint8Array.from(fixtures.signerPrivateKey));
-    // connection = new Connection(clusterApiUrl(cluster));
+    // let raydiumPool = await initializeRaydiumPool(connection, signer, 1, fixtures.tokenMintA, fixtures.tokenMintB);
+    // fixtures.existingRaydiumPool = raydiumPool.pool;
+    let whirlpool = await initializeWhirlpool(connection, signer, 1, fixtures.tokenMintA, fixtures.tokenMintB);
   }, 500000);
 
   test('should throw on invalid cluster', () => {
