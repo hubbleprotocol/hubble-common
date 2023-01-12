@@ -72,6 +72,8 @@ export class Position {
 
   static async fetch(c: Connection, address: PublicKey): Promise<Position | null> {
     const info = await c.getAccountInfo(address);
+    console.log('whirlpool info.owner', info?.owner.toString());
+    console.log("WHIRLPOOL_PROGRAM_ID", WHIRLPOOL_PROGRAM_ID.toString());
 
     if (info === null) {
       return null;

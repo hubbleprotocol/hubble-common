@@ -18,6 +18,8 @@ import { accountExist, DeployedPool } from './utils';
 import { getMintDecimals } from '@project-serum/serum/lib/market';
 import { LiquidityMath, SqrtPriceMath, TickMath } from '@raydium-io/raydium-sdk/lib/ammV3/utils/math';
 import Decimal from 'decimal.js';
+import { ExecutiveWithdrawActionKind } from '../src/kamino-client/types';
+import { WhirlpoolStrategy } from '../src/kamino-client/accounts';
 
 export const OBSERVATION_STATE_LEN = 52121;
 export const AMM_CONFIG_SEED = Buffer.from(anchor.utils.bytes.utf8.encode('amm_config'));
@@ -213,4 +215,29 @@ export async function getPoolVaultAddress(
     programId
   );
   return [address, bump];
+}
+
+export async function openLiquidityPositionRaydium(
+  connection: Connection,
+  strategy: PublicKey,
+  priceLower: Decimal,
+  priceUpper: Decimal
+) {
+  let positionMint = Keypair.generate();
+}
+
+export async function openLiquidityPositionRaydiumIx(
+  connection: Connection,
+  strategy: PublicKey,
+  positionMint: Keypair,
+  priceLower: Decimal,
+  priceUpper: Decimal,
+  strategyCurrentState?: ExecutiveWithdrawActionKind
+): Promise<[anchor.web3.TransactionInstruction, PublicKey, PublicKey, PublicKey, PublicKey]> {
+  let strategyState = await WhirlpoolStrategy.fetch(connection, strategy);
+  if (strategyState == null) {
+    throw new Error(`strategy ${strategy} doesn't exist`);
+  }
+
+  let poolState: PoolState = await PoolState.fetch(env.provider.connection, strategyState.pool);
 }

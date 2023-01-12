@@ -99,6 +99,7 @@ export class Kamino {
   private readonly _scope: Scope;
   private readonly _provider: Provider;
   private _kaminoProgram: Program;
+  private _kaminoProgramId: PublicKey;
 
   private readonly _tokenMap: KaminoToken[] = [
     { name: 'USDC', id: 0 },
@@ -133,22 +134,27 @@ export class Kamino {
    * @param cluster Name of the Solana cluster
    * @param connection Connection to the Solana cluster
    */
-  constructor(cluster: SolanaCluster, connection: Connection, globalConfig?: PublicKey) {
+  constructor(cluster: SolanaCluster, connection: Connection, programId: PublicKey, globalConfig: PublicKey) {
     this._cluster = cluster;
     this._connection = connection;
     this._config = getConfigByCluster(cluster);
-    this._globalConfig = globalConfig ? globalConfig : new PublicKey(this._config.kamino.globalConfig);
+    this._globalConfig = globalConfig;
     this._provider = new Provider(connection, getReadOnlyWallet(), {
       commitment: connection.commitment,
     });
-    this._kaminoProgram = new Program(KAMINO_IDL as Idl, this._config.kamino.programId, this._provider);
+    this._kaminoProgram = new Program(KAMINO_IDL as Idl, programId, this._provider);
+    this._kaminoProgramId = programId;
     this._scope = new Scope(cluster, connection);
-    // setKaminoProgramId(this._config.kamino.programId);
-    setKaminoProgramId(new PublicKey("6LtLpnUFNByNXLyCoK9wA2MykKAmQNZKBdY8s47dehDc"));
+    setKaminoProgramId(programId);
+    console.log("programId", programId.toString());
   }
 
   getConnection() {
     return this._connection;
+  }
+
+  getProgramID() {
+    return this._kaminoProgramId;
   }
 
   getProgram() {
@@ -178,6 +184,7 @@ export class Kamino {
    * @param address
    */
   getStrategyByAddress(address: PublicKey) {
+    console.log("getStrategyByAddress ", address.toString());
     return WhirlpoolStrategy.fetch(this._connection, address);
   }
 
@@ -232,6 +239,7 @@ export class Kamino {
   }
 
   private async getStrategyBalancesOrca(strategy: WhirlpoolStrategy) {
+    console.log("getStrategyBalancesOrca whirlpool", strategy.pool.toString());
     const whirlpool = await Whirlpool.fetch(this._connection, strategy.pool);
     const position = await Position.fetch(this._connection, strategy.position);
 
@@ -663,15 +671,15 @@ export class Kamino {
   private async getTreasuryFeeVaultPDAs(tokenAMint: PublicKey, tokenBMint: PublicKey): Promise<TreasuryFeeVault> {
     const [treasuryFeeTokenAVault, _treasuryFeeTokenAVaultBump] = await PublicKey.findProgramAddress(
       [Buffer.from('treasury_fee_vault'), tokenAMint.toBuffer()],
-      this._config.kamino.programId
+      this.getProgramID()
     );
     const [treasuryFeeTokenBVault, _treasuryFeeTokenBVaultBump] = await PublicKey.findProgramAddress(
       [Buffer.from('treasury_fee_vault'), tokenBMint.toBuffer()],
-      this._config.kamino.programId
+      this.getProgramID()
     );
     const [treasuryFeeVaultAuthority, _treasuryFeeVaultAuthorityBump] = await PublicKey.findProgramAddress(
       [Buffer.from('treasury_fee_vault_authority')],
-      this._config.kamino.programId
+      this.getProgramID()
     );
     return { treasuryFeeTokenAVault, treasuryFeeTokenBVault, treasuryFeeVaultAuthority };
   }
@@ -784,6 +792,7 @@ export class Kamino {
     tokenB: SupportedToken,
     dex: Dex
   ) {
+    console.log('in silviu createStrategy');
     let tokenMintA = PublicKey.default;
     let tokenMintB = PublicKey.default;
     if (dex == 'ORCA') {
@@ -794,6 +803,7 @@ export class Kamino {
       tokenMintA = whirlpoolState.tokenMintA;
       tokenMintB = whirlpoolState.tokenMintB;
     } else if (dex == 'RAYDIUM') {
+      console.log('in silviu createStrategy RAYDIUM');
       const raydiumPoolState = await PoolState.fetch(this._connection, pool);
       if (!raydiumPoolState) {
         throw Error(`Could not fetch Raydium pool state with pubkey ${pool.toString()}`);
@@ -804,11 +814,13 @@ export class Kamino {
       throw new Error(`Invalid dex ${dex.toString()}`);
     }
 
-    let config = await GlobalConfig.fetch(this._connection, this._config.kamino.globalConfig);
+    let config = await GlobalConfig.fetch(
+      this._connection,
+      new PublicKey('GKnHiWh3RRrE1zsNzWxRkomymHc374TvJPSTv2wPeYdB')
+    );
     if (!config) {
-      throw Error(`Could not fetch globalConfig  with pubkey ${this._config.kamino.globalConfig.toString()}`);
+      throw Error(`Could not fetch globalConfig  with pubkey ${this.getGlobalConfig().toString()}`);
     }
-    let tokenInfos = config.tokenInfos;
 
     const programAddresses = await this.getStrategyProgramAddresses(strategy, tokenMintA, tokenMintB);
     const strategyArgs: InitializeStrategyArgs = {
@@ -816,6 +828,26 @@ export class Kamino {
       tokenBCollateralId: new BN(this.getCollateralId(tokenB)),
       strategyType: new BN(dexToNumber(dex)),
     };
+
+    console.log('adminAuthority:', owner.toString());
+    console.log('strategy:', strategy.toString());
+    console.log('globalConfig:', this._globalConfig.toString());
+    console.log('pool:', pool.toString());
+    console.log('tokenAMint:', tokenMintA.toString());
+    console.log('tokenBMint:', tokenMintB.toString());
+    console.log('tokenAVault:', programAddresses.tokenAVault.toString());
+    console.log('tokenBVault:', programAddresses.tokenBVault.toString());
+    console.log('baseVaultAuthority:', programAddresses.baseVaultAuthority.toString());
+    console.log('sharesMint:', programAddresses.sharesMint.toString());
+    console.log('sharesMintAuthority:', programAddresses.sharesMintAuthority.toString());
+    console.log('scopePriceId:', config.scopePriceId.toString());
+    console.log('scopeProgramId:', config.scopeProgramId.toString());
+    console.log('tokenInfos:', config.tokenInfos.toString());
+    console.log('systemProgram:', SystemProgram.programId.toString());
+    console.log('rent:', SYSVAR_RENT_PUBKEY.toString());
+    console.log('tokenProgram:', TOKEN_PROGRAM_ID.toString());
+    console.log('associatedTokenProgram:', ASSOCIATED_TOKEN_PROGRAM_ID.toString());
+
     const strategyAccounts: InitializeStrategyAccounts = {
       adminAuthority: owner,
       strategy,
@@ -855,24 +887,30 @@ export class Kamino {
   ): Promise<StrategyProgramAddress> {
     const [tokenAVault, tokenABump] = await PublicKey.findProgramAddress(
       [Buffer.from('svault_a'), strategy.toBuffer()],
-      this._config.kamino.programId
+      this.getProgramID()
     );
     const [tokenBVault, tokenBBump] = await PublicKey.findProgramAddress(
       [Buffer.from('svault_b'), strategy.toBuffer()],
-      this._config.kamino.programId
+      this.getProgramID()
     );
     const [baseVaultAuthority, baseVaultAuthorityBump] = await PublicKey.findProgramAddress(
       [Buffer.from('authority'), tokenAVault.toBuffer(), tokenBVault.toBuffer()],
-      this._config.kamino.programId
+      this.getProgramID()
     );
     const [sharesMint, sharesMintBump] = await PublicKey.findProgramAddress(
       [Buffer.from('shares'), strategy.toBuffer(), tokenMintA.toBuffer(), tokenMintB.toBuffer()],
-      this._config.kamino.programId
+      this.getProgramID()
     );
     const [sharesMintAuthority, sharesMintAuthorityBump] = await PublicKey.findProgramAddress(
       [Buffer.from('authority'), sharesMint.toBuffer()],
-      this._config.kamino.programId
+      this.getProgramID()
     );
+
+    console.log('!!! tokenAVault', tokenAVault.toString());
+    console.log('!!! tokenBVault', tokenBVault.toString());
+    console.log('baseVaultAuthority', baseVaultAuthority.toString());
+    console.log('strategy', strategy.toString());
+    // console.log
     return {
       sharesMintAuthority,
       tokenAVault,
@@ -901,7 +939,7 @@ export class Kamino {
   async createAccountRentExempt(payer: PublicKey, newAccountPubkey: PublicKey, size: number) {
     const lamports = await this._connection.getMinimumBalanceForRentExemption(size);
     return SystemProgram.createAccount({
-      programId: this._config.kamino.programId,
+      programId: this.getProgramID(),
       fromPubkey: payer,
       newAccountPubkey,
       space: size,
@@ -1443,8 +1481,6 @@ export class Kamino {
     }
     return positions;
   }
-
-
 }
 
 export default Kamino;

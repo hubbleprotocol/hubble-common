@@ -102,8 +102,8 @@ export async function sendTransactionWithLogs(
   payer: PublicKey,
   signers: Signer[],
   args: { skipPreflight?: boolean; commitment: Commitment } = {
-    skipPreflight: false,
-    commitment: 'processed',
+    skipPreflight: true,
+    commitment: 'confirmed',
   }
 ): Promise<TransactionSignature | null> {
   let txn = await assignBlockInfoToTransaction(connection, tx, payer);
