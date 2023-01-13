@@ -119,6 +119,9 @@ export class Kamino {
     { name: 'JITOSOL', id: 22 },
     { name: 'RAY', id: 23 },
     { name: 'BONK', id: 24 },
+    { name: 'SAMO', id: 25 },
+    { name: 'LaineSOL', id: 26 },
+    { name: 'bSOL', id: 27 },
   ];
 
   /**
