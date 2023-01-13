@@ -17,6 +17,7 @@ import { PROGRAM_ID_CLI as WHIRLPOOL_PROGRAM_ID } from '../src/whirpools-client/
 import { orderMints } from './raydium_utils';
 import Decimal from 'decimal.js';
 import { getStartTickIndex, priceToSqrtX64 } from '@orca-so/whirlpool-sdk';
+import { Whirlpool } from '../src/whirpools-client/accounts';
 
 export async function initializeWhirlpool(
   connection: Connection,
@@ -217,4 +218,29 @@ async function getTickArray(
     [Buffer.from('tick_array'), whirlpoolAddress.toBuffer(), Buffer.from(startTick.toString())],
     programId
   );
+}
+
+export async function getTickArrayPubkeysFromRangeOrca(
+  connection: Connection,
+  whirlpool: PublicKey,
+  tickLowerIndex: number,
+  tickUpperIndex: number
+) {
+  let whirlpoolState = await Whirlpool.fetch(connection, whirlpool);
+  if (whirlpoolState == null) {
+    throw new Error(`Raydium Pool ${whirlpool} doesn't exist`);
+  }
+
+  let startTickIndex = getStartTickIndex(tickLowerIndex, whirlpoolState.tickSpacing, 0);
+  let endTickIndex = getStartTickIndex(tickUpperIndex, whirlpoolState.tickSpacing, 0);
+
+  const [startTickIndexPk, _startTickIndexBump] = await anchor.web3.PublicKey.findProgramAddress(
+    [Buffer.from('tick_array'), whirlpool.toBuffer(), Buffer.from(startTickIndex.toString())],
+    WHIRLPOOL_PROGRAM_ID
+  );
+  const [endTickIndexPk, _endTickIndexBump] = await anchor.web3.PublicKey.findProgramAddress(
+    [Buffer.from('tick_array'), whirlpool.toBuffer(), Buffer.from(endTickIndex.toString())],
+    WHIRLPOOL_PROGRAM_ID
+  );
+  return [startTickIndexPk, endTickIndexPk];
 }

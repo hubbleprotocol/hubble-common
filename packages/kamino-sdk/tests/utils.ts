@@ -22,7 +22,10 @@ export async function deployWhirlpool(wallet: PublicKey) {
 import { Idl, Program, web3 } from '@project-serum/anchor';
 import Decimal from 'decimal.js';
 import { Whirlpool, WhirlpoolStrategy } from '../src/kamino-client/accounts';
-import { dexToNumber, sendTransactionWithLogs } from '../src';
+import { Dex, dexToNumber, sendTransactionWithLogs } from '../src';
+import { getTickArrayPubkeysFromRangeRaydium, openLiquidityPositionRaydium } from './raydium_utils';
+import { getTickArrayPubkeysFromRangeOrca } from './orca_utils';
+import { Key } from 'readline';
 
 export async function accountExist(connection: anchor.web3.Connection, account: anchor.web3.PublicKey) {
   console.log('in account exitst');
@@ -95,6 +98,7 @@ export async function updateStrategyConfig(
 
 export async function openLiquidityPosition(
   connection: Connection,
+  signer: Keypair,
   strategy: PublicKey,
   priceLower: Decimal,
   priceUpper: Decimal
@@ -104,13 +108,28 @@ export async function openLiquidityPosition(
     throw new Error(`strategy ${strategy} doesn't exist`);
   }
   if (strategyState.strategyDex.toNumber() == dexToNumber('ORCA')) {
-    openLiquidityPositionOrca(connection, strategy, priceLower, priceUpper);
+    openLiquidityPositionOrca(connection, signer, strategy, priceLower, priceUpper);
   } else if (strategyState.strategyDex.toNumber() == dexToNumber('RAYDIUM')) {
-    openLiquidityPositionRaydium(connection, strategy, priceLower, priceUpper);
+    openLiquidityPositionRaydium(connection, signer, strategy, priceLower, priceUpper);
   } else {
     throw new Error(`Invalid dex ${strategyState.strategyDex.toString()}`);
   }
+}
 
+export async function getTickArrayPubkeysFromRange(
+  connection: Connection,
+  dex: Dex,
+  pool: PublicKey,
+  tickLowerIndex: number,
+  tickUpperIndex: number
+) {
+  if (dex == 'ORCA') {
+    return getTickArrayPubkeysFromRangeOrca(connection, pool, tickLowerIndex, tickUpperIndex);
+  } else if (dex == 'RAYDIUM') {
+    return getTickArrayPubkeysFromRangeRaydium(connection, pool, tickLowerIndex, tickUpperIndex);
+  } else {
+    throw new Error('Invalid dex');
+  }
 }
 
 export type DeployedPool = {

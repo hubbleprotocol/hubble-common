@@ -13,13 +13,26 @@ import {
   Keypair,
 } from '@solana/web3.js';
 import * as RaydiumInstructions from '../src/raydium_client/instructions';
-import { sendTransactionWithLogs, TOKEN_PROGRAM_ID } from '../src';
-import { accountExist, DeployedPool } from './utils';
+import {
+  ASSOCIATED_TOKEN_PROGRAM_ID,
+  createAddExtraComputeUnitsTransaction,
+  getAssociatedTokenAddress,
+  sendTransactionWithLogs,
+  TOKEN_PROGRAM_ID,
+} from '../src';
+import { accountExist, DeployedPool, getTickArrayPubkeysFromRange } from './utils';
 import { getMintDecimals } from '@project-serum/serum/lib/market';
 import { LiquidityMath, SqrtPriceMath, TickMath } from '@raydium-io/raydium-sdk/lib/ammV3/utils/math';
 import Decimal from 'decimal.js';
-import { ExecutiveWithdrawActionKind } from '../src/kamino-client/types';
+import { ExecutiveWithdrawAction, ExecutiveWithdrawActionKind } from '../src/kamino-client/types';
 import { WhirlpoolStrategy } from '../src/kamino-client/accounts';
+import { PoolState } from '../src/raydium_client/accounts';
+import { Rebalancing } from '../src/kamino-client/types/StrategyStatus';
+import { METADATA_PROGRAM_ID, METADATA_UPDATE_AUTH } from '../src/constants/metadata';
+import { OpenLiquidityPositionArgs } from '../src/kamino-client/instructions';
+import { i32ToBytes, TickUtils } from '@raydium-io/raydium-sdk';
+import * as Instructions from '../src/kamino-client/instructions';
+import { Key } from 'readline';
 
 export const OBSERVATION_STATE_LEN = 52121;
 export const AMM_CONFIG_SEED = Buffer.from(anchor.utils.bytes.utf8.encode('amm_config'));
@@ -219,15 +232,27 @@ export async function getPoolVaultAddress(
 
 export async function openLiquidityPositionRaydium(
   connection: Connection,
+  signer: Keypair,
   strategy: PublicKey,
   priceLower: Decimal,
   priceUpper: Decimal
 ) {
   let positionMint = Keypair.generate();
+
+  let openIx = await openLiquidityPositionRaydiumIx(connection, signer, strategy, positionMint, priceLower, priceUpper);
+
+  const tx = new Transaction();
+  let increaseComputeIx = createAddExtraComputeUnitsTransaction(signer.publicKey, 400_000);
+  tx.add(increaseComputeIx);
+  tx.add(openIx[0]);
+
+  let sig = await sendTransactionWithLogs(connection, tx, signer.publicKey, [signer, positionMint]);
+  console.log('OpenLiquidityPosition for Raydium ', sig);
 }
 
 export async function openLiquidityPositionRaydiumIx(
   connection: Connection,
+  signer: Keypair,
   strategy: PublicKey,
   positionMint: Keypair,
   priceLower: Decimal,
@@ -239,5 +264,112 @@ export async function openLiquidityPositionRaydiumIx(
     throw new Error(`strategy ${strategy} doesn't exist`);
   }
 
-  let poolState: PoolState = await PoolState.fetch(env.provider.connection, strategyState.pool);
+  let poolState = await PoolState.fetch(connection, strategyState.pool);
+  if (poolState == null) {
+    throw new Error(`Raydium Pool ${poolState} doesn't exist`);
+  }
+
+  let decimalsA = await getMintDecimals(connection, poolState.tokenMint0);
+  let decimalsB = await getMintDecimals(connection, poolState.tokenMint1);
+
+  let tickLowerIndex = TickMath.getTickWithPriceAndTickspacing(priceLower, poolState.tickSpacing, decimalsA, decimalsB);
+  let tickUpperIndex = TickMath.getTickWithPriceAndTickspacing(priceUpper, poolState.tickSpacing, decimalsA, decimalsB);
+
+  let isRebalancing = false;
+  if (strategyCurrentState) {
+    isRebalancing = strategyCurrentState.kind == ExecutiveWithdrawAction.Rebalance.kind;
+  } else {
+    isRebalancing = strategyState.status.toNumber() == Rebalancing.discriminator;
+  }
+
+  const [protocolPosition, _protocolPositionBump] = await anchor.web3.PublicKey.findProgramAddress(
+    [Buffer.from('position'), strategyState.pool.toBuffer(), i32ToBytes(tickLowerIndex), i32ToBytes(tickUpperIndex)],
+    RAYDIUM_PROGRAM_ID
+  );
+
+  const [position, positionBump] = await anchor.web3.PublicKey.findProgramAddress(
+    [Buffer.from('position'), positionMint.publicKey.toBuffer()],
+    RAYDIUM_PROGRAM_ID
+  );
+
+  const [positionMetadata, positionMetadataBump] = await anchor.web3.PublicKey.findProgramAddress(
+    [Buffer.from('metadata'), METADATA_PROGRAM_ID.toBuffer(), positionMint.publicKey.toBuffer()],
+    METADATA_PROGRAM_ID
+  );
+
+  let positionTokenAccount = await getAssociatedTokenAddress(strategyState.baseVaultAuthority, positionMint.publicKey);
+
+  const [startTickIndexPk, endTickIndexPk] = await getTickArrayPubkeysFromRange(
+    connection,
+    'RAYDIUM',
+    strategyState.pool,
+    tickLowerIndex,
+    tickUpperIndex
+  );
+
+  let args: OpenLiquidityPositionArgs = {
+    tickLowerIndex: new anchor.BN(tickLowerIndex),
+    tickUpperIndex: new anchor.BN(tickUpperIndex),
+    bump: positionBump,
+  };
+
+  let accounts: Instructions.OpenLiquidityPositionAccounts = {
+    adminAuthority: signer.publicKey,
+    strategy: strategy,
+    pool: strategyState.pool,
+    tickArrayLower: startTickIndexPk,
+    tickArrayUpper: endTickIndexPk,
+    baseVaultAuthority: strategyState.baseVaultAuthority,
+    position,
+    positionMint: positionMint.publicKey,
+    positionMetadataAccount: positionMetadata,
+    positionTokenAccount,
+    rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+    system: anchor.web3.SystemProgram.programId,
+    tokenProgram: TOKEN_PROGRAM_ID,
+    associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+    metadataProgram: METADATA_PROGRAM_ID,
+    metadataUpdateAuth: METADATA_UPDATE_AUTH,
+    poolProgram: RAYDIUM_PROGRAM_ID,
+    oldPositionOrBaseVaultAuthority: isRebalancing ? strategyState.position : strategyState.baseVaultAuthority,
+    oldPositionMintOrBaseVaultAuthority: isRebalancing ? strategyState.positionMint : strategyState.baseVaultAuthority,
+    oldPositionTokenAccountOrBaseVaultAuthority: isRebalancing
+      ? strategyState.positionTokenAccount
+      : strategyState.baseVaultAuthority,
+    raydiumProtocolPositionOrBaseVaultAuthority: protocolPosition,
+    adminTokenAAtaOrBaseVaultAuthority: strategyState.tokenAVault,
+    adminTokenBAtaOrBaseVaultAuthority: strategyState.tokenBVault,
+    poolTokenVaultAOrBaseVaultAuthority: poolState.tokenVault0,
+    poolTokenVaultBOrBaseVaultAuthority: poolState.tokenVault1,
+  };
+
+  let openIx = Instructions.openLiquidityPosition(args, accounts);
+  console.log('Raydium Position:', positionMint.publicKey.toString());
+  return [openIx, position, startTickIndexPk, endTickIndexPk, protocolPosition];
+}
+
+export async function getTickArrayPubkeysFromRangeRaydium(
+  connection: Connection,
+  pool: PublicKey,
+  tickLowerIndex: number,
+  tickUpperIndex: number
+) {
+  let poolState = await PoolState.fetch(connection, pool);
+  if (poolState == null) {
+    throw new Error(`Error fetching ${poolState}`);
+  }
+
+  let startTickIndex = TickUtils.getTickArrayStartIndexByTick(tickLowerIndex, poolState.tickSpacing);
+  let endTickIndex = TickUtils.getTickArrayStartIndexByTick(tickUpperIndex, poolState.tickSpacing);
+
+  const [startTickIndexPk, _startTickIndexBump] = await anchor.web3.PublicKey.findProgramAddress(
+    [Buffer.from('tick_array'), pool.toBuffer(), i32ToBytes(startTickIndex)],
+    RAYDIUM_PROGRAM_ID
+  );
+  const [endTickIndexPk, _endTickIndexBump] = await anchor.web3.PublicKey.findProgramAddress(
+    [Buffer.from('tick_array'), pool.toBuffer(), i32ToBytes(endTickIndex)],
+    RAYDIUM_PROGRAM_ID
+  );
+
+  return [startTickIndexPk, endTickIndexPk];
 }
