@@ -9,15 +9,32 @@ import {
   TransactionInstruction,
   Keypair,
 } from '@solana/web3.js';
-import { DeployedPool, range } from './utils';
+import { DeployedPool, getTickArrayPubkeysFromRange, range } from './utils';
 import * as WhirlpoolInstructions from '../src/whirpools-client/instructions';
 import * as anchor from '@project-serum/anchor';
-import { sendTransactionWithLogs, TOKEN_PROGRAM_ID } from '../src';
+import {
+  ASSOCIATED_TOKEN_PROGRAM_ID,
+  createAddExtraComputeUnitsTransaction,
+  getAssociatedTokenAddress,
+  sendTransactionWithLogs,
+  TOKEN_PROGRAM_ID,
+} from '../src';
 import { PROGRAM_ID_CLI as WHIRLPOOL_PROGRAM_ID } from '../src/whirpools-client/programId';
 import { orderMints } from './raydium_utils';
 import Decimal from 'decimal.js';
-import { getStartTickIndex, priceToSqrtX64 } from '@orca-so/whirlpool-sdk';
+import {
+  getStartTickIndex,
+  priceToSqrtX64,
+  priceToTickIndex,
+  getNearestValidTickIndexFromTickIndex,
+} from '@orca-so/whirlpool-sdk';
 import { Whirlpool } from '../src/whirpools-client/accounts';
+import { ExecutiveWithdrawAction, ExecutiveWithdrawActionKind } from '../src/kamino-client/types';
+import { WhirlpoolStrategy } from '../src/kamino-client/accounts';
+import { getMintDecimals } from '@project-serum/serum/lib/market';
+import { Rebalancing } from '../src/kamino-client/types/StrategyStatus';
+import { METADATA_PROGRAM_ID, METADATA_UPDATE_AUTH } from '../src/constants/metadata';
+import * as Instructions from '../src/kamino-client/instructions';
 
 export async function initializeWhirlpool(
   connection: Connection,
@@ -243,4 +260,118 @@ export async function getTickArrayPubkeysFromRangeOrca(
     WHIRLPOOL_PROGRAM_ID
   );
   return [startTickIndexPk, endTickIndexPk];
+}
+
+export async function openLiquidityPositionOrca(
+  connection: Connection,
+  signer: Keypair,
+  strategy: PublicKey,
+  priceLower: Decimal,
+  priceUpper: Decimal
+) {
+  let positionMint = Keypair.generate();
+
+  let openIx = await openLiquidityPositionOrcaIx(connection, signer, strategy, positionMint, priceLower, priceUpper);
+
+  const tx = new Transaction();
+  let increaseComputeIx = createAddExtraComputeUnitsTransaction(signer.publicKey, 400_000);
+  tx.add(increaseComputeIx);
+  tx.add(openIx[0]);
+
+  let sig = await sendTransactionWithLogs(connection, tx, signer.publicKey, [signer, positionMint]);
+  console.log('OpenLiquidityPosition for Orca ', sig);
+}
+
+export async function openLiquidityPositionOrcaIx(
+  connection: Connection,
+  signer: Keypair,
+  strategy: PublicKey,
+  positionMint: Keypair,
+  priceLower: Decimal,
+  priceUpper: Decimal,
+  strategyCurrentState?: ExecutiveWithdrawActionKind
+): Promise<[anchor.web3.TransactionInstruction, PublicKey, PublicKey, PublicKey]> {
+  let strategyState = await WhirlpoolStrategy.fetch(connection, strategy);
+  if (strategyState == null) {
+    throw new Error(`strategy ${strategy} doesn't exist`);
+  }
+
+  let whirlpool = await Whirlpool.fetch(connection, strategyState.pool);
+  if (whirlpool == null) {
+    throw new Error(`Raydium Pool ${whirlpool} doesn't exist`);
+  }
+
+  let decimalsA = await getMintDecimals(connection, whirlpool.tokenMintA);
+  let decimalsB = await getMintDecimals(connection, whirlpool.tokenMintB);
+
+  let tickLowerIndex = priceToTickIndex(priceLower, decimalsA, decimalsB);
+  let tickUpperIndex = priceToTickIndex(priceUpper, decimalsA, decimalsB);
+  tickLowerIndex = getNearestValidTickIndexFromTickIndex(tickLowerIndex, whirlpool.tickSpacing);
+  tickUpperIndex = getNearestValidTickIndexFromTickIndex(tickUpperIndex, whirlpool.tickSpacing);
+
+  let isRebalancing = false;
+  if (strategyCurrentState) {
+    isRebalancing = strategyCurrentState.kind == ExecutiveWithdrawAction.Rebalance.kind;
+  } else {
+    isRebalancing = strategyState.status.toNumber() == Rebalancing.discriminator;
+  }
+
+  const [position, positionBump] = await anchor.web3.PublicKey.findProgramAddress(
+    [Buffer.from('position'), positionMint.publicKey.toBuffer()],
+    WHIRLPOOL_PROGRAM_ID
+  );
+
+  const [positionMetadata, positionMetadataBump] = await anchor.web3.PublicKey.findProgramAddress(
+    [Buffer.from('metadata'), METADATA_PROGRAM_ID.toBuffer(), positionMint.publicKey.toBuffer()],
+    METADATA_PROGRAM_ID
+  );
+  let positionTokenAccount = await getAssociatedTokenAddress(strategyState.baseVaultAuthority, positionMint.publicKey);
+
+  let args: Instructions.OpenLiquidityPositionArgs = {
+    tickLowerIndex: new anchor.BN(tickLowerIndex),
+    tickUpperIndex: new anchor.BN(tickUpperIndex),
+    bump: positionBump,
+  };
+
+  const [startTickIndexPk, endTickIndexPk] = await getTickArrayPubkeysFromRange(
+    connection,
+    'ORCA',
+    strategyState.pool,
+    tickLowerIndex,
+    tickUpperIndex
+  );
+
+  let accounts: Instructions.OpenLiquidityPositionAccounts = {
+    adminAuthority: signer.publicKey,
+    strategy: strategy,
+    pool: strategyState.pool,
+    tickArrayLower: startTickIndexPk,
+    tickArrayUpper: endTickIndexPk,
+    baseVaultAuthority: strategyState.baseVaultAuthority,
+    position: position,
+    positionMint: positionMint.publicKey,
+    positionMetadataAccount: positionMetadata,
+    positionTokenAccount: positionTokenAccount,
+    rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+    system: anchor.web3.SystemProgram.programId,
+    tokenProgram: TOKEN_PROGRAM_ID,
+    associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+    metadataProgram: METADATA_PROGRAM_ID,
+    metadataUpdateAuth: METADATA_UPDATE_AUTH,
+    poolProgram: WHIRLPOOL_PROGRAM_ID,
+    oldPositionOrBaseVaultAuthority: isRebalancing ? strategyState.position : strategyState.baseVaultAuthority,
+    oldPositionMintOrBaseVaultAuthority: isRebalancing ? strategyState.positionMint : strategyState.baseVaultAuthority,
+    oldPositionTokenAccountOrBaseVaultAuthority: isRebalancing
+      ? strategyState.positionTokenAccount
+      : strategyState.baseVaultAuthority,
+    raydiumProtocolPositionOrBaseVaultAuthority: strategyState.baseVaultAuthority,
+    adminTokenAAtaOrBaseVaultAuthority: strategyState.baseVaultAuthority,
+    adminTokenBAtaOrBaseVaultAuthority: strategyState.baseVaultAuthority,
+    poolTokenVaultAOrBaseVaultAuthority: strategyState.baseVaultAuthority,
+    poolTokenVaultBOrBaseVaultAuthority: strategyState.baseVaultAuthority,
+  };
+
+  let ix = Instructions.openLiquidityPosition(args, accounts);
+  console.log('Orca Position:', positionMint.toString());
+  return [ix, position, startTickIndexPk, endTickIndexPk];
 }
