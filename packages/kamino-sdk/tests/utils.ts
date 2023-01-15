@@ -185,86 +185,108 @@ export async function initializeGlobalConfig(connection: Connection, signer: Key
   console.log('Initialize Global Config: ' + globalConfig.publicKey.toString());
 }
 
-// export async function createUser(
-//   connection: Connection,
-//   strategy: PublicKey,
-//   solAirdropAmount: Decimal,
-//   aAirdropAmount: Decimal,
-//   bAirdropAmount: Decimal,
-//   user?: Keypair
-// ): Promise<User> {
-//   if (!user) {
-//     user = new anchor.web3.Keypair();
-//   }
+export async function createUser(
+  connection: Connection,
+  signer: Keypair,
+  strategy: PublicKey,
+  solAirdropAmount: Decimal,
+  aAirdropAmount: Decimal,
+  bAirdropAmount: Decimal,
+  user?: Keypair
+): Promise<User> {
+  let wallet = new anchor.Wallet(signer);
+  const provider = new anchor.Provider(connection, wallet, anchor.Provider.defaultOptions());
+  if (!user) {
+    user = new anchor.web3.Keypair();
+  }
 
-//   if (solAirdropAmount.gt(0)) {
-//     await solAirdrop(connection, user.publicKey, solAirdropAmount);
-//     await sleep(1000);
-//   }
+  if (solAirdropAmount.gt(0)) {
+    await solAirdrop(connection, provider, user.publicKey, solAirdropAmount);
+    await sleep(1000);
+  }
 
-//   let whirlpoolStrategyState = await WhirlpoolStrategy.fetch(connection, strategy);
-//   if (whirlpoolStrategyState == null) {
-//     throw new Error(`Strategy ${strategy.toString()} does not exist`);
-//   }
+  let whirlpoolStrategyState = await WhirlpoolStrategy.fetch(connection, strategy);
+  if (whirlpoolStrategyState == null) {
+    throw new Error(`Strategy ${strategy.toString()} does not exist`);
+  }
 
-//   const aAta = await setupAta(connection, whirlpoolStrategyState.tokenAMint, user);
-//   const bAta = await setupAta(connection, whirlpoolStrategyState.tokenBMint, user);
-//   const sharesAta = await setupAta(connection, whirlpoolStrategyState.sharesMint, user);
+  const aAta = await setupAta(connection, whirlpoolStrategyState.tokenAMint, user);
+  const bAta = await setupAta(connection, whirlpoolStrategyState.tokenBMint, user);
+  const sharesAta = await setupAta(connection, whirlpoolStrategyState.sharesMint, user);
 
-//   let tokenADecimals = await getMintDecimals(connection, whirlpoolStrategyState.tokenAMint);
-//   let tokenBDecimals = await getMintDecimals(connection, whirlpoolStrategyState.tokenBMint);
+  let tokenADecimals = await getMintDecimals(connection, whirlpoolStrategyState.tokenAMint);
+  let tokenBDecimals = await getMintDecimals(connection, whirlpoolStrategyState.tokenBMint);
 
-//   await sleep(2000); // TODO: remove this, ataAccount isn't read by createMintToInstr.
-//   if (aAirdropAmount.gt(0)) {
-//     await mintTo(
-//       connection,
-//       whirlpoolStrategyState.tokenAMint,
-//       aAta,
-//       collToLamportsDecimal(aAirdropAmount, tokenADecimals).toNumber()
-//     );
-//   }
-//   if (bAirdropAmount.gt(0)) {
-//     await mintTo(
-//       env.provider,
-//       whirlpoolStrategyState.tokenBMint,
-//       bAta,
-//       collToLamportsDecimal(bAirdropAmount, tokenBDecimals).toNumber()
-//     );
-//   }
+  await sleep(2000); // TODO: remove this, ataAccount isn't read by createMintToInstr.
+  if (aAirdropAmount.gt(0)) {
+    await mintTo(
+      connection,
+      signer,
+      whirlpoolStrategyState.tokenAMint,
+      aAta,
+      collToLamportsDecimal(aAirdropAmount, tokenADecimals).toNumber()
+    );
+  }
+  if (bAirdropAmount.gt(0)) {
+    await mintTo(
+      connection,
+      signer,
+      whirlpoolStrategyState.tokenBMint,
+      bAta,
+      collToLamportsDecimal(bAirdropAmount, tokenBDecimals).toNumber()
+    );
+  }
 
-//   const testingUser: User = {
-//     tokenAAta: aAta,
-//     tokenBAta: bAta,
-//     sharesAta,
-//     owner: user,
-//   };
-//   return testingUser;
-// }
+  const testingUser: User = {
+    tokenAAta: aAta,
+    tokenBAta: bAta,
+    sharesAta,
+    owner: user,
+  };
+  return testingUser;
+}
 
-// export async function mintTo(connection: Connection, mintPubkey: PublicKey, tokenAccount: PublicKey, amount: number) {
-//   const tx = new Transaction().add(
-//     Token.createMintToInstruction(
-//       TOKEN_PROGRAM_ID, // always TOKEN_PROGRAM_ID
-//       mintPubkey, // mint
-//       tokenAccount, // receiver (sholud be a token account)
-//       provider.wallet.publicKey, // mint authority
-//       [], // only multisig account will use. leave it empty now.
-//       amount // amount. if your decimals is 8, you mint 10^8 for 1 token.
-//     )
-//   );
+export async function solAirdrop(
+  connection: Connection,
+  provider: anchor.Provider,
+  account: PublicKey,
+  solAirdrop: Decimal
+): Promise<Decimal> {
+  const airdropTxnId = await connection.requestAirdrop(account, collToLamportsDecimal(solAirdrop, 9).toNumber());
+  await connection.confirmTransaction(airdropTxnId);
+  return await getSolBalance(provider, account);
+}
 
-//   await provider.send(tx);
-// }
+export async function mintTo(
+  connection: Connection,
+  signer: Keypair,
+  mintPubkey: PublicKey,
+  tokenAccount: PublicKey,
+  amount: number
+) {
+  const tx = new Transaction().add(
+    Token.createMintToInstruction(
+      TOKEN_PROGRAM_ID, // always TOKEN_PROGRAM_ID
+      mintPubkey, // mint
+      tokenAccount, // receiver (sholud be a token account)
+      signer.publicKey, // mint authority
+      [], // only multisig account will use. leave it empty now.
+      amount // amount. if your decimals is 8, you mint 10^8 for 1 token.
+    )
+  );
 
-// export async function setupAta(connection: Connection, tokenMintAddress: PublicKey, user: Keypair): Promise<PublicKey> {
-//   const ata = await getAssociatedTokenAddress(user.publicKey, tokenMintAddress);
-//   if (!(await checkIfAccountExists(connection, ata))) {
-//     const ix = await createAtaInstruction(user.publicKey, tokenMintAddress, ata);
-//     const tx = new Transaction().add(ix);
-//     await connection.sendTransaction(tx, [user]);
-//   }
-//   return ata;
-// }
+  await sendTransactionWithLogs(connection, tx, signer.publicKey, [signer]);
+}
+
+export async function setupAta(connection: Connection, tokenMintAddress: PublicKey, user: Keypair): Promise<PublicKey> {
+  const ata = await getAssociatedTokenAddress(user.publicKey, tokenMintAddress);
+  if (!(await checkIfAccountExists(connection, ata))) {
+    const ix = await createAtaInstruction(user.publicKey, tokenMintAddress, ata);
+    const tx = new Transaction().add(ix);
+    await connection.sendTransaction(tx, [user]);
+  }
+  return ata;
+}
 
 export async function checkIfAccountExists(connection: Connection, account: PublicKey): Promise<boolean> {
   return (await connection.getAccountInfo(account)) != null;
@@ -285,91 +307,44 @@ export async function createAtaInstruction(
   );
 }
 
-// export async function solAirdrop(connection: Connection, account: PublicKey, solAirdrop: Decimal): Promise<Decimal> {
-//   const airdropTxnId = await connection.requestAirdrop(account, collToLamports(solAirdrop, 'SOL').toNumber());
-//   await connection.confirmTransaction(airdropTxnId);
-//   return await getSolBalance(provider, account);
-// }
+export async function solAirdropMin(
+  provider: anchor.Provider,
+  account: PublicKey,
+  minSolAirdrop: Decimal
+): Promise<Decimal> {
+  const airdropBatchAmount = Decimal.max(50, minSolAirdrop);
+  let currentBalance = await getSolBalance(provider, account);
+  while (currentBalance.lt(minSolAirdrop)) {
+    try {
+      await provider.connection.requestAirdrop(account, collToLamportsDecimal(airdropBatchAmount, 9).toNumber());
+    } catch (e) {
+      await sleep(100);
+      console.log('Error', e);
+    }
+    await sleep(100);
+    currentBalance = await getSolBalance(provider, account);
+  }
+  return currentBalance;
+}
 
-// export async function getSolBalance(provider: anchor.Provider, account: PublicKey): Promise<Decimal> {
-//   const balance = new Decimal(await getSolBalanceInLamports(provider, account));
-//   return lamportsToColl(balance, 'SOL');
-// }
+export async function getSolBalance(provider: anchor.Provider, account: PublicKey): Promise<Decimal> {
+  const balance = new Decimal(await getSolBalanceInLamports(provider, account));
+  return lamportsToCollDecimal(balance, 9);
+}
 
-// export async function getSolBalanceInLamports(provider: anchor.Provider, account: PublicKey): Promise<number> {
-//     let balance = undefined;
-//     while (balance === undefined) {
-//       balance = (await provider.connection.getAccountInfo(account))?.lamports;
-//     }
+export async function getSolBalanceInLamports(provider: anchor.Provider, account: PublicKey): Promise<number> {
+  let balance: number | undefined = undefined;
+  while (balance === undefined) {
+    balance = (await provider.connection.getAccountInfo(account))?.lamports;
+  }
 
-//     return balance;
-//   }
+  return balance;
+}
 
-// export function collToLamports(amount: Decimal, token: CollateralToken): Decimal {
-//   let decimals = collToDecimal(token);
-//   return collToLamportsDecimal(amount, decimals);
-// }
-
-// export function collToDecimal(token: CollateralToken): number {
-//   switch (token) {
-//     case 'USDC':
-//       return 6;
-//     case 'USDT':
-//       return 6;
-//     case 'USDH':
-//       return 6;
-//     case 'SOL':
-//       return 9;
-//     case 'MSOL':
-//       return 9;
-//     case 'STSOL':
-//       return 9;
-//     case 'SCNSOL':
-//       return 9;
-//     case 'ORCA':
-//       return 6;
-//     case 'LDO':
-//       return 8;
-//     case 'MNDE':
-//       return 9;
-//     case 'HBB':
-//       return 6;
-//     case 'JSOL':
-//       return 9;
-//     case 'UXD':
-//       return 6;
-//     case 'DAI':
-//       return 9;
-//     case 'USH':
-//       return 9;
-//     case 'BTC':
-//       return 6;
-//     case 'ETH':
-//       return 8;
-//     case 'HDG':
-//       return 9; // https://solscan.io/token/5PmpMzWjraf3kSsGEKtqdUsCoLhptg4yriZ17LKKdBBy
-//     case 'DUST':
-//       return 9; // https://explorer.solana.com/address/DUSTawucrTsGU8hcqRdHDCbuYhCPADMLM2VcCb8VnFnQ
-//     case 'USDR':
-//       return 6;
-//     case 'RATIO': // ratioMVg27rSZbSvBopUvsdrGUzeALUfFma61mpxc8J
-//       return 6;
-//     case 'JITOSOL': // J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn
-//       return 9;
-//     case 'RAY': // 4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R
-//       return 6;
-//     case 'BONK': // DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263
-//       return 5;
-//     case 'SAMO':
-//       return 9; // 7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU
-//     case 'BSOL':
-//       return 9; // bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1
-//     case 'LaineSOL':
-//       return 9; // LAinEtNLgpmCP9Rvsf5Hn8W6EhNiKLZQti1xfWMLy6X
-//     default:
-//       throw new Error(`Unknown token ${token}`);
-//   }
-// }
+export function lamportsToCollDecimal(amount: Decimal, decimals: number): Decimal {
+  let factor = Math.pow(10, decimals);
+  return amount.div(factor);
+}
 
 export async function createMint(connection: Connection, signer: Keypair, decimals: number = 6): Promise<PublicKey> {
   const mint = anchor.web3.Keypair.generate();
@@ -411,6 +386,11 @@ async function createMintInstructions(
       mintAuthority: signer.publicKey,
     }),
   ];
+}
+
+export function collToLamportsDecimal(amount: Decimal, decimals: number): Decimal {
+  let factor = Math.pow(10, decimals);
+  return amount.mul(factor);
 }
 
 export type DeployedPool = {

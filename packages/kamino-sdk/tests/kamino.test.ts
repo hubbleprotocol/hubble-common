@@ -106,7 +106,6 @@ describe('Kamino SDK Tests', () => {
       'USDH',
       'USDC',
       'ORCA',
-      // globalConfig
     );
     console.log('trying to create the raydium strat 6');
     tx.add(orcaStrategyIx);
@@ -180,6 +179,7 @@ describe('Kamino SDK Tests', () => {
   }, 500000);
 
   test.skip('should get Orca strategy share price', async () => {
+    
     const kamino = new Kamino(cluster, connection, fixtures.kaminoProgramId, fixtures.globalConfig);
     const strategy = await kamino.getStrategyByAddress(fixtures.existingOrcaStrategy);
     expect(strategy).not.toBeNull();
