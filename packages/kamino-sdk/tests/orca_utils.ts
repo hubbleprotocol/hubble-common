@@ -372,6 +372,6 @@ export async function openLiquidityPositionOrcaIx(
   };
 
   let ix = Instructions.openLiquidityPosition(args, accounts);
-  console.log('Orca Position:', positionMint.toString());
+  console.log('Orca Position:', positionMint.publicKey.toString());
   return [ix, position, startTickIndexPk, endTickIndexPk];
 }

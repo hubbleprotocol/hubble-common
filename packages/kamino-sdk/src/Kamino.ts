@@ -146,7 +146,7 @@ export class Kamino {
     this._kaminoProgramId = programId;
     this._scope = new Scope(cluster, connection);
     setKaminoProgramId(programId);
-    console.log("programId", programId.toString());
+    console.log('programId', programId.toString());
   }
 
   getConnection() {
@@ -184,7 +184,7 @@ export class Kamino {
    * @param address
    */
   getStrategyByAddress(address: PublicKey) {
-    console.log("getStrategyByAddress ", address.toString());
+    console.log('getStrategyByAddress ', address.toString());
     return WhirlpoolStrategy.fetch(this._connection, address);
   }
 
@@ -239,7 +239,7 @@ export class Kamino {
   }
 
   private async getStrategyBalancesOrca(strategy: WhirlpoolStrategy) {
-    console.log("getStrategyBalancesOrca whirlpool", strategy.pool.toString());
+    console.log('getStrategyBalancesOrca whirlpool', strategy.pool.toString());
     const whirlpool = await Whirlpool.fetch(this._connection, strategy.pool);
     const position = await Position.fetch(this._connection, strategy.position);
 
@@ -790,7 +790,7 @@ export class Kamino {
     owner: PublicKey,
     tokenA: SupportedToken,
     tokenB: SupportedToken,
-    dex: Dex
+    dex: Dex,
   ) {
     console.log('in silviu createStrategy');
     let tokenMintA = PublicKey.default;
@@ -814,10 +814,7 @@ export class Kamino {
       throw new Error(`Invalid dex ${dex.toString()}`);
     }
 
-    let config = await GlobalConfig.fetch(
-      this._connection,
-      new PublicKey('GKnHiWh3RRrE1zsNzWxRkomymHc374TvJPSTv2wPeYdB')
-    );
+    let config = await GlobalConfig.fetch(this._connection, this._globalConfig);
     if (!config) {
       throw Error(`Could not fetch globalConfig  with pubkey ${this.getGlobalConfig().toString()}`);
     }
