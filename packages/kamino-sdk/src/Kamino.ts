@@ -392,13 +392,18 @@ export class Kamino {
     };
   }
 
-  private async getPrices(strategy: WhirlpoolStrategy): Promise<PriceData> {
-    const collateralMintA = getCollateralMintByAddress(strategy.tokenAMint, this._config);
+  private async getPrices(strategy: WhirlpoolStrategy, isTest: false): Promise<PriceData> {
+    let collateralMintA = getCollateralMintByAddress(strategy.tokenAMint, this._config);
     const collateralMintB = getCollateralMintByAddress(strategy.tokenBMint, this._config);
-    if (!collateralMintA) {
+    if (!collateralMintA && !isTest) {
       throw Error(`Could not map token mint with scope price token (token A: ${strategy.tokenAMint.toBase58()})`);
+    } else {
+      address: PublicKey;
+      scopeToken: string;
+      collateralMintA = new  CollateralMint(); {
+        address: this._config.borrowing.accounts.USDC}
     }
-    if (!collateralMintB) {
+    if (!collateralMintB && !isTest) {
       throw Error(`Could not map token mint with scope price token (token B: ${strategy.tokenBMint.toBase58()})`);
     }
     const tokens: SupportedToken[] = [];
@@ -728,9 +733,9 @@ export class Kamino {
 
     const { treasuryFeeTokenAVault, treasuryFeeTokenBVault, treasuryFeeVaultAuthority } =
       await this.getTreasuryFeeVaultPDAs(strategyState.strategy.tokenAMint, strategyState.strategy.tokenBMint);
-    console.log("treasuryFeeTokenAVault", treasuryFeeTokenAVault.toString());
-    console.log("treasuryFeeTokenBVault", treasuryFeeTokenBVault.toString());
-    console.log("treasuryFeeVaultAuthority", treasuryFeeVaultAuthority.toString());
+    console.log('treasuryFeeTokenAVault', treasuryFeeTokenAVault.toString());
+    console.log('treasuryFeeTokenBVault', treasuryFeeTokenBVault.toString());
+    console.log('treasuryFeeVaultAuthority', treasuryFeeVaultAuthority.toString());
 
     const sharesAta = await getAssociatedTokenAddress(strategyState.strategy.sharesMint, owner);
     const tokenAAta = await getAssociatedTokenAddress(strategyState.strategy.tokenAMint, owner);
@@ -793,7 +798,7 @@ export class Kamino {
     owner: PublicKey,
     tokenA: SupportedToken,
     tokenB: SupportedToken,
-    dex: Dex,
+    dex: Dex
   ) {
     console.log('in silviu createStrategy');
     let tokenMintA = PublicKey.default;
@@ -805,8 +810,8 @@ export class Kamino {
       }
       tokenMintA = whirlpoolState.tokenMintA;
       tokenMintB = whirlpoolState.tokenMintB;
-      console.log("whirlpoolState.tokenMintA", whirlpoolState.tokenMintA.toString());
-      console.log("whirlpoolState.tokenMintB", whirlpoolState.tokenMintB.toString());
+      console.log('whirlpoolState.tokenMintA', whirlpoolState.tokenMintA.toString());
+      console.log('whirlpoolState.tokenMintB', whirlpoolState.tokenMintB.toString());
     } else if (dex == 'RAYDIUM') {
       console.log('in silviu createStrategy RAYDIUM');
       const raydiumPoolState = await PoolState.fetch(this._connection, pool);

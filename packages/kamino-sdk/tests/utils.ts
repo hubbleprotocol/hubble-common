@@ -8,10 +8,7 @@ import {
   StrategyConfigOptionKind,
 } from '../src/kamino-client/types';
 import * as Instructions from '../src/kamino-client/instructions';
-import {
-  Transaction,
-  TransactionInstruction,
-} from '@solana/web3.js';
+import { Transaction, TransactionInstruction } from '@solana/web3.js';
 import { NATIVE_MINT, Token } from '@solana/spl-token';
 import { getMintDecimals } from '@project-serum/serum/lib/market';
 import * as serumCmn from '@project-serum/common';
@@ -25,6 +22,7 @@ import Decimal from 'decimal.js';
 import { Whirlpool, WhirlpoolStrategy } from '../src/kamino-client/accounts';
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
+  createAssociatedTokenAccountInstruction,
   Dex,
   dexToNumber,
   getAssociatedTokenAddress,
@@ -36,6 +34,7 @@ import { getTickArrayPubkeysFromRangeRaydium, openLiquidityPositionRaydium } fro
 import { getTickArrayPubkeysFromRangeOrca, openLiquidityPositionOrca } from './orca_utils';
 import { Key } from 'readline';
 import { TokenInstructions } from '@project-serum/serum';
+import { min } from 'bn.js';
 
 const GLOBAL_CONFIG_SIZE = 26832;
 
@@ -138,25 +137,51 @@ export async function createUser(
   if (!user) {
     user = new anchor.web3.Keypair();
   }
+  console.log('created user ', user.publicKey.toString());
+  await sleep(1000);
 
   if (solAirdropAmount.gt(0)) {
     await solAirdrop(connection, provider, user.publicKey, solAirdropAmount);
     await sleep(1000);
   }
+  console.log('after sol airdrop');
 
   let whirlpoolStrategyState = await WhirlpoolStrategy.fetch(connection, strategy);
   if (whirlpoolStrategyState == null) {
     throw new Error(`Strategy ${strategy.toString()} does not exist`);
   }
+  console.log('after strategy fetch');
+  console.log('whirlpoolStrategyState.tokenAMint', whirlpoolStrategyState.tokenAMint.toString());
+  console.log('whirlpoolStrategyState.tokenBMint', whirlpoolStrategyState.tokenBMint.toString());
 
-  const aAta = await setupAta(connection, whirlpoolStrategyState.tokenAMint, user);
-  const bAta = await setupAta(connection, whirlpoolStrategyState.tokenBMint, user);
-  const sharesAta = await setupAta(connection, whirlpoolStrategyState.sharesMint, user);
+  //   const ata = await getAssociatedTokenAddress(whirlpoolStrategyState.tokenAMint, user.publicKey);
+
+  //   let ix = createAssociatedTokenAccountInstruction(
+  //     signer.publicKey,
+  //     ata,
+  //     user.publicKey,
+  //     whirlpoolStrategyState.tokenAMint
+  //   );
+
+  //   let tx = new Transaction().add(ix);
+  //   await sendTransactionWithLogs(connection, tx, signer.publicKey, [signer]);
+  //   console.log('after this ata creation');
+
+  const aAta = await setupAta(connection, signer, whirlpoolStrategyState.tokenAMint, user);
+  const bAta = await setupAta(connection, signer, whirlpoolStrategyState.tokenBMint, user);
+  const sharesAta = await setupAta(connection, signer, whirlpoolStrategyState.sharesMint, user);
+  console.log('after setting ATAs');
 
   let tokenADecimals = await getMintDecimals(connection, whirlpoolStrategyState.tokenAMint);
   let tokenBDecimals = await getMintDecimals(connection, whirlpoolStrategyState.tokenBMint);
+  console.log('after getting mint decimals');
 
-  await sleep(2000); // TODO: remove this, ataAccount isn't read by createMintToInstr.
+  await sleep(3000);
+  console.log('aAta', aAta.toString());
+  console.log('whirlpoolStrategyState.tokenAMint', whirlpoolStrategyState.tokenAMint.toString());
+  console.log('bAta', bAta.toString());
+  console.log('whirlpoolStrategyState.tokenBMint', whirlpoolStrategyState.tokenBMint.toString());
+
   if (aAirdropAmount.gt(0)) {
     await mintTo(
       connection,
@@ -175,6 +200,7 @@ export async function createUser(
       collToLamportsDecimal(bAirdropAmount, tokenBDecimals).toNumber()
     );
   }
+  console.log('after airdrop');
 
   const testingUser: User = {
     tokenAAta: aAta,
@@ -196,6 +222,13 @@ export async function solAirdrop(
   return await getSolBalance(provider, account);
 }
 
+// await mintTo(
+//     connection,
+//     signer,
+//     whirlpoolStrategyState.tokenAMint,
+//     aAta,
+//     collToLamportsDecimal(aAirdropAmount, tokenADecimals).toNumber()
+//   );
 export async function mintTo(
   connection: Connection,
   signer: Keypair,
@@ -203,6 +236,11 @@ export async function mintTo(
   tokenAccount: PublicKey,
   amount: number
 ) {
+  console.log('TOKEN_PROGRAM_ID:', TOKEN_PROGRAM_ID.toString);
+  console.log('mintPubkey', mintPubkey.toString());
+  console.log('tokenAccount', tokenAccount.toString());
+  console.log('signer.publicKey', signer.publicKey.toString());
+
   const tx = new Transaction().add(
     Token.createMintToInstruction(
       TOKEN_PROGRAM_ID, // always TOKEN_PROGRAM_ID
@@ -214,15 +252,25 @@ export async function mintTo(
     )
   );
 
-  await sendTransactionWithLogs(connection, tx, signer.publicKey, [signer]);
+  let wallet = new anchor.Wallet(signer);
+  const provider = new anchor.Provider(connection, wallet, anchor.Provider.defaultOptions());
+  await provider.send(tx);
 }
 
-export async function setupAta(connection: Connection, tokenMintAddress: PublicKey, user: Keypair): Promise<PublicKey> {
-  const ata = await getAssociatedTokenAddress(user.publicKey, tokenMintAddress);
+export async function setupAta(
+  connection: Connection,
+  payer: Keypair,
+  tokenMintAddress: PublicKey,
+  user: Keypair
+): Promise<PublicKey> {
+  const ata = await getAssociatedTokenAddress(tokenMintAddress, payer.publicKey);
   if (!(await checkIfAccountExists(connection, ata))) {
-    const ix = await createAtaInstruction(user.publicKey, tokenMintAddress, ata);
+    const ix = await createAtaInstruction(payer.publicKey, tokenMintAddress, ata);
     const tx = new Transaction().add(ix);
-    await connection.sendTransaction(tx, [user]);
+    // await sendTransactionWithLogs(connection, tx, payer.publicKey, [payer, user]);
+    let wallet = new anchor.Wallet(payer);
+    const provider = new anchor.Provider(connection, wallet, anchor.Provider.defaultOptions());
+    await provider.connection.sendTransaction(tx, [payer]);
   }
   return ata;
 }
@@ -236,7 +284,7 @@ export async function createAtaInstruction(
   tokenMintAddress: PublicKey,
   ata: PublicKey
 ): Promise<TransactionInstruction> {
-  return await Token.createAssociatedTokenAccountInstruction(
+  return Token.createAssociatedTokenAccountInstruction(
     ASSOCIATED_TOKEN_PROGRAM_ID, // always ASSOCIATED_TOKEN_PROGRAM_ID
     TOKEN_PROGRAM_ID, // always TOKEN_PROGRAM_ID
     tokenMintAddress, // mint
@@ -244,26 +292,6 @@ export async function createAtaInstruction(
     owner, // owner of token account
     owner // fee payer
   );
-}
-
-export async function solAirdropMin(
-  provider: anchor.Provider,
-  account: PublicKey,
-  minSolAirdrop: Decimal
-): Promise<Decimal> {
-  const airdropBatchAmount = Decimal.max(50, minSolAirdrop);
-  let currentBalance = await getSolBalance(provider, account);
-  while (currentBalance.lt(minSolAirdrop)) {
-    try {
-      await provider.connection.requestAirdrop(account, collToLamportsDecimal(airdropBatchAmount, 9).toNumber());
-    } catch (e) {
-      await sleep(100);
-      console.log('Error', e);
-    }
-    await sleep(100);
-    currentBalance = await getSolBalance(provider, account);
-  }
-  return currentBalance;
 }
 
 export async function getSolBalance(provider: anchor.Provider, account: PublicKey): Promise<Decimal> {

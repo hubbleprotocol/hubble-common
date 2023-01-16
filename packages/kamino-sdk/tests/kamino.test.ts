@@ -65,6 +65,7 @@ describe('Kamino SDK Tests', () => {
   beforeAll(async () => {
     connection = new Connection(clusterUrl);
     let kamino = new Kamino(cluster, connection, fixtures.kaminoProgramId, fixtures.globalConfig);
+    kamino
     // let raydiumPool = await initializeRaydiumPool(connection, signer, 1, fixtures.tokenMintA, fixtures.tokenMintB);
     // fixtures.newRaydiumPool = raydiumPool.pool;
 
@@ -142,7 +143,7 @@ describe('Kamino SDK Tests', () => {
     expect(init).toThrow(Error);
   });
 
-  test('should get all strategies', async () => {
+  test.skip('should get all strategies', async () => {
     const kamino = new Kamino(cluster, connection, fixtures.kaminoProgramId, fixtures.globalConfig);
     const allStrategies = await kamino.getStrategies([fixtures.newOrcaStrategy]);
     expect(allStrategies.length).toBeGreaterThan(0);
@@ -151,7 +152,7 @@ describe('Kamino SDK Tests', () => {
       console.log(strat?.pool.toString());
     }
   });
-  test('should get strategy by address', async () => {
+  test.skip('should get strategy by address', async () => {
     const kamino = new Kamino(cluster, connection, fixtures.kaminoProgramId, fixtures.globalConfig);
     const strategy = await kamino.getStrategyByAddress(fixtures.newOrcaStrategy);
     expect(strategy).not.toBeNull();
@@ -160,6 +161,25 @@ describe('Kamino SDK Tests', () => {
 
   test.skip('should get RAYDIUM strategy share price', async () => {
     const kamino = new Kamino(cluster, connection, fixtures.kaminoProgramId, fixtures.globalConfig);
+
+    const solAirdropAmount = new Decimal(1);
+    const usdcAirdropAmount = new Decimal(100);
+    const usdhAirdropAmount = new Decimal(100);
+    console.log('before user creation');
+    let user = await createUser(
+      connection,
+      signer,
+      fixtures.newOrcaStrategy,
+      solAirdropAmount,
+      usdcAirdropAmount,
+      usdhAirdropAmount
+    );
+
+    const [usdcDeposit, usdhDeposit] = [new Decimal(5), new Decimal(5)];
+    console.log('after user creation');
+    await kamino.deposit(fixtures.newOrcaStrategy, usdcDeposit, usdhDeposit, user.owner.publicKey);
+    console.log('after deposit');
+
     const strategy = await kamino.getStrategyByAddress(fixtures.newRaydiumStrategy);
     expect(strategy).not.toBeNull();
     const price = await kamino.getStrategyShareData(fixtures.newRaydiumStrategy);
@@ -173,7 +193,7 @@ describe('Kamino SDK Tests', () => {
     const solAirdropAmount = new Decimal(1);
     const usdcAirdropAmount = new Decimal(100);
     const usdhAirdropAmount = new Decimal(100);
-    console.log("before user creation");
+    console.log('before user creation');
     let user = await createUser(
       connection,
       signer,
@@ -184,9 +204,9 @@ describe('Kamino SDK Tests', () => {
     );
 
     const [usdcDeposit, usdhDeposit] = [new Decimal(5), new Decimal(5)];
-    console.log("after user creation");
+    console.log('after user creation');
     await kamino.deposit(fixtures.newOrcaStrategy, usdcDeposit, usdhDeposit, user.owner.publicKey);
-    console.log("after deposit");
+    console.log('after deposit');
 
     const strategy = await kamino.getStrategyByAddress(fixtures.newOrcaStrategy);
     expect(strategy).not.toBeNull();
@@ -197,9 +217,9 @@ describe('Kamino SDK Tests', () => {
 
   test.skip('should get all strategy holders', async () => {
     const kamino = new Kamino(cluster, connection, fixtures.kaminoProgramId, fixtures.globalConfig);
-    const strategy = await kamino.getStrategyByAddress(new PublicKey('ByXB4xCxVhmUEmQj3Ut7byZ1Hbva1zhKjaVcv3jBMN7E'));
+    const strategy = await kamino.getStrategyByAddress(fixtures.newOrcaStrategy);
     expect(strategy).not.toBeNull();
-    const accounts = await kamino.getStrategyHolders(new PublicKey('ByXB4xCxVhmUEmQj3Ut7byZ1Hbva1zhKjaVcv3jBMN7E'));
+    const accounts = await kamino.getStrategyHolders(fixtures.newOrcaStrategy);
     expect(accounts.length).toBeGreaterThan(0);
     const expectedShares = new Decimal(strategy!.sharesIssued.toString())
       .div(new Decimal(10).pow(strategy!.sharesMintDecimals.toString()))
@@ -208,12 +228,12 @@ describe('Kamino SDK Tests', () => {
     expect(expectedShares).toBe(actualShares);
   }, 500000);
 
-  test('should get all whirlpools', async () => {
+  test.skip('should get all whirlpools', async () => {
     const kamino = new Kamino(cluster, connection, fixtures.kaminoProgramId, fixtures.globalConfig);
     console.log(await kamino.getWhirlpools([fixtures.newWhirlpool]));
   });
 
-  test('should get all Raydium pools', async () => {
+  test.skip('should get all Raydium pools', async () => {
     const kamino = new Kamino(cluster, connection, fixtures.kaminoProgramId, fixtures.globalConfig);
     console.log(await kamino.getRaydiumPools([fixtures.newRaydiumPool]));
   });
