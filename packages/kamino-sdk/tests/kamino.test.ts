@@ -230,6 +230,24 @@ describe('Kamino SDK Tests', () => {
 
   test.skip('should get all strategy holders', async () => {
     const kamino = new Kamino(cluster, connection, fixtures.kaminoProgramId, fixtures.globalConfig);
+
+    const solAirdropAmount = new Decimal(1);
+    const usdcAirdropAmount = new Decimal(100);
+    const usdhAirdropAmount = new Decimal(100);
+    console.log('before user creation');
+    let user = await createUser(
+      connection,
+      signer,
+      fixtures.newOrcaStrategy,
+      solAirdropAmount,
+      usdcAirdropAmount,
+      usdhAirdropAmount
+    );
+
+    const [usdcDeposit, usdhDeposit] = [new Decimal(5), new Decimal(5)];
+    await kamino.deposit(fixtures.newOrcaStrategy, usdcDeposit, usdhDeposit, user.owner.publicKey);
+    await sleep(2000);
+
     const strategy = await kamino.getStrategyByAddress(fixtures.newOrcaStrategy);
     expect(strategy).not.toBeNull();
     const accounts = await kamino.getStrategyHolders(fixtures.newOrcaStrategy);
@@ -241,7 +259,7 @@ describe('Kamino SDK Tests', () => {
     expect(expectedShares).toBe(actualShares);
   }, 500000);
 
-  test.skip('should get all whirlpools', async () => {
+  test('should get all whirlpools', async () => {
     const kamino = new Kamino(cluster, connection, fixtures.kaminoProgramId, fixtures.globalConfig);
     console.log(await kamino.getWhirlpools([fixtures.newWhirlpool]));
   });
