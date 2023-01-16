@@ -1189,10 +1189,10 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
       ],
     },
     scope: {
-      oracleMappings: new PublicKey('4PoKkcsQakSMovMWh127gviWPpA6wGyY8uZWavccXAGE'),
-      oraclePrices: new PublicKey('Aprk2sZNvxZNUpgq2WuS3VNkbxh35aCqJd1GbtBZzkG5'),
-      programId: new PublicKey('3Vw8Ngkh1MVJTPHthmUbmU2XKtFEkjYvJzMqrv2rh9yX'),
-      configurationAccount: new PublicKey('qAN1wkxEzBg7AzeLC4sGT61czYvDiotZTMKojVL2o2E'),
+      oracleMappings: new PublicKey('Chpu5ZgfWX5ZzVpUx9Xvv4WPM75Xd7zPJNDPsFnCpLpk'),
+      oraclePrices: new PublicKey('3NJYftD5sjVfxSnUdZ1wVML8f3aC6mp1CXCL6L7TnU8C'),
+      programId: new PublicKey('HFn8GnPADiny6XqUoWE8uRPPxb29ikn4yTuPa9MF2fWJ'),
+      configurationAccount: new PublicKey('AdTiP7QyjUyv6crF4H8z7fxJKU7Z5eCAGvJN1Y55cXxb'),
     },
     borrowing: {
       programId: new PublicKey('FAZuPmWCvPzVoSXudtMvixiGNGKyEuKvfEuJh3i6NkXu'),

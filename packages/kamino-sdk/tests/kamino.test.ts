@@ -19,7 +19,7 @@ import {
 import { GlobalConfig } from '../src/kamino-client/accounts';
 import * as Instructions from '../src/kamino-client/instructions';
 import { GlobalConfigOption, GlobalConfigOptionKind } from '../src/kamino-client/types';
-import { SupportedToken } from '@hubbleprotocol/scope-sdk';
+import { Scope, SupportedToken } from '../../scope-sdk/src';
 import BN from 'bn.js';
 import { Uninitialized } from '../src/kamino-client/types/StrategyStatus';
 import { initializeRaydiumPool, orderMints } from './raydium_utils';
@@ -65,9 +65,18 @@ describe('Kamino SDK Tests', () => {
   beforeAll(async () => {
     connection = new Connection(clusterUrl);
     let kamino = new Kamino(cluster, connection, fixtures.kaminoProgramId, fixtures.globalConfig);
-    kamino
-    // let raydiumPool = await initializeRaydiumPool(connection, signer, 1, fixtures.tokenMintA, fixtures.tokenMintB);
-    // fixtures.newRaydiumPool = raydiumPool.pool;
+    let scope = new Scope(cluster, connection);
+    // @ts-ignore
+    scope._config.scope.oraclePrices =  new PublicKey('3NJYftD5sjVfxSnUdZ1wVML8f3aC6mp1CXCL6L7TnU8C');
+    // @ts-ignore
+    scope._config.scope.programId = fixtures.scopeProgram;
+    // @ts-ignore
+    console.log("scope._config.scope.programId", scope._config.scope.programId.toString());
+    // @ts-ignore
+    kamino._scope._config.scope.oraclePrices = new PublicKey('3NJYftD5sjVfxSnUdZ1wVML8f3aC6mp1CXCL6L7TnU8C');
+    let prices = await scope.getAllPrices();
+    console.log("!!!!!!");
+    console.log("prices", prices);
 
     let tokenAMint = await createMint(connection, signer, 6);
     let tokenBMint = await createMint(connection, signer, 6);
@@ -76,6 +85,8 @@ describe('Kamino SDK Tests', () => {
     tokenBMint = tokens[1];
     fixtures.newTokenMintA = tokenAMint;
     fixtures.newTokenMintB = tokenBMint;
+    kamino._config.kamino.mints.push({ address: tokenAMint, scopeToken: 'USDH' });
+    kamino._config.kamino.mints.push({ address: tokenBMint, scopeToken: 'USDC' });
     console.log('after tokenA creation ', tokenAMint.toString());
 
     let globalConfig = await setUpGlobalConfig(kamino, signer, fixtures.scopeProgram, fixtures.scopePrices);

@@ -392,28 +392,26 @@ export class Kamino {
     };
   }
 
-  private async getPrices(strategy: WhirlpoolStrategy, isTest: false): Promise<PriceData> {
-    let collateralMintA = getCollateralMintByAddress(strategy.tokenAMint, this._config);
+  private async getPrices(strategy: WhirlpoolStrategy): Promise<PriceData> {
+    const collateralMintA = getCollateralMintByAddress(strategy.tokenAMint, this._config);
     const collateralMintB = getCollateralMintByAddress(strategy.tokenBMint, this._config);
-    if (!collateralMintA && !isTest) {
+    if (!collateralMintA) {
       throw Error(`Could not map token mint with scope price token (token A: ${strategy.tokenAMint.toBase58()})`);
-    } else {
-      address: PublicKey;
-      scopeToken: string;
-      collateralMintA = new  CollateralMint(); {
-        address: this._config.borrowing.accounts.USDC}
     }
-    if (!collateralMintB && !isTest) {
+    if (!collateralMintB) {
       throw Error(`Could not map token mint with scope price token (token B: ${strategy.tokenBMint.toBase58()})`);
     }
     const tokens: SupportedToken[] = [];
     const rewardToken0 = this.getRewardToken(strategy.reward0CollateralId.toNumber(), tokens);
     const rewardToken1 = this.getRewardToken(strategy.reward1CollateralId.toNumber(), tokens);
     const rewardToken2 = this.getRewardToken(strategy.reward2CollateralId.toNumber(), tokens);
-    tokens.push(collateralMintA.scopeToken as SupportedToken);
-    tokens.push(collateralMintB.scopeToken as SupportedToken);
+    // tokens.push(collateralMintA.scopeToken as SupportedToken);
+    // tokens.push(collateralMintB.scopeToken as SupportedToken);
+    tokens.push("USDC");
 
+    console.log('before get prices');
     const prices = await this._scope.getPrices([...new Set(tokens)]);
+    console.log("after get prices");
     const aPrice = prices.find((x) => x.name === collateralMintA.scopeToken);
     const bPrice = prices.find((x) => x.name === collateralMintB.scopeToken);
 
