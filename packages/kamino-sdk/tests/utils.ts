@@ -267,7 +267,6 @@ export async function setupAta(
   if (!(await checkIfAccountExists(connection, ata))) {
     const ix = await createAtaInstruction(payer.publicKey, tokenMintAddress, ata);
     const tx = new Transaction().add(ix);
-    // await sendTransactionWithLogs(connection, tx, payer.publicKey, [payer, user]);
     let wallet = new anchor.Wallet(payer);
     const provider = new anchor.Provider(connection, wallet, anchor.Provider.defaultOptions());
     await provider.connection.sendTransaction(tx, [payer]);
