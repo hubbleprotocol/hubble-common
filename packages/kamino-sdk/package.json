@@ -31,7 +31,7 @@
     "bs58": "^5.0.0"
   },
   "dependencies": {
-    "@hubbleprotocol/hubble-config": "^1.0.168",
+    "@hubbleprotocol/hubble-config": "^1.0.176",
     "@hubbleprotocol/hubble-idl": "^1.0.158",
     "@hubbleprotocol/scope-sdk": "^1.0.168",
     "@orca-so/whirlpool-client-sdk": "^0.0.8",

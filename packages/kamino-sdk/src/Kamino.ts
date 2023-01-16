@@ -405,9 +405,8 @@ export class Kamino {
     const rewardToken0 = this.getRewardToken(strategy.reward0CollateralId.toNumber(), tokens);
     const rewardToken1 = this.getRewardToken(strategy.reward1CollateralId.toNumber(), tokens);
     const rewardToken2 = this.getRewardToken(strategy.reward2CollateralId.toNumber(), tokens);
-    // tokens.push(collateralMintA.scopeToken as SupportedToken);
-    // tokens.push(collateralMintB.scopeToken as SupportedToken);
-    tokens.push("USDC");
+    tokens.push(collateralMintA.scopeToken as SupportedToken);
+    tokens.push(collateralMintB.scopeToken as SupportedToken);
 
     console.log('before get prices');
     const prices = await this._scope.getPrices([...new Set(tokens)]);

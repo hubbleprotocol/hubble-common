@@ -14,10 +14,15 @@
   resolved "https://registry.npmjs.org/@colors/colors/-/colors-1.5.0.tgz"
   integrity sha512-ooWCrlZP11i8GImSjTHYHLkvFDP48nS4+204nGb1RiX/WXYHmJA2III9/e2DWVabCESdW7hBAEzHRqUn9OUVvQ==
 
-"@hubbleprotocol/hubble-config@^1.0.168", "@hubbleprotocol/hubble-config@^1.0.171":
+"@hubbleprotocol/hubble-config@^1.0.171":
   version "1.0.171"
   resolved "https://registry.npmjs.org/@hubbleprotocol/hubble-config/-/hubble-config-1.0.171.tgz"
   integrity sha512-SjX0drlgHuI5WEs6mtB9y2PXv1eCbf1JVJFBdAWtiqgL52FX+Wu8GfcrLtA7ziGxLNyWpyviBOT8nNMCicOkqg==
+
+"@hubbleprotocol/hubble-config@^1.0.176":
+  version "1.0.176"
+  resolved "https://registry.yarnpkg.com/@hubbleprotocol/hubble-config/-/hubble-config-1.0.176.tgz#9ffe2a387dc01bb32c4d25521a068e2b59da354e"
+  integrity sha512-inYUKLMFPOIkaZQpxT8sIWvqASAGv9USiyWjx3kXwoL7p4Sh7p9Fk1eRlWSa+WY+bhUTfywZSozv8uJtjur+hg==
 
 "@hubbleprotocol/hubble-idl@^1.0.158":
   version "1.0.158"

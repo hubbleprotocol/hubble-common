@@ -74,6 +74,8 @@ describe('Kamino SDK Tests', () => {
     console.log("scope._config.scope.programId", scope._config.scope.programId.toString());
     // @ts-ignore
     kamino._scope._config.scope.oraclePrices = new PublicKey('3NJYftD5sjVfxSnUdZ1wVML8f3aC6mp1CXCL6L7TnU8C');
+    // @ts-ignore
+    kamino._scope._config.scope.programId = fixtures.scopeProgram;
     let prices = await scope.getAllPrices();
     console.log("!!!!!!");
     console.log("prices", prices);
