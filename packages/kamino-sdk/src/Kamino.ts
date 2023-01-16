@@ -728,6 +728,9 @@ export class Kamino {
 
     const { treasuryFeeTokenAVault, treasuryFeeTokenBVault, treasuryFeeVaultAuthority } =
       await this.getTreasuryFeeVaultPDAs(strategyState.strategy.tokenAMint, strategyState.strategy.tokenBMint);
+    console.log("treasuryFeeTokenAVault", treasuryFeeTokenAVault.toString());
+    console.log("treasuryFeeTokenBVault", treasuryFeeTokenBVault.toString());
+    console.log("treasuryFeeVaultAuthority", treasuryFeeVaultAuthority.toString());
 
     const sharesAta = await getAssociatedTokenAddress(strategyState.strategy.sharesMint, owner);
     const tokenAAta = await getAssociatedTokenAddress(strategyState.strategy.tokenAMint, owner);
@@ -802,6 +805,8 @@ export class Kamino {
       }
       tokenMintA = whirlpoolState.tokenMintA;
       tokenMintB = whirlpoolState.tokenMintB;
+      console.log("whirlpoolState.tokenMintA", whirlpoolState.tokenMintA.toString());
+      console.log("whirlpoolState.tokenMintB", whirlpoolState.tokenMintB.toString());
     } else if (dex == 'RAYDIUM') {
       console.log('in silviu createStrategy RAYDIUM');
       const raydiumPoolState = await PoolState.fetch(this._connection, pool);

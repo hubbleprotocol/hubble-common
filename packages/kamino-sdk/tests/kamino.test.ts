@@ -8,7 +8,7 @@ import {
   SystemProgram,
   Transaction,
 } from '@solana/web3.js';
-import { createAssociatedTokenAccountInstruction, Dex, Kamino, sendTransactionWithLogs } from '../src';
+import { createAssociatedTokenAccountInstruction, Dex, Kamino, sendTransactionWithLogs, sleep } from '../src';
 import Decimal from 'decimal.js';
 import bs58 from 'bs58';
 import {
@@ -22,9 +22,9 @@ import { GlobalConfigOption, GlobalConfigOptionKind } from '../src/kamino-client
 import { SupportedToken } from '@hubbleprotocol/scope-sdk';
 import BN from 'bn.js';
 import { Uninitialized } from '../src/kamino-client/types/StrategyStatus';
-import { initializeRaydiumPool } from './raydium_utils';
+import { initializeRaydiumPool, orderMints } from './raydium_utils';
 import { initializeWhirlpool, openLiquidityPositionOrca } from './orca_utils';
-import { createMint, updateStrategyConfig } from './utils';
+import { createMint, createUser, updateStrategyConfig } from './utils';
 import {
   UpdateDepositCap,
   UpdateDepositCapIxn,
@@ -41,13 +41,9 @@ describe('Kamino SDK Tests', () => {
   let fixtures = {
     kaminoProgramId: new PublicKey('6LtLpnUFNByNXLyCoK9wA2MykKAmQNZKBdY8s47dehDc'),
     globalConfig: new PublicKey('GKnHiWh3RRrE1zsNzWxRkomymHc374TvJPSTv2wPeYdB'),
-    existingWhirlpool: new PublicKey('Fvtf8VCjnkqbETA6KtyHYqHm26ut6w184Jqm4MQjPvv7'),
     newWhirlpool: new PublicKey('Fvtf8VCjnkqbETA6KtyHYqHm26ut6w184Jqm4MQjPvv7'),
-    existingOrcaStrategy: new PublicKey('Cfuy5T6osdazUeLego5LFycBQebm9PP3H7VNdCndXXEN'),
     newOrcaStrategy: new PublicKey('Cfuy5T6osdazUeLego5LFycBQebm9PP3H7VNdCndXXEN'),
-    existingRaydiumPool: new PublicKey('3tD34VtprDSkYCnATtQLCiVgTkECU3d12KtjupeR6N2X'),
     newRaydiumPool: new PublicKey('3tD34VtprDSkYCnATtQLCiVgTkECU3d12KtjupeR6N2X'),
-    existingRaydiumStrategy: new PublicKey('AL6Yd51aSY3S9wpuypJYKtEf65xBSXKpfUCxN54CaWeE'),
     newRaydiumStrategy: new PublicKey('AL6Yd51aSY3S9wpuypJYKtEf65xBSXKpfUCxN54CaWeE'),
     scopePrices: new PublicKey('3NJYftD5sjVfxSnUdZ1wVML8f3aC6mp1CXCL6L7TnU8C'),
     scopeProgram: new PublicKey('HFn8GnPADiny6XqUoWE8uRPPxb29ikn4yTuPa9MF2fWJ'),
@@ -74,6 +70,9 @@ describe('Kamino SDK Tests', () => {
 
     let tokenAMint = await createMint(connection, signer, 6);
     let tokenBMint = await createMint(connection, signer, 6);
+    let tokens = orderMints(tokenAMint, tokenBMint);
+    tokenAMint = tokens[0];
+    tokenBMint = tokens[1];
     fixtures.newTokenMintA = tokenAMint;
     fixtures.newTokenMintB = tokenBMint;
     console.log('after tokenA creation ', tokenAMint.toString());
@@ -85,6 +84,7 @@ describe('Kamino SDK Tests', () => {
     let collateralInfo = await setUpCollateralInfo(kamino, signer);
     await updateCollateralInfo(kamino, signer, globalConfig, 'USDH', tokenAMint);
     await updateCollateralInfo(kamino, signer, globalConfig, 'USDC', tokenBMint);
+    sleep(100);
     fixtures.tokenInfos = collateralInfo;
 
     let whirlpool = await initializeWhirlpool(connection, signer, 1, tokenAMint, tokenBMint);
@@ -92,22 +92,17 @@ describe('Kamino SDK Tests', () => {
     console.log('whilrpool is ', whirlpool.pool.toString());
 
     let tx = createTransactionWithExtraBudget(signer.publicKey);
-    console.log('trying to create the raydium strat 2');
     const newOrcaStrategy = Keypair.generate();
-    console.log('trying to create the raydium strat 3');
     const createStrategyAccountIx = await kamino.createStrategyAccount(signer.publicKey, newOrcaStrategy.publicKey);
-    console.log('trying to create the raydium strat 4');
     tx.add(createStrategyAccountIx);
-    console.log('trying to create the raydium strat 5');
     let orcaStrategyIx = await kamino.createStrategy(
       newOrcaStrategy.publicKey,
       whirlpool.pool,
       signer.publicKey,
       'USDH',
       'USDC',
-      'ORCA',
+      'ORCA'
     );
-    console.log('trying to create the raydium strat 6');
     tx.add(orcaStrategyIx);
     console.log('before sending the creation tx');
     const txHash = await sendTransactionWithLogs(connection, tx, signer.publicKey, [signer, newOrcaStrategy]);
@@ -138,13 +133,7 @@ describe('Kamino SDK Tests', () => {
       new Decimal(100)
     );
 
-    await openPosition(
-      kamino,
-      signer,
-      newOrcaStrategy.publicKey,
-      new Decimal(0.97),
-      new Decimal(1.03)
-    );
+    await openPosition(kamino, signer, newOrcaStrategy.publicKey, new Decimal(0.97), new Decimal(1.03));
   }, 500000);
 
   test('should throw on invalid cluster', () => {
@@ -171,22 +160,40 @@ describe('Kamino SDK Tests', () => {
 
   test.skip('should get RAYDIUM strategy share price', async () => {
     const kamino = new Kamino(cluster, connection, fixtures.kaminoProgramId, fixtures.globalConfig);
-    const strategy = await kamino.getStrategyByAddress(fixtures.existingRaydiumStrategy);
+    const strategy = await kamino.getStrategyByAddress(fixtures.newRaydiumStrategy);
     expect(strategy).not.toBeNull();
-    const price = await kamino.getStrategyShareData(fixtures.existingRaydiumStrategy);
+    const price = await kamino.getStrategyShareData(fixtures.newRaydiumStrategy);
     expect(price.price.toNumber()).toBeGreaterThanOrEqual(0);
     console.log(price);
   }, 500000);
 
-  test.skip('should get Orca strategy share price', async () => {
-    
+  test('should get Orca strategy share price', async () => {
     const kamino = new Kamino(cluster, connection, fixtures.kaminoProgramId, fixtures.globalConfig);
-    const strategy = await kamino.getStrategyByAddress(fixtures.existingOrcaStrategy);
+
+    const solAirdropAmount = new Decimal(1);
+    const usdcAirdropAmount = new Decimal(100);
+    const usdhAirdropAmount = new Decimal(100);
+    console.log("before user creation");
+    let user = await createUser(
+      connection,
+      signer,
+      fixtures.newOrcaStrategy,
+      solAirdropAmount,
+      usdcAirdropAmount,
+      usdhAirdropAmount
+    );
+
+    const [usdcDeposit, usdhDeposit] = [new Decimal(5), new Decimal(5)];
+    console.log("after user creation");
+    await kamino.deposit(fixtures.newOrcaStrategy, usdcDeposit, usdhDeposit, user.owner.publicKey);
+    console.log("after deposit");
+
+    const strategy = await kamino.getStrategyByAddress(fixtures.newOrcaStrategy);
     expect(strategy).not.toBeNull();
-    const price = await kamino.getStrategyShareData(fixtures.existingOrcaStrategy);
+    const price = await kamino.getStrategyShareData(fixtures.newOrcaStrategy);
     expect(price.price.toNumber()).toBeGreaterThanOrEqual(0);
     console.log(price);
-  });
+  }, 50000);
 
   test.skip('should get all strategy holders', async () => {
     const kamino = new Kamino(cluster, connection, fixtures.kaminoProgramId, fixtures.globalConfig);
@@ -199,16 +206,16 @@ describe('Kamino SDK Tests', () => {
       .toNumber();
     const actualShares = accounts.map((x) => x.amount.toNumber()).reduce((partialSum, a) => partialSum + a, 0);
     expect(expectedShares).toBe(actualShares);
+  }, 500000);
+
+  test('should get all whirlpools', async () => {
+    const kamino = new Kamino(cluster, connection, fixtures.kaminoProgramId, fixtures.globalConfig);
+    console.log(await kamino.getWhirlpools([fixtures.newWhirlpool]));
   });
 
-  test.skip('should get all whirlpools', async () => {
+  test('should get all Raydium pools', async () => {
     const kamino = new Kamino(cluster, connection, fixtures.kaminoProgramId, fixtures.globalConfig);
-    console.log(await kamino.getWhirlpools([]));
-  });
-
-  test.skip('should get all Raydium pools', async () => {
-    const kamino = new Kamino(cluster, connection, fixtures.kaminoProgramId, fixtures.globalConfig);
-    console.log(await kamino.getRaydiumPools([]));
+    console.log(await kamino.getRaydiumPools([fixtures.newRaydiumPool]));
   });
 
   test.skip('should withdraw shares from a Orca strategy', async () => {
@@ -493,7 +500,7 @@ describe('Kamino SDK Tests', () => {
 
     // Setup (this is not required on devnet/mainnet)
     // Note: this modifies Kamino
-    const whirlpool = fixtures.existingWhirlpool;
+    const whirlpool = fixtures.newWhirlpool;
     await setUpEnvironmentForWhirlpool(kamino, owner, whirlpool, fixtures.scopeProgram, fixtures.scopePrices);
 
     const strategy = await createStrategy(kamino, owner, whirlpool, 'ORCA');
@@ -538,7 +545,7 @@ describe('Kamino SDK Tests', () => {
 
     // Setup (this is not required on devnet/mainnet)
     // Note: this modifies Kamino
-    const pool = fixtures.existingRaydiumPool;
+    const pool = fixtures.newRaydiumPool;
     await setUpEnvironmentForWhirlpool(kamino, owner, pool, fixtures.scopeProgram, fixtures.scopePrices);
 
     const strategy = await createStrategy(kamino, owner, pool, 'RAYDIUM');

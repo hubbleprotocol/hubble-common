@@ -9,9 +9,6 @@ import {
 } from '../src/kamino-client/types';
 import * as Instructions from '../src/kamino-client/instructions';
 import {
-  SystemProgram,
-  SYSVAR_INSTRUCTIONS_PUBKEY,
-  SYSVAR_RENT_PUBKEY,
   Transaction,
   TransactionInstruction,
 } from '@solana/web3.js';
@@ -39,7 +36,6 @@ import { getTickArrayPubkeysFromRangeRaydium, openLiquidityPositionRaydium } fro
 import { getTickArrayPubkeysFromRangeOrca, openLiquidityPositionOrca } from './orca_utils';
 import { Key } from 'readline';
 import { TokenInstructions } from '@project-serum/serum';
-import { sign } from 'crypto';
 
 const GLOBAL_CONFIG_SIZE = 26832;
 
@@ -112,26 +108,6 @@ export async function updateStrategyConfig(
   console.log('Update Strategy Config ', mode.toJSON(), sig?.toString());
 }
 
-export async function openLiquidityPosition(
-  connection: Connection,
-  signer: Keypair,
-  strategy: PublicKey,
-  priceLower: Decimal,
-  priceUpper: Decimal
-) {
-  let strategyState = await WhirlpoolStrategy.fetch(connection, strategy);
-  if (strategyState == null) {
-    throw new Error(`strategy ${strategy} doesn't exist`);
-  }
-  if (strategyState.strategyDex.toNumber() == dexToNumber('ORCA')) {
-    openLiquidityPositionOrca(connection, signer, strategy, priceLower, priceUpper);
-  } else if (strategyState.strategyDex.toNumber() == dexToNumber('RAYDIUM')) {
-    openLiquidityPositionRaydium(connection, signer, strategy, priceLower, priceUpper);
-  } else {
-    throw new Error(`Invalid dex ${strategyState.strategyDex.toString()}`);
-  }
-}
-
 export async function getTickArrayPubkeysFromRange(
   connection: Connection,
   dex: Dex,
@@ -146,43 +122,6 @@ export async function getTickArrayPubkeysFromRange(
   } else {
     throw new Error('Invalid dex');
   }
-}
-
-export async function setUpGlobalConfig(
-  connection: Connection,
-  signer: Keypair,
-  kaminoProgramId: PublicKey
-): Promise<PublicKey> {
-  let bufferSpaceZeroAccount = 0;
-
-  let wallet = new anchor.Wallet(signer);
-  const provider = new anchor.Provider(connection, wallet, anchor.Provider.defaultOptions());
-  const configAcc: Account = await serumCmn.createAccountRentExempt(
-    provider,
-    kaminoProgramId,
-    GLOBAL_CONFIG_SIZE + bufferSpaceZeroAccount
-  );
-
-  const globalConfig: Keypair = Keypair.fromSecretKey(configAcc.secretKey);
-  await initializeGlobalConfig(connection, signer, globalConfig);
-
-  return globalConfig.publicKey;
-}
-
-export async function initializeGlobalConfig(connection: Connection, signer: Keypair, globalConfig: Keypair) {
-  console.log('vefore init global config');
-  let accounts: Instructions.InitializeGlobalConfigAccounts = {
-    adminAuthority: signer.publicKey,
-    globalConfig: globalConfig.publicKey,
-    systemProgram: anchor.web3.SystemProgram.programId,
-  };
-
-  const tx = new Transaction();
-  let ix = Instructions.initializeGlobalConfig(accounts);
-  tx.add(ix);
-
-  let sig = await sendTransactionWithLogs(connection, tx, signer.publicKey, [signer]);
-  console.log('Initialize Global Config: ' + globalConfig.publicKey.toString());
 }
 
 export async function createUser(
