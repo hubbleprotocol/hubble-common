@@ -95,6 +95,29 @@ export class ExpHeuristic {
   }
 }
 
+export interface TwapDivergenceJSON {
+  kind: "TwapDivergence"
+}
+
+export class TwapDivergence {
+  static readonly discriminator = 4
+  static readonly kind = "TwapDivergence"
+  readonly discriminator = 4
+  readonly kind = "TwapDivergence"
+
+  toJSON(): TwapDivergenceJSON {
+    return {
+      kind: "TwapDivergence",
+    }
+  }
+
+  toEncodable() {
+    return {
+      TwapDivergence: {},
+    }
+  }
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function fromDecoded(obj: any): types.UpdateCollateralInfoModeKind {
   if (typeof obj !== "object") {
@@ -112,6 +135,9 @@ export function fromDecoded(obj: any): types.UpdateCollateralInfoModeKind {
   }
   if ("ExpHeuristic" in obj) {
     return new ExpHeuristic()
+  }
+  if ("TwapDivergence" in obj) {
+    return new TwapDivergence()
   }
 
   throw new Error("Invalid enum object")
@@ -133,6 +159,9 @@ export function fromJSON(
     case "ExpHeuristic": {
       return new ExpHeuristic()
     }
+    case "TwapDivergence": {
+      return new TwapDivergence()
+    }
   }
 }
 
@@ -142,6 +171,7 @@ export function layout(property?: string) {
     borsh.struct([], "LowerHeuristic"),
     borsh.struct([], "UpperHeuristic"),
     borsh.struct([], "ExpHeuristic"),
+    borsh.struct([], "TwapDivergence"),
   ])
   if (property !== undefined) {
     return ret.replicate(property)

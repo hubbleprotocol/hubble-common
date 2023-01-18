@@ -555,6 +555,98 @@ export class RAY {
   }
 }
 
+export interface BONKJSON {
+  kind: "BONK"
+}
+
+export class BONK {
+  static readonly discriminator = 24
+  static readonly kind = "BONK"
+  readonly discriminator = 24
+  readonly kind = "BONK"
+
+  toJSON(): BONKJSON {
+    return {
+      kind: "BONK",
+    }
+  }
+
+  toEncodable() {
+    return {
+      BONK: {},
+    }
+  }
+}
+
+export interface SAMOJSON {
+  kind: "SAMO"
+}
+
+export class SAMO {
+  static readonly discriminator = 25
+  static readonly kind = "SAMO"
+  readonly discriminator = 25
+  readonly kind = "SAMO"
+
+  toJSON(): SAMOJSON {
+    return {
+      kind: "SAMO",
+    }
+  }
+
+  toEncodable() {
+    return {
+      SAMO: {},
+    }
+  }
+}
+
+export interface LaineSOLJSON {
+  kind: "LaineSOL"
+}
+
+export class LaineSOL {
+  static readonly discriminator = 26
+  static readonly kind = "LaineSOL"
+  readonly discriminator = 26
+  readonly kind = "LaineSOL"
+
+  toJSON(): LaineSOLJSON {
+    return {
+      kind: "LaineSOL",
+    }
+  }
+
+  toEncodable() {
+    return {
+      LaineSOL: {},
+    }
+  }
+}
+
+export interface BSOLJSON {
+  kind: "BSOL"
+}
+
+export class BSOL {
+  static readonly discriminator = 27
+  static readonly kind = "BSOL"
+  readonly discriminator = 27
+  readonly kind = "BSOL"
+
+  toJSON(): BSOLJSON {
+    return {
+      kind: "BSOL",
+    }
+  }
+
+  toEncodable() {
+    return {
+      BSOL: {},
+    }
+  }
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function fromDecoded(obj: any): types.CollateralTokenKind {
   if (typeof obj !== "object") {
@@ -632,6 +724,18 @@ export function fromDecoded(obj: any): types.CollateralTokenKind {
   }
   if ("RAY" in obj) {
     return new RAY()
+  }
+  if ("BONK" in obj) {
+    return new BONK()
+  }
+  if ("SAMO" in obj) {
+    return new SAMO()
+  }
+  if ("LaineSOL" in obj) {
+    return new LaineSOL()
+  }
+  if ("BSOL" in obj) {
+    return new BSOL()
   }
 
   throw new Error("Invalid enum object")
@@ -713,6 +817,18 @@ export function fromJSON(
     case "RAY": {
       return new RAY()
     }
+    case "BONK": {
+      return new BONK()
+    }
+    case "SAMO": {
+      return new SAMO()
+    }
+    case "LaineSOL": {
+      return new LaineSOL()
+    }
+    case "BSOL": {
+      return new BSOL()
+    }
   }
 }
 
@@ -742,6 +858,10 @@ export function layout(property?: string) {
     borsh.struct([], "UXP"),
     borsh.struct([], "JITOSOL"),
     borsh.struct([], "RAY"),
+    borsh.struct([], "BONK"),
+    borsh.struct([], "SAMO"),
+    borsh.struct([], "LaineSOL"),
+    borsh.struct([], "BSOL"),
   ])
   if (property !== undefined) {
     return ret.replicate(property)

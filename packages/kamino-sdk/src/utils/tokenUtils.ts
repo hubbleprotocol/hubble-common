@@ -101,14 +101,20 @@ export async function sendTransactionWithLogs(
   tx: Transaction,
   payer: PublicKey,
   signers: Signer[],
-  args: { skipPreflight?: boolean; commitment: Commitment } = {
-    skipPreflight: true,
-    commitment: 'confirmed',
-  }
+  commitment: Commitment = 'processed',
+  skipPreflight: boolean = false
 ): Promise<TransactionSignature | null> {
+  console.log('begin');
   let txn = await assignBlockInfoToTransaction(connection, tx, payer);
+  console.log('after tx');
   try {
-    let res = await sendAndConfirmTransaction(connection, txn, signers);
+    console.log('in try');
+    let res = await sendAndConfirmTransaction(connection, txn, signers, {
+      commitment: commitment,
+      skipPreflight: skipPreflight,
+    });
+    console.log('in try second');
+
     return res;
   } catch (e) {
     console.log('ERROR:', e);

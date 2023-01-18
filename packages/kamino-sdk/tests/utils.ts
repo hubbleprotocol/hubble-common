@@ -1,7 +1,6 @@
 import { Connection, Keypair, PublicKey, Account } from '@solana/web3.js';
 import * as anchor from '@project-serum/anchor';
 import {
-  CollateralToken,
   ExecutiveWithdrawAction,
   ExecutiveWithdrawActionKind,
   GlobalConfigOptionKind,
@@ -19,7 +18,7 @@ export async function deployWhirlpool(wallet: PublicKey) {
 
 import { Idl, Program, web3 } from '@project-serum/anchor';
 import Decimal from 'decimal.js';
-import { Whirlpool, WhirlpoolStrategy } from '../src/kamino-client/accounts';
+import { GlobalConfig, Whirlpool, WhirlpoolStrategy } from '../src/kamino-client/accounts';
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
   createAssociatedTokenAccountInstruction,
@@ -32,20 +31,16 @@ import {
 } from '../src';
 import { getTickArrayPubkeysFromRangeRaydium, openLiquidityPositionRaydium } from './raydium_utils';
 import { getTickArrayPubkeysFromRangeOrca, openLiquidityPositionOrca } from './orca_utils';
-import { Key } from 'readline';
 import { TokenInstructions } from '@project-serum/serum';
-import { min } from 'bn.js';
+import { collateralTokenToNumber, CollateralToken } from './token_utils';
 
 const GLOBAL_CONFIG_SIZE = 26832;
 
 export async function accountExist(connection: anchor.web3.Connection, account: anchor.web3.PublicKey) {
-  console.log('in account exitst');
   const info = await connection.getAccountInfo(account);
   if (info == null || info.data.length == 0) {
-    console.log('account exists returns false');
     return false;
   }
-  console.log('account exists returns true');
   return true;
 }
 
@@ -107,6 +102,47 @@ export async function updateStrategyConfig(
   console.log('Update Strategy Config ', mode.toJSON(), sig?.toString());
 }
 
+export async function updateTreasuryFeeVault(
+  connection: Connection,
+  signer: Keypair,
+  globalConfig: PublicKey,
+  collateralToken: CollateralToken,
+  tokenMint: PublicKey,
+  treasuryFeeTokenVault: PublicKey,
+  treasuryFeeVaultAuthority: PublicKey
+): Promise<string> {
+  let args: Instructions.UpdateTreasuryFeeVaultArgs = {
+    collateralId: collateralTokenToNumber(collateralToken),
+  };
+
+  let config = await GlobalConfig.fetch(connection, globalConfig);
+  if (!config) {
+    throw new Error(`Error retrieving the config ${globalConfig.toString()}`);
+  }
+
+  let accounts: Instructions.UpdateTreasuryFeeVaultAccounts = {
+    adminAuthority: config.adminAuthority,
+    globalConfig: globalConfig,
+    feeMint: tokenMint,
+    treasuryFeeVault: treasuryFeeTokenVault,
+    treasuryFeeVaultAuthority: treasuryFeeVaultAuthority,
+    systemProgram: anchor.web3.SystemProgram.programId,
+    rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+    tokenProgram: TOKEN_PROGRAM_ID,
+  };
+
+  const tx = new Transaction();
+  let ix = Instructions.updateTreasuryFeeVault(args, accounts);
+  tx.add(ix);
+
+  let hash = await sendTransactionWithLogs(connection, tx, signer.publicKey, [signer]);
+  console.log('updateTreasuryFeeVault ix:', hash);
+  if (!hash) {
+    throw new Error('Hash for updateTreasuryFeeVault tx not found');
+  }
+  return hash;
+}
+
 export async function getTickArrayPubkeysFromRange(
   connection: Connection,
   dex: Dex,
@@ -137,20 +173,19 @@ export async function createUser(
   if (!user) {
     user = new anchor.web3.Keypair();
   }
-  console.log('created user ', user.publicKey.toString());
+
   await sleep(1000);
 
   if (solAirdropAmount.gt(0)) {
     await solAirdrop(connection, provider, user.publicKey, solAirdropAmount);
     await sleep(1000);
   }
-  console.log('after sol airdrop');
 
   let whirlpoolStrategyState = await WhirlpoolStrategy.fetch(connection, strategy);
   if (whirlpoolStrategyState == null) {
     throw new Error(`Strategy ${strategy.toString()} does not exist`);
   }
-  console.log('after strategy fetch');
+
   console.log('whirlpoolStrategyState.tokenAMint', whirlpoolStrategyState.tokenAMint.toString());
   console.log('whirlpoolStrategyState.tokenBMint', whirlpoolStrategyState.tokenBMint.toString());
 
@@ -170,18 +205,14 @@ export async function createUser(
   const aAta = await setupAta(connection, signer, whirlpoolStrategyState.tokenAMint, user);
   const bAta = await setupAta(connection, signer, whirlpoolStrategyState.tokenBMint, user);
   const sharesAta = await setupAta(connection, signer, whirlpoolStrategyState.sharesMint, user);
-  console.log('after setting ATAs');
+  console.log('create user Aata ', aAta.toString());
+  console.log('create user bAta ', bAta.toString());
+  console.log('create user sharesAta ', sharesAta.toString());
 
   let tokenADecimals = await getMintDecimals(connection, whirlpoolStrategyState.tokenAMint);
   let tokenBDecimals = await getMintDecimals(connection, whirlpoolStrategyState.tokenBMint);
-  console.log('after getting mint decimals');
 
   await sleep(3000);
-  console.log('aAta', aAta.toString());
-  console.log('whirlpoolStrategyState.tokenAMint', whirlpoolStrategyState.tokenAMint.toString());
-  console.log('bAta', bAta.toString());
-  console.log('whirlpoolStrategyState.tokenBMint', whirlpoolStrategyState.tokenBMint.toString());
-
   if (aAirdropAmount.gt(0)) {
     await mintTo(
       connection,
@@ -200,7 +231,6 @@ export async function createUser(
       collToLamportsDecimal(bAirdropAmount, tokenBDecimals).toNumber()
     );
   }
-  console.log('after airdrop');
 
   const testingUser: User = {
     tokenAAta: aAta,
@@ -222,13 +252,6 @@ export async function solAirdrop(
   return await getSolBalance(provider, account);
 }
 
-// await mintTo(
-//     connection,
-//     signer,
-//     whirlpoolStrategyState.tokenAMint,
-//     aAta,
-//     collToLamportsDecimal(aAirdropAmount, tokenADecimals).toNumber()
-//   );
 export async function mintTo(
   connection: Connection,
   signer: Keypair,
@@ -236,11 +259,7 @@ export async function mintTo(
   tokenAccount: PublicKey,
   amount: number
 ) {
-  console.log('TOKEN_PROGRAM_ID:', TOKEN_PROGRAM_ID.toString);
-  console.log('mintPubkey', mintPubkey.toString());
-  console.log('tokenAccount', tokenAccount.toString());
-  console.log('signer.publicKey', signer.publicKey.toString());
-
+  console.log(`mintTo ${tokenAccount.toString()} mint ${mintPubkey.toString()} amount ${amount}`);
   const tx = new Transaction().add(
     Token.createMintToInstruction(
       TOKEN_PROGRAM_ID, // always TOKEN_PROGRAM_ID
@@ -252,9 +271,8 @@ export async function mintTo(
     )
   );
 
-  let wallet = new anchor.Wallet(signer);
-  const provider = new anchor.Provider(connection, wallet, anchor.Provider.defaultOptions());
-  await provider.send(tx);
+  let res = await sendTransactionWithLogs(connection, tx, signer.publicKey, [signer]);;
+  console.log(`token ${mintPubkey.toString()} mint to ATA ${tokenAccount.toString()} tx hash: ${res}`);
 }
 
 export async function setupAta(
@@ -263,13 +281,14 @@ export async function setupAta(
   tokenMintAddress: PublicKey,
   user: Keypair
 ): Promise<PublicKey> {
-  const ata = await getAssociatedTokenAddress(tokenMintAddress, payer.publicKey);
+  const ata = await getAssociatedTokenAddress(tokenMintAddress, user.publicKey);
   if (!(await checkIfAccountExists(connection, ata))) {
-    const ix = await createAtaInstruction(payer.publicKey, tokenMintAddress, ata);
+    const ix = await createAtaInstruction(user.publicKey, tokenMintAddress, ata);
     const tx = new Transaction().add(ix);
     let wallet = new anchor.Wallet(payer);
     const provider = new anchor.Provider(connection, wallet, anchor.Provider.defaultOptions());
-    await provider.connection.sendTransaction(tx, [payer]);
+    let res = await provider.connection.sendTransaction(tx, [user]);
+    console.log(`setup ATA for ${tokenMintAddress.toString()} tx hash ${res}`);
   }
   return ata;
 }
@@ -313,6 +332,7 @@ export function lamportsToCollDecimal(amount: Decimal, decimals: number): Decima
 }
 
 export async function createMint(connection: Connection, signer: Keypair, decimals: number = 6): Promise<PublicKey> {
+  console.log('in create mint');
   const mint = anchor.web3.Keypair.generate();
   return await createMintFromKeypair(connection, signer, mint, decimals);
 }
@@ -323,12 +343,15 @@ export async function createMintFromKeypair(
   mint: Keypair,
   decimals: number = 6
 ): Promise<PublicKey> {
+  console.log('in createMintFromKeypair');
   const instructions = await createMintInstructions(connection, signer, mint.publicKey, decimals);
 
   const tx = new anchor.web3.Transaction();
   tx.add(...instructions);
 
+  console.log('before first tx');
   await sendTransactionWithLogs(connection, tx, signer.publicKey, [signer, mint]);
+  console.log('after first tx');
   return mint.publicKey;
 }
 

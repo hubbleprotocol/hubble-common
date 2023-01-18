@@ -6,6 +6,7 @@
     "bootstrap": "npx lerna bootstrap --hoist && npx lerna run build",
     "publish": "npx lerna publish",
     "test": "npx jest --config jest.config.json",
+    "integration-test": "ts-mocha ''",
     "format": "npx prettier --write '{**/*,*}.{js,ts,jsx,tsx}'",
     "format:check": "npx prettier --check '{**/*,*}.{js,ts,jsx,tsx}'"
   },
@@ -15,10 +16,12 @@
     "lerna": "^4.0.0",
     "prettier": "^2.7.1",
     "typescript": "^4.7.4",
-    "jest": "^28.1.2",
-    "@types/jest": "^28.1.4",
-    "ts-jest": "^28.0.5",
     "@types/bn.js": "^5.1.0",
+    "chai": "^4.3.6",
+    "mocha": "^9.1.4",
+    "ts-mocha": "^9.0.2",
+    "@types/chai-as-promised": "^7.1.4",
+    "@types/mocha": "^9.1.0",
     "@solana/web3.js": "^1.47.3"
   }
 }
