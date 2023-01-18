@@ -89,8 +89,6 @@ export function deposit(args: DepositArgs, accounts: DepositAccounts) {
     },
   ]
 
-  console.log("in IX accounts tokenAAta", accounts.tokenAAta.toString());
-  console.log("in IX accounts tokenBAta", accounts.tokenBAta.toString());
   const identifier = Buffer.from([242, 35, 198, 137, 82, 225, 242, 182])
   const buffer = Buffer.alloc(1000)
   const len = layout.encode(

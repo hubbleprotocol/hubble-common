@@ -825,112 +825,6 @@ export class Kamino {
     return deposit(depositArgs, depositAccounts);
   }
 
-  async depositSilviu(strategy: PublicKey | StrategyWithAddress, amountA: Decimal, amountB: Decimal, owner: Keypair) {
-    if (amountA.lessThanOrEqualTo(0) || amountB.lessThanOrEqualTo(0)) {
-      throw Error('Token A or B amount cant be lower than or equal to 0.');
-    }
-    const strategyState = await this.getStrategyStateIfNotFetched(strategy);
-
-    const globalConfig = await GlobalConfig.fetch(this._connection, strategyState.strategy.globalConfig);
-    if (!globalConfig) {
-      throw Error(`Could not fetch global config with pubkey ${strategyState.strategy.globalConfig.toString()}`);
-    }
-
-    const { treasuryFeeTokenAVault, treasuryFeeTokenBVault, treasuryFeeVaultAuthority } =
-      await this.getTreasuryFeeVaultPDAs(strategyState.strategy.tokenAMint, strategyState.strategy.tokenBMint);
-    console.log('treasuryFeeTokenAVault', treasuryFeeTokenAVault.toString());
-    console.log('treasuryFeeTokenBVault', treasuryFeeTokenBVault.toString());
-    console.log('treasuryFeeVaultAuthority', treasuryFeeVaultAuthority.toString());
-
-    // const sharesAta = await getAssociatedTokenAddress(strategyState.strategy.sharesMint, owner);
-    // const tokenAAta = await getAssociatedTokenAddress(strategyState.strategy.tokenAMint, owner);
-    // const tokenBAta = await getAssociatedTokenAddress(strategyState.strategy.tokenBMint, owner);
-
-    // let ataAExists = (await this._connection.getAccountInfo(tokenAAta)) != null;
-    // let ataBExists = (await this._connection.getAccountInfo(tokenBAta)) != null;
-    // let sharesAtaExists = (await this._connection.getAccountInfo(sharesAta)) != null;
-
-    let tx = createTransactionWithExtraBudget(owner.publicKey);
-    const [sharesAta, sharesMintData] = await getAssociatedTokenAddressAndData(
-      this._connection,
-      strategyState.strategy.sharesMint,
-      owner.publicKey
-    );
-    const [tokenAAta, tokenAData] = await getAssociatedTokenAddressAndData(
-      this._connection,
-      strategyState.strategy.tokenAMint,
-      owner.publicKey
-    );
-    const [tokenBAta, tokenBData] = await getAssociatedTokenAddressAndData(
-      this._connection,
-      strategyState.strategy.tokenBMint,
-      owner.publicKey
-    );
-    const ataInstructions = await this.getCreateAssociatedTokenAccountInstructionsIfNotExist(
-      owner.publicKey,
-      strategyState,
-      tokenAData,
-      tokenAAta,
-      tokenBData,
-      tokenBAta,
-      sharesMintData,
-      sharesAta
-    );
-    if (ataInstructions.length > 0) {
-      tx.add(...ataInstructions);
-    }
-
-    // console.log('exists user.tokenAAta', ataAExists.toString());
-    // console.log('exists user.tokenBAta', ataBExists.toString());
-    // console.log('exists user.SharesAta', sharesAtaExists.toString());
-
-    console.log('deposit user.tokenAAta', tokenAAta.toString());
-    console.log('deposit user.tokenBAta', tokenBAta.toString());
-    console.log('deposit user.SharesAta', sharesAta.toString());
-    const lamportsA = amountA.mul(new Decimal(10).pow(strategyState.strategy.tokenAMintDecimals.toString()));
-    const lamportsB = amountB.mul(new Decimal(10).pow(strategyState.strategy.tokenBMintDecimals.toString()));
-
-    const depositArgs: DepositArgs = {
-      tokenMaxA: new BN(lamportsA.toNumber()),
-      tokenMaxB: new BN(lamportsB.toNumber()),
-    };
-
-    const depositAccounts: DepositAccounts = {
-      user: owner.publicKey,
-      strategy: strategyState.address,
-      globalConfig: strategyState.strategy.globalConfig,
-      pool: strategyState.strategy.pool,
-      position: strategyState.strategy.position,
-      tokenAVault: strategyState.strategy.tokenAVault,
-      tokenBVault: strategyState.strategy.tokenBVault,
-      baseVaultAuthority: strategyState.strategy.baseVaultAuthority,
-      treasuryFeeTokenAVault,
-      treasuryFeeTokenBVault,
-      // treasuryFeeVaultAuthority,
-      tokenAAta,
-      tokenBAta,
-      tokenAMint: strategyState.strategy.tokenAMint,
-      tokenBMint: strategyState.strategy.tokenBMint,
-      userSharesAta: sharesAta,
-      sharesMint: strategyState.strategy.sharesMint,
-      sharesMintAuthority: strategyState.strategy.sharesMintAuthority,
-      scopePrices: strategyState.strategy.scopePrices,
-      tokenInfos: globalConfig.tokenInfos,
-      systemProgram: SystemProgram.programId,
-      rent: SYSVAR_RENT_PUBKEY,
-      associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
-      tokenProgram: TOKEN_PROGRAM_ID,
-      instructionSysvarAccount: SYSVAR_INSTRUCTIONS_PUBKEY,
-    };
-
-    let depositIx = deposit(depositArgs, depositAccounts);
-
-    tx.add(depositIx);
-
-    let hash = await sendTransactionWithLogs(this._connection, tx, owner.publicKey, [owner]);
-    console.log("hash ", hash?.toString());
-  }
-
   /**
    * Get transaction instruction to create a new Kamino strategy.
    * Current limitations:
@@ -951,7 +845,6 @@ export class Kamino {
     tokenB: SupportedToken,
     dex: Dex
   ) {
-    console.log('in silviu createStrategy');
     let tokenMintA = PublicKey.default;
     let tokenMintB = PublicKey.default;
     if (dex == 'ORCA') {
