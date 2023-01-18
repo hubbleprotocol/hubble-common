@@ -56,6 +56,7 @@ export async function initializeRaydiumPool(
     config = configAcc;
   } else {
     let [configPk, index] = await getAmmConfigAddress(0, RAYDIUM_PROGRAM_ID);
+    console.log("raydiu configPk ", configPk.toString());
     if (!(await accountExist(connection, configPk))) {
       console.log('try to create config');
       await createAmmConfig(connection, signer, configPk, 0, tickSize, 100, 200, 400);
