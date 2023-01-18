@@ -1143,8 +1143,8 @@ export class Kamino {
     tickLowerIndex: number,
     tickUpperIndex: number
   ) {
-    const startTickIndex = getStartTickIndex(tickLowerIndex, poolState.tickSpacing, 0);
-    const endTickIndex = getStartTickIndex(tickUpperIndex, poolState.tickSpacing, 0);
+    const startTickIndex = TickUtils.getTickArrayStartIndexByTick(tickLowerIndex, poolState.tickSpacing);
+    const endTickIndex = TickUtils.getTickArrayStartIndexByTick(tickUpperIndex, poolState.tickSpacing);
 
     const [startTickIndexPubkey, startTickIndexBump] = await PublicKey.findProgramAddress(
       [Buffer.from('tick_array'), pool.toBuffer(), i32ToBytes(startTickIndex)],
