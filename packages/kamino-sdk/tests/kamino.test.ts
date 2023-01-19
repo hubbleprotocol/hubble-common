@@ -1,13 +1,4 @@
-import {
-  Cluster,
-  clusterApiUrl,
-  Connection,
-  Keypair,
-  PublicKey,
-  sendAndConfirmTransaction,
-  SystemProgram,
-  Transaction,
-} from '@solana/web3.js';
+import { Connection, Keypair, PublicKey, sendAndConfirmTransaction, SystemProgram, Transaction } from '@solana/web3.js';
 import { Dex, Kamino, sendTransactionWithLogs, sleep } from '../src';
 import Decimal from 'decimal.js';
 import {
@@ -18,7 +9,7 @@ import {
 import { GlobalConfig } from '../src/kamino-client/accounts';
 import * as Instructions from '../src/kamino-client/instructions';
 import { GlobalConfigOption, GlobalConfigOptionKind } from '../src/kamino-client/types';
-import { Scope, SupportedToken } from '../../scope-sdk/src';
+import { SupportedToken } from '../../scope-sdk/src';
 import BN from 'bn.js';
 import { initializeRaydiumPool, orderMints } from './raydium_utils';
 import { initializeWhirlpool } from './orca_utils';
