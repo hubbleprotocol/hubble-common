@@ -136,18 +136,18 @@ export class Kamino {
    * @param cluster Name of the Solana cluster
    * @param connection Connection to the Solana cluster
    */
-  constructor(cluster: SolanaCluster, connection: Connection, programId: PublicKey, globalConfig: PublicKey) {
+  constructor(cluster: SolanaCluster, connection: Connection, globalConfig?: PublicKey, programId?: PublicKey) {
     this._cluster = cluster;
     this._connection = connection;
     this._config = getConfigByCluster(cluster);
-    this._globalConfig = globalConfig;
+    this._globalConfig = globalConfig ? globalConfig : new PublicKey(this._config.kamino.globalConfig);
     this._provider = new Provider(connection, getReadOnlyWallet(), {
       commitment: connection.commitment,
     });
-    this._kaminoProgram = new Program(KAMINO_IDL as Idl, programId, this._provider);
-    this._kaminoProgramId = programId;
+    this._kaminoProgramId = programId ? programId : this._config.kamino.programId;
+    this._kaminoProgram = new Program(KAMINO_IDL as Idl, this._kaminoProgramId, this._provider);
     this._scope = new Scope(cluster, connection);
-    setKaminoProgramId(programId);
+    setKaminoProgramId(this._kaminoProgramId);
   }
 
   getConnection() {
