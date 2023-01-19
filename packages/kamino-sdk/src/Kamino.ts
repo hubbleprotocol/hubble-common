@@ -45,14 +45,12 @@ import { PriceData } from './models/PriceData';
 import {
   batchFetch,
   createAssociatedTokenAccountInstruction,
-  createTransactionWithExtraBudget,
   Dex,
   dexToNumber,
   getAssociatedTokenAddress,
   getAssociatedTokenAddressAndData,
   getDexProgramId,
   getReadOnlyWallet,
-  sendTransactionWithLogs,
 } from './utils';
 import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import {
@@ -333,10 +331,10 @@ export class Kamino {
       b: bVault,
     };
     const prices = await this.getPrices(strategy);
-    const aAvailable = new Decimal(strategy.tokenAAmounts.toNumber());
-    const bAvailable = new Decimal(strategy.tokenBAmounts.toNumber());
-    const aInvested = new Decimal(amountA.toNumber());
-    const bInvested = new Decimal(amountB.toNumber());
+    const aAvailable = new Decimal(strategy.tokenAAmounts.toString());
+    const bAvailable = new Decimal(strategy.tokenBAmounts.toString());
+    const aInvested = new Decimal(amountA.toString());
+    const bInvested = new Decimal(amountB.toString());
 
     let computedHoldings: Holdings = this.getStrategyHoldingsUsd(
       aAvailable,
@@ -566,7 +564,7 @@ export class Kamino {
 
     let programId = getDexProgramId(strategyState.strategy);
 
-    const args: WithdrawArgs = { sharesAmount: new BN(sharesAmountInLamports.toNumber()) };
+    const args: WithdrawArgs = { sharesAmount: new BN(sharesAmountInLamports.toString()) };
     const accounts: WithdrawAccounts = {
       user: owner,
       strategy: strategyState.address,
@@ -740,17 +738,17 @@ export class Kamino {
       strategyState.strategy.tokenBMint
     );
 
-    const [sharesAta, sharesMintData] = await getAssociatedTokenAddressAndData(
+    const [sharesAta] = await getAssociatedTokenAddressAndData(
       this._connection,
       strategyState.strategy.sharesMint,
       owner
     );
-    const [tokenAAta, tokenAData] = await getAssociatedTokenAddressAndData(
+    const [tokenAAta] = await getAssociatedTokenAddressAndData(
       this._connection,
       strategyState.strategy.tokenAMint,
       owner
     );
-    const [tokenBAta, tokenBData] = await getAssociatedTokenAddressAndData(
+    const [tokenBAta] = await getAssociatedTokenAddressAndData(
       this._connection,
       strategyState.strategy.tokenBMint,
       owner
@@ -760,8 +758,8 @@ export class Kamino {
     const lamportsB = amountB.mul(new Decimal(10).pow(strategyState.strategy.tokenBMintDecimals.toString()));
 
     const depositArgs: DepositAndInvestArgs = {
-      tokenMaxA: new BN(lamportsA.toNumber()),
-      tokenMaxB: new BN(lamportsB.toNumber()),
+      tokenMaxA: new BN(lamportsA.toString()),
+      tokenMaxB: new BN(lamportsB.toString()),
     };
 
     const depositAccounts: DepositAndInvestAccounts = {
