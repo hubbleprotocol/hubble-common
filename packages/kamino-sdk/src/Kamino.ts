@@ -62,6 +62,9 @@ import {
   CollectFeesAndRewardsAccounts,
   deposit,
   DepositAccounts,
+  depositAndInvest,
+  DepositAndInvestAccounts,
+  DepositAndInvestArgs,
   DepositArgs,
   executiveWithdraw,
   ExecutiveWithdrawAccounts,
@@ -723,12 +726,25 @@ export class Kamino {
    * @param owner Owner (wallet, shareholder) public key
    * @returns transaction instruction for depositing tokens into a strategy
    */
-  async deposit(strategy: PublicKey | StrategyWithAddress, amountA: Decimal, amountB: Decimal, owner: PublicKey) {
+  async deposit(
+    strategy: PublicKey | StrategyWithAddress,
+    amountA: Decimal,
+    amountB: Decimal,
+    owner: PublicKey
+  ) {
     if (amountA.lessThanOrEqualTo(0) || amountB.lessThanOrEqualTo(0)) {
       throw Error('Token A or B amount cant be lower than or equal to 0.');
     }
     const strategyState = await this.getStrategyStateIfNotFetched(strategy);
 
+    let poolProgram = PublicKey.default;
+    if (strategyState.strategy.strategyDex.toNumber() == dexToNumber('ORCA')) {
+      poolProgram = WHIRLPOOL_PROGRAM_ID;
+    } else if (strategyState.strategy.strategyDex.toNumber() == dexToNumber('RAYDIUM')) {
+      poolProgram = RAYDIUM_PROGRAM_ID;
+    } else {
+      throw new Error(`Invaid dex ${strategyState.strategy.strategyDex}`);
+    }
     const globalConfig = await GlobalConfig.fetch(this._connection, strategyState.strategy.globalConfig);
     if (!globalConfig) {
       throw Error(`Could not fetch global config with pubkey ${strategyState.strategy.globalConfig.toString()}`);
@@ -739,14 +755,6 @@ export class Kamino {
     console.log('treasuryFeeTokenAVault', treasuryFeeTokenAVault.toString());
     console.log('treasuryFeeTokenBVault', treasuryFeeTokenBVault.toString());
     console.log('treasuryFeeVaultAuthority', treasuryFeeVaultAuthority.toString());
-
-    // const sharesAta = await getAssociatedTokenAddress(strategyState.strategy.sharesMint, owner);
-    // const tokenAAta = await getAssociatedTokenAddress(strategyState.strategy.tokenAMint, owner);
-    // const tokenBAta = await getAssociatedTokenAddress(strategyState.strategy.tokenBMint, owner);
-
-    // let ataAExists = (await this._connection.getAccountInfo(tokenAAta)) != null;
-    // let ataBExists = (await this._connection.getAccountInfo(tokenBAta)) != null;
-    // let sharesAtaExists = (await this._connection.getAccountInfo(sharesAta)) != null;
 
     const [sharesAta, sharesMintData] = await getAssociatedTokenAddressAndData(
       this._connection,
@@ -789,12 +797,12 @@ export class Kamino {
     const lamportsA = amountA.mul(new Decimal(10).pow(strategyState.strategy.tokenAMintDecimals.toString()));
     const lamportsB = amountB.mul(new Decimal(10).pow(strategyState.strategy.tokenBMintDecimals.toString()));
 
-    const depositArgs: DepositArgs = {
+    const depositArgs: DepositAndInvestArgs = {
       tokenMaxA: new BN(lamportsA.toNumber()),
       tokenMaxB: new BN(lamportsB.toNumber()),
     };
 
-    const depositAccounts: DepositAccounts = {
+    const depositAccounts: DepositAndInvestAccounts = {
       user: owner,
       strategy: strategyState.address,
       globalConfig: strategyState.strategy.globalConfig,
@@ -805,7 +813,6 @@ export class Kamino {
       baseVaultAuthority: strategyState.strategy.baseVaultAuthority,
       treasuryFeeTokenAVault,
       treasuryFeeTokenBVault,
-      // treasuryFeeVaultAuthority,
       tokenAAta,
       tokenBAta,
       tokenAMint: strategyState.strategy.tokenAMint,
@@ -820,9 +827,16 @@ export class Kamino {
       associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
       tokenProgram: TOKEN_PROGRAM_ID,
       instructionSysvarAccount: SYSVAR_INSTRUCTIONS_PUBKEY,
+      raydiumProtocolPositionOrBaseVaultAuthority: strategyState.strategy.raydiumProtocolPositionOrBaseVaultAuthority,
+      positionTokenAccount: strategyState.strategy.positionTokenAccount,
+      poolTokenVaultA: strategyState.strategy.poolTokenVaultA,
+      poolTokenVaultB: strategyState.strategy.poolTokenVaultB,
+      tickArrayLower: strategyState.strategy.tickArrayLower,
+      tickArrayUpper: strategyState.strategy.tickArrayUpper,
+      poolProgram: poolProgram,
     };
 
-    return deposit(depositArgs, depositAccounts);
+    return depositAndInvest(depositArgs, depositAccounts);
   }
 
   /**
@@ -1460,6 +1474,7 @@ export class Kamino {
       tickArrayUpper: strategyState.tickArrayUpper,
       scopePrices: globalConfig.scopePriceId,
       raydiumProtocolPositionOrBaseVaultAuthority: strategyState.raydiumProtocolPositionOrBaseVaultAuthority,
+      tokenInfos: globalConfig.tokenInfos,
       poolProgram: programId,
       instructionSysvarAccount: SYSVAR_INSTRUCTIONS_PUBKEY,
     };

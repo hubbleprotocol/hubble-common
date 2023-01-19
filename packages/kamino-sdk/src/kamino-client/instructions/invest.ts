@@ -21,6 +21,7 @@ export interface InvestAccounts {
   tickArrayLower: PublicKey
   tickArrayUpper: PublicKey
   scopePrices: PublicKey
+  tokenInfos: PublicKey
   poolProgram: PublicKey
   instructionSysvarAccount: PublicKey
 }
@@ -51,6 +52,7 @@ export function invest(accounts: InvestAccounts) {
     { pubkey: accounts.tickArrayLower, isSigner: false, isWritable: true },
     { pubkey: accounts.tickArrayUpper, isSigner: false, isWritable: true },
     { pubkey: accounts.scopePrices, isSigner: false, isWritable: false },
+    { pubkey: accounts.tokenInfos, isSigner: false, isWritable: false },
     { pubkey: accounts.poolProgram, isSigner: false, isWritable: false },
     {
       pubkey: accounts.instructionSysvarAccount,
