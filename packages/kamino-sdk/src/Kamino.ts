@@ -736,8 +736,10 @@ export class Kamino {
       throw Error(`Could not fetch global config with pubkey ${strategyState.strategy.globalConfig.toString()}`);
     }
 
-    const { treasuryFeeTokenAVault, treasuryFeeTokenBVault, treasuryFeeVaultAuthority } =
-      await this.getTreasuryFeeVaultPDAs(strategyState.strategy.tokenAMint, strategyState.strategy.tokenBMint);
+    const { treasuryFeeTokenAVault, treasuryFeeTokenBVault } = await this.getTreasuryFeeVaultPDAs(
+      strategyState.strategy.tokenAMint,
+      strategyState.strategy.tokenBMint
+    );
 
     const [sharesAta, sharesMintData] = await getAssociatedTokenAddressAndData(
       this._connection,
@@ -754,25 +756,6 @@ export class Kamino {
       strategyState.strategy.tokenBMint,
       owner
     );
-    const ataInstructions = await this.getCreateAssociatedTokenAccountInstructionsIfNotExist(
-      owner,
-      strategyState,
-      tokenAData,
-      tokenAAta,
-      tokenBData,
-      tokenBAta,
-      sharesMintData,
-      sharesAta
-    );
-    // if (ataInstructions.length > 0) {
-    //   let tx = createTransactionWithExtraBudget(owner);
-    //   tx.add(...ataInstructions);
-    //   sendTransactionWithLogs(this._connection, tx, owner);
-    // }
-
-    // console.log('exists user.tokenAAta', ataAExists.toString());
-    // console.log('exists user.tokenBAta', ataBExists.toString());
-    // console.log('exists user.SharesAta', sharesAtaExists.toString());
 
     const lamportsA = amountA.mul(new Decimal(10).pow(strategyState.strategy.tokenAMintDecimals.toString()));
     const lamportsB = amountB.mul(new Decimal(10).pow(strategyState.strategy.tokenBMintDecimals.toString()));
