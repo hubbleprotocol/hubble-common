@@ -1,38 +1,38 @@
-import { TransactionInstruction, PublicKey, AccountMeta } from "@solana/web3.js" // eslint-disable-line @typescript-eslint/no-unused-vars
-import BN from "bn.js" // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as borsh from "@project-serum/borsh" // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
-import { PROGRAM_ID } from "../programId"
+import { TransactionInstruction, PublicKey, AccountMeta } from '@solana/web3.js'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import BN from 'bn.js'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as borsh from '@project-serum/borsh'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as types from '../types'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import { PROGRAM_ID } from '../programId';
 
 export interface CreatePoolArgs {
-  sqrtPriceX64: BN
+  sqrtPriceX64: BN;
 }
 
 export interface CreatePoolAccounts {
   /** Address paying to create the pool. Can be anyone */
-  poolCreator: PublicKey
+  poolCreator: PublicKey;
   /** Which config the pool belongs to. */
-  ammConfig: PublicKey
+  ammConfig: PublicKey;
   /** Initialize an account to store the pool state */
-  poolState: PublicKey
+  poolState: PublicKey;
   /** Token_0 mint, the key must grater then token_1 mint. */
-  tokenMint0: PublicKey
+  tokenMint0: PublicKey;
   /** Token_1 mint */
-  tokenMint1: PublicKey
+  tokenMint1: PublicKey;
   /** Token_0 vault for the pool */
-  tokenVault0: PublicKey
+  tokenVault0: PublicKey;
   /** Token_1 vault for the pool */
-  tokenVault1: PublicKey
-  observationState: PublicKey
+  tokenVault1: PublicKey;
+  observationState: PublicKey;
   /** Spl token program */
-  tokenProgram: PublicKey
+  tokenProgram: PublicKey;
   /** To create a new program account */
-  systemProgram: PublicKey
+  systemProgram: PublicKey;
   /** Sysvar for program account */
-  rent: PublicKey
+  rent: PublicKey;
 }
 
-export const layout = borsh.struct([borsh.u128("sqrtPriceX64")])
+export const layout = borsh.struct([borsh.u128('sqrtPriceX64')]);
 
 /**
  * Creates a pool for the given token pair and the initial price
@@ -56,16 +56,16 @@ export function createPool(args: CreatePoolArgs, accounts: CreatePoolAccounts) {
     { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.systemProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.rent, isSigner: false, isWritable: false },
-  ]
-  const identifier = Buffer.from([233, 146, 209, 142, 207, 104, 64, 188])
-  const buffer = Buffer.alloc(1000)
+  ];
+  const identifier = Buffer.from([233, 146, 209, 142, 207, 104, 64, 188]);
+  const buffer = Buffer.alloc(1000);
   const len = layout.encode(
     {
       sqrtPriceX64: args.sqrtPriceX64,
     },
     buffer
-  )
-  const data = Buffer.concat([identifier, buffer]).slice(0, 8 + len)
-  const ix = new TransactionInstruction({ keys, programId: PROGRAM_ID, data })
-  return ix
+  );
+  const data = Buffer.concat([identifier, buffer]).slice(0, 8 + len);
+  const ix = new TransactionInstruction({ keys, programId: PROGRAM_ID, data });
+  return ix;
 }

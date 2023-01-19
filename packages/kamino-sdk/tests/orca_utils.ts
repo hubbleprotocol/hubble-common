@@ -1,10 +1,4 @@
-import {
-  PublicKey,
-  Connection,
-  Transaction,
-  TransactionInstruction,
-  Keypair,
-} from '@solana/web3.js';
+import { PublicKey, Connection, Transaction, TransactionInstruction, Keypair } from '@solana/web3.js';
 import { DeployedPool, getTickArrayPubkeysFromRange, range } from './utils';
 import * as WhirlpoolInstructions from '../src/whirpools-client/instructions';
 import * as anchor from '@project-serum/anchor';

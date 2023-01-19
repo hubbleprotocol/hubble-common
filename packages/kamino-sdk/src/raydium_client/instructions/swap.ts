@@ -1,44 +1,44 @@
-import { TransactionInstruction, PublicKey, AccountMeta } from "@solana/web3.js" // eslint-disable-line @typescript-eslint/no-unused-vars
-import BN from "bn.js" // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as borsh from "@project-serum/borsh" // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
-import { PROGRAM_ID } from "../programId"
+import { TransactionInstruction, PublicKey, AccountMeta } from '@solana/web3.js'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import BN from 'bn.js'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as borsh from '@project-serum/borsh'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as types from '../types'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import { PROGRAM_ID } from '../programId';
 
 export interface SwapArgs {
-  amount: BN
-  otherAmountThreshold: BN
-  sqrtPriceLimitX64: BN
-  isBaseInput: boolean
+  amount: BN;
+  otherAmountThreshold: BN;
+  sqrtPriceLimitX64: BN;
+  isBaseInput: boolean;
 }
 
 export interface SwapAccounts {
   /** The user performing the swap */
-  payer: PublicKey
+  payer: PublicKey;
   /** The factory state to read protocol fees */
-  ammConfig: PublicKey
+  ammConfig: PublicKey;
   /** The program account of the pool in which the swap will be performed */
-  poolState: PublicKey
+  poolState: PublicKey;
   /** The user token account for input token */
-  inputTokenAccount: PublicKey
+  inputTokenAccount: PublicKey;
   /** The user token account for output token */
-  outputTokenAccount: PublicKey
+  outputTokenAccount: PublicKey;
   /** The vault token account for input token */
-  inputVault: PublicKey
+  inputVault: PublicKey;
   /** The vault token account for output token */
-  outputVault: PublicKey
+  outputVault: PublicKey;
   /** The program account for the most recent oracle observation */
-  observationState: PublicKey
+  observationState: PublicKey;
   /** SPL program for token transfers */
-  tokenProgram: PublicKey
-  tickArray: PublicKey
+  tokenProgram: PublicKey;
+  tickArray: PublicKey;
 }
 
 export const layout = borsh.struct([
-  borsh.u64("amount"),
-  borsh.u64("otherAmountThreshold"),
-  borsh.u128("sqrtPriceLimitX64"),
-  borsh.bool("isBaseInput"),
-])
+  borsh.u64('amount'),
+  borsh.u64('otherAmountThreshold'),
+  borsh.u128('sqrtPriceLimitX64'),
+  borsh.bool('isBaseInput'),
+]);
 
 /**
  * Swaps one token for as much as possible of another token across a single pool
@@ -64,9 +64,9 @@ export function swap(args: SwapArgs, accounts: SwapAccounts) {
     { pubkey: accounts.observationState, isSigner: false, isWritable: true },
     { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.tickArray, isSigner: false, isWritable: true },
-  ]
-  const identifier = Buffer.from([248, 198, 158, 145, 225, 117, 135, 200])
-  const buffer = Buffer.alloc(1000)
+  ];
+  const identifier = Buffer.from([248, 198, 158, 145, 225, 117, 135, 200]);
+  const buffer = Buffer.alloc(1000);
   const len = layout.encode(
     {
       amount: args.amount,
@@ -75,8 +75,8 @@ export function swap(args: SwapArgs, accounts: SwapAccounts) {
       isBaseInput: args.isBaseInput,
     },
     buffer
-  )
-  const data = Buffer.concat([identifier, buffer]).slice(0, 8 + len)
-  const ix = new TransactionInstruction({ keys, programId: PROGRAM_ID, data })
-  return ix
+  );
+  const data = Buffer.concat([identifier, buffer]).slice(0, 8 + len);
+  const ix = new TransactionInstruction({ keys, programId: PROGRAM_ID, data });
+  return ix;
 }
