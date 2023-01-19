@@ -78,7 +78,7 @@ export const ScopePairs = [
   'bSOL/SOL',
   'LaineSOL/SOL',
 ] as const;
-export type ScopePair = typeof ScopePairs[number];
+export type ScopePair = (typeof ScopePairs)[number];
 
 export const SupportedTokens = [
   'SOL',
@@ -153,7 +153,7 @@ export const SupportedTokens = [
   'bSOL',
   'LaineSOL',
 ] as const;
-export type SupportedToken = typeof SupportedTokens[number];
+export type SupportedToken = (typeof SupportedTokens)[number];
 
 export interface ScopeToken {
   /**

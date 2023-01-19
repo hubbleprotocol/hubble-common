@@ -29,7 +29,7 @@ export const CollateralTokens = [
   'LaineSOL',
 ] as const;
 
-export type CollateralToken = typeof CollateralTokens[number];
+export type CollateralToken = (typeof CollateralTokens)[number];
 
 export function collateralTokenToNumber(token: CollateralToken): number {
   for (let i = 0; i < CollateralTokens.length; i++) {
