@@ -123,8 +123,6 @@ export class GlobalConfig {
   ): Promise<GlobalConfig | null> {
     const info = await c.getAccountInfo(address)
 
-    console.log("GlobalConfig owner", info?.owner.toString());
-    console.log("fetch PROGRAM_ID GC", PROGRAM_ID.toString());
     if (info === null) {
       return null
     }

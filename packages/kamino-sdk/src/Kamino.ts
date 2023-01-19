@@ -7,12 +7,10 @@ import {
 import {
   AccountInfo,
   Connection,
-  Keypair,
   PublicKey,
   SystemProgram,
   SYSVAR_INSTRUCTIONS_PUBKEY,
   SYSVAR_RENT_PUBKEY,
-  Transaction,
   TransactionInstruction,
 } from '@solana/web3.js';
 import { setKaminoProgramId } from './kamino-client/programId';
@@ -60,12 +58,9 @@ import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID } from '@solana/spl-token
 import {
   collectFeesAndRewards,
   CollectFeesAndRewardsAccounts,
-  deposit,
-  DepositAccounts,
   depositAndInvest,
   DepositAndInvestAccounts,
   DepositAndInvestArgs,
-  DepositArgs,
   executiveWithdraw,
   ExecutiveWithdrawAccounts,
   ExecutiveWithdrawArgs,
@@ -155,7 +150,6 @@ export class Kamino {
     this._kaminoProgramId = programId;
     this._scope = new Scope(cluster, connection);
     setKaminoProgramId(programId);
-    console.log('programId', programId.toString());
   }
 
   getConnection() {
@@ -248,7 +242,6 @@ export class Kamino {
   }
 
   private async getStrategyBalancesOrca(strategy: WhirlpoolStrategy) {
-    console.log('getStrategyBalancesOrca whirlpool', strategy.pool.toString());
     const whirlpool = await Whirlpool.fetch(this._connection, strategy.pool);
     const position = await Position.fetch(this._connection, strategy.position);
 
@@ -417,9 +410,7 @@ export class Kamino {
     tokens.push(collateralMintA.scopeToken as SupportedToken);
     tokens.push(collateralMintB.scopeToken as SupportedToken);
 
-    console.log('before get prices');
     const prices = await this._scope.getPrices([...new Set(tokens)]);
-    console.log('after get prices');
     const aPrice = prices.find((x) => x.name === collateralMintA.scopeToken);
     const bPrice = prices.find((x) => x.name === collateralMintB.scopeToken);
 
@@ -570,9 +561,6 @@ export class Kamino {
     const tokenAAta = await getAssociatedTokenAddress(strategyState.strategy.tokenAMint, owner);
     const tokenBAta = await getAssociatedTokenAddress(strategyState.strategy.tokenBMint, owner);
 
-    console.log('withdraw user.tokenAAta', tokenAAta.toString());
-    console.log('withdraw user.tokenBAta', tokenBAta.toString());
-    console.log('withdraw user.SharesAta', sharesAta.toString());
     const sharesAmountInLamports = sharesAmount.mul(
       new Decimal(10).pow(strategyState.strategy.sharesMintDecimals.toString())
     );
@@ -729,12 +717,7 @@ export class Kamino {
    * @param owner Owner (wallet, shareholder) public key
    * @returns transaction instruction for depositing tokens into a strategy
    */
-  async deposit(
-    strategy: PublicKey | StrategyWithAddress,
-    amountA: Decimal,
-    amountB: Decimal,
-    owner: PublicKey
-  ) {
+  async deposit(strategy: PublicKey | StrategyWithAddress, amountA: Decimal, amountB: Decimal, owner: PublicKey) {
     if (amountA.lessThanOrEqualTo(0) || amountB.lessThanOrEqualTo(0)) {
       throw Error('Token A or B amount cant be lower than or equal to 0.');
     }
@@ -755,9 +738,6 @@ export class Kamino {
 
     const { treasuryFeeTokenAVault, treasuryFeeTokenBVault, treasuryFeeVaultAuthority } =
       await this.getTreasuryFeeVaultPDAs(strategyState.strategy.tokenAMint, strategyState.strategy.tokenBMint);
-    console.log('treasuryFeeTokenAVault', treasuryFeeTokenAVault.toString());
-    console.log('treasuryFeeTokenBVault', treasuryFeeTokenBVault.toString());
-    console.log('treasuryFeeVaultAuthority', treasuryFeeVaultAuthority.toString());
 
     const [sharesAta, sharesMintData] = await getAssociatedTokenAddressAndData(
       this._connection,
@@ -794,9 +774,6 @@ export class Kamino {
     // console.log('exists user.tokenBAta', ataBExists.toString());
     // console.log('exists user.SharesAta', sharesAtaExists.toString());
 
-    console.log('deposit user.tokenAAta', tokenAAta.toString());
-    console.log('deposit user.tokenBAta', tokenBAta.toString());
-    console.log('deposit user.SharesAta', sharesAta.toString());
     const lamportsA = amountA.mul(new Decimal(10).pow(strategyState.strategy.tokenAMintDecimals.toString()));
     const lamportsB = amountB.mul(new Decimal(10).pow(strategyState.strategy.tokenBMintDecimals.toString()));
 
@@ -871,10 +848,7 @@ export class Kamino {
       }
       tokenMintA = whirlpoolState.tokenMintA;
       tokenMintB = whirlpoolState.tokenMintB;
-      console.log('whirlpoolState.tokenMintA', whirlpoolState.tokenMintA.toString());
-      console.log('whirlpoolState.tokenMintB', whirlpoolState.tokenMintB.toString());
     } else if (dex == 'RAYDIUM') {
-      console.log('in silviu createStrategy RAYDIUM');
       const raydiumPoolState = await PoolState.fetch(this._connection, pool);
       if (!raydiumPoolState) {
         throw Error(`Could not fetch Raydium pool state with pubkey ${pool.toString()}`);
@@ -955,11 +929,6 @@ export class Kamino {
       this.getProgramID()
     );
 
-    console.log('!!! tokenAVault', tokenAVault.toString());
-    console.log('!!! tokenBVault', tokenBVault.toString());
-    console.log('baseVaultAuthority', baseVaultAuthority.toString());
-    console.log('strategy', strategy.toString());
-    // console.log
     return {
       sharesMintAuthority,
       tokenAVault,

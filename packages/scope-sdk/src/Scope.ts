@@ -78,7 +78,7 @@ export const ScopePairs = [
   'bSOL/SOL',
   'LaineSOL/SOL',
 ] as const;
-export type ScopePair = (typeof ScopePairs)[number];
+export type ScopePair = typeof ScopePairs[number];
 
 export const SupportedTokens = [
   'SOL',
@@ -153,7 +153,7 @@ export const SupportedTokens = [
   'bSOL',
   'LaineSOL',
 ] as const;
-export type SupportedToken = (typeof SupportedTokens)[number];
+export type SupportedToken = typeof SupportedTokens[number];
 
 export interface ScopeToken {
   /**
@@ -264,7 +264,7 @@ export class Scope {
    * @param cluster Name of the Solana cluster
    * @param connection Connection to the Solana cluster
    */
-  constructor(cluster: SolanaCluster, connection: Connection, config?: HubbleConfig) {
+  constructor(cluster: SolanaCluster, connection: Connection) {
     this._cluster = cluster;
     this._connection = connection;
     this._config = getConfigByCluster(cluster);
@@ -292,10 +292,7 @@ export class Scope {
   }
 
   private async getOraclePrices() {
-    console.log('in getOraclePrices');
-    console.log("this._config.scope.oraclePrices", this._config.scope.oraclePrices.toString());
     const prices = await OraclePrices.fetch(this._connection, this._config.scope.oraclePrices);
-    console.log("prices", prices);
     if (!prices) {
       throw Error(`Could not get scope oracle prices`);
     }

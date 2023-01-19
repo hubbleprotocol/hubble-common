@@ -1,10 +1,6 @@
 import {
   PublicKey,
-  AccountInfo,
   Connection,
-  SystemProgram,
-  SYSVAR_INSTRUCTIONS_PUBKEY,
-  SYSVAR_RENT_PUBKEY,
   Transaction,
   TransactionInstruction,
   Keypair,

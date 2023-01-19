@@ -8,9 +8,8 @@ import {
   SystemProgram,
   Transaction,
 } from '@solana/web3.js';
-import { createAssociatedTokenAccountInstruction, Dex, Kamino, sendTransactionWithLogs, sleep } from '../src';
+import { Dex, Kamino, sendTransactionWithLogs, sleep } from '../src';
 import Decimal from 'decimal.js';
-import bs58 from 'bs58';
 import {
   assignBlockInfoToTransaction,
   createTransactionWithExtraBudget,
@@ -21,9 +20,8 @@ import * as Instructions from '../src/kamino-client/instructions';
 import { GlobalConfigOption, GlobalConfigOptionKind } from '../src/kamino-client/types';
 import { Scope, SupportedToken } from '../../scope-sdk/src';
 import BN from 'bn.js';
-import { Uninitialized } from '../src/kamino-client/types/StrategyStatus';
 import { initializeRaydiumPool, orderMints } from './raydium_utils';
-import { initializeWhirlpool, openLiquidityPositionOrca } from './orca_utils';
+import { initializeWhirlpool } from './orca_utils';
 import { createMint, createUser, mintTo, updateStrategyConfig, updateTreasuryFeeVault } from './utils';
 import {
   AllowDepositWithoutInvest,
@@ -31,9 +29,7 @@ import {
   UpdateDepositCapIxn,
   UpdateMaxDeviationBps,
 } from '../src/kamino-client/types/StrategyConfigOption';
-import StrategyWithAddress from '../src/models/StrategyWithAddress';
 import { expect } from 'chai';
-import { sign } from 'crypto';
 
 describe('Kamino SDK Tests', () => {
   let connection: Connection;
@@ -65,23 +61,16 @@ describe('Kamino SDK Tests', () => {
   const signer = Keypair.fromSecretKey(Uint8Array.from(fixtures.signerPrivateKey));
 
   before(async () => {
-    console.log('first before');
     connection = new Connection(clusterUrl, 'processed');
     let kamino = new Kamino(cluster, connection, fixtures.kaminoProgramId, fixtures.globalConfig);
-    let scope = new Scope(cluster, connection);
-    // @ts-ignore
-    scope._config.scope.oraclePrices = new PublicKey('3NJYftD5sjVfxSnUdZ1wVML8f3aC6mp1CXCL6L7TnU8C');
-    // @ts-ignore
-    scope._config.scope.programId = fixtures.scopeProgram;
     // @ts-ignore
     kamino._scope._config.scope.oraclePrices = fixtures.scopePrices;
     // @ts-ignore
     kamino._scope._config.scope.programId = fixtures.scopeProgram;
-    console.log('after scope init');
 
     let tokenAMint = await createMint(connection, signer, 6);
     let tokenBMint = await createMint(connection, signer, 6);
-    console.log('after mints');
+    console.log('Mints initialized');
     let tokens = orderMints(tokenAMint, tokenBMint);
     tokenAMint = tokens[0];
     tokenBMint = tokens[1];
@@ -89,10 +78,9 @@ describe('Kamino SDK Tests', () => {
     fixtures.newTokenMintB = tokenBMint;
     kamino._config.kamino.mints.push({ address: tokenAMint, scopeToken: 'USDH' });
     kamino._config.kamino.mints.push({ address: tokenBMint, scopeToken: 'USDC' });
-    console.log('after tokenA creation ', tokenAMint.toString());
 
     let globalConfig = await setUpGlobalConfig(kamino, signer, fixtures.scopeProgram, fixtures.scopePrices);
-    console.log('globalConfig is ', globalConfig.toString());
+    console.log('globalConfig initialized ', globalConfig.toString());
     kamino.setGlobalConfig(globalConfig);
 
     let collateralInfo = await setUpCollateralInfo(kamino, signer);
@@ -175,7 +163,7 @@ describe('Kamino SDK Tests', () => {
       'ORCA'
     );
     tx.add(orcaStrategyIx);
-    console.log('before sending the creation tx');
+
     const txHash = await sendTransactionWithLogs(connection, tx, signer.publicKey, [signer, newOrcaStrategy]);
     console.log('transaction hash', txHash);
     console.log('new Orca strategy has been created', newOrcaStrategy.publicKey.toString());
@@ -241,9 +229,7 @@ describe('Kamino SDK Tests', () => {
     );
 
     await openPosition(kamino, signer, newOrcaStrategy.publicKey, new Decimal(0.97), new Decimal(1.03));
-    console.log('before opening raydium position');
     await openPosition(kamino, signer, newRaydiumStrategy.publicKey, new Decimal(0.97), new Decimal(1.03));
-    console.log('after opening raydium position');
   });
 
   it('should throw on invalid cluster', () => {
@@ -279,7 +265,6 @@ describe('Kamino SDK Tests', () => {
   });
 
   it('should get Orca strategy share price', async () => {
-    console.log('the only test');
     const kamino = new Kamino(cluster, connection, fixtures.kaminoProgramId, fixtures.globalConfig);
 
     const strategyState = await kamino.getStrategyByAddress(fixtures.newOrcaStrategy);
@@ -381,18 +366,14 @@ describe('Kamino SDK Tests', () => {
     await mintTo(connection, signer, strategyState.tokenAMint, tokenAAta, 9000000);
     await mintTo(connection, signer, strategyState.tokenBMint, tokenBAta, 9000000);
     await sleep(5000);
-    console.log('after mintto');
 
     let depositIx = await kamino.deposit(fixtures.newOrcaStrategy, usdcDeposit, usdhDeposit, signer.publicKey);
     let depositTx = createTransactionWithExtraBudget(signer.publicKey);
     depositTx.add(depositIx);
     sendTransactionWithLogs(connection, depositTx, signer.publicKey, [signer]);
-    console.log('after deposit');
 
     const strategy = (await kamino.getStrategyByAddress(fixtures.newOrcaStrategy))!;
     const strategyWithAddress = { strategy, address: fixtures.newOrcaStrategy };
-    console.log('after strategy fetch');
-    console.log('strategy ', strategy.sharesIssued.toString());
 
     let withdrawTx = createTransactionWithExtraBudget(signer.publicKey);
 
@@ -549,7 +530,6 @@ describe('Kamino SDK Tests', () => {
       skipPreflight: true,
     });
 
-
     let withdrawTx = createTransactionWithExtraBudget(signer.publicKey);
 
     const withdrawIx = await kamino.withdrawAllShares(strategyWithAddress, signer.publicKey);
@@ -683,12 +663,7 @@ describe('Kamino SDK Tests', () => {
 
     let tx = createTransactionWithExtraBudget(user.owner.publicKey, 1000000);
 
-    const depositIx = await kamino.deposit(
-      strategyWithAddress,
-      new Decimal(10),
-      new Decimal(10),
-      user.owner.publicKey
-    );
+    const depositIx = await kamino.deposit(strategyWithAddress, new Decimal(10), new Decimal(10), user.owner.publicKey);
     tx.add(depositIx);
 
     tx = await assignBlockInfoToTransaction(connection, tx, user.owner.publicKey);
@@ -727,7 +702,6 @@ describe('Kamino SDK Tests', () => {
       let tx = createTransactionWithExtraBudget(signer.publicKey, 1000000).add(invextIx);
       let sig = await sendTransactionWithLogs(connection, tx, signer.publicKey, [signer]);
       expect(sig).not.to.be.null;
-      console.log('invested');
     }
   });
 });

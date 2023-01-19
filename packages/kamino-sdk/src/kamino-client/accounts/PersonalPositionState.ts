@@ -120,11 +120,9 @@ export class PersonalPositionState {
   ): Promise<PersonalPositionState | null> {
     const info = await c.getAccountInfo(address)
 
-    console.log("Silviu PROGRAM_ID", PROGRAM_ID.toString());
     if (info === null) {
       return null
     }
-    console.log("info.owner", info.owner.toString());
     if (!info.owner.equals(PROGRAM_ID)) {
       throw new Error("account doesn't belong to this program")
     }

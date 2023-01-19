@@ -1,36 +1,23 @@
-import { Connection, Keypair, PublicKey, Account } from '@solana/web3.js';
+import { Connection, Keypair, PublicKey } from '@solana/web3.js';
 import * as anchor from '@project-serum/anchor';
-import {
-  ExecutiveWithdrawAction,
-  ExecutiveWithdrawActionKind,
-  GlobalConfigOptionKind,
-  StrategyConfigOptionKind,
-} from '../src/kamino-client/types';
+import { StrategyConfigOptionKind } from '../src/kamino-client/types';
 import * as Instructions from '../src/kamino-client/instructions';
 import { Transaction, TransactionInstruction } from '@solana/web3.js';
-import { NATIVE_MINT, Token } from '@solana/spl-token';
+import { Token } from '@solana/spl-token';
 import { getMintDecimals } from '@project-serum/serum/lib/market';
-import * as serumCmn from '@project-serum/common';
 
-export async function deployWhirlpool(wallet: PublicKey) {
-  let tickSize = 1;
-}
-
-import { Idl, Program, web3 } from '@project-serum/anchor';
 import Decimal from 'decimal.js';
-import { GlobalConfig, Whirlpool, WhirlpoolStrategy } from '../src/kamino-client/accounts';
+import { GlobalConfig, WhirlpoolStrategy } from '../src/kamino-client/accounts';
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
-  createAssociatedTokenAccountInstruction,
   Dex,
-  dexToNumber,
   getAssociatedTokenAddress,
   sendTransactionWithLogs,
   sleep,
   TOKEN_PROGRAM_ID,
 } from '../src';
-import { getTickArrayPubkeysFromRangeRaydium, openLiquidityPositionRaydium } from './raydium_utils';
-import { getTickArrayPubkeysFromRangeOrca, openLiquidityPositionOrca } from './orca_utils';
+import { getTickArrayPubkeysFromRangeRaydium } from './raydium_utils';
+import { getTickArrayPubkeysFromRangeOrca } from './orca_utils';
 import { TokenInstructions } from '@project-serum/serum';
 import { collateralTokenToNumber, CollateralToken } from './token_utils';
 
@@ -186,22 +173,6 @@ export async function createUser(
     throw new Error(`Strategy ${strategy.toString()} does not exist`);
   }
 
-  console.log('whirlpoolStrategyState.tokenAMint', whirlpoolStrategyState.tokenAMint.toString());
-  console.log('whirlpoolStrategyState.tokenBMint', whirlpoolStrategyState.tokenBMint.toString());
-
-  //   const ata = await getAssociatedTokenAddress(whirlpoolStrategyState.tokenAMint, user.publicKey);
-
-  //   let ix = createAssociatedTokenAccountInstruction(
-  //     signer.publicKey,
-  //     ata,
-  //     user.publicKey,
-  //     whirlpoolStrategyState.tokenAMint
-  //   );
-
-  //   let tx = new Transaction().add(ix);
-  //   await sendTransactionWithLogs(connection, tx, signer.publicKey, [signer]);
-  //   console.log('after this ata creation');
-
   const aAta = await setupAta(connection, signer, whirlpoolStrategyState.tokenAMint, user);
   const bAta = await setupAta(connection, signer, whirlpoolStrategyState.tokenBMint, user);
   const sharesAta = await setupAta(connection, signer, whirlpoolStrategyState.sharesMint, user);
@@ -271,7 +242,7 @@ export async function mintTo(
     )
   );
 
-  let res = await sendTransactionWithLogs(connection, tx, signer.publicKey, [signer]);;
+  let res = await sendTransactionWithLogs(connection, tx, signer.publicKey, [signer]);
   console.log(`token ${mintPubkey.toString()} mint to ATA ${tokenAccount.toString()} tx hash: ${res}`);
 }
 
@@ -343,15 +314,12 @@ export async function createMintFromKeypair(
   mint: Keypair,
   decimals: number = 6
 ): Promise<PublicKey> {
-  console.log('in createMintFromKeypair');
   const instructions = await createMintInstructions(connection, signer, mint.publicKey, decimals);
 
   const tx = new anchor.web3.Transaction();
   tx.add(...instructions);
 
-  console.log('before first tx');
   await sendTransactionWithLogs(connection, tx, signer.publicKey, [signer, mint]);
-  console.log('after first tx');
   return mint.publicKey;
 }
 

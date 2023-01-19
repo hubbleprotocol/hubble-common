@@ -1,17 +1,6 @@
 import { PROGRAM_ID_CLI as RAYDIUM_PROGRAM_ID } from '../src/raydium_client/programId';
-import { Idl, Program, Provider } from '@project-serum/anchor';
 import * as anchor from '@project-serum/anchor';
-import {
-  PublicKey,
-  AccountInfo,
-  Connection,
-  SystemProgram,
-  SYSVAR_INSTRUCTIONS_PUBKEY,
-  SYSVAR_RENT_PUBKEY,
-  Transaction,
-  TransactionInstruction,
-  Keypair,
-} from '@solana/web3.js';
+import { PublicKey, Connection, SystemProgram, Transaction, Keypair } from '@solana/web3.js';
 import * as RaydiumInstructions from '../src/raydium_client/instructions';
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
@@ -22,7 +11,7 @@ import {
 } from '../src';
 import { accountExist, DeployedPool, getTickArrayPubkeysFromRange } from './utils';
 import { getMintDecimals } from '@project-serum/serum/lib/market';
-import { LiquidityMath, SqrtPriceMath, TickMath } from '@raydium-io/raydium-sdk/lib/ammV3/utils/math';
+import { SqrtPriceMath, TickMath } from '@raydium-io/raydium-sdk/lib/ammV3/utils/math';
 import Decimal from 'decimal.js';
 import { ExecutiveWithdrawAction, ExecutiveWithdrawActionKind } from '../src/kamino-client/types';
 import { WhirlpoolStrategy } from '../src/kamino-client/accounts';
@@ -32,7 +21,6 @@ import { METADATA_PROGRAM_ID, METADATA_UPDATE_AUTH } from '../src/constants/meta
 import { OpenLiquidityPositionArgs } from '../src/kamino-client/instructions';
 import { i32ToBytes, TickUtils } from '@raydium-io/raydium-sdk';
 import * as Instructions from '../src/kamino-client/instructions';
-import { Key } from 'readline';
 
 export const OBSERVATION_STATE_LEN = 52121;
 export const AMM_CONFIG_SEED = Buffer.from(anchor.utils.bytes.utf8.encode('amm_config'));
@@ -49,27 +37,20 @@ export async function initializeRaydiumPool(
   observationAcc?: PublicKey,
   initialPrice: number = 1.0
 ): Promise<DeployedPool> {
-  console.log('beginning');
   let config = PublicKey.default;
   if (configAcc) {
-    console.log('config is present');
     config = configAcc;
   } else {
-    let [configPk, index] = await getAmmConfigAddress(0, RAYDIUM_PROGRAM_ID);
-    console.log("raydiu configPk ", configPk.toString());
+    let [configPk, _] = await getAmmConfigAddress(0, RAYDIUM_PROGRAM_ID);
     if (!(await accountExist(connection, configPk))) {
-      console.log('try to create config');
       await createAmmConfig(connection, signer, configPk, 0, tickSize, 100, 200, 400);
     }
 
     config = configPk;
   }
 
-  console.log('after config creation');
-
   let observation = PublicKey.default;
   if (observationAcc) {
-    console.log('observation is present');
     observation = observationAcc;
   } else {
     const observationPk = new Keypair();
@@ -106,7 +87,6 @@ export async function initializeRaydiumPool(
   const [tokenAVault, _bump2] = await getPoolVaultAddress(poolAddress, tokenMintA, RAYDIUM_PROGRAM_ID);
   const [tokenBVault, _bump3] = await getPoolVaultAddress(poolAddress, tokenMintB, RAYDIUM_PROGRAM_ID);
 
-  console.log('before create pool tx');
   {
     let createPoolArgs: RaydiumInstructions.CreatePoolArgs = {
       sqrtPriceX64: sqrtPriceX64InitialPrice,
@@ -143,7 +123,6 @@ export async function initializeRaydiumPool(
 }
 
 export async function getAmmConfigAddress(index: number, programId: PublicKey): Promise<[PublicKey, number]> {
-  console.log('in getAmmConfigAddress');
   const [address, bump] = await PublicKey.findProgramAddress([AMM_CONFIG_SEED, u16ToBytes(index)], programId);
   console.log('config address ', address.toString());
   return [address, bump];
@@ -166,7 +145,6 @@ async function createAmmConfig(
   protocolFeeRate: number,
   fundFeeRate: number
 ) {
-  console.log('in createAmmConfig');
   let initConfigArgs: RaydiumInstructions.CreateAmmConfigArgs = {
     index: index,
     tickSpacing: tickSpacing,
@@ -187,8 +165,6 @@ async function createAmmConfig(
   tx.feePayer = signer.publicKey;
   tx.add(initializeTx);
 
-  console.log('before createAmmConfig IX');
-  // todo: not sure if it works, the tx may need to be signed
   let sig = await sendTransactionWithLogs(connection, tx, signer.publicKey, [signer]);
   console.log('InitializeConfig:', sig);
 }
