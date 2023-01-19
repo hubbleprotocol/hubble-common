@@ -36,7 +36,7 @@ jobs:
       run: lerna run build
 
     - name: Test packages
-      run: npm run integration-test
+      run: npm run test
   prettier:
     runs-on: ubuntu-latest
     steps:
