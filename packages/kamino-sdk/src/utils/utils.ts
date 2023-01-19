@@ -17,7 +17,7 @@ export function dexToNumber(dex: Dex): number {
     }
   }
 
-  throw 'Unknown DEX ' + dex;
+  throw new Error(`Unknown DEX ${dex}`);
 }
 
 export function getDexProgramId(strategyState: WhirlpoolStrategy): PublicKey {
