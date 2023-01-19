@@ -187,7 +187,6 @@ export class Kamino {
    * @param address
    */
   getStrategyByAddress(address: PublicKey) {
-    console.log('getStrategyByAddress ', address.toString());
     return WhirlpoolStrategy.fetch(this._connection, address);
   }
 
