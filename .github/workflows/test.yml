@@ -28,7 +28,21 @@ jobs:
             npm install
             lerna bootstrap
 
-        - name: Test
-          run: |
-            npm run start-with-test-validator
+        - name: Set up Docker buildx
+          uses: docker/setup-buildx-action@v2
+        - name: Docker buildx (build)
+          id: docker_build
+          uses: docker/build-push-action@v3
+          with:
+            ssh: |
+              default=${{ env.SSH_AUTH_SOCK }}
+            file: integration.Dockerfile
+            push: false
+            tags: hubble/sdk-integration:latest
+            cache-from: type=gha
+            cache-to: type=gha,mode=min
+
+        # - name: Test
+        #   run: |
+        #     npm run start-with-test-validator
 

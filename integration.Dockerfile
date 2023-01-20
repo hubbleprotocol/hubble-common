@@ -8,4 +8,6 @@ RUN npm install
 
 COPY / /hubble-common/
 
-RUN npm run integration-test
+RUN npm run start-with-test-validator
+
+# RUN --mount=type=ssh ./integration.sh
