@@ -321,7 +321,7 @@ export class Kamino {
       new BN(lowerSqrtPriceX64),
       new BN(upperSqrtPriceX64),
       positionState.liquidity,
-      true
+      false // round down so the holdings are not overestimated
     );
 
     const vaultBalances: StrategyVaultBalances = {
