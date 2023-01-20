@@ -34,11 +34,11 @@
     "@project-serum/anchor": "^0.21.0",
     "@project-serum/serum": "^0.13.65",
     "@solana/buffer-layout": "^4.0.0",
-    "@solana/wallet-adapter-base": "^0.9.8",
+    "@solana/wallet-adapter-base": "^0.9.20",
     "bn.js": "^5.2.1"
   },
   "peerDependencies": {
-    "@solana/web3.js": "^1.42.0",
+    "@solana/web3.js": "~1.73.0",
     "decimal.js": "^10.3.1"
   },
   "publishConfig": {
