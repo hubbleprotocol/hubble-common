@@ -26,7 +26,7 @@
   },
   "homepage": "https://github.com/hubbleprotocol/hubble-common/blob/master/packages/hubble-config",
   "peerDependencies": {
-    "@solana/web3.js": "^1.42.0"
+    "@solana/web3.js": "^1.47.3"
   },
   "publishConfig": {
     "access": "public"

@@ -30,7 +30,7 @@
   },
   "overrides": {
     "@streamflow/stream": {
-      "@solana/web3.js": "^1.47.3"
+      "@solana/web3.js": "~1.47.3"
     }
   },
   "dependencies": {
