@@ -26,10 +26,5 @@ jobs:
             file: integration.Dockerfile
             push: false
             tags: hubble/sdk-integration:latest
-            # cache-from: type=gha
-            # cache-to: type=gha,mode=min
 
-        # - name: Test
-        #   run: |
-        #     npm run start-with-test-validator
 
