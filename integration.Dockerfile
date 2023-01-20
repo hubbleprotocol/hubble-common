@@ -4,7 +4,7 @@ FROM hubbleprotocol/anchor-build:0.25.0
 COPY / /hubble-common/
 WORKDIR /hubble-common
 
-RUN npm install
+RUN npm install && lerna bootstrap
 
 RUN npm run dump-kamino-programs
 RUN npm run start-with-test-validator
