@@ -28,10 +28,6 @@ jobs:
             npm install
             lerna bootstrap
 
-        - name: Get latest programs
-          run: | 
-            npm run dump-kamino-programs
-
         - name: Test
           run: |
             npm run start-with-test-validator
