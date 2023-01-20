@@ -1,0 +1,38 @@
+name: Test NPM packages
+
+on:
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+  build:
+      runs-on: ubuntu-latest
+      name: Test NPM packages
+      steps:
+        - name: Checkout
+          uses: actions/checkout@v2
+          with:
+            submodules: recursive
+            token: ${{ secrets.GITHUB_TOKEN }}
+
+        - name: Setup node
+          uses: actions/setup-node@v2
+          with:
+            node-version: '16'
+            registry-url: 'https://registry.npmjs.org'
+
+        - name: Install dependencies
+          run: | 
+            npm install
+            lerna bootstrap
+
+        - name: Get latest programs
+          run: | 
+            npm run dump-kamino-programs
+
+        - name: Test
+          run: |
+            npm run start-with-test-validator
+

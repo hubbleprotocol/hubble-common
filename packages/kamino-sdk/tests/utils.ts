@@ -176,9 +176,6 @@ export async function createUser(
   const aAta = await setupAta(connection, signer, whirlpoolStrategyState.tokenAMint, user);
   const bAta = await setupAta(connection, signer, whirlpoolStrategyState.tokenBMint, user);
   const sharesAta = await setupAta(connection, signer, whirlpoolStrategyState.sharesMint, user);
-  console.log('create user Aata ', aAta.toString());
-  console.log('create user bAta ', bAta.toString());
-  console.log('create user sharesAta ', sharesAta.toString());
 
   let tokenADecimals = await getMintDecimals(connection, whirlpoolStrategyState.tokenAMint);
   let tokenBDecimals = await getMintDecimals(connection, whirlpoolStrategyState.tokenBMint);
@@ -303,7 +300,6 @@ export function lamportsToCollDecimal(amount: Decimal, decimals: number): Decima
 }
 
 export async function createMint(connection: Connection, signer: Keypair, decimals: number = 6): Promise<PublicKey> {
-  console.log('in create mint');
   const mint = anchor.web3.Keypair.generate();
   return await createMintFromKeypair(connection, signer, mint, decimals);
 }

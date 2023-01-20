@@ -30,7 +30,7 @@ describe('Kamino SDK Tests', () => {
   connection = new Connection(clusterUrl, 'processed');
 
   let fixtures = {
-    kaminoProgramId: new PublicKey('6LtLpnUFNByNXLyCoK9wA2MykKAmQNZKBdY8s47dehDc'),
+    kaminoProgramId: new PublicKey('E6qbhrt4pFmCotNUSSEh6E5cRQCEJpMcd79Z56EG9KY'),
     globalConfig: new PublicKey('GKnHiWh3RRrE1zsNzWxRkomymHc374TvJPSTv2wPeYdB'),
     newWhirlpool: new PublicKey('Fvtf8VCjnkqbETA6KtyHYqHm26ut6w184Jqm4MQjPvv7'),
     newOrcaStrategy: new PublicKey('Cfuy5T6osdazUeLego5LFycBQebm9PP3H7VNdCndXXEN'),
@@ -128,13 +128,14 @@ describe('Kamino SDK Tests', () => {
       'USDC',
       'RAYDIUM'
     );
+    
     createRaydiumTx.add(raydiumStrategyIx);
     let raydiumTxHash = await sendTransactionWithLogs(connection, createRaydiumTx, signer.publicKey, [
       signer,
       newRaydiumStrategy,
     ]);
     console.log('transaction hash', raydiumTxHash);
-    console.log('new Orca strategy has been created', newRaydiumStrategy.publicKey.toString());
+    console.log('new Raydium strategy has been created', newRaydiumStrategy.publicKey.toString());
     fixtures.newRaydiumStrategy = newRaydiumStrategy.publicKey;
 
     let whirlpool = await initializeWhirlpool(connection, signer, 1, tokenAMint, tokenBMint);
@@ -591,7 +592,7 @@ describe('Kamino SDK Tests', () => {
       usdhAirdropAmount
     );
 
-    let tx = createTransactionWithExtraBudget(user.owner.publicKey);
+    let tx = createTransactionWithExtraBudget(user.owner.publicKey, 1000000);
 
     const depositIx = await kamino.deposit(strategyWithAddress, new Decimal(1), new Decimal(2), user.owner.publicKey);
     tx.add(depositIx);
