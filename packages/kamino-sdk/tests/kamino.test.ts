@@ -486,12 +486,12 @@ describe('Kamino SDK Tests', () => {
     withdrawTx = await assignBlockInfoToTransaction(connection, withdrawTx, user.owner.publicKey);
 
     txHash = await sendAndConfirmTransaction(connection, withdrawTx, [user.owner], {
-      commitment: 'confirmed',
+      commitment: 'processed',
     });
     console.log(txHash);
   });
 
-  it.skip('should withdraw all shares from a Raydium strategy', async () => {
+  it('should withdraw all shares from a Raydium strategy', async () => {
     let kamino = new Kamino(cluster, connection, fixtures.globalConfig, fixtures.kaminoProgramId);
 
     const strategy = (await kamino.getStrategyByAddress(fixtures.newRaydiumStrategy))!;
@@ -504,13 +504,13 @@ describe('Kamino SDK Tests', () => {
     let user = await createUser(
       connection,
       signer,
-      fixtures.newOrcaStrategy,
+      fixtures.newRaydiumStrategy,
       solAirdropAmount,
       usdcAirdropAmount,
       usdhAirdropAmount
     );
 
-    let tx = createTransactionWithExtraBudget(user.owner.publicKey);
+    let tx = createTransactionWithExtraBudget(user.owner.publicKey, 1000000);
 
     const depositIx = await kamino.deposit(strategyWithAddress, new Decimal(1), new Decimal(2), user.owner.publicKey);
     tx.add(depositIx);
@@ -522,20 +522,20 @@ describe('Kamino SDK Tests', () => {
       skipPreflight: true,
     });
 
-    let withdrawTx = createTransactionWithExtraBudget(signer.publicKey);
+    let withdrawTx = createTransactionWithExtraBudget(user.owner.publicKey, 1000000);
 
-    const withdrawIx = await kamino.withdrawAllShares(strategyWithAddress, signer.publicKey);
+    const withdrawIx = await kamino.withdrawAllShares(strategyWithAddress, user.owner.publicKey);
     if (withdrawIx) {
-      withdrawTx.add(withdrawIx);
+      tx.add(withdrawIx);
     } else {
       console.log('balance is 0, cant withdraw');
       return;
     }
 
-    withdrawTx = await assignBlockInfoToTransaction(connection, withdrawTx, signer.publicKey);
+    withdrawTx = await assignBlockInfoToTransaction(connection, withdrawTx, user.owner.publicKey);
 
-    txHash = await sendAndConfirmTransaction(connection, withdrawTx, [signer], {
-      commitment: 'confirmed',
+    txHash = await sendAndConfirmTransaction(connection, withdrawTx, [user.owner], {
+      commitment: 'processed',
     });
     console.log(txHash);
   });
