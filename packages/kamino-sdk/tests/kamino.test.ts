@@ -128,7 +128,7 @@ describe('Kamino SDK Tests', () => {
       'USDC',
       'RAYDIUM'
     );
-    
+
     createRaydiumTx.add(raydiumStrategyIx);
     let raydiumTxHash = await sendTransactionWithLogs(connection, createRaydiumTx, signer.publicKey, [
       signer,
