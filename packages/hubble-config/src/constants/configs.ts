@@ -140,7 +140,7 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
         },
         {
           address: new PublicKey('C13WaZzdiJbgyWcea77qzBfKKvoyVwTCXYPMJpHYJPHK'),
-          type: 'PEGGED',
+          type: 'NON_PEGGED',
           shareMint: new PublicKey('684zRRWPbfcMdv35Qbm4fJJ5AETqe4aeiEQgbmEMNK3t'),
           status: 'LIVE',
         },
