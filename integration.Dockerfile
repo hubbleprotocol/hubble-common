@@ -6,7 +6,6 @@ WORKDIR /hubble-common
 
 RUN npm install
 
-
 RUN npm run dump-kamino-programs
 RUN npm run start-with-test-validator
 
