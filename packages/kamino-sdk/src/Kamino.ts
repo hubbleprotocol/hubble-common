@@ -316,8 +316,6 @@ export class Kamino {
     let lowerSqrtPriceX64 = SqrtPriceMath.getSqrtPriceX64FromTick(positionState.tickLowerIndex);
     let upperSqrtPriceX64 = SqrtPriceMath.getSqrtPriceX64FromTick(positionState.tickUpperIndex);
 
-    positionState.tickLowerIndex;
-
     const { amountA, amountB } = LiquidityMath.getAmountsFromLiquidity(
       poolState.sqrtPriceX64,
       new BN(lowerSqrtPriceX64),
