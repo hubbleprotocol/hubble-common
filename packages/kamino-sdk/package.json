@@ -3,7 +3,7 @@
   "description": "Kamino SDK",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "version": "1.0.177",
+  "version": "1.0.178",
   "scripts": {
     "build": "tsc",
     "build:watch": "tsc -w"
@@ -28,22 +28,22 @@
   "homepage": "https://github.com/hubbleprotocol/hubble-common/blob/master/packages/kamino-sdk",
   "devDependencies": {
     "@types/bn.js": "^5.1.0",
+    "@types/chai-as-promised": "^7.1.4",
     "bs58": "^5.0.0",
-    "chai": "^4.3.6",
-    "@types/chai-as-promised": "^7.1.4"
+    "chai": "^4.3.6"
   },
   "dependencies": {
-    "@hubbleprotocol/hubble-config": "^1.0.177",
+    "@hubbleprotocol/hubble-config": "^1.0.178",
     "@hubbleprotocol/hubble-idl": "^1.0.171",
-    "@hubbleprotocol/scope-sdk": "^1.0.177",
+    "@hubbleprotocol/scope-sdk": "^1.0.178",
     "@orca-so/whirlpool-client-sdk": "^0.0.8",
     "@orca-so/whirlpool-sdk": "^0.3.0",
     "@project-serum/anchor": "^0.21.0",
     "@project-serum/serum": "^0.13.65",
+    "@raydium-io/raydium-sdk": "^1.1.0-beta.44",
     "@solana/buffer-layout": "^4.0.0",
     "@solana/wallet-adapter-base": "^0.9.20",
-    "bn.js": "^5.2.1",
-    "@raydium-io/raydium-sdk": "^1.1.0-beta.44"
+    "bn.js": "^5.2.1"
   },
   "peerDependencies": {
     "@solana/web3.js": "~1.73.0",
