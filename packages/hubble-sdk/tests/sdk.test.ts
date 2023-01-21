@@ -13,10 +13,11 @@ describe('Hubble SDK Tests', () => {
 
   before(() => {
     connection = new Connection(clusterApiUrl(cluster));
-    sinon.spy(Hubble.prototype, 'getPsmReserve').mockImplementation(() => {
-      const zero = new Decimal(0);
-      const pk = new PublicKey('72tsMfXLasd8GFya63UZY7w8xDgDLdxJtCJ16trT14gm');
-      return Promise.resolve({
+    let stub = sinon.stub(Hubble.prototype, 'getPsmReserve');
+    const zero = new Decimal(0);
+    const pk = new PublicKey('72tsMfXLasd8GFya63UZY7w8xDgDLdxJtCJ16trT14gm');
+    stub.returns(
+      Promise.resolve({
         maxCapacity: new Decimal(3000 * STABLECOIN_DECIMALS),
         depositedStablecoin: new Decimal(1000 * STABLECOIN_DECIMALS),
         mintedUsdh: new Decimal(1000 * STABLECOIN_DECIMALS),
@@ -44,8 +45,8 @@ describe('Hubble SDK Tests', () => {
         burnFeeBps: 0,
         treasuryVaultOtherStable: pk,
         treasuryVaultOtherStableAuthority: pk,
-      });
-    });
+      })
+    );
   });
 
   test('should throw on invalid cluster', () => {
