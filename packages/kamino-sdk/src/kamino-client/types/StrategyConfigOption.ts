@@ -762,6 +762,29 @@ export class UpdateFlashVaultSwap {
   }
 }
 
+export interface AllowDepositWithoutInvestJSON {
+  kind: "AllowDepositWithoutInvest"
+}
+
+export class AllowDepositWithoutInvest {
+  static readonly discriminator = 33
+  static readonly kind = "AllowDepositWithoutInvest"
+  readonly discriminator = 33
+  readonly kind = "AllowDepositWithoutInvest"
+
+  toJSON(): AllowDepositWithoutInvestJSON {
+    return {
+      kind: "AllowDepositWithoutInvest",
+    }
+  }
+
+  toEncodable() {
+    return {
+      AllowDepositWithoutInvest: {},
+    }
+  }
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function fromDecoded(obj: any): types.StrategyConfigOptionKind {
   if (typeof obj !== "object") {
@@ -866,6 +889,9 @@ export function fromDecoded(obj: any): types.StrategyConfigOptionKind {
   }
   if ("UpdateFlashVaultSwap" in obj) {
     return new UpdateFlashVaultSwap()
+  }
+  if ("AllowDepositWithoutInvest" in obj) {
+    return new AllowDepositWithoutInvest()
   }
 
   throw new Error("Invalid enum object")
@@ -974,6 +1000,9 @@ export function fromJSON(
     case "UpdateFlashVaultSwap": {
       return new UpdateFlashVaultSwap()
     }
+    case "AllowDepositWithoutInvest": {
+      return new AllowDepositWithoutInvest()
+    }
   }
 }
 
@@ -1012,6 +1041,7 @@ export function layout(property?: string) {
     borsh.struct([], "UpdateCollateralIdA"),
     borsh.struct([], "UpdateCollateralIdB"),
     borsh.struct([], "UpdateFlashVaultSwap"),
+    borsh.struct([], "AllowDepositWithoutInvest"),
   ])
   if (property !== undefined) {
     return ret.replicate(property)

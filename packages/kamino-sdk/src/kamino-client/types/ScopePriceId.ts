@@ -1475,6 +1475,144 @@ export class DUST_TWAP {
   }
 }
 
+export interface BONKJSON {
+  kind: "BONK"
+}
+
+export class BONK {
+  static readonly discriminator = 64
+  static readonly kind = "BONK"
+  readonly discriminator = 64
+  readonly kind = "BONK"
+
+  toJSON(): BONKJSON {
+    return {
+      kind: "BONK",
+    }
+  }
+
+  toEncodable() {
+    return {
+      BONK: {},
+    }
+  }
+}
+
+export interface BONK_TWAPJSON {
+  kind: "BONK_TWAP"
+}
+
+export class BONK_TWAP {
+  static readonly discriminator = 65
+  static readonly kind = "BONK_TWAP"
+  readonly discriminator = 65
+  readonly kind = "BONK_TWAP"
+
+  toJSON(): BONK_TWAPJSON {
+    return {
+      kind: "BONK_TWAP",
+    }
+  }
+
+  toEncodable() {
+    return {
+      BONK_TWAP: {},
+    }
+  }
+}
+
+export interface SAMOJSON {
+  kind: "SAMO"
+}
+
+export class SAMO {
+  static readonly discriminator = 66
+  static readonly kind = "SAMO"
+  readonly discriminator = 66
+  readonly kind = "SAMO"
+
+  toJSON(): SAMOJSON {
+    return {
+      kind: "SAMO",
+    }
+  }
+
+  toEncodable() {
+    return {
+      SAMO: {},
+    }
+  }
+}
+
+export interface SAMO_TWAPJSON {
+  kind: "SAMO_TWAP"
+}
+
+export class SAMO_TWAP {
+  static readonly discriminator = 67
+  static readonly kind = "SAMO_TWAP"
+  readonly discriminator = 67
+  readonly kind = "SAMO_TWAP"
+
+  toJSON(): SAMO_TWAPJSON {
+    return {
+      kind: "SAMO_TWAP",
+    }
+  }
+
+  toEncodable() {
+    return {
+      SAMO_TWAP: {},
+    }
+  }
+}
+
+export interface BSOLJSON {
+  kind: "BSOL"
+}
+
+export class BSOL {
+  static readonly discriminator = 68
+  static readonly kind = "BSOL"
+  readonly discriminator = 68
+  readonly kind = "BSOL"
+
+  toJSON(): BSOLJSON {
+    return {
+      kind: "BSOL",
+    }
+  }
+
+  toEncodable() {
+    return {
+      BSOL: {},
+    }
+  }
+}
+
+export interface LaineSOLJSON {
+  kind: "LaineSOL"
+}
+
+export class LaineSOL {
+  static readonly discriminator = 69
+  static readonly kind = "LaineSOL"
+  readonly discriminator = 69
+  readonly kind = "LaineSOL"
+
+  toJSON(): LaineSOLJSON {
+    return {
+      kind: "LaineSOL",
+    }
+  }
+
+  toEncodable() {
+    return {
+      LaineSOL: {},
+    }
+  }
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function fromDecoded(obj: any): types.ScopePriceIdKind {
   if (typeof obj !== "object") {
@@ -1672,6 +1810,24 @@ export function fromDecoded(obj: any): types.ScopePriceIdKind {
   }
   if ("DUST_TWAP" in obj) {
     return new DUST_TWAP()
+  }
+  if ("BONK" in obj) {
+    return new BONK()
+  }
+  if ("BONK_TWAP" in obj) {
+    return new BONK_TWAP()
+  }
+  if ("SAMO" in obj) {
+    return new SAMO()
+  }
+  if ("SAMO_TWAP" in obj) {
+    return new SAMO_TWAP()
+  }
+  if ("BSOL" in obj) {
+    return new BSOL()
+  }
+  if ("LaineSOL" in obj) {
+    return new LaineSOL()
   }
 
   throw new Error("Invalid enum object")
@@ -1871,6 +2027,24 @@ export function fromJSON(obj: types.ScopePriceIdJSON): types.ScopePriceIdKind {
     case "DUST_TWAP": {
       return new DUST_TWAP()
     }
+    case "BONK": {
+      return new BONK()
+    }
+    case "BONK_TWAP": {
+      return new BONK_TWAP()
+    }
+    case "SAMO": {
+      return new SAMO()
+    }
+    case "SAMO_TWAP": {
+      return new SAMO_TWAP()
+    }
+    case "BSOL": {
+      return new BSOL()
+    }
+    case "LaineSOL": {
+      return new LaineSOL()
+    }
   }
 }
 
@@ -1940,6 +2114,12 @@ export function layout(property?: string) {
     borsh.struct([], "DAI_EMA"),
     borsh.struct([], "wstETH_TWAP"),
     borsh.struct([], "DUST_TWAP"),
+    borsh.struct([], "BONK"),
+    borsh.struct([], "BONK_TWAP"),
+    borsh.struct([], "SAMO"),
+    borsh.struct([], "SAMO_TWAP"),
+    borsh.struct([], "BSOL"),
+    borsh.struct([], "LaineSOL"),
   ])
   if (property !== undefined) {
     return ret.replicate(property)

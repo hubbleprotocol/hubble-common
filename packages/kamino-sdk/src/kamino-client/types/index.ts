@@ -96,6 +96,11 @@ export type CollateralTokenKind =
   | CollateralToken.RATIO
   | CollateralToken.UXP
   | CollateralToken.JITOSOL
+  | CollateralToken.RAY
+  | CollateralToken.BONK
+  | CollateralToken.SAMO
+  | CollateralToken.LaineSOL
+  | CollateralToken.BSOL
 export type CollateralTokenJSON =
   | CollateralToken.USDCJSON
   | CollateralToken.USDHJSON
@@ -120,6 +125,11 @@ export type CollateralTokenJSON =
   | CollateralToken.RATIOJSON
   | CollateralToken.UXPJSON
   | CollateralToken.JITOSOLJSON
+  | CollateralToken.RAYJSON
+  | CollateralToken.BONKJSON
+  | CollateralToken.SAMOJSON
+  | CollateralToken.LaineSOLJSON
+  | CollateralToken.BSOLJSON
 
 export { GlobalConfigOption }
 
@@ -198,6 +208,7 @@ export type StrategyConfigOptionKind =
   | StrategyConfigOption.UpdateCollateralIdA
   | StrategyConfigOption.UpdateCollateralIdB
   | StrategyConfigOption.UpdateFlashVaultSwap
+  | StrategyConfigOption.AllowDepositWithoutInvest
 export type StrategyConfigOptionJSON =
   | StrategyConfigOption.UpdateDepositCapJSON
   | StrategyConfigOption.UpdateDepositCapIxnJSON
@@ -232,6 +243,7 @@ export type StrategyConfigOptionJSON =
   | StrategyConfigOption.UpdateCollateralIdAJSON
   | StrategyConfigOption.UpdateCollateralIdBJSON
   | StrategyConfigOption.UpdateFlashVaultSwapJSON
+  | StrategyConfigOption.AllowDepositWithoutInvestJSON
 
 export { StrategyStatus }
 
@@ -284,11 +296,13 @@ export type UpdateCollateralInfoModeKind =
   | UpdateCollateralInfoMode.LowerHeuristic
   | UpdateCollateralInfoMode.UpperHeuristic
   | UpdateCollateralInfoMode.ExpHeuristic
+  | UpdateCollateralInfoMode.TwapDivergence
 export type UpdateCollateralInfoModeJSON =
   | UpdateCollateralInfoMode.CollateralIdJSON
   | UpdateCollateralInfoMode.LowerHeuristicJSON
   | UpdateCollateralInfoMode.UpperHeuristicJSON
   | UpdateCollateralInfoMode.ExpHeuristicJSON
+  | UpdateCollateralInfoMode.TwapDivergenceJSON
 
 export { ScopePriceId }
 
@@ -357,6 +371,12 @@ export type ScopePriceIdKind =
   | ScopePriceId.DAI_EMA
   | ScopePriceId.wstETH_TWAP
   | ScopePriceId.DUST_TWAP
+  | ScopePriceId.BONK
+  | ScopePriceId.BONK_TWAP
+  | ScopePriceId.SAMO
+  | ScopePriceId.SAMO_TWAP
+  | ScopePriceId.BSOL
+  | ScopePriceId.LaineSOL
 export type ScopePriceIdJSON =
   | ScopePriceId.SOLJSON
   | ScopePriceId.ETHJSON
@@ -422,6 +442,12 @@ export type ScopePriceIdJSON =
   | ScopePriceId.DAI_EMAJSON
   | ScopePriceId.wstETH_TWAPJSON
   | ScopePriceId.DUST_TWAPJSON
+  | ScopePriceId.BONKJSON
+  | ScopePriceId.BONK_TWAPJSON
+  | ScopePriceId.SAMOJSON
+  | ScopePriceId.SAMO_TWAPJSON
+  | ScopePriceId.BSOLJSON
+  | ScopePriceId.LaineSOLJSON
 
 export { DEX }
 

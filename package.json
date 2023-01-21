@@ -5,20 +5,26 @@
   "scripts": {
     "bootstrap": "npx lerna bootstrap --hoist && npx lerna run build",
     "publish": "npx lerna publish",
-    "test": "npx jest --config jest.config.json",
+    "integration-test": "npx ts-mocha --t 1000000 packages/kamino-sdk/tests/kamino.test.ts",
     "format": "npx prettier --write '{**/*,*}.{js,ts,jsx,tsx}'",
-    "format:check": "npx prettier --check '{**/*,*}.{js,ts,jsx,tsx}'"
+    "format:check": "npx prettier --check '{**/*,*}.{js,ts,jsx,tsx}'",
+    "start-with-test-validator": "start-server-and-test 'solana-test-validator -u m ---bpf-program whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3uctyCc deps/whirlpool.so --bpf-program devi51mZmdwUJGU9hjN27vEz64Gps7uUefqxg27EAtH deps/raydium.so --clone HggGrUeg4ReGvpPMLJMFKV69NTXL1r4wQ9Pk9Ljutwyv --bpf-program metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s deps/metaplex.so --clone 3NJYftD5sjVfxSnUdZ1wVML8f3aC6mp1CXCL6L7TnU8C --clone GKnHiWh3RRrE1zsNzWxRkomymHc374TvJPSTv2wPeYdB --bpf-program  E6qbhrt4pFmCotNUSSEh6E5cRQCEJpMcd79Z56EG9KY deps/kamino.so --bpf-program HFn8GnPADiny6XqUoWE8uRPPxb29ikn4yTuPa9MF2fWJ deps/scope.so --reset --quiet' http://localhost:8899/health 'solana airdrop 100 2KE5D8LPdhMhr2vaaXZByMPCbXTjr8MtWUggnzoMN3ji -u l && npm run dump-kamino-programs && npm run integration-test'",
+    "dump-kamino-programs": "mkdir -p deps && solana program dump E6qbhrt4pFmCotNUSSEh6E5cRQCEJpMcd79Z56EG9KY -u d deps/kamino.so && solana program dump -u m whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3uctyCc deps/whirlpool.so && solana program dump -u m metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s deps/metaplex.so && solana program dump -u m HFn8GnPADiny6XqUoWE8uRPPxb29ikn4yTuPa9MF2fWJ deps/scope.so"
   },
   "devDependencies": {
-    "@types/node": "^17.0.45",
-    "@types/node-fetch": "^2.6.2",
-    "lerna": "^4.0.0",
-    "prettier": "^2.7.1",
-    "typescript": "^4.7.4",
-    "jest": "^28.1.2",
-    "@types/jest": "^28.1.4",
-    "ts-jest": "^28.0.5",
+    "@solana/web3.js": "~1.73.0",
     "@types/bn.js": "^5.1.0",
-    "@solana/web3.js": "^1.47.3"
+    "@types/chai-as-promised": "^7.1.4",
+    "@types/mocha": "^10.0.1",
+    "@types/node": "^16.18.11",
+    "@types/node-fetch": "^2.6.2",
+    "chai": "^4.3.6",
+    "lerna": "^4.0.0",
+    "mocha": "^10.2.0",
+    "prettier": "^2.7.1",
+    "start-server-and-test": "^1.11.6",
+    "ts-mocha": "^10.0.0",
+    "typescript": "^4.7.4",
+    "@types/sinon": "^10.0.13"
   }
 }

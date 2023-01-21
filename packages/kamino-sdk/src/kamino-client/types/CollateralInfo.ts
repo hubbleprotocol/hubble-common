@@ -8,6 +8,7 @@ export interface CollateralInfoFields {
   lowerHeuristic: BN
   upperHeuristic: BN
   expHeuristic: BN
+  maxTwapDivergenceBps: BN
   padding: Array<BN>
 }
 
@@ -16,6 +17,7 @@ export interface CollateralInfoJSON {
   lowerHeuristic: string
   upperHeuristic: string
   expHeuristic: string
+  maxTwapDivergenceBps: string
   padding: Array<string>
 }
 
@@ -24,6 +26,7 @@ export class CollateralInfo {
   readonly lowerHeuristic: BN
   readonly upperHeuristic: BN
   readonly expHeuristic: BN
+  readonly maxTwapDivergenceBps: BN
   readonly padding: Array<BN>
 
   constructor(fields: CollateralInfoFields) {
@@ -31,6 +34,7 @@ export class CollateralInfo {
     this.lowerHeuristic = fields.lowerHeuristic
     this.upperHeuristic = fields.upperHeuristic
     this.expHeuristic = fields.expHeuristic
+    this.maxTwapDivergenceBps = fields.maxTwapDivergenceBps
     this.padding = fields.padding
   }
 
@@ -41,7 +45,8 @@ export class CollateralInfo {
         borsh.u64("lowerHeuristic"),
         borsh.u64("upperHeuristic"),
         borsh.u64("expHeuristic"),
-        borsh.array(borsh.u128(), 10, "padding"),
+        borsh.u64("maxTwapDivergenceBps"),
+        borsh.array(borsh.u64(), 19, "padding"),
       ],
       property
     )
@@ -54,6 +59,7 @@ export class CollateralInfo {
       lowerHeuristic: obj.lowerHeuristic,
       upperHeuristic: obj.upperHeuristic,
       expHeuristic: obj.expHeuristic,
+      maxTwapDivergenceBps: obj.maxTwapDivergenceBps,
       padding: obj.padding,
     })
   }
@@ -64,6 +70,7 @@ export class CollateralInfo {
       lowerHeuristic: fields.lowerHeuristic,
       upperHeuristic: fields.upperHeuristic,
       expHeuristic: fields.expHeuristic,
+      maxTwapDivergenceBps: fields.maxTwapDivergenceBps,
       padding: fields.padding,
     }
   }
@@ -74,6 +81,7 @@ export class CollateralInfo {
       lowerHeuristic: this.lowerHeuristic.toString(),
       upperHeuristic: this.upperHeuristic.toString(),
       expHeuristic: this.expHeuristic.toString(),
+      maxTwapDivergenceBps: this.maxTwapDivergenceBps.toString(),
       padding: this.padding.map((item) => item.toString()),
     }
   }
@@ -84,6 +92,7 @@ export class CollateralInfo {
       lowerHeuristic: new BN(obj.lowerHeuristic),
       upperHeuristic: new BN(obj.upperHeuristic),
       expHeuristic: new BN(obj.expHeuristic),
+      maxTwapDivergenceBps: new BN(obj.maxTwapDivergenceBps),
       padding: obj.padding.map((item) => new BN(item)),
     })
   }

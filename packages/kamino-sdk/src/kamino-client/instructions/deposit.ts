@@ -20,7 +20,6 @@ export interface DepositAccounts {
   baseVaultAuthority: PublicKey
   treasuryFeeTokenAVault: PublicKey
   treasuryFeeTokenBVault: PublicKey
-  treasuryFeeVaultAuthority: PublicKey
   tokenAAta: PublicKey
   tokenBAta: PublicKey
   tokenAMint: PublicKey
@@ -62,11 +61,6 @@ export function deposit(args: DepositArgs, accounts: DepositAccounts) {
       isSigner: false,
       isWritable: true,
     },
-    {
-      pubkey: accounts.treasuryFeeVaultAuthority,
-      isSigner: false,
-      isWritable: false,
-    },
     { pubkey: accounts.tokenAAta, isSigner: false, isWritable: true },
     { pubkey: accounts.tokenBAta, isSigner: false, isWritable: true },
     { pubkey: accounts.tokenAMint, isSigner: false, isWritable: false },
@@ -94,6 +88,7 @@ export function deposit(args: DepositArgs, accounts: DepositAccounts) {
       isWritable: false,
     },
   ]
+
   const identifier = Buffer.from([242, 35, 198, 137, 82, 225, 242, 182])
   const buffer = Buffer.alloc(1000)
   const len = layout.encode(

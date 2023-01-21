@@ -1,16 +1,6 @@
-import {
-  Cluster,
-  clusterApiUrl,
-  Connection,
-  Keypair,
-  PublicKey,
-  sendAndConfirmTransaction,
-  SystemProgram,
-  Transaction,
-} from '@solana/web3.js';
-import { createAssociatedTokenAccountInstruction, Kamino, sendTransactionWithLogs } from '../src';
+import { Connection, Keypair, PublicKey, sendAndConfirmTransaction, SystemProgram, Transaction } from '@solana/web3.js';
+import { Dex, Kamino, sendTransactionWithLogs, sleep } from '../src';
 import Decimal from 'decimal.js';
-import bs58 from 'bs58';
 import {
   assignBlockInfoToTransaction,
   createTransactionWithExtraBudget,
@@ -19,21 +9,39 @@ import {
 import { GlobalConfig } from '../src/kamino-client/accounts';
 import * as Instructions from '../src/kamino-client/instructions';
 import { GlobalConfigOption, GlobalConfigOptionKind } from '../src/kamino-client/types';
-import { SupportedToken } from '@hubbleprotocol/scope-sdk';
+import { SupportedToken } from '../../scope-sdk/src';
 import BN from 'bn.js';
-import { Uninitialized } from '../src/kamino-client/types/StrategyStatus';
+import { initializeRaydiumPool, orderMints } from './raydium_utils';
+import { initializeWhirlpool } from './orca_utils';
+import { createMint, createUser, mintTo, updateStrategyConfig, updateTreasuryFeeVault } from './utils';
+import {
+  AllowDepositWithoutInvest,
+  UpdateDepositCap,
+  UpdateDepositCapIxn,
+  UpdateMaxDeviationBps,
+} from '../src/kamino-client/types/StrategyConfigOption';
+import { expect } from 'chai';
 
 describe('Kamino SDK Tests', () => {
   let connection: Connection;
   // const cluster: Cluster = 'localnet';
   const cluster = 'localnet';
   const clusterUrl: string = 'http://127.0.0.1:8899';
-  const fixtures = {
-    globalConfig: new PublicKey('981uJhuXAtmrnJiJ3Z4wthnHSDnQTgaHzakABg1CKczW'),
-    existingWhirlpool: new PublicKey('Fvtf8VCjnkqbETA6KtyHYqHm26ut6w184Jqm4MQjPvv7'),
-    existingStrategy: new PublicKey('E5sW8oNa6iMHRbjpSPb8h3MWaPzeazPyY3ZcSFaejASZ'),
+  connection = new Connection(clusterUrl, 'processed');
+
+  let fixtures = {
+    kaminoProgramId: new PublicKey('E6qbhrt4pFmCotNUSSEh6E5cRQCEJpMcd79Z56EG9KY'),
+    globalConfig: new PublicKey('GKnHiWh3RRrE1zsNzWxRkomymHc374TvJPSTv2wPeYdB'),
+    newWhirlpool: new PublicKey('Fvtf8VCjnkqbETA6KtyHYqHm26ut6w184Jqm4MQjPvv7'),
+    newOrcaStrategy: new PublicKey('Cfuy5T6osdazUeLego5LFycBQebm9PP3H7VNdCndXXEN'),
+    newRaydiumPool: new PublicKey('3tD34VtprDSkYCnATtQLCiVgTkECU3d12KtjupeR6N2X'),
+    newRaydiumStrategy: new PublicKey('AL6Yd51aSY3S9wpuypJYKtEf65xBSXKpfUCxN54CaWeE'),
     scopePrices: new PublicKey('3NJYftD5sjVfxSnUdZ1wVML8f3aC6mp1CXCL6L7TnU8C'),
     scopeProgram: new PublicKey('HFn8GnPADiny6XqUoWE8uRPPxb29ikn4yTuPa9MF2fWJ'),
+    newTokenMintA: new PublicKey('USDH1SM1ojwWUga67PGrgFWUHibbjqMvuMaDkRJTgkX'),
+    newTokenMintB: new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'),
+    tokenInfos: new PublicKey('3v6ootgJJZbSWEDfZMA1scfh7wcsVVfeocExRxPqCyWH'),
+
     signerPrivateKey: [
       243, 40, 114, 191, 142, 196, 87, 228, 207, 36, 182, 90, 227, 157, 113, 142, 144, 182, 242, 100, 81, 173, 42, 201,
       95, 86, 24, 160, 85, 13, 75, 165, 19, 134, 236, 53, 139, 222, 86, 12, 231, 163, 29, 94, 127, 22, 32, 59, 201, 57,
@@ -41,73 +49,297 @@ describe('Kamino SDK Tests', () => {
     ],
   };
 
-  beforeAll(() => {
-    connection = new Connection(clusterUrl);
-    // connection = new Connection(clusterApiUrl(cluster));
+  const signer = Keypair.fromSecretKey(Uint8Array.from(fixtures.signerPrivateKey));
+
+  before(async () => {
+    connection = new Connection(clusterUrl, 'processed');
+    let kamino = new Kamino(cluster, connection, fixtures.globalConfig, fixtures.kaminoProgramId);
+    // @ts-ignore
+    kamino._scope._config.scope.oraclePrices = fixtures.scopePrices;
+    // @ts-ignore
+    kamino._scope._config.scope.programId = fixtures.scopeProgram;
+
+    let tokenAMint = await createMint(connection, signer, 6);
+    let tokenBMint = await createMint(connection, signer, 6);
+    console.log('Mints initialized');
+    let tokens = orderMints(tokenAMint, tokenBMint);
+    tokenAMint = tokens[0];
+    tokenBMint = tokens[1];
+    fixtures.newTokenMintA = tokenAMint;
+    fixtures.newTokenMintB = tokenBMint;
+    kamino._config.kamino.mints.push({ address: tokenAMint, scopeToken: 'USDH' });
+    kamino._config.kamino.mints.push({ address: tokenBMint, scopeToken: 'USDC' });
+
+    let globalConfig = await setUpGlobalConfig(kamino, signer, fixtures.scopeProgram, fixtures.scopePrices);
+    console.log('globalConfig initialized ', globalConfig.toString());
+    kamino.setGlobalConfig(globalConfig);
+
+    let collateralInfo = await setUpCollateralInfo(kamino, signer);
+    await sleep(1000);
+    await updateCollateralInfo(kamino, signer, globalConfig, 'USDH', tokenAMint);
+    await updateCollateralInfo(kamino, signer, globalConfig, 'USDC', tokenBMint);
+    await sleep(100);
+    fixtures.tokenInfos = collateralInfo;
+
+    // @ts-ignore
+    let treasuryFeeVaults = await kamino.getTreasuryFeeVaultPDAs(tokenAMint, tokenBMint);
+    let updateTreasuryFeeA = await updateTreasuryFeeVault(
+      connection,
+      signer,
+      globalConfig,
+      'USDH',
+      tokenAMint,
+      treasuryFeeVaults.treasuryFeeTokenAVault,
+      treasuryFeeVaults.treasuryFeeVaultAuthority
+    );
+    console.log('updateTreasuryFeeA tx', updateTreasuryFeeA);
+
+    let updateTreasuryFeeB = await updateTreasuryFeeVault(
+      connection,
+      signer,
+      globalConfig,
+      'USDC',
+      tokenBMint,
+      treasuryFeeVaults.treasuryFeeTokenBVault,
+      treasuryFeeVaults.treasuryFeeVaultAuthority
+    );
+    console.log('updateTreasuryFeeB tx', updateTreasuryFeeB);
+
+    let raydiumPool = await initializeRaydiumPool(
+      connection,
+      signer,
+      1,
+      fixtures.newTokenMintA,
+      fixtures.newTokenMintB
+    );
+    fixtures.newRaydiumPool = raydiumPool.pool;
+    let createRaydiumTx = createTransactionWithExtraBudget(signer.publicKey);
+    const newRaydiumStrategy = Keypair.generate();
+    const createRaydiumStrategyAccountIx = await kamino.createStrategyAccount(
+      signer.publicKey,
+      newRaydiumStrategy.publicKey
+    );
+    createRaydiumTx.add(createRaydiumStrategyAccountIx);
+    let raydiumStrategyIx = await kamino.createStrategy(
+      newRaydiumStrategy.publicKey,
+      raydiumPool.pool,
+      signer.publicKey,
+      'USDH',
+      'USDC',
+      'RAYDIUM'
+    );
+
+    createRaydiumTx.add(raydiumStrategyIx);
+    let raydiumTxHash = await sendTransactionWithLogs(connection, createRaydiumTx, signer.publicKey, [
+      signer,
+      newRaydiumStrategy,
+    ]);
+    console.log('transaction hash', raydiumTxHash);
+    console.log('new Raydium strategy has been created', newRaydiumStrategy.publicKey.toString());
+    fixtures.newRaydiumStrategy = newRaydiumStrategy.publicKey;
+
+    let whirlpool = await initializeWhirlpool(connection, signer, 1, tokenAMint, tokenBMint);
+    fixtures.newWhirlpool = whirlpool.pool;
+    console.log('whilrpool is ', whirlpool.pool.toString());
+
+    let tx = createTransactionWithExtraBudget(signer.publicKey);
+    const newOrcaStrategy = Keypair.generate();
+    const createStrategyAccountIx = await kamino.createStrategyAccount(signer.publicKey, newOrcaStrategy.publicKey);
+    tx.add(createStrategyAccountIx);
+    let orcaStrategyIx = await kamino.createStrategy(
+      newOrcaStrategy.publicKey,
+      whirlpool.pool,
+      signer.publicKey,
+      'USDH',
+      'USDC',
+      'ORCA'
+    );
+    tx.add(orcaStrategyIx);
+
+    const txHash = await sendTransactionWithLogs(connection, tx, signer.publicKey, [signer, newOrcaStrategy]);
+    console.log('transaction hash', txHash);
+    console.log('new Orca strategy has been created', newOrcaStrategy.publicKey.toString());
+
+    fixtures.newOrcaStrategy = newOrcaStrategy.publicKey;
+
+    await updateStrategyConfig(
+      connection,
+      signer,
+      fixtures.newOrcaStrategy,
+      new UpdateDepositCapIxn(),
+      new Decimal(1000000000)
+    );
+    await updateStrategyConfig(
+      connection,
+      signer,
+      fixtures.newOrcaStrategy,
+      new UpdateDepositCap(),
+      new Decimal(1000000000)
+    );
+    await updateStrategyConfig(
+      connection,
+      signer,
+      fixtures.newOrcaStrategy,
+      new UpdateMaxDeviationBps(),
+      new Decimal(100)
+    );
+    await updateStrategyConfig(
+      connection,
+      signer,
+      fixtures.newOrcaStrategy,
+      new AllowDepositWithoutInvest(),
+      new Decimal(1)
+    );
+
+    await updateStrategyConfig(
+      connection,
+      signer,
+      fixtures.newRaydiumStrategy,
+      new UpdateDepositCapIxn(),
+      new Decimal(1000000000)
+    );
+    await updateStrategyConfig(
+      connection,
+      signer,
+      fixtures.newRaydiumStrategy,
+      new UpdateDepositCap(),
+      new Decimal(1000000000)
+    );
+    await updateStrategyConfig(
+      connection,
+      signer,
+      fixtures.newRaydiumStrategy,
+      new UpdateMaxDeviationBps(),
+      new Decimal(100)
+    );
+    await updateStrategyConfig(
+      connection,
+      signer,
+      fixtures.newRaydiumStrategy,
+      new AllowDepositWithoutInvest(),
+      new Decimal(1)
+    );
+
+    await openPosition(kamino, signer, newOrcaStrategy.publicKey, new Decimal(0.97), new Decimal(1.03));
+    await openPosition(kamino, signer, newRaydiumStrategy.publicKey, new Decimal(0.97), new Decimal(1.03));
   });
 
-  test.skip('should throw on invalid cluster', () => {
+  it('should throw on invalid cluster', () => {
     // @ts-ignore
     const init = () => new Kamino('invalid-clusters', undefined);
-    expect(init).toThrow(Error);
+    expect(init).to.throw(Error);
   });
 
-  test.skip('should get all strategies', async () => {
-    const kamino = new Kamino(cluster, connection);
-    const allStrategies = await kamino.getStrategies();
-    expect(allStrategies.length).toBeGreaterThan(0);
+  it('should get all strategies', async () => {
+    let kamino = new Kamino(cluster, connection, fixtures.globalConfig, fixtures.kaminoProgramId);
+    const allStrategies = await kamino.getStrategies([fixtures.newOrcaStrategy]);
+    expect(allStrategies.length).to.be.greaterThan(0);
     for (const strat of allStrategies) {
-      expect(strat).not.toBeNull();
+      expect(strat).not.to.be.null;
       console.log(strat?.pool.toString());
     }
   });
-  test.skip('should get strategy by address', async () => {
-    const kamino = new Kamino(cluster, connection);
-    const strategy = await kamino.getStrategyByAddress(new PublicKey('LXUYy5TN2Bq9BoQXx2LKYqmnq4kzZzDT15NuiZ3VAMy'));
-    expect(strategy).not.toBeNull();
+  it('should get strategy by address', async () => {
+    let kamino = new Kamino(cluster, connection, fixtures.globalConfig, fixtures.kaminoProgramId);
+    const strategy = await kamino.getStrategyByAddress(fixtures.newOrcaStrategy);
+    expect(strategy).not.to.be.null;
     console.log(strategy?.toJSON());
   });
 
-  test.skip('should get strategy share price', async () => {
-    const kamino = new Kamino(cluster, connection);
-    const strategy = await kamino.getStrategyByAddress(new PublicKey('LXUYy5TN2Bq9BoQXx2LKYqmnq4kzZzDT15NuiZ3VAMy'));
-    expect(strategy).not.toBeNull();
-    const price = await kamino.getStrategyShareData(new PublicKey('LXUYy5TN2Bq9BoQXx2LKYqmnq4kzZzDT15NuiZ3VAMy'));
-    expect(price.price.toNumber()).toBeGreaterThanOrEqual(0);
+  it('should get RAYDIUM strategy share price', async () => {
+    let kamino = new Kamino(cluster, connection, fixtures.globalConfig, fixtures.kaminoProgramId);
+
+    const strategy = await kamino.getStrategyByAddress(fixtures.newRaydiumStrategy);
+    expect(strategy).not.to.be.null;
+    const price = await kamino.getStrategyShareData(fixtures.newRaydiumStrategy);
+    expect(price.price.toNumber()).to.be.greaterThanOrEqual(0);
     console.log(price);
   });
 
-  test.skip('should get all strategy holders', async () => {
-    const kamino = new Kamino(cluster, connection);
-    const strategy = await kamino.getStrategyByAddress(new PublicKey('ByXB4xCxVhmUEmQj3Ut7byZ1Hbva1zhKjaVcv3jBMN7E'));
-    expect(strategy).not.toBeNull();
-    const accounts = await kamino.getStrategyHolders(new PublicKey('ByXB4xCxVhmUEmQj3Ut7byZ1Hbva1zhKjaVcv3jBMN7E'));
-    expect(accounts.length).toBeGreaterThan(0);
+  it('should get Orca strategy share price', async () => {
+    let kamino = new Kamino(cluster, connection, fixtures.globalConfig, fixtures.kaminoProgramId);
+
+    const strategyState = await kamino.getStrategyByAddress(fixtures.newOrcaStrategy);
+    expect(strategyState).not.to.be.null;
+    if (strategyState == null) {
+      throw new Error(`Could not fetch strategy for pubkey ${fixtures.newOrcaStrategy.toString()}`);
+    }
+
+    const price = await kamino.getStrategyShareData(fixtures.newOrcaStrategy);
+    expect(price.price.toNumber()).to.be.greaterThanOrEqual(0);
+    console.log(price);
+  });
+
+  it('should get all strategy holders', async () => {
+    let kamino = new Kamino(cluster, connection, fixtures.globalConfig, fixtures.kaminoProgramId);
+
+    const solAirdropAmount = new Decimal(1);
+    const usdcAirdropAmount = new Decimal(100);
+    const usdhAirdropAmount = new Decimal(100);
+
+    let user = await createUser(
+      connection,
+      signer,
+      fixtures.newOrcaStrategy,
+      solAirdropAmount,
+      usdcAirdropAmount,
+      usdhAirdropAmount
+    );
+
+    const [usdcDeposit, usdhDeposit] = [new Decimal(5), new Decimal(5)];
+    await kamino.deposit(fixtures.newOrcaStrategy, usdcDeposit, usdhDeposit, user.owner.publicKey);
+    await sleep(2000);
+
+    const strategy = await kamino.getStrategyByAddress(fixtures.newOrcaStrategy);
+    expect(strategy).to.not.be.null;
+    const accounts = await kamino.getStrategyHolders(fixtures.newOrcaStrategy);
+    expect(accounts.length).to.be.greaterThan(0);
     const expectedShares = new Decimal(strategy!.sharesIssued.toString())
       .div(new Decimal(10).pow(strategy!.sharesMintDecimals.toString()))
       .toNumber();
     const actualShares = accounts.map((x) => x.amount.toNumber()).reduce((partialSum, a) => partialSum + a, 0);
-    expect(expectedShares).toBe(actualShares);
+    expect(expectedShares).to.eq(actualShares);
   });
 
-  test.skip('should get all whirlpools', async () => {
-    const kamino = new Kamino(cluster, connection);
-    console.log(await kamino.getWhirlpools([]));
+  it('should get all whirlpools', async () => {
+    let kamino = new Kamino(cluster, connection, fixtures.globalConfig, fixtures.kaminoProgramId);
+    console.log(await kamino.getWhirlpools([fixtures.newWhirlpool]));
   });
 
-  test.skip('should withdraw shares from a strategy', async () => {
-    const kamino = new Kamino(cluster, connection);
-    const strategyPubkey = new PublicKey('2H4xebnp2M9JYgPPfUw58uUQahWF8f1YTNxwwtmdqVYV');
-    const owner = new PublicKey('HrwbdQYwSnAyVpVHuGQ661HiNbWmGjDp5DdDR9YMw7Bu');
-    const strategy = (await kamino.getStrategyByAddress(strategyPubkey))!;
-    const strategyWithAddress = { strategy, address: strategyPubkey };
-    const [sharesAta, sharesMintData] = await getAssociatedTokenAddressAndData(connection, strategy.sharesMint, owner);
-    const [tokenAAta, tokenAData] = await getAssociatedTokenAddressAndData(connection, strategy.tokenAMint, owner);
-    const [tokenBAta, tokenBData] = await getAssociatedTokenAddressAndData(connection, strategy.tokenBMint, owner);
-    let tx = createTransactionWithExtraBudget(owner);
+  it('should get all Raydium pools', async () => {
+    let kamino = new Kamino(cluster, connection, fixtures.globalConfig, fixtures.kaminoProgramId);
+    console.log(await kamino.getRaydiumPools([fixtures.newRaydiumPool]));
+  });
+
+  it('should withdraw shares from a Orca strategy', async () => {
+    let kamino = new Kamino(cluster, connection, fixtures.globalConfig, fixtures.kaminoProgramId);
+    const strategyState = await kamino.getStrategyByAddress(fixtures.newOrcaStrategy);
+    expect(strategyState).not.to.be.null;
+    if (strategyState == null) {
+      throw new Error(`Could not fetch strategy for pubkey ${fixtures.newOrcaStrategy.toString()}`);
+    }
+
+    let tx = createTransactionWithExtraBudget(signer.publicKey);
+    const [sharesAta, sharesMintData] = await getAssociatedTokenAddressAndData(
+      connection,
+      strategyState.sharesMint,
+      signer.publicKey
+    );
+    const [tokenAAta, tokenAData] = await getAssociatedTokenAddressAndData(
+      connection,
+      strategyState.tokenAMint,
+      signer.publicKey
+    );
+    const [tokenBAta, tokenBData] = await getAssociatedTokenAddressAndData(
+      connection,
+      strategyState.tokenBMint,
+      signer.publicKey
+    );
+
+    let strategyWithAddres = { address: fixtures.newOrcaStrategy, strategy: strategyState };
     const ataInstructions = await kamino.getCreateAssociatedTokenAccountInstructionsIfNotExist(
-      owner,
-      strategyWithAddress,
+      signer.publicKey,
+      strategyWithAddres,
       tokenAData,
       tokenAAta,
       tokenBData,
@@ -119,30 +351,64 @@ describe('Kamino SDK Tests', () => {
       tx.add(...ataInstructions);
     }
 
-    const withdrawIx = await kamino.withdrawShares(strategyWithAddress, new Decimal(2), owner);
-    tx.add(withdrawIx);
+    let res = await sendTransactionWithLogs(connection, tx, signer.publicKey, [signer]);
+    console.log('res createAtas ', res);
 
-    tx = await assignBlockInfoToTransaction(connection, tx, owner);
+    const [usdcDeposit, usdhDeposit] = [new Decimal(5), new Decimal(5)];
+    await mintTo(connection, signer, strategyState.tokenAMint, tokenAAta, 9000000);
+    await mintTo(connection, signer, strategyState.tokenBMint, tokenBAta, 9000000);
+    await sleep(5000);
 
-    const signer = Keypair.fromSecretKey(bs58.decode('phantom wallet secret key'));
-    const txHash = await sendAndConfirmTransaction(connection, tx, [signer], {
-      commitment: 'confirmed',
+    let depositIx = await kamino.deposit(fixtures.newOrcaStrategy, usdcDeposit, usdhDeposit, signer.publicKey);
+    let depositTx = createTransactionWithExtraBudget(signer.publicKey);
+    depositTx.add(depositIx);
+    sendTransactionWithLogs(connection, depositTx, signer.publicKey, [signer]);
+
+    const strategy = (await kamino.getStrategyByAddress(fixtures.newOrcaStrategy))!;
+    const strategyWithAddress = { strategy, address: fixtures.newOrcaStrategy };
+
+    let withdrawTx = createTransactionWithExtraBudget(signer.publicKey);
+
+    const withdrawIx = await kamino.withdrawShares(strategyWithAddress, new Decimal(0.002), signer.publicKey);
+    withdrawTx.add(withdrawIx);
+
+    withdrawTx = await assignBlockInfoToTransaction(connection, withdrawTx, signer.publicKey);
+
+    const txHash = await sendAndConfirmTransaction(connection, withdrawTx, [signer], {
+      commitment: 'processed',
+      skipPreflight: true,
     });
     console.log(txHash);
   });
 
-  test.skip('should withdraw all shares from a strategy', async () => {
-    const kamino = new Kamino(cluster, connection);
-    const strategyPubkey = new PublicKey('2H4xebnp2M9JYgPPfUw58uUQahWF8f1YTNxwwtmdqVYV');
-    const owner = new PublicKey('HrwbdQYwSnAyVpVHuGQ661HiNbWmGjDp5DdDR9YMw7Bu');
-    const strategy = (await kamino.getStrategyByAddress(strategyPubkey))!;
-    const strategyWithAddress = { strategy, address: strategyPubkey };
-    const [sharesAta, sharesMintData] = await getAssociatedTokenAddressAndData(connection, strategy.sharesMint, owner);
-    const [tokenAAta, tokenAData] = await getAssociatedTokenAddressAndData(connection, strategy.tokenAMint, owner);
-    const [tokenBAta, tokenBData] = await getAssociatedTokenAddressAndData(connection, strategy.tokenBMint, owner);
-    let tx = createTransactionWithExtraBudget(owner);
+  it('should withdraw shares from a Raydium strategy', async () => {
+    let kamino = new Kamino(cluster, connection, fixtures.globalConfig, fixtures.kaminoProgramId);
+
+    const strategyState = await kamino.getStrategyByAddress(fixtures.newRaydiumStrategy);
+    expect(strategyState).not.to.be.null;
+    if (strategyState == null) {
+      throw new Error(`Could not fetch strategy for pubkey ${fixtures.newRaydiumStrategy.toString()}`);
+    }
+
+    let strategyWithAddress = { address: fixtures.newRaydiumStrategy, strategy: strategyState };
+    const [sharesAta, sharesMintData] = await getAssociatedTokenAddressAndData(
+      connection,
+      strategyState.sharesMint,
+      signer.publicKey
+    );
+    const [tokenAAta, tokenAData] = await getAssociatedTokenAddressAndData(
+      connection,
+      strategyState.tokenAMint,
+      signer.publicKey
+    );
+    const [tokenBAta, tokenBData] = await getAssociatedTokenAddressAndData(
+      connection,
+      strategyState.tokenBMint,
+      signer.publicKey
+    );
+    let tx = createTransactionWithExtraBudget(signer.publicKey);
     const ataInstructions = await kamino.getCreateAssociatedTokenAccountInstructionsIfNotExist(
-      owner,
+      signer.publicKey,
       strategyWithAddress,
       tokenAData,
       tokenAAta,
@@ -155,7 +421,61 @@ describe('Kamino SDK Tests', () => {
       tx.add(...ataInstructions);
     }
 
-    const withdrawIx = await kamino.withdrawAllShares(strategyWithAddress, owner);
+    let res = await sendTransactionWithLogs(connection, tx, signer.publicKey, [signer]);
+    console.log('res createAtas ', res);
+
+    const [usdcDeposit, usdhDeposit] = [new Decimal(5), new Decimal(5)];
+    await mintTo(connection, signer, strategyState.tokenAMint, tokenAAta, 9000000);
+    await mintTo(connection, signer, strategyState.tokenBMint, tokenBAta, 9000000);
+    await sleep(5000);
+
+    let withdrawTx = createTransactionWithExtraBudget(signer.publicKey);
+    const withdrawIx = await kamino.withdrawShares(strategyWithAddress, new Decimal(0.02), signer.publicKey);
+    tx.add(withdrawIx);
+
+    withdrawTx = await assignBlockInfoToTransaction(connection, withdrawTx, signer.publicKey);
+
+    const txHash = await sendAndConfirmTransaction(connection, withdrawTx, [signer], {
+      commitment: 'processed',
+      skipPreflight: true,
+    });
+    console.log(txHash);
+  });
+
+  it('should withdraw all shares from an Orca strategy', async () => {
+    let kamino = new Kamino(cluster, connection, fixtures.globalConfig, fixtures.kaminoProgramId);
+
+    const strategy = (await kamino.getStrategyByAddress(fixtures.newOrcaStrategy))!;
+    const strategyWithAddress = { strategy, address: fixtures.newOrcaStrategy };
+
+    const solAirdropAmount = new Decimal(1);
+    const usdcAirdropAmount = new Decimal(100);
+    const usdhAirdropAmount = new Decimal(100);
+
+    let user = await createUser(
+      connection,
+      signer,
+      fixtures.newOrcaStrategy,
+      solAirdropAmount,
+      usdcAirdropAmount,
+      usdhAirdropAmount
+    );
+
+    let tx = createTransactionWithExtraBudget(user.owner.publicKey);
+
+    const depositIx = await kamino.deposit(strategyWithAddress, new Decimal(1), new Decimal(2), user.owner.publicKey);
+    tx.add(depositIx);
+
+    tx = await assignBlockInfoToTransaction(connection, tx, user.owner.publicKey);
+
+    let txHash = await sendAndConfirmTransaction(connection, tx, [user.owner], {
+      commitment: 'processed',
+      skipPreflight: true,
+    });
+
+    let withdrawTx = createTransactionWithExtraBudget(user.owner.publicKey);
+
+    const withdrawIx = await kamino.withdrawAllShares(strategyWithAddress, user.owner.publicKey);
     if (withdrawIx) {
       tx.add(withdrawIx);
     } else {
@@ -163,193 +483,219 @@ describe('Kamino SDK Tests', () => {
       return;
     }
 
-    tx = await assignBlockInfoToTransaction(connection, tx, owner);
+    withdrawTx = await assignBlockInfoToTransaction(connection, withdrawTx, user.owner.publicKey);
 
-    const signer = Keypair.fromSecretKey(bs58.decode('phantom wallet secret key'));
-    const txHash = await sendAndConfirmTransaction(connection, tx, [signer], {
-      commitment: 'confirmed',
+    txHash = await sendAndConfirmTransaction(connection, withdrawTx, [user.owner], {
+      commitment: 'processed',
     });
     console.log(txHash);
   });
 
-  test.skip('should deposit tokens into a strategy', async () => {
-    const kamino = new Kamino(cluster, connection);
-    const strategyPubkey = new PublicKey('2H4xebnp2M9JYgPPfUw58uUQahWF8f1YTNxwwtmdqVYV');
-    const owner = new PublicKey('HrwbdQYwSnAyVpVHuGQ661HiNbWmGjDp5DdDR9YMw7Bu');
-    const strategy = (await kamino.getStrategyByAddress(strategyPubkey))!;
-    const strategyWithAddress = { strategy, address: strategyPubkey };
-    const [sharesAta, sharesMintData] = await getAssociatedTokenAddressAndData(connection, strategy.sharesMint, owner);
-    const [tokenAAta, tokenAData] = await getAssociatedTokenAddressAndData(connection, strategy.tokenAMint, owner);
-    const [tokenBAta, tokenBData] = await getAssociatedTokenAddressAndData(connection, strategy.tokenBMint, owner);
-    let tx = createTransactionWithExtraBudget(owner);
-    const ataInstructions = await kamino.getCreateAssociatedTokenAccountInstructionsIfNotExist(
-      owner,
-      strategyWithAddress,
-      tokenAData,
-      tokenAAta,
-      tokenBData,
-      tokenBAta,
-      sharesMintData,
-      sharesAta
-    );
-    if (ataInstructions.length > 0) {
-      tx.add(...ataInstructions);
-    }
+  it('should withdraw all shares from a Raydium strategy', async () => {
+    let kamino = new Kamino(cluster, connection, fixtures.globalConfig, fixtures.kaminoProgramId);
 
-    const depositIx = await kamino.deposit(strategyWithAddress, new Decimal(1), new Decimal(2), owner);
+    const strategy = (await kamino.getStrategyByAddress(fixtures.newRaydiumStrategy))!;
+    const strategyWithAddress = { strategy, address: fixtures.newRaydiumStrategy };
+
+    const solAirdropAmount = new Decimal(1);
+    const usdcAirdropAmount = new Decimal(100);
+    const usdhAirdropAmount = new Decimal(100);
+
+    let user = await createUser(
+      connection,
+      signer,
+      fixtures.newRaydiumStrategy,
+      solAirdropAmount,
+      usdcAirdropAmount,
+      usdhAirdropAmount
+    );
+
+    let tx = createTransactionWithExtraBudget(user.owner.publicKey, 1000000);
+
+    const depositIx = await kamino.deposit(strategyWithAddress, new Decimal(1), new Decimal(2), user.owner.publicKey);
     tx.add(depositIx);
 
-    tx = await assignBlockInfoToTransaction(connection, tx, owner);
+    tx = await assignBlockInfoToTransaction(connection, tx, user.owner.publicKey);
 
-    const signer = Keypair.fromSecretKey(bs58.decode('phantom wallet secret key'));
-    const txHash = await sendAndConfirmTransaction(connection, tx, [signer], {
-      commitment: 'confirmed',
+    let txHash = await sendAndConfirmTransaction(connection, tx, [user.owner], {
+      commitment: 'processed',
+      skipPreflight: true,
+    });
+
+    let withdrawTx = createTransactionWithExtraBudget(user.owner.publicKey, 1000000);
+
+    const withdrawIx = await kamino.withdrawAllShares(strategyWithAddress, user.owner.publicKey);
+    if (withdrawIx) {
+      tx.add(withdrawIx);
+    } else {
+      console.log('balance is 0, cant withdraw');
+      return;
+    }
+
+    withdrawTx = await assignBlockInfoToTransaction(connection, withdrawTx, user.owner.publicKey);
+
+    txHash = await sendAndConfirmTransaction(connection, withdrawTx, [user.owner], {
+      commitment: 'processed',
     });
     console.log(txHash);
   });
 
-  test.skip('should create a new strategy', async () => {
-    const signer = Keypair.fromSecretKey(Uint8Array.from(fixtures.signerPrivateKey));
-    const newStrategy = Keypair.generate();
-    const owner = signer.publicKey;
-    const whirlpool = fixtures.existingWhirlpool;
+  it('should deposit tokens into an Orca strategy', async () => {
+    let kamino = new Kamino(cluster, connection, fixtures.globalConfig, fixtures.kaminoProgramId);
 
-    const kamino = new Kamino(cluster, connection, fixtures.globalConfig);
-    const whirlpoolState = await kamino.getWhirlpoolByAddress(whirlpool);
-    expect(whirlpoolState).not.toBeNull();
+    const strategy = (await kamino.getStrategyByAddress(fixtures.newOrcaStrategy))!;
+    const strategyWithAddress = { strategy, address: fixtures.newOrcaStrategy };
 
-    let tx = createTransactionWithExtraBudget(owner);
+    const solAirdropAmount = new Decimal(1);
+    const usdcAirdropAmount = new Decimal(100);
+    const usdhAirdropAmount = new Decimal(100);
 
-    const createStrategyAccountIx = await kamino.createStrategyAccount(owner, newStrategy.publicKey);
-    tx.add(createStrategyAccountIx);
-
-    const createStrategyIx = await kamino.createStrategy(newStrategy.publicKey, whirlpool, owner, 'USDH', 'USDC');
-    tx.add(createStrategyIx);
-
-    const txHash = await sendTransactionWithLogs(connection, tx, owner, [signer, newStrategy], {
-      commitment: 'finalized',
-    });
-    console.log('transaction hash', txHash);
-    console.log('new strategy has been created', newStrategy.publicKey.toString());
-    const strategy = await kamino.getStrategyByAddress(newStrategy.publicKey);
-    expect(strategy).not.toBeNull();
-    console.log(strategy?.toJSON());
-  }, 30_000);
-
-  test.skip('should open liquidity position for a strategy', async () => {
-    const signer = Keypair.fromSecretKey(Uint8Array.from(fixtures.signerPrivateKey));
-    const owner = signer.publicKey;
-    const positionMint = Keypair.generate();
-    const strategy = new PublicKey('3irb7xwsnmFefTphym3J7tn4mBizWWvCRZgxWff2ucTh');
-    const globalConfig = new PublicKey('982FRNjCosuj7bqUAH94QSBn5LeZkiveGs1Lziysf8rm');
-
-    const kamino = new Kamino(cluster, connection, globalConfig);
-
-    let tx = new Transaction();
-
-    const openPositionIx = await kamino.openPosition(
-      strategy,
-      positionMint.publicKey,
-      new Decimal(0.98),
-      new Decimal(1.02)
+    let user = await createUser(
+      connection,
+      signer,
+      fixtures.newOrcaStrategy,
+      solAirdropAmount,
+      usdcAirdropAmount,
+      usdhAirdropAmount
     );
-    tx.add(openPositionIx);
 
-    const txHash = await sendTransactionWithLogs(connection, tx, owner, [signer, positionMint], {
-      commitment: 'finalized',
+    let tx = createTransactionWithExtraBudget(user.owner.publicKey);
+
+    const depositIx = await kamino.deposit(strategyWithAddress, new Decimal(1), new Decimal(2), user.owner.publicKey);
+    tx.add(depositIx);
+
+    tx = await assignBlockInfoToTransaction(connection, tx, user.owner.publicKey);
+
+    const txHash = await sendAndConfirmTransaction(connection, tx, [user.owner], {
+      commitment: 'processed',
+      skipPreflight: true,
     });
+    console.log(txHash);
+  });
 
-    console.log('transaction hash', txHash);
-  }, 30_000);
+  it('should deposit tokens into a Raydium strategy', async () => {
+    let kamino = new Kamino(cluster, connection, fixtures.globalConfig, fixtures.kaminoProgramId);
 
-  test.skip('create a new strategy and open a position', async () => {
-    const owner = Keypair.fromSecretKey(Uint8Array.from(fixtures.signerPrivateKey));
-    const kamino = new Kamino(cluster, connection);
+    const strategy = (await kamino.getStrategyByAddress(fixtures.newRaydiumStrategy))!;
+    const strategyWithAddress = { strategy, address: fixtures.newRaydiumStrategy };
 
-    // Setup (this is not required on devnet/mainnet)
+    const solAirdropAmount = new Decimal(1);
+    const usdcAirdropAmount = new Decimal(100);
+    const usdhAirdropAmount = new Decimal(100);
+
+    let user = await createUser(
+      connection,
+      signer,
+      fixtures.newRaydiumStrategy,
+      solAirdropAmount,
+      usdcAirdropAmount,
+      usdhAirdropAmount
+    );
+
+    let tx = createTransactionWithExtraBudget(user.owner.publicKey, 1000000);
+
+    const depositIx = await kamino.deposit(strategyWithAddress, new Decimal(1), new Decimal(2), user.owner.publicKey);
+    tx.add(depositIx);
+
+    tx = await assignBlockInfoToTransaction(connection, tx, user.owner.publicKey);
+
+    const txHash = await sendAndConfirmTransaction(connection, tx, [user.owner], {
+      commitment: 'processed',
+      skipPreflight: true,
+    });
+    console.log(txHash);
+  });
+
+  it('should rebalance an Orca strategy', async () => {
+    let kamino = new Kamino(cluster, connection, fixtures.globalConfig, fixtures.kaminoProgramId);
     // Note: this modifies Kamino
-    const whirlpool = fixtures.existingWhirlpool;
-    await setUpEnvironmentForWhirlpool(kamino, owner, whirlpool, fixtures.scopeProgram, fixtures.scopePrices);
-
-    // Create strategy
-    const newStrategy = Keypair.generate();
-    {
-      const createStrategyAccountIx = await kamino.createStrategyAccount(owner.publicKey, newStrategy.publicKey);
-      const createStrategyIx = await kamino.createStrategy(
-        newStrategy.publicKey,
-        whirlpool,
-        owner.publicKey,
-        'USDH',
-        'USDC'
-      );
-
-      let tx = createTransactionWithExtraBudget(owner.publicKey).add(createStrategyAccountIx).add(createStrategyIx);
-
-      await sendTransactionWithLogs(connection, tx, owner.publicKey, [owner, newStrategy]);
-      const strategy = await kamino.getStrategyByAddress(newStrategy.publicKey);
-      expect(strategy).not.toBeNull();
-    }
-
-    // Open position
-    const positionMint = Keypair.generate();
-    {
-      const openPositionIx = await kamino.openPosition(
-        newStrategy.publicKey,
-        positionMint.publicKey,
-        new Decimal(0.98),
-        new Decimal(1.02)
-      );
-
-      let tx = new Transaction().add(openPositionIx);
-      await sendTransactionWithLogs(connection, tx, owner.publicKey, [owner, positionMint]);
-      console.log('new position has been opened', positionMint.publicKey.toString());
-    }
-  }, 200_000);
-
-  test.skip('should rebalance a strategy', async () => {
-    const owner = Keypair.fromSecretKey(Uint8Array.from(fixtures.signerPrivateKey));
-    const kamino = new Kamino(cluster, connection);
-
-    // Setup (this is not required on devnet/mainnet)
-    // Note: this modifies Kamino
-    const whirlpool = fixtures.existingWhirlpool;
-    await setUpEnvironmentForWhirlpool(kamino, owner, whirlpool, fixtures.scopeProgram, fixtures.scopePrices);
-
-    const strategy = await createStrategy(kamino, owner, whirlpool);
-    const _ = await openPosition(kamino, owner, strategy, new Decimal(0.9), new Decimal(1.1));
 
     // New position to rebalance into
     const newPosition = Keypair.generate();
 
     const [executiveWithdrawIx, collectFeesIx, openPositionIx] = await kamino.rebalance(
-      strategy,
+      fixtures.newOrcaStrategy,
       newPosition.publicKey,
-      new Decimal(0.9),
-      new Decimal(1.1),
-      owner.publicKey
+      new Decimal(0.99),
+      new Decimal(1.01),
+      signer.publicKey
     );
 
     {
       let tx = new Transaction().add(executiveWithdrawIx, collectFeesIx);
-      let sig = await sendTransactionWithLogs(connection, tx, owner.publicKey, [owner]);
-      expect(sig).not.toBeNull();
+      let sig = await sendTransactionWithLogs(connection, tx, signer.publicKey, [signer]);
+      expect(sig).to.not.be.null;
       console.log('executive withdraw and collect fees have been executed');
     }
     {
       let tx = new Transaction().add(openPositionIx);
-      let sig = await sendTransactionWithLogs(connection, tx, owner.publicKey, [owner, newPosition]);
-      expect(sig).not.toBeNull();
+      let sig = await sendTransactionWithLogs(connection, tx, signer.publicKey, [signer, newPosition]);
+      expect(sig).to.not.be.null;
+      console.log('new position has been opened');
+    }
+  });
+
+  it('should rebalance a Raydium strategy', async () => {
+    let kamino = new Kamino(cluster, connection, fixtures.globalConfig, fixtures.kaminoProgramId);
+
+    const strategy = (await kamino.getStrategyByAddress(fixtures.newRaydiumStrategy))!;
+    const strategyWithAddress = { strategy, address: fixtures.newRaydiumStrategy };
+    const solAirdropAmount = new Decimal(1);
+    const usdcAirdropAmount = new Decimal(100);
+    const usdhAirdropAmount = new Decimal(100);
+
+    let user = await createUser(
+      connection,
+      signer,
+      fixtures.newRaydiumStrategy,
+      solAirdropAmount,
+      usdcAirdropAmount,
+      usdhAirdropAmount
+    );
+
+    let tx = createTransactionWithExtraBudget(user.owner.publicKey, 1000000);
+
+    const depositIx = await kamino.deposit(strategyWithAddress, new Decimal(10), new Decimal(10), user.owner.publicKey);
+    tx.add(depositIx);
+
+    tx = await assignBlockInfoToTransaction(connection, tx, user.owner.publicKey);
+
+    const txHash = await sendAndConfirmTransaction(connection, tx, [user.owner], {
+      commitment: 'processed',
+      skipPreflight: true,
+    });
+    console.log(txHash);
+
+    // New position to rebalance into
+    const newPosition = Keypair.generate();
+
+    const [executiveWithdrawIx, collectFeesIx, openPositionIx] = await kamino.rebalance(
+      fixtures.newRaydiumStrategy,
+      newPosition.publicKey,
+      new Decimal(0.98),
+      new Decimal(1.01),
+      signer.publicKey
+    );
+
+    {
+      let tx = createTransactionWithExtraBudget(signer.publicKey, 1000000).add(collectFeesIx).add(executiveWithdrawIx);
+      let sig = await sendTransactionWithLogs(connection, tx, signer.publicKey, [signer]);
+      expect(sig).to.not.be.null;
+      console.log('executive withdraw and collect fees have been executed');
+    }
+    {
+      let tx = createTransactionWithExtraBudget(signer.publicKey, 1000000).add(openPositionIx);
+      let sig = await sendTransactionWithLogs(connection, tx, signer.publicKey, [signer, newPosition]);
+      expect(sig).to.not.be.null;
       console.log('new position has been opened');
     }
     {
-      let invextIx = await kamino.invest(strategy, owner.publicKey);
-      let tx = new Transaction().add(invextIx);
-      let sig = await sendTransactionWithLogs(connection, tx, owner.publicKey, [owner]);
-      // Cannot invest zero amount, this is expected to fail
-      // expect(sig).not.toBeNull();
-      // console.log('invested');
+      let invextIx = await kamino.invest(fixtures.newRaydiumStrategy, signer.publicKey);
+      let tx = createTransactionWithExtraBudget(signer.publicKey, 1000000).add(invextIx);
+      let sig = await sendTransactionWithLogs(connection, tx, signer.publicKey, [signer]);
+      expect(sig).not.to.be.null;
     }
-  }, 300_000);
+  });
 });
 
 export async function setUpEnvironmentForWhirlpool(
@@ -363,30 +709,49 @@ export async function setUpEnvironmentForWhirlpool(
   let globalConfig = await setUpGlobalConfig(kamino, owner, scopeProgramId, scopePrices);
 
   let whirlpoolState = await kamino.getWhirlpoolByAddress(whirlpool);
-  expect(whirlpoolState).not.toBeNull();
+  expect(whirlpoolState).to.not.be.null;
 
   await setUpCollateralInfo(kamino, owner);
   await updateCollateralInfo(kamino, owner, globalConfig, 'USDH', whirlpoolState!!.tokenMintA);
   await updateCollateralInfo(kamino, owner, globalConfig, 'USDC', whirlpoolState!!.tokenMintB);
 }
 
-export async function createStrategy(kamino: Kamino, owner: Keypair, whirlpool: PublicKey): Promise<PublicKey> {
+export async function setUpEnvironmentForRaydium(
+  kamino: Kamino,
+  owner: Keypair,
+  pool: PublicKey,
+  scopeProgramId: PublicKey,
+  scopePrices: PublicKey
+) {
+  // Setup (this is not required on devnet/mainnet)
+  let globalConfig = await setUpGlobalConfig(kamino, owner, scopeProgramId, scopePrices);
+
+  let poolState = await kamino.getRaydiumPoollByAddress(pool);
+  expect(poolState).to.not.be.null;
+
+  await setUpCollateralInfo(kamino, owner);
+  await updateCollateralInfo(kamino, owner, globalConfig, 'USDH', poolState!!.tokenMint0);
+  await updateCollateralInfo(kamino, owner, globalConfig, 'USDC', poolState!!.tokenMint1);
+}
+
+export async function createStrategy(kamino: Kamino, owner: Keypair, pool: PublicKey, dex: Dex): Promise<PublicKey> {
   // Create strategy
   const newStrategy = Keypair.generate();
   const createStrategyAccountIx = await kamino.createStrategyAccount(owner.publicKey, newStrategy.publicKey);
   const createStrategyIx = await kamino.createStrategy(
     newStrategy.publicKey,
-    whirlpool,
+    pool,
     owner.publicKey,
     'USDH',
-    'USDC'
+    'USDC',
+    dex
   );
 
   let tx = createTransactionWithExtraBudget(owner.publicKey).add(createStrategyAccountIx).add(createStrategyIx);
 
   await sendTransactionWithLogs(kamino.getConnection(), tx, owner.publicKey, [owner, newStrategy]);
   const strategy = await kamino.getStrategyByAddress(newStrategy.publicKey);
-  expect(strategy).not.toBeNull();
+  expect(strategy).to.not.be.null;
 
   return newStrategy.publicKey;
 }
@@ -403,7 +768,8 @@ export async function openPosition(
   {
     const openPositionIx = await kamino.openPosition(strategy, positionMint.publicKey, priceLower, priceUpper);
 
-    let tx = new Transaction().add(openPositionIx);
+    let tx = createTransactionWithExtraBudget(owner.publicKey, 1000000);
+    tx.add(openPositionIx);
     await sendTransactionWithLogs(kamino.getConnection(), tx, owner.publicKey, [owner, positionMint]);
     console.log('new position has been opened', positionMint.publicKey.toString());
   }
@@ -432,9 +798,15 @@ export async function setUpGlobalConfig(
   let initializeGlobalConfigIx = Instructions.initializeGlobalConfig(accounts);
 
   const tx = new Transaction().add(createGlobalConfigIx).add(initializeGlobalConfigIx);
-  const sig = await sendTransactionWithLogs(kamino.getConnection(), tx, owner.publicKey, [owner, globalConfig]);
+  const sig = await sendTransactionWithLogs(
+    kamino.getConnection(),
+    tx,
+    owner.publicKey,
+    [owner, globalConfig]
+    // 'finalized'
+  );
 
-  console.log('Initialize Global Config: ' + globalConfig.toString());
+  console.log('Initialize Global Config: ' + globalConfig.publicKey.toString());
   console.log('Initialize Global Config txn: ' + sig);
 
   kamino.setGlobalConfig(globalConfig.publicKey);
@@ -482,9 +854,15 @@ export async function setUpCollateralInfo(kamino: Kamino, owner: Keypair): Promi
   let initializeCollateralInfosIx = Instructions.initializeCollateralInfo(accounts);
 
   const tx = new Transaction().add(createCollateralInfoIx).add(initializeCollateralInfosIx);
-  const sig = await sendTransactionWithLogs(kamino.getConnection(), tx, owner.publicKey, [owner, collInfo]);
+  const sig = await sendTransactionWithLogs(
+    kamino.getConnection(),
+    tx,
+    owner.publicKey,
+    [owner, collInfo]
+    // 'finalized'
+  );
 
-  console.log('Initialize Coll Infp: ' + collInfo.toString());
+  console.log('Initialize Coll Info: ' + collInfo.publicKey.toString());
   console.log('Initialize Coll Info txn: ' + sig);
 
   // Now set the collateral infos into the global config
@@ -582,6 +960,7 @@ export async function updateCollateralInfo(
     value: new BN(kamino.getCollateralId(collateralToken)),
   };
 
+  console.log('config.tokenInfos', config.tokenInfos.toString());
   let accounts: Instructions.UpdateCollateralInfoAccounts = {
     adminAuthority: owner.publicKey,
     globalConfig,
@@ -593,5 +972,5 @@ export async function updateCollateralInfo(
   let ix = Instructions.updateCollateralInfo(args, accounts);
   const tx = new Transaction().add(ix);
 
-  const sig = await sendTransactionWithLogs(kamino.getConnection(), tx, owner.publicKey, [owner]);
+  const sig = await sendTransactionWithLogs(kamino.getConnection(), tx, owner.publicKey, [owner], 'confirmed', true);
 }

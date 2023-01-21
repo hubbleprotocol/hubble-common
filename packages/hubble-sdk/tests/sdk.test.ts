@@ -4,17 +4,20 @@ import Decimal from 'decimal.js';
 import Hubble from '../src/Hubble';
 import { SolanaCluster } from '@hubbleprotocol/hubble-config';
 import { PsmReserve } from '../src';
+import sinon from 'sinon';
+import { expect } from 'chai';
 
 describe('Hubble SDK Tests', () => {
   const cluster: SolanaCluster = 'devnet';
   let connection: Connection;
 
-  beforeAll(() => {
+  before(() => {
     connection = new Connection(clusterApiUrl(cluster));
-    jest.spyOn(Hubble.prototype, 'getPsmReserve').mockImplementation(() => {
-      const zero = new Decimal(0);
-      const pk = new PublicKey('72tsMfXLasd8GFya63UZY7w8xDgDLdxJtCJ16trT14gm');
-      return Promise.resolve({
+    let stub = sinon.stub(Hubble.prototype, 'getPsmReserve');
+    const zero = new Decimal(0);
+    const pk = new PublicKey('72tsMfXLasd8GFya63UZY7w8xDgDLdxJtCJ16trT14gm');
+    stub.returns(
+      Promise.resolve({
         maxCapacity: new Decimal(3000 * STABLECOIN_DECIMALS),
         depositedStablecoin: new Decimal(1000 * STABLECOIN_DECIMALS),
         mintedUsdh: new Decimal(1000 * STABLECOIN_DECIMALS),
@@ -42,21 +45,21 @@ describe('Hubble SDK Tests', () => {
         burnFeeBps: 0,
         treasuryVaultOtherStable: pk,
         treasuryVaultOtherStableAuthority: pk,
-      });
-    });
+      })
+    );
   });
 
   test('should throw on invalid cluster', () => {
     const cluster = 'invalid-clusters';
     // @ts-ignore
     const init = () => new Hubble(cluster, undefined);
-    expect(init).toThrow(Error);
+    expect(init).to.throw(Error);
   });
 
   test('should throw on invalid connection', () => {
     // @ts-ignore
     const init = () => new Hubble(cluster, undefined);
-    expect(init).toThrow(Error);
+    expect(init).to.throw(Error);
   });
 
   //TODO: replace with localnet below and setup integration tests...
@@ -78,49 +81,49 @@ describe('Hubble SDK Tests', () => {
   test('should get 10 usdc-usdh swap info', async () => {
     const sdk = new Hubble(cluster, connection);
     const swap = await sdk.getUsdcToUsdhSwap(new Decimal(10));
-    expect(swap).not.toBeNull();
-    expect(swap.outAmount.toNumber()).toEqual(10);
-    expect(swap.inAmount.toNumber()).toEqual(10);
+    expect(swap).not.to.be.null;
+    expect(swap.outAmount.toNumber()).to.equal(10);
+    expect(swap.inAmount.toNumber()).to.equal(10);
   });
 
   test('should get 2000 usdc-usdh swap info', async () => {
     const sdk = new Hubble(cluster, connection);
     const swap = await sdk.getUsdcToUsdhSwap(new Decimal(2000));
-    expect(swap).not.toBeNull();
-    expect(swap.outAmount.toNumber()).toEqual(2000);
-    expect(swap.inAmount.toNumber()).toEqual(2000);
+    expect(swap).not.to.be.null;
+    expect(swap.outAmount.toNumber()).to.equal(2000);
+    expect(swap.inAmount.toNumber()).to.equal(2000);
   });
 
   test('should get 0 usdc-usdh swap info', async () => {
     const sdk = new Hubble(cluster, connection);
     const swap = await sdk.getUsdcToUsdhSwap(new Decimal(2001));
-    expect(swap).not.toBeNull();
-    expect(swap.outAmount.toNumber()).toEqual(0);
-    expect(swap.inAmount.toNumber()).toEqual(2001);
+    expect(swap).not.to.be.null;
+    expect(swap.outAmount.toNumber()).to.equal(0);
+    expect(swap.inAmount.toNumber()).to.equal(2001);
   });
 
   test('should get 10 usdh-usdc swap info', async () => {
     const sdk = new Hubble(cluster, connection);
     const swap = await sdk.getUsdhToUsdcSwap(new Decimal(10));
-    expect(swap).not.toBeNull();
-    expect(swap.outAmount.toNumber()).toEqual(10);
-    expect(swap.inAmount.toNumber()).toEqual(10);
+    expect(swap).not.to.be.null;
+    expect(swap.outAmount.toNumber()).to.equal(10);
+    expect(swap.inAmount.toNumber()).to.equal(10);
   });
 
   test('should get 1000 usdh-usdc swap info', async () => {
     const sdk = new Hubble(cluster, connection);
     const swap = await sdk.getUsdhToUsdcSwap(new Decimal(1000));
-    expect(swap).not.toBeNull();
-    expect(swap.outAmount.toNumber()).toEqual(1000);
-    expect(swap.inAmount.toNumber()).toEqual(1000);
+    expect(swap).not.to.be.null;
+    expect(swap.outAmount.toNumber()).to.equal(1000);
+    expect(swap.inAmount.toNumber()).to.equal(1000);
   });
 
   test('should get 0 usdh-usdc swap info', async () => {
     const sdk = new Hubble(cluster, connection);
     const swap = await sdk.getUsdhToUsdcSwap(new Decimal(1001));
-    expect(swap).not.toBeNull();
-    expect(swap.outAmount.toNumber()).toEqual(0);
-    expect(swap.inAmount.toNumber()).toEqual(1001);
+    expect(swap).not.to.be.null;
+    expect(swap.outAmount.toNumber()).to.equal(0);
+    expect(swap.inAmount.toNumber()).to.equal(1001);
   });
 
   // test('should get borrowing market state', async () => {

@@ -6,8 +6,5 @@
     "noImplicitAny": false
   },
   "include": ["src/**/*"],
-  "exclude": [
-    "dist",
-    "tests"
-  ]
+  "exclude": ["dist"]
 }
