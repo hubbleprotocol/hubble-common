@@ -15,7 +15,7 @@ export * from './ShareHolderEntity';
 export * from './StrategyStateEntity';
 export * from './WhirlpoolEntity';
 export * from './WhirlpoolStateEntity';
-export * from './WhirlpoolTypeEntity';
+export * from './DexTypeEntity';
 export * from './VaultEntity';
 export * from './RewardEntity';
 export * from './RewardEarnedEntity';
