@@ -1,7 +1,7 @@
 import { PublicKey } from '@solana/web3.js';
 import { WhirlpoolStrategy } from '../kamino-client/accounts';
 import { WHIRLPOOL_PROGRAM_ID } from '../whirpools-client/programId';
-import { PROGRAM_ID_CLI as RAYDIUM_PROGRAM_ID } from '../raydium_client/programId';
+import { PROGRAM_ID as RAYDIUM_PROGRAM_ID } from '../raydium_client/programId';
 
 export function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));

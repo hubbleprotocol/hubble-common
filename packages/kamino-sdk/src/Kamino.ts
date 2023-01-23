@@ -37,7 +37,7 @@ import {
   StrategyVaultBalances,
   TreasuryFeeVault,
 } from './models';
-import { PROGRAM_ID_CLI as WHIRLPOOL_PROGRAM_ID } from './whirpools-client/programId';
+import { PROGRAM_ID_CLI as WHIRLPOOL_PROGRAM_ID, setWhirlpoolsProgramId } from './whirpools-client/programId';
 import { StrategyHolder } from './models/StrategyHolder';
 import { Scope, SupportedToken } from '@hubbleprotocol/scope-sdk';
 import { KaminoToken } from './models/KaminoToken';
@@ -84,7 +84,7 @@ import { ExecutiveWithdrawActionKind, StrategyStatus, StrategyStatusKind } from 
 import { Rebalance } from './kamino-client/types/ExecutiveWithdrawAction';
 import { PoolState, PersonalPositionState, AmmConfig } from './raydium_client/accounts';
 import { LiquidityMath, SqrtPriceMath, TickMath } from '@raydium-io/raydium-sdk/lib/ammV3/utils/math';
-import { PROGRAM_ID_CLI as RAYDIUM_PROGRAM_ID } from './raydium_client/programId';
+import { PROGRAM_ID as RAYDIUM_PROGRAM_ID, setRaydiumProgramId } from './raydium_client/programId';
 import { i32ToBytes, TickUtils } from '@raydium-io/raydium-sdk';
 
 import KaminoIdl from './kamino-client/kamino.json';
@@ -136,7 +136,14 @@ export class Kamino {
    * @param cluster Name of the Solana cluster
    * @param connection Connection to the Solana cluster
    */
-  constructor(cluster: SolanaCluster, connection: Connection, globalConfig?: PublicKey, programId?: PublicKey) {
+  constructor(
+    cluster: SolanaCluster,
+    connection: Connection,
+    globalConfig?: PublicKey,
+    programId?: PublicKey,
+    whirlpoolProgramId?: PublicKey,
+    raydiumProgramId?: PublicKey
+  ) {
     this._cluster = cluster;
     this._connection = connection;
     this._config = getConfigByCluster(cluster);
@@ -145,9 +152,17 @@ export class Kamino {
       commitment: connection.commitment,
     });
     this._kaminoProgramId = programId ? programId : this._config.kamino.programId;
+    this._kaminoProgramId = programId ? programId : this._config.kamino.programId;
     this._kaminoProgram = new Program(KAMINO_IDL as Idl, this._kaminoProgramId, this._provider);
     this._scope = new Scope(cluster, connection);
     setKaminoProgramId(this._kaminoProgramId);
+
+    if (whirlpoolProgramId) {
+      setWhirlpoolsProgramId(whirlpoolProgramId);
+    }
+    if (raydiumProgramId) {
+      setRaydiumProgramId(raydiumProgramId);
+    }
   }
 
   getConnection() {
