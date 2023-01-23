@@ -6,6 +6,8 @@ export type KaminoConfig = {
   strategies: PublicKey[];
   // orca whirlpools that we snapshot
   whirlpoolsToSnapshot: WhirlpoolToSnapshot[];
+  // raydium pools that we snapshot
+  raydiumPoolsToSnapshot: WhirlpoolToSnapshot[];
   // live kamino strategies that are enabled on the frontend
   liveStrategies: StrategyInfo[];
   programId: PublicKey;
