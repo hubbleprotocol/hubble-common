@@ -503,7 +503,7 @@ export class Kamino {
   }
 
   getRaydiumAmmConfig(config: PublicKey) {
-    return AmmConfig.fetch(this._connection, config)
+    return AmmConfig.fetch(this._connection, config);
   }
 
   /**
