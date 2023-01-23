@@ -84,7 +84,7 @@ import { ExecutiveWithdrawActionKind, StrategyStatus, StrategyStatusKind } from 
 import { Rebalance } from './kamino-client/types/ExecutiveWithdrawAction';
 import { PoolState, PersonalPositionState, AmmConfig } from './raydium_client/accounts';
 import { LiquidityMath, SqrtPriceMath, TickMath } from '@raydium-io/raydium-sdk/lib/ammV3/utils/math';
-import { PROGRAM_ID_CLI as RAYDIUM_PROGRAM_ID, setRaydiumProgramId } from './raydium_client/programId';
+import { PROGRAM_ID as RAYDIUM_PROGRAM_ID, setRaydiumProgramId } from './raydium_client/programId';
 import { i32ToBytes, TickUtils } from '@raydium-io/raydium-sdk';
 
 import KaminoIdl from './kamino-client/kamino.json';

@@ -1,4 +1,4 @@
-import { PROGRAM_ID_CLI as RAYDIUM_PROGRAM_ID } from '../src/raydium_client/programId';
+import { PROGRAM_ID as RAYDIUM_PROGRAM_ID } from '../src/raydium_client/programId';
 import * as anchor from '@project-serum/anchor';
 import { PublicKey, Connection, SystemProgram, Transaction, Keypair } from '@solana/web3.js';
 import * as RaydiumInstructions from '../src/raydium_client/instructions';

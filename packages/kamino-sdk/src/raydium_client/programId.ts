@@ -6,5 +6,6 @@ export const PROGRAM_ID_CLI = new PublicKey('CAMMCzo5YL8w4VFF8KVHrK22GGUsp5VTaW7
 // This constant will not get overwritten on subsequent code generations and it's safe to modify it's value.
 export let PROGRAM_ID: PublicKey = PROGRAM_ID_CLI;
 export const setRaydiumProgramId = (programId: PublicKey) => {
+    console.log("setRaydiumProgramId ", programId.toString());
   PROGRAM_ID = programId;
 };

@@ -241,7 +241,14 @@ describe('Kamino SDK Tests', () => {
   });
 
   it('should get all strategies', async () => {
-    let kamino = new Kamino(cluster, connection, fixtures.globalConfig, fixtures.kaminoProgramId);
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      fixtures.globalConfig,
+      fixtures.kaminoProgramId,
+      WHIRLPOOL_PROGRAM_ID,
+      LOCAL_RAYDIUM_PROGRAM_ID
+    );
     const allStrategies = await kamino.getStrategies([fixtures.newOrcaStrategy]);
     expect(allStrategies.length).to.be.greaterThan(0);
     for (const strat of allStrategies) {
@@ -250,14 +257,28 @@ describe('Kamino SDK Tests', () => {
     }
   });
   it('should get strategy by address', async () => {
-    let kamino = new Kamino(cluster, connection, fixtures.globalConfig, fixtures.kaminoProgramId);
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      fixtures.globalConfig,
+      fixtures.kaminoProgramId,
+      WHIRLPOOL_PROGRAM_ID,
+      LOCAL_RAYDIUM_PROGRAM_ID
+    );
     const strategy = await kamino.getStrategyByAddress(fixtures.newOrcaStrategy);
     expect(strategy).not.to.be.null;
     console.log(strategy?.toJSON());
   });
 
   it('should get RAYDIUM strategy share price', async () => {
-    let kamino = new Kamino(cluster, connection, fixtures.globalConfig, fixtures.kaminoProgramId);
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      fixtures.globalConfig,
+      fixtures.kaminoProgramId,
+      WHIRLPOOL_PROGRAM_ID,
+      LOCAL_RAYDIUM_PROGRAM_ID
+    );
 
     const strategy = await kamino.getStrategyByAddress(fixtures.newRaydiumStrategy);
     expect(strategy).not.to.be.null;
@@ -267,7 +288,14 @@ describe('Kamino SDK Tests', () => {
   });
 
   it('should get Orca strategy share price', async () => {
-    let kamino = new Kamino(cluster, connection, fixtures.globalConfig, fixtures.kaminoProgramId);
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      fixtures.globalConfig,
+      fixtures.kaminoProgramId,
+      WHIRLPOOL_PROGRAM_ID,
+      LOCAL_RAYDIUM_PROGRAM_ID
+    );
 
     const strategyState = await kamino.getStrategyByAddress(fixtures.newOrcaStrategy);
     expect(strategyState).not.to.be.null;
@@ -281,7 +309,14 @@ describe('Kamino SDK Tests', () => {
   });
 
   it('should get all strategy holders', async () => {
-    let kamino = new Kamino(cluster, connection, fixtures.globalConfig, fixtures.kaminoProgramId);
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      fixtures.globalConfig,
+      fixtures.kaminoProgramId,
+      WHIRLPOOL_PROGRAM_ID,
+      LOCAL_RAYDIUM_PROGRAM_ID
+    );
 
     const solAirdropAmount = new Decimal(1);
     const usdcAirdropAmount = new Decimal(100);
@@ -312,17 +347,38 @@ describe('Kamino SDK Tests', () => {
   });
 
   it('should get all whirlpools', async () => {
-    let kamino = new Kamino(cluster, connection, fixtures.globalConfig, fixtures.kaminoProgramId);
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      fixtures.globalConfig,
+      fixtures.kaminoProgramId,
+      WHIRLPOOL_PROGRAM_ID,
+      LOCAL_RAYDIUM_PROGRAM_ID
+    );
     console.log(await kamino.getWhirlpools([fixtures.newWhirlpool]));
   });
 
   it('should get all Raydium pools', async () => {
-    let kamino = new Kamino(cluster, connection, fixtures.globalConfig, fixtures.kaminoProgramId);
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      fixtures.globalConfig,
+      fixtures.kaminoProgramId,
+      WHIRLPOOL_PROGRAM_ID,
+      LOCAL_RAYDIUM_PROGRAM_ID
+    );
     console.log(await kamino.getRaydiumPools([fixtures.newRaydiumPool]));
   });
 
   it('should withdraw shares from a Orca strategy', async () => {
-    let kamino = new Kamino(cluster, connection, fixtures.globalConfig, fixtures.kaminoProgramId);
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      fixtures.globalConfig,
+      fixtures.kaminoProgramId,
+      WHIRLPOOL_PROGRAM_ID,
+      LOCAL_RAYDIUM_PROGRAM_ID
+    );
     const strategyState = await kamino.getStrategyByAddress(fixtures.newOrcaStrategy);
     expect(strategyState).not.to.be.null;
     if (strategyState == null) {
@@ -392,7 +448,14 @@ describe('Kamino SDK Tests', () => {
   });
 
   it('should withdraw shares from a Raydium strategy', async () => {
-    let kamino = new Kamino(cluster, connection, fixtures.globalConfig, fixtures.kaminoProgramId);
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      fixtures.globalConfig,
+      fixtures.kaminoProgramId,
+      WHIRLPOOL_PROGRAM_ID,
+      LOCAL_RAYDIUM_PROGRAM_ID
+    );
 
     const strategyState = await kamino.getStrategyByAddress(fixtures.newRaydiumStrategy);
     expect(strategyState).not.to.be.null;
@@ -453,7 +516,14 @@ describe('Kamino SDK Tests', () => {
   });
 
   it('should withdraw all shares from an Orca strategy', async () => {
-    let kamino = new Kamino(cluster, connection, fixtures.globalConfig, fixtures.kaminoProgramId);
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      fixtures.globalConfig,
+      fixtures.kaminoProgramId,
+      WHIRLPOOL_PROGRAM_ID,
+      LOCAL_RAYDIUM_PROGRAM_ID
+    );
 
     const strategy = (await kamino.getStrategyByAddress(fixtures.newOrcaStrategy))!;
     const strategyWithAddress = { strategy, address: fixtures.newOrcaStrategy };
@@ -502,7 +572,14 @@ describe('Kamino SDK Tests', () => {
   });
 
   it('should withdraw all shares from a Raydium strategy', async () => {
-    let kamino = new Kamino(cluster, connection, fixtures.globalConfig, fixtures.kaminoProgramId);
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      fixtures.globalConfig,
+      fixtures.kaminoProgramId,
+      WHIRLPOOL_PROGRAM_ID,
+      LOCAL_RAYDIUM_PROGRAM_ID
+    );
 
     const strategy = (await kamino.getStrategyByAddress(fixtures.newRaydiumStrategy))!;
     const strategyWithAddress = { strategy, address: fixtures.newRaydiumStrategy };
@@ -551,7 +628,14 @@ describe('Kamino SDK Tests', () => {
   });
 
   it('should deposit tokens into an Orca strategy', async () => {
-    let kamino = new Kamino(cluster, connection, fixtures.globalConfig, fixtures.kaminoProgramId);
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      fixtures.globalConfig,
+      fixtures.kaminoProgramId,
+      WHIRLPOOL_PROGRAM_ID,
+      LOCAL_RAYDIUM_PROGRAM_ID
+    );
 
     const strategy = (await kamino.getStrategyByAddress(fixtures.newOrcaStrategy))!;
     const strategyWithAddress = { strategy, address: fixtures.newOrcaStrategy };
@@ -584,7 +668,14 @@ describe('Kamino SDK Tests', () => {
   });
 
   it('should deposit tokens into a Raydium strategy', async () => {
-    let kamino = new Kamino(cluster, connection, fixtures.globalConfig, fixtures.kaminoProgramId);
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      fixtures.globalConfig,
+      fixtures.kaminoProgramId,
+      WHIRLPOOL_PROGRAM_ID,
+      LOCAL_RAYDIUM_PROGRAM_ID
+    );
 
     const strategy = (await kamino.getStrategyByAddress(fixtures.newRaydiumStrategy))!;
     const strategyWithAddress = { strategy, address: fixtures.newRaydiumStrategy };
@@ -646,7 +737,14 @@ describe('Kamino SDK Tests', () => {
   });
 
   it('should rebalance a Raydium strategy', async () => {
-    let kamino = new Kamino(cluster, connection, fixtures.globalConfig, fixtures.kaminoProgramId);
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      fixtures.globalConfig,
+      fixtures.kaminoProgramId,
+      WHIRLPOOL_PROGRAM_ID,
+      LOCAL_RAYDIUM_PROGRAM_ID
+    );
 
     const strategy = (await kamino.getStrategyByAddress(fixtures.newRaydiumStrategy))!;
     const strategyWithAddress = { strategy, address: fixtures.newRaydiumStrategy };
