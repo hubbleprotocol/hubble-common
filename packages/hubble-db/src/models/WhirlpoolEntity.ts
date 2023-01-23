@@ -4,6 +4,7 @@ export interface WhirlpoolEntity {
   token_b_id: number;
   pubkey: string;
   cluster_id: number;
+  whirlpool_type_id: number;
 }
 
 export default WhirlpoolEntity;
