@@ -499,6 +499,7 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
           mintB: new PublicKey('J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn'),
         },
       ],
+      raydiumPoolsToSnapshot: [],
       strategies: [
         new PublicKey('Cfuy5T6osdazUeLego5LFycBQebm9PP3H7VNdCndXXEN'),
         new PublicKey('DJ4tLS5q566UXJRdEREBKAg9URuNoyKZWByaUu62npHC'),
@@ -983,6 +984,7 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
         { address: new PublicKey('So11111111111111111111111111111111111111112'), scopeToken: 'SOL' },
       ],
       whirlpoolsToSnapshot: [],
+      raydiumPoolsToSnapshot: [],
       strategies: [
         new PublicKey('AvRMXt1MM9bdyE4yrnbVYjzYWWx8sdhkXPFbmxeb3rq6'),
         new PublicKey('yT2bBMrE4AVG3BM8LHjDSr1yketzabmfp3rYimS36C9'),
@@ -1204,6 +1206,7 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
         { address: new PublicKey('So11111111111111111111111111111111111111112'), scopeToken: 'SOL' },
       ],
       whirlpoolsToSnapshot: [],
+      raydiumPoolsToSnapshot: [],
       strategies: [
         new PublicKey('AvRMXt1MM9bdyE4yrnbVYjzYWWx8sdhkXPFbmxeb3rq6'),
         new PublicKey('yT2bBMrE4AVG3BM8LHjDSr1yketzabmfp3rYimS36C9'),
