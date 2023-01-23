@@ -21,6 +21,9 @@ import {
   UpdateMaxDeviationBps,
 } from '../src/kamino-client/types/StrategyConfigOption';
 import { expect } from 'chai';
+import { WHIRLPOOL_PROGRAM_ID } from '../src/whirpools-client/programId';
+
+export const LOCAL_RAYDIUM_PROGRAM_ID = new PublicKey('devi51mZmdwUJGU9hjN27vEz64Gps7uUefqxg27EAtH');
 
 describe('Kamino SDK Tests', () => {
   let connection: Connection;
@@ -53,7 +56,14 @@ describe('Kamino SDK Tests', () => {
 
   before(async () => {
     connection = new Connection(clusterUrl, 'processed');
-    let kamino = new Kamino(cluster, connection, fixtures.globalConfig, fixtures.kaminoProgramId);
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      fixtures.globalConfig,
+      fixtures.kaminoProgramId,
+      WHIRLPOOL_PROGRAM_ID,
+      LOCAL_RAYDIUM_PROGRAM_ID
+    );
     // @ts-ignore
     kamino._scope._config.scope.oraclePrices = fixtures.scopePrices;
     // @ts-ignore
