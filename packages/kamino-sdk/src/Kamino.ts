@@ -82,7 +82,7 @@ import { Rebalancing, Uninitialized } from './kamino-client/types/StrategyStatus
 import { METADATA_PROGRAM_ID, METADATA_UPDATE_AUTH } from './constants/metadata';
 import { ExecutiveWithdrawActionKind, StrategyStatus, StrategyStatusKind } from './kamino-client/types';
 import { Rebalance } from './kamino-client/types/ExecutiveWithdrawAction';
-import { PoolState, PersonalPositionState } from './raydium_client/accounts';
+import { PoolState, PersonalPositionState, AmmConfig } from './raydium_client/accounts';
 import { LiquidityMath, SqrtPriceMath, TickMath } from '@raydium-io/raydium-sdk/lib/ammV3/utils/math';
 import { PROGRAM_ID_CLI as RAYDIUM_PROGRAM_ID } from './raydium_client/programId';
 import { i32ToBytes, TickUtils } from '@raydium-io/raydium-sdk';
@@ -500,6 +500,10 @@ export class Kamino {
    */
   getRaydiumPools(pools: PublicKey[]) {
     return batchFetch(pools, (chunk) => PoolState.fetchMultiple(this._connection, chunk));
+  }
+
+  getRaydiumAmmConfig(config: PublicKey) {
+    return AmmConfig.fetch(this._connection, config);
   }
 
   /**
