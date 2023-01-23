@@ -2,10 +2,10 @@
   "packages": [
     "packages/*"
   ],
-  "version": "1.0.183",
-  "commands": {
-    "publish":  {
-      "ignore": [
+  "version": "1.0.184",
+  "command": {
+    "publish": {
+      "ignoreChanges": [
         "tests/**"
       ]
     }
