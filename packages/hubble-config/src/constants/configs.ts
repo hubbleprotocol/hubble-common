@@ -499,7 +499,22 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
           mintB: new PublicKey('J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn'),
         },
       ],
-      raydiumPoolsToSnapshot: [],
+      raydiumPoolsToSnapshot: [
+        {
+          address: new PublicKey('3tD34VtprDSkYCnATtQLCiVgTkECU3d12KtjupeR6N2X'),
+          collateralA: 'SOL',
+          collateralB: 'USDC',
+          mintA: new PublicKey('So11111111111111111111111111111111111111112'),
+          mintB: new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'),
+        },
+        {
+          address: new PublicKey('HZf7wppva3wk4dCnrUe2GE1c8aUEXsUNk5asMFQ5sYch'),
+          collateralA: 'SOL',
+          collateralB: 'MSOL',
+          mintA: new PublicKey('So11111111111111111111111111111111111111112'),
+          mintB: new PublicKey('mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So'),
+        },
+      ],
       strategies: [
         new PublicKey('Cfuy5T6osdazUeLego5LFycBQebm9PP3H7VNdCndXXEN'),
         new PublicKey('DJ4tLS5q566UXJRdEREBKAg9URuNoyKZWByaUu62npHC'),
