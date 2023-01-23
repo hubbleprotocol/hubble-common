@@ -77,6 +77,8 @@ export const ScopePairs = [
   'SAMOTwap/USD',
   'bSOL/SOL',
   'LaineSOL/SOL',
+  'HADES/USD',
+  'HADESTwap/USD',
 ] as const;
 export type ScopePair = (typeof ScopePairs)[number];
 
@@ -152,6 +154,8 @@ export const SupportedTokens = [
   'SAMOTwap',
   'bSOL',
   'LaineSOL',
+  'HADES',
+  'HADESTwap',
 ] as const;
 export type SupportedToken = (typeof SupportedTokens)[number];
 
@@ -257,6 +261,8 @@ export class Scope {
     { id: 71, pair: 'SAMOTwap/USD', name: 'SAMOTwap', price: new Decimal(0) },
     { id: 72, pair: 'bSOL/SOL', name: 'bSOL', price: new Decimal(0), nonUsdPairId: 0 },
     { id: 73, pair: 'LaineSOL/SOL', name: 'LaineSOL', price: new Decimal(0), nonUsdPairId: 0 },
+    { id: 74, pair: 'HADES/USD', name: 'HADES', price: new Decimal(0) },
+    { id: 75, pair: 'HADESTwap/USD', name: 'HADESTwap', price: new Decimal(0) },
   ];
 
   /**
