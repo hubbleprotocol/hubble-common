@@ -4,7 +4,8 @@ export interface WhirlpoolEntity {
   token_b_id: number;
   pubkey: string;
   cluster_id: number;
-  whirlpool_type_id: number;
+  // representing if the pool is a Raydium or an Orca pool
+  dex_type: number;
 }
 
 export default WhirlpoolEntity;
