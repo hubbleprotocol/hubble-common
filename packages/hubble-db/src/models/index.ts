@@ -23,6 +23,7 @@ export * from './PriceEntity';
 
 export const CLUSTER_TABLE: string = 'cluster';
 export const COLLATERAL_TABLE: string = 'collateral';
+export const DEX_TYPE: string = 'dex_type';
 export const LOAN_TABLE: string = 'loan';
 export const OWNER_TABLE: string = 'owner';
 export const VAULT_TABLE: string = 'vault';
@@ -43,5 +44,4 @@ export const WHIRLPOOL_STATE_TABLE: string = 'whirlpool_state';
 export const REWARD_TABLE = 'reward';
 export const REWARD_EARNED_TABLE = 'reward_earned';
 export const PRICE_TABLE = 'price';
-export const WHIRLPOOL_TYPE_TABLE = 'whirlpool_type';
 export const API_SCHEMA: string = 'api';
