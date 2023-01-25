@@ -129,6 +129,7 @@ export class Kamino {
     { name: 'SAMO', id: 25 },
     { name: 'LaineSOL', id: 26 },
     { name: 'bSOL', id: 27 },
+    { name: 'HADES', id: 28 },
   ];
 
   /**
