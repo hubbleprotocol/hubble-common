@@ -49,14 +49,14 @@ describe('Hubble SDK Tests', () => {
     );
   });
 
-  test('should throw on invalid cluster', () => {
+  it('should throw on invalid cluster', () => {
     const cluster = 'invalid-clusters';
     // @ts-ignore
     const init = () => new Hubble(cluster, undefined);
     expect(init).to.throw(Error);
   });
 
-  test('should throw on invalid connection', () => {
+  it('should throw on invalid connection', () => {
     // @ts-ignore
     const init = () => new Hubble(cluster, undefined);
     expect(init).to.throw(Error);
@@ -78,7 +78,7 @@ describe('Hubble SDK Tests', () => {
   //   console.log(sth);
   // });
 
-  test('should get 10 usdc-usdh swap info', async () => {
+  it('should get 10 usdc-usdh swap info', async () => {
     const sdk = new Hubble(cluster, connection);
     const swap = await sdk.getUsdcToUsdhSwap(new Decimal(10));
     expect(swap).not.to.be.null;
@@ -86,7 +86,7 @@ describe('Hubble SDK Tests', () => {
     expect(swap.inAmount.toNumber()).to.equal(10);
   });
 
-  test('should get 2000 usdc-usdh swap info', async () => {
+  it('should get 2000 usdc-usdh swap info', async () => {
     const sdk = new Hubble(cluster, connection);
     const swap = await sdk.getUsdcToUsdhSwap(new Decimal(2000));
     expect(swap).not.to.be.null;
@@ -94,7 +94,7 @@ describe('Hubble SDK Tests', () => {
     expect(swap.inAmount.toNumber()).to.equal(2000);
   });
 
-  test('should get 0 usdc-usdh swap info', async () => {
+  it('should get 0 usdc-usdh swap info', async () => {
     const sdk = new Hubble(cluster, connection);
     const swap = await sdk.getUsdcToUsdhSwap(new Decimal(2001));
     expect(swap).not.to.be.null;
@@ -102,7 +102,7 @@ describe('Hubble SDK Tests', () => {
     expect(swap.inAmount.toNumber()).to.equal(2001);
   });
 
-  test('should get 10 usdh-usdc swap info', async () => {
+  it('should get 10 usdh-usdc swap info', async () => {
     const sdk = new Hubble(cluster, connection);
     const swap = await sdk.getUsdhToUsdcSwap(new Decimal(10));
     expect(swap).not.to.be.null;
@@ -110,7 +110,7 @@ describe('Hubble SDK Tests', () => {
     expect(swap.inAmount.toNumber()).to.equal(10);
   });
 
-  test('should get 1000 usdh-usdc swap info', async () => {
+  it('should get 1000 usdh-usdc swap info', async () => {
     const sdk = new Hubble(cluster, connection);
     const swap = await sdk.getUsdhToUsdcSwap(new Decimal(1000));
     expect(swap).not.to.be.null;
@@ -118,7 +118,7 @@ describe('Hubble SDK Tests', () => {
     expect(swap.inAmount.toNumber()).to.equal(1000);
   });
 
-  test('should get 0 usdh-usdc swap info', async () => {
+  it('should get 0 usdh-usdc swap info', async () => {
     const sdk = new Hubble(cluster, connection);
     const swap = await sdk.getUsdhToUsdcSwap(new Decimal(1001));
     expect(swap).not.to.be.null;

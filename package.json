@@ -5,6 +5,7 @@
   "scripts": {
     "bootstrap": "npx lerna bootstrap --hoist && npx lerna run build",
     "publish": "npx lerna publish",
+    "test": "npx ts-mocha 'packages/hubble-sdk/tests/sdk.test.ts'",
     "integration-test": "npx ts-mocha --t 1000000 packages/kamino-sdk/tests/kamino.test.ts",
     "format": "npx prettier --write '{**/*,*}.{js,ts,jsx,tsx}'",
     "format:check": "npx prettier --check '{**/*,*}.{js,ts,jsx,tsx}'",
@@ -21,6 +22,7 @@
     "chai": "^4.3.6",
     "lerna": "^4.0.0",
     "mocha": "^10.2.0",
+    "mocha-sinon": "^2.1.2",
     "prettier": "^2.7.1",
     "start-server-and-test": "^1.11.6",
     "ts-mocha": "^10.0.0",
