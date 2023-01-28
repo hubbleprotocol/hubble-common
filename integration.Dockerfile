@@ -5,4 +5,6 @@ WORKDIR /hubble-common
 
 RUN npm install && npx lerna bootstrap && npx lerna run build
 
+RUN npm test
+
 RUN npm run start-with-test-validator

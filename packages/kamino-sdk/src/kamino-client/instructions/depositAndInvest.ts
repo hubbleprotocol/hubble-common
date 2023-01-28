@@ -37,7 +37,6 @@ export interface DepositAndInvestAccounts {
   scopePrices: PublicKey
   tokenInfos: PublicKey
   systemProgram: PublicKey
-  rent: PublicKey
   associatedTokenProgram: PublicKey
   tokenProgram: PublicKey
   poolProgram: PublicKey
@@ -100,7 +99,6 @@ export function depositAndInvest(
     { pubkey: accounts.scopePrices, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenInfos, isSigner: false, isWritable: false },
     { pubkey: accounts.systemProgram, isSigner: false, isWritable: false },
-    { pubkey: accounts.rent, isSigner: false, isWritable: false },
     {
       pubkey: accounts.associatedTokenProgram,
       isSigner: false,
