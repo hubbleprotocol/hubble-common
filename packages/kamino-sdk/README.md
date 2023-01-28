@@ -27,8 +27,10 @@ const kamino = new Kamino('mainnet-beta', connection);
 const strategies = await kamino.getStrategies();
 
 // get specific strategy 
-const usdhUsdtStrategy = await kamino.getStrategyByName('USDH', 'USDT');
 const customStrategy = await kamino.getStrategyByAddress(new PublicKey('my strategy address'));
+
+// get strategy share price
+const sharePrice = await kamino.getStrategySharePrice(new PublicKey('my strategy address'));
 
 // get token holders of a strategy
 const holders = await kamino.getStrategyHolders(usdhUsdtStrategy);
@@ -39,11 +41,13 @@ const strategyPrice = await kamino.getStrategySharePrice(usdhUsdtStrategy);
 
 ### Create a Kamino strategy
 
-Create a new Kamino strategy for an existing Orca whirlpool.
+Create a new Kamino strategy for an existing CLMM pool (Orca or Raydium).
 
 Current limitations (planned to be fixed to allow anyone to use this in the near future):
-  * Strategy can only be created by the owner (admin) of the global config, we will need to allow non-admins to bypass this check.
-  * After the strategy is created, only the owner (admin) can update the treasury fee vault with token A/B, we need to allow non-admins to be able to do (and require) this as well.
+  * After the strategy is created, only the global admin can update the treasury fee vault with token A/B, we need to allow non-admins to be able to do (and require) this as well.
+  * Only the global admin can set the kToken (strategy shares) token metadata.
+  * You can create a strategy only with the current supported tokens, please reach out if you want a new token to be supported.
+
 
 ```javascript
 import { clusterApiUrl, Connection, PublicKey, sendAndConfirmTransaction, Keypair, Transaction } from '@solana/web3.js';
@@ -65,11 +69,19 @@ const owner = signer.publicKey; // or use different public key for owner (admin)
 const connection = new Connection(clusterApiUrl('mainnet-beta'));
 const kamino = new Kamino('mainnet-beta', connection);
 
-// get on-chain data for an existing Orca Whirlpool
+// depending on the DEX you want to use for your strategy (Orca or Raydium) fetch the pool
+// Orca: get on-chain data for an existing Orca Whirlpool
 const whirlpool = new PublicKey('5vHht2PCHKsApekfPZXyn7XthAYQbsCNiwA1VEcQmL12');
 const whirlpoolState = await kamino.getWhirlpoolByAddress(whirlpool);
 if (!whirlpool) {
   throw Error('Could not fetch Orca whirlpool from the chain');
+}
+
+// Raydium: get on-chain data for an existing Raydium CLMM pool
+const raydiumPool = new PublicKey('3tD34VtprDSkYCnATtQLCiVgTkECU3d12KtjupeR6N2X');
+const raydiumPoolState = await kamino.getWhirlpoolByAddress(raydiumPool);
+if (!raydiumPool) {
+  throw Error('Could not fetch Raydium CLMM pool from the chain');
 }
 
 // create a transaction that has an instruction for extra compute budget
@@ -89,7 +101,7 @@ if (!tokenBData) {
 const createStrategyAccountIx = await kamino.createStrategyAccount(owner, newStrategy.publicKey);
 tx.add(createStrategyAccountIx);
 
-// create the actual strategy with USDH as token A and USDC as token B
+// create the actual strategy with USDH as token A and USDC as token B (note: the tokens in the pool should match the tokens in the strategy)
 const createStrategyIx = await kamino.createStrategy(newStrategy.publicKey, whirlpool, owner, 'USDH', 'USDC');
 tx.add(createStrategyIx);
 

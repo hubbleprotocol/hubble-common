@@ -801,7 +801,6 @@ export class Kamino {
       scopePrices: strategyState.strategy.scopePrices,
       tokenInfos: globalConfig.tokenInfos,
       systemProgram: SystemProgram.programId,
-      rent: SYSVAR_RENT_PUBKEY,
       associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
       tokenProgram: TOKEN_PROGRAM_ID,
       instructionSysvarAccount: SYSVAR_INSTRUCTIONS_PUBKEY,
