@@ -214,7 +214,7 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
         { address: new PublicKey('EjmyN6qEC1Tf1JxiG1ae7UTJhUxSwk1TCWNWqxWV4J6o'), scopeToken: 'DAI' },
         { address: new PublicKey('5PmpMzWjraf3kSsGEKtqdUsCoLhptg4yriZ17LKKdBBy'), scopeToken: 'HDG' },
         { address: new PublicKey('HZRCwxP2Vq9PCpPXooayhJ2bxTpo5xfpQrwB1svh332p'), scopeToken: 'LDO' },
-        { address: new PublicKey('MNDEFzGvMt87ueuHvVU9VcTqsAP5b3fTGPsHuuPA5ey'), scopeToken: 'MDNE' },
+        { address: new PublicKey('MNDEFzGvMt87ueuHvVU9VcTqsAP5b3fTGPsHuuPA5ey'), scopeToken: 'MNDE' },
         { address: new PublicKey('ratioMVg27rSZbSvBopUvsdrGUzeALUfFma61mpxc8J'), scopeToken: 'RATIO' },
         { address: new PublicKey('5oVNBeEEQvYi1cX3ir8Dx5n1P7pdxydbGF2X4TxVusJm'), scopeToken: 'SCNSOL' },
         { address: new PublicKey('UXPhBoR3qG4UCiGNJfV7MqhHyFqKN68g45GoYvAeL2M'), scopeToken: 'UXP' },
