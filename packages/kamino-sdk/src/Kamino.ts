@@ -90,6 +90,7 @@ import { i32ToBytes, TickUtils } from '@raydium-io/raydium-sdk';
 import KaminoIdl from './kamino-client/kamino.json';
 import { getKaminoTokenName, KAMINO_TOKEN_MAP } from './constants';
 import { OrcaService } from './services';
+import { RaydiumService } from './services/RaydiumService';
 export const KAMINO_IDL = KaminoIdl;
 
 export class Kamino {
@@ -103,6 +104,7 @@ export class Kamino {
   private readonly _kaminoProgramId: PublicKey;
   private readonly _tokenMap: KaminoToken[] = KAMINO_TOKEN_MAP;
   private readonly _orcaService: OrcaService;
+  private readonly _raydiumService: RaydiumService;
 
   /**
    * Create a new instance of the Kamino SDK class.
@@ -140,6 +142,7 @@ export class Kamino {
       setRaydiumProgramId(raydiumProgramId);
     }
     this._orcaService = new OrcaService(connection, cluster, this._config);
+    this._raydiumService = new RaydiumService(connection, cluster, this._config);
   }
 
   getConnection() {
@@ -1482,10 +1485,10 @@ export class Kamino {
     const isOrca = dexToNumber('ORCA') === dex;
     const isRaydium = dexToNumber('RAYDIUM') === dex;
     if (isOrca) {
-      return this._orcaService.getWhirlpoolAprApy(strategyState);
+      return this._orcaService.getStrategyWhirlpoolPoolAprApy(strategyState);
     }
     if (isRaydium) {
-      return null;
+      return this._raydiumService.getStrategyWhirlpoolPoolAprApy(strategyState);
     }
     throw Error(`Strategy dex ${dex} not supported`);
   }

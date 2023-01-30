@@ -8,7 +8,7 @@ import { WhirlpoolStrategy } from '../kamino-client';
 import { Scope, ScopeToken } from '@hubbleprotocol/scope-sdk';
 import { Position } from '../whirpools-client';
 import { getKaminoTokenName, getScopeTokenFromKaminoMints } from '../constants';
-import { AprApyInfo } from './AprApyInfo';
+import { WhirlpoolAprApy } from './WhirlpoolAprApy';
 import { aprToApy } from '../utils';
 
 export class OrcaService {
@@ -49,7 +49,7 @@ export class OrcaService {
     return tokensPrices;
   }
 
-  async getWhirlpoolAprApy(strategy: WhirlpoolStrategy): Promise<AprApyInfo> {
+  async getStrategyWhirlpoolPoolAprApy(strategy: WhirlpoolStrategy): Promise<WhirlpoolAprApy> {
     const orca = new OrcaWhirlpoolClient({
       connection: this._connection,
       network: this._orcaNetwork,
@@ -65,40 +65,32 @@ export class OrcaService {
     const { whirlpools } = await this.getOrcaWhirlpools();
     const whirlpool = whirlpools?.find((x) => x.address === strategy.pool.toString());
 
-    if (pool && whirlpool) {
-      const lpFeeRate = pool.feePercentage;
-      const volume24hUsd = whirlpool?.volume?.day ?? new Decimal(0);
-      const fee24Usd = new Decimal(volume24hUsd).mul(lpFeeRate).toNumber();
-      const tokensPrices = this.getTokenPrices(strategy, prices);
-
-      const apr = estimateAprsForPriceRange(
-        pool,
-        tokensPrices,
-        fee24Usd,
-        position.tickLowerIndex,
-        position.tickUpperIndex
-      );
-
-      const totalApr = new Decimal(apr.fee).add(apr.rewards[0]).add(apr.rewards[1]).add(apr.rewards[2]);
-      const feeApr = new Decimal(apr.fee);
-      const rewardsApr = apr.rewards.map((r) => new Decimal(r));
-      return {
-        totalApr,
-        totalApy: aprToApy(totalApr),
-        feeApr,
-        feeApy: aprToApy(feeApr),
-        rewardsApr,
-        rewardsApy: rewardsApr.map((x) => aprToApy(x)),
-      };
+    if (!pool || !whirlpool) {
+      throw Error(`Could not get orca pool data for ${strategy.pool}`);
     }
+    const lpFeeRate = pool.feePercentage;
+    const volume24hUsd = whirlpool?.volume?.day ?? new Decimal(0);
+    const fee24Usd = new Decimal(volume24hUsd).mul(lpFeeRate).toNumber();
+    const tokensPrices = this.getTokenPrices(strategy, prices);
 
+    const apr = estimateAprsForPriceRange(
+      pool,
+      tokensPrices,
+      fee24Usd,
+      position.tickLowerIndex,
+      position.tickUpperIndex
+    );
+
+    const totalApr = new Decimal(apr.fee).add(apr.rewards[0]).add(apr.rewards[1]).add(apr.rewards[2]);
+    const feeApr = new Decimal(apr.fee);
+    const rewardsApr = apr.rewards.map((r) => new Decimal(r));
     return {
-      totalApr: new Decimal(0),
-      totalApy: new Decimal(0),
-      feeApr: new Decimal(0),
-      feeApy: new Decimal(0),
-      rewardsApr: [],
-      rewardsApy: [],
+      totalApr,
+      totalApy: aprToApy(totalApr),
+      feeApr,
+      feeApy: aprToApy(feeApr),
+      rewardsApr,
+      rewardsApy: rewardsApr.map((x) => aprToApy(x)),
     };
   }
 }

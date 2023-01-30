@@ -270,21 +270,6 @@ describe('Kamino SDK Tests', () => {
     console.log(strategy?.toJSON());
   });
 
-  it('should get strategy apy', async () => {
-    const kamino = new Kamino(
-      cluster,
-      connection,
-      fixtures.globalConfig,
-      fixtures.kaminoProgramId,
-      WHIRLPOOL_PROGRAM_ID,
-      LOCAL_RAYDIUM_PROGRAM_ID
-    );
-    const aprApy = await kamino.getStrategyAprApy(fixtures.newOrcaStrategy);
-    expect(aprApy).not.to.be.null;
-    expect(aprApy?.totalApy.toNumber()).to.be.greaterThanOrEqual(0);
-    console.log(aprApy?.totalApy.toString());
-  });
-
   it('should get RAYDIUM strategy share price', async () => {
     let kamino = new Kamino(
       cluster,

@@ -1,3 +1,3 @@
-export * from './AprApyInfo';
+export * from './WhirlpoolAprApy';
 export * from './OrcaService';
 export * from './OrcaWhirlpoolsResponse';
