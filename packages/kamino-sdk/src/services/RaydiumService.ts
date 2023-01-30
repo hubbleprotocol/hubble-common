@@ -16,12 +16,10 @@ import axios from 'axios';
 export class RaydiumService {
   private readonly _connection: Connection;
   private readonly _cluster: SolanaCluster;
-  private readonly _config: HubbleConfig;
 
-  constructor(connection: Connection, cluster: SolanaCluster, config: HubbleConfig) {
+  constructor(connection: Connection, cluster: SolanaCluster) {
     this._connection = connection;
     this._cluster = cluster;
-    this._config = config;
   }
 
   private async getRaydiumWhirlpools() {
