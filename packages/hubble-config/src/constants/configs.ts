@@ -210,6 +210,7 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
         { address: new PublicKey('LAinEtNLgpmCP9Rvsf5Hn8W6EhNiKLZQti1xfWMLy6X'), scopeToken: 'LaineSOL' },
         { address: new PublicKey('bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1'), scopeToken: 'bSOL' },
         { address: new PublicKey('BWXrrYFhT7bMHmNBFoQFWdsSgA3yXoAnMhDK6Fn1eSEn'), scopeToken: 'HADES' },
+        { address: new PublicKey('orcaEKTdK7LKz57vaAYr9QeNsVEPfiu6QeMU1kektZE'), scopeToken: 'ORCA' },
       ],
       whirlpoolsToSnapshot: [
         {
