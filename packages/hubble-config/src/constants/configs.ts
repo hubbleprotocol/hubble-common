@@ -211,6 +211,15 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
         { address: new PublicKey('bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1'), scopeToken: 'bSOL' },
         { address: new PublicKey('BWXrrYFhT7bMHmNBFoQFWdsSgA3yXoAnMhDK6Fn1eSEn'), scopeToken: 'HADES' },
         { address: new PublicKey('orcaEKTdK7LKz57vaAYr9QeNsVEPfiu6QeMU1kektZE'), scopeToken: 'ORCA' },
+        { address: new PublicKey('EjmyN6qEC1Tf1JxiG1ae7UTJhUxSwk1TCWNWqxWV4J6o'), scopeToken: 'DAI' },
+        { address: new PublicKey('5PmpMzWjraf3kSsGEKtqdUsCoLhptg4yriZ17LKKdBBy'), scopeToken: 'HDG' },
+        { address: new PublicKey('HZRCwxP2Vq9PCpPXooayhJ2bxTpo5xfpQrwB1svh332p'), scopeToken: 'LDO' },
+        { address: new PublicKey('MNDEFzGvMt87ueuHvVU9VcTqsAP5b3fTGPsHuuPA5ey'), scopeToken: 'MDNE' },
+        { address: new PublicKey('ratioMVg27rSZbSvBopUvsdrGUzeALUfFma61mpxc8J'), scopeToken: 'RATIO' },
+        { address: new PublicKey('5oVNBeEEQvYi1cX3ir8Dx5n1P7pdxydbGF2X4TxVusJm'), scopeToken: 'SCNSOL' },
+        { address: new PublicKey('UXPhBoR3qG4UCiGNJfV7MqhHyFqKN68g45GoYvAeL2M'), scopeToken: 'UXP' },
+        { address: new PublicKey('C7RpHABBJjfkmizgnR2MRbpfEF454Rb18XC6RmBC8cGg'), scopeToken: 'kSOLSTSOLOrca' },
+        { address: new PublicKey('5BmZgW7dk1kximGfn7MPvDigp3yRmgT64jS9Skdq4nPY'), scopeToken: 'kUSDHUSDCOrca' },
       ],
       whirlpoolsToSnapshot: [
         {
