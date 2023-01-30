@@ -14,9 +14,9 @@ import {
   TransactionInstruction,
 } from '@solana/web3.js';
 import { setKaminoProgramId } from './kamino-client/programId';
-import { GlobalConfig, WhirlpoolStrategy } from './kamino-client/accounts';
+import { GlobalConfig, WhirlpoolStrategy } from './kamino-client';
 import Decimal from 'decimal.js';
-import { Position, Whirlpool } from './whirpools-client/accounts';
+import { Position, Whirlpool } from './whirpools-client';
 import { getMintDecimals } from '@project-serum/serum/lib/market';
 import {
   getNearestValidTickIndexFromTickIndex,
@@ -38,7 +38,7 @@ import {
   TreasuryFeeVault,
 } from './models';
 import { PROGRAM_ID_CLI as WHIRLPOOL_PROGRAM_ID, setWhirlpoolsProgramId } from './whirpools-client/programId';
-import { StrategyHolder } from './models/StrategyHolder';
+import { StrategyHolder } from './models';
 import { Scope, SupportedToken } from '@hubbleprotocol/scope-sdk';
 import { KaminoToken } from './models/KaminoToken';
 import { PriceData } from './models/PriceData';
@@ -73,21 +73,23 @@ import {
   withdraw,
   WithdrawAccounts,
   WithdrawArgs,
-} from './kamino-client/instructions';
+} from './kamino-client';
 import BN from 'bn.js';
 import { StrategyWithAddress } from './models/StrategyWithAddress';
-import { StrategyProgramAddress } from './models/StrategyProgramAddress';
+import { StrategyProgramAddress } from './models';
 import { Idl, Program, Provider } from '@project-serum/anchor';
 import { Rebalancing, Uninitialized } from './kamino-client/types/StrategyStatus';
-import { METADATA_PROGRAM_ID, METADATA_UPDATE_AUTH } from './constants/metadata';
-import { ExecutiveWithdrawActionKind, StrategyStatus, StrategyStatusKind } from './kamino-client/types';
+import { METADATA_PROGRAM_ID, METADATA_UPDATE_AUTH } from './constants';
+import { ExecutiveWithdrawActionKind, StrategyStatusKind } from './kamino-client';
 import { Rebalance } from './kamino-client/types/ExecutiveWithdrawAction';
-import { PoolState, PersonalPositionState, AmmConfig } from './raydium_client/accounts';
+import { PoolState, PersonalPositionState, AmmConfig } from './raydium_client';
 import { LiquidityMath, SqrtPriceMath, TickMath } from '@raydium-io/raydium-sdk/lib/ammV3/utils/math';
 import { PROGRAM_ID as RAYDIUM_PROGRAM_ID, setRaydiumProgramId } from './raydium_client/programId';
 import { i32ToBytes, TickUtils } from '@raydium-io/raydium-sdk';
 
 import KaminoIdl from './kamino-client/kamino.json';
+import { getKaminoTokenName, KAMINO_TOKEN_MAP } from './constants';
+import { OrcaService } from './services';
 export const KAMINO_IDL = KaminoIdl;
 
 export class Kamino {
@@ -97,45 +99,19 @@ export class Kamino {
   private _globalConfig: PublicKey;
   private readonly _scope: Scope;
   private readonly _provider: Provider;
-  private _kaminoProgram: Program;
-  private _kaminoProgramId: PublicKey;
-
-  private readonly _tokenMap: KaminoToken[] = [
-    { name: 'USDC', id: 0 },
-    { name: 'USDH', id: 1 },
-    { name: 'SOL', id: 2 },
-    { name: 'ETH', id: 3 },
-    { name: 'BTC', id: 4 },
-    { name: 'MSOL', id: 5 },
-    { name: 'STSOL', id: 6 },
-    { name: 'USDT', id: 7 },
-    { name: 'ORCA', id: 8 },
-    { name: 'MNDE', id: 9 },
-    { name: 'HBB', id: 10 },
-    { name: 'JSOL', id: 11 },
-    { name: 'USH', id: 12 },
-    { name: 'DAI', id: 13 },
-    { name: 'LDO', id: 14 },
-    { name: 'scnSOL', id: 15 },
-    { name: 'UXD', id: 16 },
-    { name: 'HDG', id: 17 },
-    { name: 'DUST', id: 18 },
-    { name: 'USDR', id: 19 },
-    { name: 'RATIO', id: 20 },
-    { name: 'UXP', id: 21 },
-    { name: 'JITOSOL', id: 22 },
-    { name: 'RAY', id: 23 },
-    { name: 'BONK', id: 24 },
-    { name: 'SAMO', id: 25 },
-    { name: 'LaineSOL', id: 26 },
-    { name: 'bSOL', id: 27 },
-    { name: 'HADES', id: 28 },
-  ];
+  private readonly _kaminoProgram: Program;
+  private readonly _kaminoProgramId: PublicKey;
+  private readonly _tokenMap: KaminoToken[] = KAMINO_TOKEN_MAP;
+  private readonly _orcaService: OrcaService;
 
   /**
    * Create a new instance of the Kamino SDK class.
    * @param cluster Name of the Solana cluster
    * @param connection Connection to the Solana cluster
+   * @param globalConfig override kamino global config
+   * @param programId override kamino program id
+   * @param whirlpoolProgramId override whirlpool program id
+   * @param raydiumProgramId override raydiuum program id
    */
   constructor(
     cluster: SolanaCluster,
@@ -153,7 +129,6 @@ export class Kamino {
       commitment: connection.commitment,
     });
     this._kaminoProgramId = programId ? programId : this._config.kamino.programId;
-    this._kaminoProgramId = programId ? programId : this._config.kamino.programId;
     this._kaminoProgram = new Program(KAMINO_IDL as Idl, this._kaminoProgramId, this._provider);
     this._scope = new Scope(cluster, connection);
     setKaminoProgramId(this._kaminoProgramId);
@@ -164,6 +139,7 @@ export class Kamino {
     if (raydiumProgramId) {
       setRaydiumProgramId(raydiumProgramId);
     }
+    this._orcaService = new OrcaService(connection, cluster, this._config);
   }
 
   getConnection() {
@@ -184,6 +160,10 @@ export class Kamino {
 
   getGlobalConfig() {
     return this._globalConfig;
+  }
+
+  getTokenMap() {
+    return this._tokenMap;
   }
 
   /**
@@ -536,11 +516,7 @@ export class Kamino {
    * @returns Kamino token name
    */
   getTokenName(collateralId: number) {
-    const token = this._tokenMap.find((x) => x.id === collateralId);
-    if (!token) {
-      throw Error(`Token with collateral ID ${collateralId} does not exist.`);
-    }
-    return token.name;
+    return getKaminoTokenName(collateralId);
   }
 
   /**
@@ -826,6 +802,7 @@ export class Kamino {
    * @param owner public key of the strategy owner (admin authority)
    * @param tokenA name of the token A collateral used in the strategy
    * @param tokenB name of the token B collateral used in the strategy
+   * @param dex decentralized exchange specifier
    * @returns transaction instruction for Kamino strategy creation
    */
   async createStrategy(
@@ -975,8 +952,7 @@ export class Kamino {
       await this.getTreasuryFeeVaultPDAs(strategyState.tokenAMint, strategyState.tokenBMint);
 
     let programId = WHIRLPOOL_PROGRAM_ID;
-    let poolTokenVaultA = PublicKey.default;
-    let poolTokenVaultB = PublicKey.default;
+
     let poolRewardVault0 = PublicKey.default;
     let poolRewardVault1 = PublicKey.default;
     let poolRewardVault2 = PublicKey.default;
@@ -986,8 +962,6 @@ export class Kamino {
         throw Error(`Could not fetch whirlpool state with pubkey ${strategyState.pool.toString()}`);
       }
 
-      poolTokenVaultA = whirlpool.tokenVaultA;
-      poolTokenVaultB = whirlpool.tokenVaultB;
       poolRewardVault0 = whirlpool.rewardInfos[0].vault;
       poolRewardVault1 = whirlpool.rewardInfos[1].vault;
       poolRewardVault2 = whirlpool.rewardInfos[2].vault;
@@ -998,8 +972,6 @@ export class Kamino {
       if (!poolState) {
         throw Error(`Could not fetch Raydium pool state with pubkey ${strategyState.pool.toString()}`);
       }
-      poolTokenVaultA = poolState.tokenVault0;
-      poolTokenVaultB = poolState.tokenVault1;
       poolRewardVault0 = poolState.rewardInfos[0].tokenVault;
       poolRewardVault1 = poolState.rewardInfos[1].tokenVault;
       poolRewardVault2 = poolState.rewardInfos[2].tokenVault;
@@ -1148,9 +1120,10 @@ export class Kamino {
   /**
    * Get a transaction to open liquidity position for a Kamino strategy
    * @param strategy strategy you want to open liquidity position for
-   * @param newPosition new liquidity position account pubkey
+   * @param positionMint position mint pubkey
    * @param priceLower new position's lower price of the range
    * @param priceUpper new position's upper price of the range
+   * @param status strategy status
    */
   async openPosition(
     strategy: PublicKey,
@@ -1164,7 +1137,6 @@ export class Kamino {
       throw Error(`Could not fetch strategy state with pubkey ${strategy.toString()}`);
     }
 
-    let tickSpacing = 0;
     if (strategyState.strategyDex.toNumber() == dexToNumber('ORCA')) {
       return this.openPositionOrca(strategy, positionMint, priceLower, priceUpper, status);
     } else if (strategyState.strategyDex.toNumber() == dexToNumber('RAYDIUM')) {
@@ -1180,6 +1152,7 @@ export class Kamino {
    * @param positionMint new liquidity position account pubkey
    * @param priceLower new position's lower price of the range
    * @param priceUpper new position's upper price of the range
+   * @param status strategy status
    */
   async openPositionOrca(
     strategy: PublicKey,
@@ -1274,7 +1247,8 @@ export class Kamino {
    * @param strategy strategy you want to open liquidity position for
    * @param positionMint new liquidity position account pubkey
    * @param priceLower new position's lower price of the range
-   * @param priceUpper new position's upper price of the range
+   * @param priceUpper new positio)n's upper price of the range
+   * @param status strategy status
    */
   async openPositionRaydium(
     strategy: PublicKey,
@@ -1309,7 +1283,7 @@ export class Kamino {
       strategyState.tokenBMintDecimals.toNumber()
     );
 
-    const { position, positionBump, protocolPosition, positionMetadata, positionMetadataBump } =
+    const { position, positionBump, protocolPosition, positionMetadata } =
       await this.getMetadataProgramAddressesRaydium(positionMint, strategyState.pool, tickLowerIndex, tickUpperIndex);
 
     const positionTokenAccount = await getAssociatedTokenAddress(positionMint, strategyState.baseVaultAuthority);
@@ -1496,6 +1470,24 @@ export class Kamino {
       }
     }
     return positions;
+  }
+
+  /**
+   * Get Kamino strategy vault APY/APR
+   * @param strategy
+   */
+  async getStrategyAprApy(strategy: PublicKey | StrategyWithAddress) {
+    const { strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
+    const dex = Number(strategyState.strategyDex);
+    const isOrca = dexToNumber('ORCA') === dex;
+    const isRaydium = dexToNumber('RAYDIUM') === dex;
+    if (isOrca) {
+      return this._orcaService.getWhirlpoolAprApy(strategyState);
+    }
+    if (isRaydium) {
+      return null;
+    }
+    throw Error(`Strategy dex ${dex} not supported`);
   }
 }
 

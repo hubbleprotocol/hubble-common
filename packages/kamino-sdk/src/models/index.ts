@@ -9,3 +9,5 @@ export * from './TreasuryFeeVault';
 export * from './MultipleAccountsResponse';
 export * from './StrategyWithAddress';
 export * from './KaminoPosition';
+export * from './StrategyHolder';
+export * from './StrategyProgramAddress';

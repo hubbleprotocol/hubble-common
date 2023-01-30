@@ -6,7 +6,7 @@ import {
   createTransactionWithExtraBudget,
   getAssociatedTokenAddressAndData,
 } from '../src';
-import { GlobalConfig } from '../src/kamino-client/accounts';
+import { GlobalConfig } from '../src/kamino-client';
 import * as Instructions from '../src/kamino-client/instructions';
 import { GlobalConfigOption, GlobalConfigOptionKind } from '../src/kamino-client/types';
 import { SupportedToken } from '../../scope-sdk/src';
@@ -270,6 +270,21 @@ describe('Kamino SDK Tests', () => {
     console.log(strategy?.toJSON());
   });
 
+  it('should get strategy apy', async () => {
+    const kamino = new Kamino(
+      cluster,
+      connection,
+      fixtures.globalConfig,
+      fixtures.kaminoProgramId,
+      WHIRLPOOL_PROGRAM_ID,
+      LOCAL_RAYDIUM_PROGRAM_ID
+    );
+    const aprApy = await kamino.getStrategyAprApy(fixtures.newOrcaStrategy);
+    expect(aprApy).not.to.be.null;
+    expect(aprApy?.totalApy.toNumber()).to.be.greaterThanOrEqual(0);
+    console.log(aprApy?.totalApy.toString());
+  });
+
   it('should get RAYDIUM strategy share price', async () => {
     let kamino = new Kamino(
       cluster,
@@ -496,8 +511,6 @@ describe('Kamino SDK Tests', () => {
 
     let res = await sendTransactionWithLogs(connection, tx, signer.publicKey, [signer]);
     console.log('res createAtas ', res);
-
-    const [usdcDeposit, usdhDeposit] = [new Decimal(5), new Decimal(5)];
     await mintTo(connection, signer, strategyState.tokenAMint, tokenAAta, 9000000);
     await mintTo(connection, signer, strategyState.tokenBMint, tokenBAta, 9000000);
     await sleep(5000);
@@ -1080,5 +1093,5 @@ export async function updateCollateralInfo(
   let ix = Instructions.updateCollateralInfo(args, accounts);
   const tx = new Transaction().add(ix);
 
-  const sig = await sendTransactionWithLogs(kamino.getConnection(), tx, owner.publicKey, [owner], 'confirmed', true);
+  await sendTransactionWithLogs(kamino.getConnection(), tx, owner.publicKey, [owner], 'confirmed', true);
 }
