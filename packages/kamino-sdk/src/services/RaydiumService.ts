@@ -154,11 +154,11 @@ export class RaydiumService {
 
     return {
       totalApr,
-      totalApy: aprToApy(totalApr),
+      totalApy: aprToApy(totalApr, 365),
       feeApr: fee,
-      feeApy: aprToApy(fee),
+      feeApy: aprToApy(fee, 365),
       rewardsApr: rewards,
-      rewardsApy: rewards.map((x) => aprToApy(x)),
+      rewardsApy: rewards.map((x) => aprToApy(x, 365)),
     };
   };
 }

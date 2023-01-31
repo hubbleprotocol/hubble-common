@@ -86,11 +86,11 @@ export class OrcaService {
     const rewardsApr = apr.rewards.map((r) => new Decimal(r));
     return {
       totalApr,
-      totalApy: aprToApy(totalApr),
+      totalApy: aprToApy(totalApr, 365),
       feeApr,
-      feeApy: aprToApy(feeApr),
+      feeApy: aprToApy(feeApr, 365),
       rewardsApr,
-      rewardsApy: rewardsApr.map((x) => aprToApy(x)),
+      rewardsApy: rewardsApr.map((x) => aprToApy(x, 365)),
     };
   }
 }
