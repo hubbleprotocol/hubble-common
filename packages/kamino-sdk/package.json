@@ -37,12 +37,14 @@
     "@hubbleprotocol/hubble-idl": "^1.0.184",
     "@hubbleprotocol/scope-sdk": "^1.0.196",
     "@orca-so/whirlpool-client-sdk": "^0.0.8",
-    "@orca-so/whirlpool-sdk": "^0.3.0",
+    "@orca-so/whirlpool-sdk": "^0.4.2",
+    "@orca-so/sdk": "^1.2.25",
     "@project-serum/anchor": "^0.21.0",
     "@project-serum/serum": "^0.13.65",
     "@raydium-io/raydium-sdk": "^1.1.0-beta.44",
     "@solana/buffer-layout": "^4.0.0",
     "@solana/wallet-adapter-base": "^0.9.20",
+    "axios": "^1.2.6",
     "bn.js": "^5.2.1"
   },
   "peerDependencies": {
