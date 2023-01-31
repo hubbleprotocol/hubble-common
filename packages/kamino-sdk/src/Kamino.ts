@@ -142,7 +142,7 @@ export class Kamino {
       setRaydiumProgramId(raydiumProgramId);
     }
     this._orcaService = new OrcaService(connection, cluster, this._config);
-    this._raydiumService = new RaydiumService(connection, cluster, this._config);
+    this._raydiumService = new RaydiumService(connection, cluster);
   }
 
   getConnection() {
