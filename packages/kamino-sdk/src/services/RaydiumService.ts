@@ -1,15 +1,14 @@
 import { Connection, PublicKey } from '@solana/web3.js';
-import { HubbleConfig, SolanaCluster } from '@hubbleprotocol/hubble-config';
+import { SolanaCluster } from '@hubbleprotocol/hubble-config';
 import { tickIndexToPrice } from '@orca-so/whirlpool-sdk';
 import { RaydiumPoolsResponse } from './RaydiumPoolsResponse';
-import { PoolState } from '../raydium_client';
+import { PersonalPositionState, PoolState } from '../raydium_client';
 import Decimal from 'decimal.js';
 import { getMintDecimals } from '@project-serum/serum/lib/market';
 import { AmmV3, AmmV3PoolInfo } from '@raydium-io/raydium-sdk';
 import { WhirlpoolAprApy } from './WhirlpoolAprApy';
 import { PROGRAM_ID } from '../raydium_client/programId';
 import { WhirlpoolStrategy } from '../kamino-client';
-import { Position } from '../whirpools-client';
 import { aprToApy } from '../utils';
 import axios from 'axios';
 
@@ -27,7 +26,7 @@ export class RaydiumService {
   }
 
   getStrategyWhirlpoolPoolAprApy = async (strategy: WhirlpoolStrategy): Promise<WhirlpoolAprApy> => {
-    const position = await Position.fetch(this._connection, strategy.position);
+    const position = await PersonalPositionState.fetch(this._connection, strategy.position);
     if (!position) {
       throw Error(`Position ${strategy.position} does not exist`);
     }
