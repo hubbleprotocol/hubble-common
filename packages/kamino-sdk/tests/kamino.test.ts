@@ -733,7 +733,7 @@ describe('Kamino SDK Tests', () => {
 
     let tx = createTransactionWithExtraBudget(user.owner.publicKey, 1000000);
 
-    let amounts = kamino.getDepositRatioFromTokenA(fixtures.newRaydiumStrategy, new BN(54983));
+    let amounts = kamino.getDepositRatioFromTokenA(fixtures.newRaydiumStrategy, new BN(5493));
 
     const depositIx = await kamino.deposit(
       strategyWithAddress,
