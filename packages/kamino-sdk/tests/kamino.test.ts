@@ -177,14 +177,14 @@ describe('Kamino SDK Tests', () => {
       signer,
       fixtures.newOrcaStrategy,
       new UpdateDepositCapIxn(),
-      new Decimal(1000000000)
+      new Decimal(100000000000)
     );
     await updateStrategyConfig(
       connection,
       signer,
       fixtures.newOrcaStrategy,
       new UpdateDepositCap(),
-      new Decimal(1000000000)
+      new Decimal(100000000000)
     );
     await updateStrategyConfig(
       connection,
@@ -694,6 +694,100 @@ describe('Kamino SDK Tests', () => {
     let tx = createTransactionWithExtraBudget(user.owner.publicKey, 1000000);
 
     const depositIx = await kamino.deposit(strategyWithAddress, new Decimal(1), new Decimal(2), user.owner.publicKey);
+    tx.add(depositIx);
+
+    tx = await assignBlockInfoToTransaction(connection, tx, user.owner.publicKey);
+
+    const txHash = await sendAndConfirmTransaction(connection, tx, [user.owner], {
+      commitment: 'processed',
+      skipPreflight: true,
+    });
+    console.log(txHash);
+  });
+
+  it('should deposit tokens into an Orca strategy with calculated amount', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      fixtures.globalConfig,
+      fixtures.kaminoProgramId,
+      WHIRLPOOL_PROGRAM_ID,
+      LOCAL_RAYDIUM_PROGRAM_ID
+    );
+
+    const strategy = (await kamino.getStrategyByAddress(fixtures.newOrcaStrategy))!;
+    const strategyWithAddress = { strategy, address: fixtures.newOrcaStrategy };
+
+    const solAirdropAmount = new Decimal(1);
+    const usdcAirdropAmount = new Decimal(1000000000);
+    const usdhAirdropAmount = new Decimal(1000000000);
+
+    let user = await createUser(
+      connection,
+      signer,
+      fixtures.newOrcaStrategy,
+      solAirdropAmount,
+      usdcAirdropAmount,
+      usdhAirdropAmount
+    );
+
+    let tx = createTransactionWithExtraBudget(user.owner.publicKey, 1000000);
+
+    let amounts = kamino.getDepositRatioFromTokenA(fixtures.newRaydiumStrategy, new BN(5493));
+
+    const depositIx = await kamino.deposit(
+      strategyWithAddress,
+      new Decimal((await amounts).amountSlippageA.toString()),
+      new Decimal((await amounts).amountSlippageB.toString()),
+      user.owner.publicKey
+    );
+    tx.add(depositIx);
+
+    tx = await assignBlockInfoToTransaction(connection, tx, user.owner.publicKey);
+
+    const txHash = await sendAndConfirmTransaction(connection, tx, [user.owner], {
+      commitment: 'processed',
+      skipPreflight: true,
+    });
+    console.log(txHash);
+  });
+
+  it('should deposit tokens into a Raydium strategy with calculated amount', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      fixtures.globalConfig,
+      fixtures.kaminoProgramId,
+      WHIRLPOOL_PROGRAM_ID,
+      LOCAL_RAYDIUM_PROGRAM_ID
+    );
+
+    const strategy = (await kamino.getStrategyByAddress(fixtures.newRaydiumStrategy))!;
+    const strategyWithAddress = { strategy, address: fixtures.newRaydiumStrategy };
+
+    const solAirdropAmount = new Decimal(1);
+    const usdcAirdropAmount = new Decimal(1000000000);
+    const usdhAirdropAmount = new Decimal(1000000000);
+
+    let user = await createUser(
+      connection,
+      signer,
+      fixtures.newRaydiumStrategy,
+      solAirdropAmount,
+      usdcAirdropAmount,
+      usdhAirdropAmount
+    );
+
+    let tx = createTransactionWithExtraBudget(user.owner.publicKey, 1000000);
+
+    let amounts = kamino.getDepositRatioFromTokenA(fixtures.newRaydiumStrategy, new BN(13));
+
+    const depositIx = await kamino.deposit(
+      strategyWithAddress,
+      new Decimal((await amounts).amountSlippageA.toString()),
+      new Decimal((await amounts).amountSlippageB.toString()),
+      user.owner.publicKey
+    );
     tx.add(depositIx);
 
     tx = await assignBlockInfoToTransaction(connection, tx, user.owner.publicKey);
