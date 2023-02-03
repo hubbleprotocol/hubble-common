@@ -19,6 +19,7 @@ import Decimal from 'decimal.js';
 import { Position, Whirlpool } from './whirpools-client';
 import { getMintDecimals } from '@project-serum/serum/lib/market';
 import {
+  defaultSlippagePercentage,
   getNearestValidTickIndexFromTickIndex,
   getStartTickIndex,
   Percentage,
@@ -85,12 +86,17 @@ import { Rebalance } from './kamino-client/types/ExecutiveWithdrawAction';
 import { PoolState, PersonalPositionState, AmmConfig } from './raydium_client';
 import { LiquidityMath, SqrtPriceMath, TickMath } from '@raydium-io/raydium-sdk/lib/ammV3/utils/math';
 import { PROGRAM_ID as RAYDIUM_PROGRAM_ID, setRaydiumProgramId } from './raydium_client/programId';
-import { i32ToBytes, TickUtils } from '@raydium-io/raydium-sdk';
+import { i32ToBytes, str, TickUtils } from '@raydium-io/raydium-sdk';
 
 import KaminoIdl from './kamino-client/kamino.json';
 import { getKaminoTokenName, KAMINO_TOKEN_MAP } from './constants';
 import { OrcaService } from './services';
 import { RaydiumService } from './services/RaydiumService';
+import {
+  getAddLiquidityQuote,
+  InternalAddLiquidityQuoteParam,
+  InternalAddLiquidityQuote,
+} from '@orca-so/whirlpool-sdk/dist/position/quotes/add-liquidity';
 export const KAMINO_IDL = KaminoIdl;
 
 export class Kamino {
@@ -1479,7 +1485,7 @@ export class Kamino {
    * Get Kamino strategy vault APY/APR
    * @param strategy
    */
-  async getStrategyAprApy(strategy: PublicKey | StrategyWithAddress) {
+  async getStrategyAprApy(strategy: PublicKey | StrategyWithAddress, amountA: Decimal) {
     const { strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
     const dex = Number(strategyState.strategyDex);
     const isOrca = dexToNumber('ORCA') === dex;
@@ -1491,6 +1497,190 @@ export class Kamino {
       return this._raydiumService.getStrategyWhirlpoolPoolAprApy(strategyState);
     }
     throw Error(`Strategy dex ${dex} not supported`);
+  }
+
+  /**
+   * Get amounts of tokenA and tokenB to be deposited
+   * @param strategy
+   * @param tokenA maximum A to be deposited
+   */
+  async getDepositRatioFromTokenA(
+    strategy: PublicKey | StrategyWithAddress,
+    amountA: BN
+  ): Promise<{ amountSlippageA: BN; amountSlippageB: BN }> {
+    const { strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
+    const dex = Number(strategyState.strategyDex);
+
+    const isOrca = dexToNumber('ORCA') === dex;
+    const isRaydium = dexToNumber('RAYDIUM') === dex;
+
+    if (isOrca) {
+      return this.getDepositRatioFromAOrca(strategy, amountA);
+    }
+    if (isRaydium) {
+      return this.getDepositRatioFromARaydium(strategy, amountA);
+    }
+    throw Error(`Strategy dex ${dex} not supported`);
+  }
+
+  /**
+   * Get amounts of tokenA and tokenB to be deposited
+   * @param strategy
+   * @param tokenB maximum B to be deposited
+   */
+  async getDepositRatioFromTokenB(
+    strategy: PublicKey | StrategyWithAddress,
+    amountB: BN
+  ): Promise<{ amountSlippageA: BN; amountSlippageB: BN }> {
+    const { strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
+    const dex = Number(strategyState.strategyDex);
+
+    const isOrca = dexToNumber('ORCA') === dex;
+    const isRaydium = dexToNumber('RAYDIUM') === dex;
+
+    if (isOrca) {
+      return this.getDepositRatioFromBOrca(strategy, amountB);
+    }
+    if (isRaydium) {
+      return this.getDepositRatioFromBRaydium(strategy, amountB);
+    }
+    throw Error(`Strategy dex ${dex} not supported`);
+  }
+
+  private async getDepositRatioFromAOrca(
+    strategy: PublicKey | StrategyWithAddress,
+    amountA: BN
+  ): Promise<{ amountSlippageA: BN; amountSlippageB: BN }> {
+    const { strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
+    const dex = Number(strategyState.strategyDex);
+
+    const whirlpool = await Whirlpool.fetch(this._connection, strategyState.pool);
+    if (!whirlpool) {
+      throw Error(`Could not fetch whirlpool state with pubkey ${strategyState.pool.toString()}`);
+    }
+
+    const position = await Position.fetch(this._connection, strategyState.position);
+    if (!position) {
+      throw new Error(`Whirlpool position ${strategyState.position} does not exist`);
+    }
+
+    const params: InternalAddLiquidityQuoteParam = {
+      tokenMintA: strategyState.tokenAMint,
+      tokenMintB: strategyState.tokenBMint,
+      tickCurrentIndex: whirlpool.tickCurrentIndex,
+      sqrtPrice: whirlpool.sqrtPrice,
+      inputTokenMint: strategyState.tokenAMint,
+      inputTokenAmount: amountA,
+      tickLowerIndex: position.tickLowerIndex,
+      tickUpperIndex: position.tickUpperIndex,
+      slippageTolerance: defaultSlippagePercentage,
+    };
+
+    const quote: InternalAddLiquidityQuote = getAddLiquidityQuote(params);
+
+    return { amountSlippageA: quote.estTokenA, amountSlippageB: quote.estTokenB };
+  }
+
+  private async getDepositRatioFromBOrca(
+    strategy: PublicKey | StrategyWithAddress,
+    amountB: BN
+  ): Promise<{ amountSlippageA: BN; amountSlippageB: BN }> {
+    const { strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
+    const dex = Number(strategyState.strategyDex);
+
+    const whirlpool = await Whirlpool.fetch(this._connection, strategyState.pool);
+    if (!whirlpool) {
+      throw Error(`Could not fetch whirlpool state with pubkey ${strategyState.pool.toString()}`);
+    }
+
+    const position = await Position.fetch(this._connection, strategyState.position);
+    if (!position) {
+      throw new Error(`Whirlpool position ${strategyState.position} does not exist`);
+    }
+
+    const params: InternalAddLiquidityQuoteParam = {
+      tokenMintA: strategyState.tokenAMint,
+      tokenMintB: strategyState.tokenBMint,
+      tickCurrentIndex: whirlpool.tickCurrentIndex,
+      sqrtPrice: whirlpool.sqrtPrice,
+      inputTokenMint: strategyState.tokenBMint,
+      inputTokenAmount: amountB,
+      tickLowerIndex: position.tickLowerIndex,
+      tickUpperIndex: position.tickUpperIndex,
+      slippageTolerance: defaultSlippagePercentage,
+    };
+
+    const quote: InternalAddLiquidityQuote = getAddLiquidityQuote(params);
+
+    return { amountSlippageA: quote.estTokenA, amountSlippageB: quote.estTokenB };
+  }
+
+  private async getDepositRatioFromARaydium(
+    strategy: PublicKey | StrategyWithAddress,
+    amountA: BN
+  ): Promise<{ amountSlippageA: BN; amountSlippageB: BN }> {
+    const { strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
+    const dex = Number(strategyState.strategyDex);
+
+    let poolState = await PoolState.fetch(this._connection, strategyState.pool);
+    let positionState = await PersonalPositionState.fetch(this._connection, strategyState.position);
+
+    if (!positionState) {
+      throw new Error(`Raydium position ${strategyState.position.toString()} could not be found.`);
+    }
+    if (!poolState) {
+      throw new Error(`Raydium pool ${strategyState.pool.toString()} could not be found.`);
+    }
+
+    let lowerSqrtPriceX64 = SqrtPriceMath.getSqrtPriceX64FromTick(positionState.tickLowerIndex);
+    let upperSqrtPriceX64 = SqrtPriceMath.getSqrtPriceX64FromTick(positionState.tickUpperIndex);
+
+    const liqudity = LiquidityMath.getLiquidityFromTokenAmountA(lowerSqrtPriceX64, upperSqrtPriceX64, amountA, false);
+    let amountsSlippage = LiquidityMath.getAmountsFromLiquidityWithSlippage(
+      poolState.sqrtPriceX64,
+      lowerSqrtPriceX64,
+      upperSqrtPriceX64,
+      liqudity,
+      true,
+      false,
+      1
+    );
+
+    return amountsSlippage;
+  }
+
+  private async getDepositRatioFromBRaydium(
+    strategy: PublicKey | StrategyWithAddress,
+    amountB: BN
+  ): Promise<{ amountSlippageA: BN; amountSlippageB: BN }> {
+    const { strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
+    const dex = Number(strategyState.strategyDex);
+
+    let poolState = await PoolState.fetch(this._connection, strategyState.pool);
+    let positionState = await PersonalPositionState.fetch(this._connection, strategyState.position);
+
+    if (!positionState) {
+      throw new Error(`Raydium position ${strategyState.position.toString()} could not be found.`);
+    }
+    if (!poolState) {
+      throw new Error(`Raydium pool ${strategyState.pool.toString()} could not be found.`);
+    }
+
+    let lowerSqrtPriceX64 = SqrtPriceMath.getSqrtPriceX64FromTick(positionState.tickLowerIndex);
+    let upperSqrtPriceX64 = SqrtPriceMath.getSqrtPriceX64FromTick(positionState.tickUpperIndex);
+
+    const liqudity = LiquidityMath.getLiquidityFromTokenAmountB(lowerSqrtPriceX64, upperSqrtPriceX64, amountB);
+    let amountsSlippage = LiquidityMath.getAmountsFromLiquidityWithSlippage(
+      poolState.sqrtPriceX64,
+      lowerSqrtPriceX64,
+      upperSqrtPriceX64,
+      liqudity,
+      true,
+      false,
+      1
+    );
+
+    return amountsSlippage;
   }
 }
 
