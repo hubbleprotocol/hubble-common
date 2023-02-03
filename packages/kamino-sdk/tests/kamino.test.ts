@@ -177,14 +177,14 @@ describe('Kamino SDK Tests', () => {
       signer,
       fixtures.newOrcaStrategy,
       new UpdateDepositCapIxn(),
-      new Decimal(1000000000)
+      new Decimal(100000000000)
     );
     await updateStrategyConfig(
       connection,
       signer,
       fixtures.newOrcaStrategy,
       new UpdateDepositCap(),
-      new Decimal(1000000000)
+      new Decimal(100000000000)
     );
     await updateStrategyConfig(
       connection,
@@ -751,7 +751,6 @@ describe('Kamino SDK Tests', () => {
     });
     console.log(txHash);
   });
-
 
   it('should deposit tokens into a Raydium strategy with calculated amount', async () => {
     let kamino = new Kamino(

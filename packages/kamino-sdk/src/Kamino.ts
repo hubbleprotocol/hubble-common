@@ -1485,7 +1485,7 @@ export class Kamino {
    * Get Kamino strategy vault APY/APR
    * @param strategy
    */
-  async getStrategyAprApy(strategy: PublicKey | StrategyWithAddress, amountA: Decimal) {
+  async getStrategyAprApy(strategy: PublicKey | StrategyWithAddress) {
     const { strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
     const dex = Number(strategyState.strategyDex);
     const isOrca = dexToNumber('ORCA') === dex;
