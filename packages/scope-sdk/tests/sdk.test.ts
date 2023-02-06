@@ -1,19 +1,19 @@
-import { clusterApiUrl, Connection } from '@solana/web3.js';
-import { Scope } from '../src';
+import { Scope, scopeTokenToMint, SupportedTokens } from '../src';
+import { expect } from 'chai';
 
 describe('Scope SDK Tests', () => {
-  let connection: Connection;
-  const cluster = 'mainnet-beta';
-
-  beforeAll(() => {
-    connection = new Connection(clusterApiUrl(cluster));
-  });
-
-  test('should throw on invalid cluster', () => {
+  it('should throw on invalid cluster', () => {
     const cluster = 'invalid-clusters';
     // @ts-ignore
     const init = () => new Scope(cluster, undefined);
-    expect(init).toThrow(Error);
+    expect(init).to.throw(Error);
+  });
+
+  it('should have all mints specified in the mint token map', () => {
+    for (const supportedToken of SupportedTokens.filter((x) => !x.endsWith('Ema') && !x.endsWith('Twap'))) {
+      const mint = scopeTokenToMint(supportedToken);
+      expect(mint).not.to.be.undefined;
+    }
   });
 
   // test('should get all prices', async () => {

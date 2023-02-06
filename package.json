@@ -5,7 +5,7 @@
   "scripts": {
     "bootstrap": "npx lerna bootstrap --hoist && npx lerna run build",
     "publish": "npx lerna publish",
-    "test": "npx ts-mocha 'packages/hubble-sdk/tests/sdk.test.ts'",
+    "test": "npx ts-mocha 'packages/hubble-sdk/tests/sdk.test.ts' && npx ts-mocha 'packages/scope-sdk/tests/sdk.test.ts'",
     "integration-test": "npx ts-mocha --t 1000000 packages/kamino-sdk/tests/kamino.test.ts",
     "format": "npx prettier --write '{**/*,*}.{js,ts,jsx,tsx}'",
     "format:check": "npx prettier --check '{**/*,*}.{js,ts,jsx,tsx}'",
