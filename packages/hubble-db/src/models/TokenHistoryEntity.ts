@@ -1,0 +1,20 @@
+export type TokenHistoryEntity = {
+  id: number;
+  token_id: number;
+  quote_token_id?: number;
+  num_value?: string;
+  text_value?: string;
+  json_value?: string;
+  token_history_field_id: number;
+  token_history_source_id: number;
+  created_on: Date;
+  cluster_id: number;
+  transaction_signature?: string;
+  placeholder_text_1?: string;
+  placeholder_text_2?: string;
+  placeholder_text_3?: string;
+  placeholder_num_1?: string;
+  placeholder_num_2?: string;
+  placeholder_num_3?: string;
+};
+export default TokenHistoryEntity;

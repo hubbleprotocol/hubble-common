@@ -20,6 +20,9 @@ export * from './VaultEntity';
 export * from './RewardEntity';
 export * from './RewardEarnedEntity';
 export * from './PriceEntity';
+export * from './TokenHistoryEntity';
+export * from './TokenHistorySourceEntity';
+export * from './TokenHistoryFieldEntity';
 
 export const CLUSTER_TABLE: string = 'cluster';
 export const COLLATERAL_TABLE: string = 'collateral';
@@ -44,4 +47,7 @@ export const WHIRLPOOL_STATE_TABLE: string = 'whirlpool_state';
 export const REWARD_TABLE = 'reward';
 export const REWARD_EARNED_TABLE = 'reward_earned';
 export const PRICE_TABLE = 'price';
+export const TOKEN_HISTORY_TABLE = 'token_history';
+export const TOKEN_HISTORY_FIELD_TABLE = 'token_history_field';
+export const TOKEN_HISTORY_SOURCE_TABLE = 'token_history_source';
 export const API_SCHEMA: string = 'api';
