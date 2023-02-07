@@ -83,13 +83,8 @@
       "name": "initReserve",
       "accounts": [
         {
-          "name": "userTransferAuthority",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
           "name": "lendingMarketOwner",
-          "isMut": false,
+          "isMut": true,
           "isSigner": true
         },
         {
@@ -211,9 +206,14 @@
       "name": "depositReserveLiquidity",
       "accounts": [
         {
-          "name": "userTransferAuthority",
+          "name": "owner",
           "isMut": false,
           "isSigner": true
+        },
+        {
+          "name": "reserve",
+          "isMut": true,
+          "isSigner": false
         },
         {
           "name": "lendingMarket",
@@ -223,11 +223,6 @@
         {
           "name": "lendingMarketAuthority",
           "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "reserve",
-          "isMut": true,
           "isSigner": false
         },
         {
@@ -241,12 +236,12 @@
           "isSigner": false
         },
         {
-          "name": "sourceLiquidity",
+          "name": "userSourceLiquidity",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "destinationCollateral",
+          "name": "userDestinationCollateral",
           "isMut": true,
           "isSigner": false
         },
@@ -267,7 +262,7 @@
       "name": "redeemReserveCollateral",
       "accounts": [
         {
-          "name": "userTransferAuthority",
+          "name": "owner",
           "isMut": false,
           "isSigner": true
         },
@@ -297,12 +292,12 @@
           "isSigner": false
         },
         {
-          "name": "sourceCollateral",
+          "name": "userSourceCollateral",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "destinationLiquidity",
+          "name": "userDestinationLiquidity",
           "isMut": true,
           "isSigner": false
         },
@@ -370,7 +365,7 @@
       "name": "depositObligationCollateral",
       "accounts": [
         {
-          "name": "userTransferAuthority",
+          "name": "owner",
           "isMut": false,
           "isSigner": true
         },
@@ -378,11 +373,6 @@
           "name": "obligation",
           "isMut": true,
           "isSigner": false
-        },
-        {
-          "name": "obligationOwner",
-          "isMut": false,
-          "isSigner": true
         },
         {
           "name": "lendingMarket",
@@ -395,12 +385,12 @@
           "isSigner": false
         },
         {
-          "name": "destinationCollateral",
+          "name": "reserveDestinationCollateral",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "sourceCollateral",
+          "name": "userSourceCollateral",
           "isMut": true,
           "isSigner": false
         },
@@ -421,7 +411,7 @@
       "name": "withdrawObligationCollateral",
       "accounts": [
         {
-          "name": "obligationOwner",
+          "name": "owner",
           "isMut": false,
           "isSigner": true
         },
@@ -446,12 +436,12 @@
           "isSigner": false
         },
         {
-          "name": "sourceCollateral",
+          "name": "reserveSourceCollateral",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "destinationCollateral",
+          "name": "userDestinationCollateral",
           "isMut": true,
           "isSigner": false
         },
@@ -472,7 +462,7 @@
       "name": "borrowObligationLiquidity",
       "accounts": [
         {
-          "name": "obligationOwner",
+          "name": "owner",
           "isMut": false,
           "isSigner": true
         },
@@ -497,7 +487,7 @@
           "isSigner": false
         },
         {
-          "name": "sourceLiquidity",
+          "name": "reserveSourceLiquidity",
           "isMut": true,
           "isSigner": false
         },
@@ -507,7 +497,7 @@
           "isSigner": false
         },
         {
-          "name": "destinationLiquidity",
+          "name": "userDestinationLiquidity",
           "isMut": true,
           "isSigner": false
         },
@@ -528,7 +518,7 @@
       "name": "repayObligationLiquidity",
       "accounts": [
         {
-          "name": "userTransferAuthority",
+          "name": "owner",
           "isMut": false,
           "isSigner": true
         },
@@ -548,12 +538,12 @@
           "isSigner": false
         },
         {
-          "name": "destinationLiquidity",
+          "name": "reserveDestinationLiquidity",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "sourceLiquidity",
+          "name": "userSourceLiquidity",
           "isMut": true,
           "isSigner": false
         },
@@ -574,12 +564,7 @@
       "name": "depositReserveLiquidityAndObligationCollateral",
       "accounts": [
         {
-          "name": "userTransferAuthority",
-          "isMut": false,
-          "isSigner": true
-        },
-        {
-          "name": "obligationOwner",
+          "name": "owner",
           "isMut": true,
           "isSigner": true
         },
@@ -614,17 +599,17 @@
           "isSigner": false
         },
         {
-          "name": "destinationDepositCollateral",
+          "name": "reserveDestinationDepositCollateral",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "sourceLiquidity",
+          "name": "userSourceLiquidity",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "destinationCollateral",
+          "name": "userDestinationCollateral",
           "isMut": true,
           "isSigner": false
         },
@@ -655,13 +640,8 @@
       "name": "withdrawObligationCollateralAndRedeemReserveCollateral",
       "accounts": [
         {
-          "name": "userTransferAuthority",
+          "name": "owner",
           "isMut": false,
-          "isSigner": true
-        },
-        {
-          "name": "obligationOwner",
-          "isMut": true,
           "isSigner": true
         },
         {
@@ -685,7 +665,7 @@
           "isSigner": false
         },
         {
-          "name": "sourceCollateral",
+          "name": "reserveSourceCollateral",
           "isMut": true,
           "isSigner": false
         },
@@ -700,12 +680,12 @@
           "isSigner": false
         },
         {
-          "name": "destinationLiquidity",
+          "name": "userDestinationLiquidity",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "destinationCollateral",
+          "name": "userDestinationCollateral",
           "isMut": true,
           "isSigner": false
         },
@@ -731,6 +711,11 @@
           "isSigner": true
         },
         {
+          "name": "reserve",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
           "name": "lendingMarket",
           "isMut": false,
           "isSigner": false
@@ -738,11 +723,6 @@
         {
           "name": "lendingMarketAuthority",
           "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "reserve",
-          "isMut": true,
           "isSigner": false
         },
         {
@@ -774,7 +754,7 @@
       "name": "liquidateObligationAndRedeemReserveCollateral",
       "accounts": [
         {
-          "name": "userTransferAuthority",
+          "name": "liquidator",
           "isMut": false,
           "isSigner": true
         },
@@ -829,17 +809,17 @@
           "isSigner": false
         },
         {
-          "name": "sourceLiquidity",
+          "name": "userSourceLiquidity",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "destinationCollateral",
+          "name": "userDestinationCollateral",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "destinationLiquidity",
+          "name": "userDestinationLiquidity",
           "isMut": true,
           "isSigner": false
         },
@@ -911,7 +891,7 @@
           "isSigner": false
         },
         {
-          "name": "destinationLiquidity",
+          "name": "reserveDestinationLiquidity",
           "isMut": true,
           "isSigner": false
         },
@@ -926,7 +906,7 @@
           "isSigner": false
         },
         {
-          "name": "sourceLiquidity",
+          "name": "userSourceLiquidity",
           "isMut": true,
           "isSigner": false
         },
@@ -966,7 +946,7 @@
           "isSigner": false
         },
         {
-          "name": "sourceLiquidity",
+          "name": "reserveSourceLiquidity",
           "isMut": true,
           "isSigner": false
         },
@@ -976,7 +956,7 @@
           "isSigner": false
         },
         {
-          "name": "destinationLiquidity",
+          "name": "userDestinationLiquidity",
           "isMut": true,
           "isSigner": false
         },
@@ -1623,8 +1603,7 @@
           {
             "name": "hostFeePercentage",
             "docs": [
-              "Amount of fee going to host account, if provided in liquidate and repay",
-              "TODO: Enforce max value"
+              "Amount of fee going to host account, if provided in liquidate and repay"
             ],
             "type": "u64"
           }
