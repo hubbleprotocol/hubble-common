@@ -148,6 +148,13 @@ export class Scope {
   }
 
   /**
+   * Get all prices of the supported tokens
+   */
+  getMappings(): ScopeToken[] {
+    return this._tokens;
+  }
+
+  /**
    * Get price of the specified token
    * @param token name of the token
    */
