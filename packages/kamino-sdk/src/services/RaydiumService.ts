@@ -1,15 +1,13 @@
 import { Connection, PublicKey } from '@solana/web3.js';
 import { SolanaCluster } from '@hubbleprotocol/hubble-config';
-import { tickIndexToPrice } from '@orca-so/whirlpool-sdk';
 import { RaydiumPoolsResponse } from './RaydiumPoolsResponse';
 import { PersonalPositionState, PoolState } from '../raydium_client';
 import Decimal from 'decimal.js';
-import { getMintDecimals } from '@project-serum/serum/lib/market';
 import { AmmV3, AmmV3PoolInfo } from '@raydium-io/raydium-sdk';
 import { WhirlpoolAprApy } from './WhirlpoolAprApy';
 import { PROGRAM_ID } from '../raydium_client/programId';
 import { WhirlpoolStrategy } from '../kamino-client';
-import { aprToApy } from '../utils';
+import { aprToApy, getStrategyPriceRange, ZERO } from '../utils';
 import axios from 'axios';
 
 export class RaydiumService {
@@ -46,10 +44,23 @@ export class RaydiumService {
       throw Error(`Could not get find Raydium amm pool ${strategy.pool} from Raydium API`);
     }
 
-    const decimalsA = await getMintDecimals(this._connection, poolState.tokenMint0);
-    const decimalsB = await getMintDecimals(this._connection, poolState.tokenMint1);
-
-    const currentPrice = tickIndexToPrice(poolState.tickCurrent, decimalsA, decimalsB);
+    const priceRange = getStrategyPriceRange(
+      position.tickLowerIndex,
+      position.tickUpperIndex,
+      Number(poolState.tickCurrent.toString()),
+      strategy
+    );
+    if (priceRange.strategyOutOfRange) {
+      return {
+        ...priceRange,
+        rewardsApy: [],
+        rewardsApr: [],
+        feeApy: ZERO,
+        feeApr: ZERO,
+        totalApy: ZERO,
+        totalApr: ZERO,
+      };
+    }
 
     const poolInfo: AmmV3PoolInfo = {
       id: new PublicKey(raydiumPool.id),
@@ -64,15 +75,15 @@ export class RaydiumService {
         decimals: poolState.mintDecimals1,
       },
       ammConfig: raydiumPool.ammConfig,
-      observationId: PublicKey.unique(), // to-do
-      creator: PublicKey.unique(), // to-do
+      observationId: PublicKey.unique(),
+      creator: PublicKey.unique(),
       programId: PROGRAM_ID,
       version: 6,
       tickSpacing: poolState.tickSpacing,
       liquidity: poolState.liquidity,
       sqrtPriceX64: poolState.sqrtPriceX64,
       // @ts-ignore
-      currentPrice,
+      currentPrice: priceRange.poolPrice,
       tickCurrent: poolState.tickCurrent,
       observationIndex: poolState.observationIndex,
       observationUpdateDuration: poolState.observationUpdateDuration,
@@ -159,6 +170,7 @@ export class RaydiumService {
       feeApy: aprToApy(fee, 365),
       rewardsApr: rewards,
       rewardsApy: rewards.map((x) => aprToApy(x, 365)),
+      ...priceRange,
     };
   };
 }
