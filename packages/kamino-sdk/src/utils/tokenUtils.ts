@@ -12,6 +12,8 @@ import {
 } from '@solana/web3.js';
 import { struct, u32, u8 } from '@project-serum/borsh';
 import { sleep } from './utils';
+import { WhirlpoolStrategy } from '../kamino-client';
+import { tickIndexToPrice } from '@orca-so/whirlpool-sdk';
 
 export const ASSOCIATED_TOKEN_PROGRAM_ID = new PublicKey('ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL');
 export const TOKEN_PROGRAM_ID = new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA');
@@ -123,4 +125,29 @@ export async function sendTransactionWithLogs(
     }
     return null;
   }
+}
+
+export function getStrategyPriceRange(
+  tickLowerIndex: number,
+  tickUpperIndex: number,
+  tickCurrent: number,
+  strategy: WhirlpoolStrategy
+) {
+  const priceLower = tickIndexToPrice(
+    tickLowerIndex,
+    Number(strategy.tokenAMintDecimals.toString()),
+    Number(strategy.tokenBMintDecimals.toString())
+  );
+  const priceUpper = tickIndexToPrice(
+    tickUpperIndex,
+    Number(strategy.tokenAMintDecimals.toString()),
+    Number(strategy.tokenBMintDecimals.toString())
+  );
+  const poolPrice = tickIndexToPrice(
+    tickCurrent,
+    Number(strategy.tokenAMintDecimals.toString()),
+    Number(strategy.tokenBMintDecimals.toString())
+  );
+  const strategyOutOfRange = poolPrice.lt(priceLower) || poolPrice.gt(priceUpper);
+  return { priceLower, poolPrice, priceUpper, strategyOutOfRange };
 }

@@ -6,3 +6,5 @@ export function aprToApy(apr: Decimal, compoundPeriods: number) {
   // (1 + apr / periods) ** periods - 1;
   return new Decimal(1).add(apr.div(compoundPeriods)).pow(compoundPeriods).sub(1);
 }
+
+export const ZERO = new Decimal(0);

@@ -9,7 +9,7 @@ import { Scope, ScopeToken } from '@hubbleprotocol/scope-sdk';
 import { Position } from '../whirpools-client';
 import { getKaminoTokenName, getScopeTokenFromKaminoMints } from '../constants';
 import { WhirlpoolAprApy } from './WhirlpoolAprApy';
-import { aprToApy } from '../utils';
+import { aprToApy, getStrategyPriceRange, ZERO } from '../utils';
 
 export class OrcaService {
   private readonly _connection: Connection;
@@ -68,6 +68,24 @@ export class OrcaService {
     if (!pool || !whirlpool) {
       throw Error(`Could not get orca pool data for ${strategy.pool}`);
     }
+    const priceRange = getStrategyPriceRange(
+      position.tickLowerIndex,
+      position.tickUpperIndex,
+      Number(pool.price.toString()),
+      strategy
+    );
+    if (priceRange.strategyOutOfRange) {
+      return {
+        ...priceRange,
+        rewardsApy: [],
+        rewardsApr: [],
+        feeApy: ZERO,
+        feeApr: ZERO,
+        totalApy: ZERO,
+        totalApr: ZERO,
+      };
+    }
+
     const lpFeeRate = pool.feePercentage;
     const volume24hUsd = whirlpool?.volume?.day ?? new Decimal(0);
     const fee24Usd = new Decimal(volume24hUsd).mul(lpFeeRate).toNumber();
@@ -91,6 +109,7 @@ export class OrcaService {
       feeApy: aprToApy(feeApr, 365),
       rewardsApr,
       rewardsApy: rewardsApr.map((x) => aprToApy(x, 365)),
+      ...priceRange,
     };
   }
 }

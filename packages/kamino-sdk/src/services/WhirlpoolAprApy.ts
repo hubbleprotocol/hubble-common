@@ -7,16 +7,8 @@ export interface WhirlpoolAprApy {
   feeApy: Decimal;
   rewardsApr: Decimal[];
   rewardsApy: Decimal[];
-}
-
-export function getEmptyWhirlpoolAprApy(): WhirlpoolAprApy {
-  const zero = new Decimal(0);
-  return {
-    totalApr: zero,
-    feeApr: zero,
-    feeApy: zero,
-    totalApy: zero,
-    rewardsApr: [],
-    rewardsApy: [],
-  };
+  priceLower: Decimal;
+  priceUpper: Decimal;
+  poolPrice: Decimal;
+  strategyOutOfRange: boolean;
 }
