@@ -9,7 +9,7 @@ import { Scope, ScopeToken } from '@hubbleprotocol/scope-sdk';
 import { Position } from '../whirpools-client';
 import { getKaminoTokenName, getScopeTokenFromKaminoMints } from '../constants';
 import { WhirlpoolAprApy } from './WhirlpoolAprApy';
-import { aprToApy, getStrategyPriceRange, ZERO } from '../utils';
+import { aprToApy, getStrategyPriceRangeOrca, ZERO } from '../utils';
 
 export class OrcaService {
   private readonly _connection: Connection;
@@ -68,11 +68,11 @@ export class OrcaService {
     if (!pool || !whirlpool) {
       throw Error(`Could not get orca pool data for ${strategy.pool}`);
     }
-    const priceRange = getStrategyPriceRange(
+    const priceRange = getStrategyPriceRangeOrca(
       position.tickLowerIndex,
       position.tickUpperIndex,
-      Number(pool.price.toString()),
-      strategy
+      strategy,
+      new Decimal(pool.price.toString())
     );
     if (priceRange.strategyOutOfRange) {
       return {

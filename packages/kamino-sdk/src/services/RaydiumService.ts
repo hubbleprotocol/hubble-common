@@ -7,7 +7,7 @@ import { AmmV3, AmmV3PoolInfo } from '@raydium-io/raydium-sdk';
 import { WhirlpoolAprApy } from './WhirlpoolAprApy';
 import { PROGRAM_ID } from '../raydium_client/programId';
 import { WhirlpoolStrategy } from '../kamino-client';
-import { aprToApy, getStrategyPriceRange, ZERO } from '../utils';
+import { aprToApy, getStrategyPriceRangeRaydium, ZERO } from '../utils';
 import axios from 'axios';
 
 export class RaydiumService {
@@ -44,7 +44,7 @@ export class RaydiumService {
       throw Error(`Could not get find Raydium amm pool ${strategy.pool} from Raydium API`);
     }
 
-    const priceRange = getStrategyPriceRange(
+    const priceRange = getStrategyPriceRangeRaydium(
       position.tickLowerIndex,
       position.tickUpperIndex,
       Number(poolState.tickCurrent.toString()),

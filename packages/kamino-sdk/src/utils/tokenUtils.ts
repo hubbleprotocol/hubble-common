@@ -14,6 +14,7 @@ import { struct, u32, u8 } from '@project-serum/borsh';
 import { sleep } from './utils';
 import { WhirlpoolStrategy } from '../kamino-client';
 import { tickIndexToPrice } from '@orca-so/whirlpool-sdk';
+import Decimal from 'decimal.js';
 
 export const ASSOCIATED_TOKEN_PROGRAM_ID = new PublicKey('ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL');
 export const TOKEN_PROGRAM_ID = new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA');
@@ -127,12 +128,34 @@ export async function sendTransactionWithLogs(
   }
 }
 
-export function getStrategyPriceRange(
+export function getStrategyPriceRangeOrca(
+  tickLowerIndex: number,
+  tickUpperIndex: number,
+  strategy: WhirlpoolStrategy,
+  poolPrice: Decimal
+) {
+  const { priceLower, priceUpper } = getPriceLowerUpper(tickLowerIndex, tickUpperIndex, strategy);
+  const strategyOutOfRange = poolPrice.lt(priceLower) || poolPrice.gt(priceUpper);
+  return { priceLower, poolPrice, priceUpper, strategyOutOfRange };
+}
+
+export function getStrategyPriceRangeRaydium(
   tickLowerIndex: number,
   tickUpperIndex: number,
   tickCurrent: number,
   strategy: WhirlpoolStrategy
 ) {
+  const { priceLower, priceUpper } = getPriceLowerUpper(tickLowerIndex, tickUpperIndex, strategy);
+  const poolPrice = tickIndexToPrice(
+    tickCurrent,
+    Number(strategy.tokenAMintDecimals.toString()),
+    Number(strategy.tokenBMintDecimals.toString())
+  );
+  const strategyOutOfRange = poolPrice.lt(priceLower) || poolPrice.gt(priceUpper);
+  return { priceLower, poolPrice, priceUpper, strategyOutOfRange };
+}
+
+export function getPriceLowerUpper(tickLowerIndex: number, tickUpperIndex: number, strategy: WhirlpoolStrategy) {
   const priceLower = tickIndexToPrice(
     tickLowerIndex,
     Number(strategy.tokenAMintDecimals.toString()),
@@ -143,11 +166,5 @@ export function getStrategyPriceRange(
     Number(strategy.tokenAMintDecimals.toString()),
     Number(strategy.tokenBMintDecimals.toString())
   );
-  const poolPrice = tickIndexToPrice(
-    tickCurrent,
-    Number(strategy.tokenAMintDecimals.toString()),
-    Number(strategy.tokenBMintDecimals.toString())
-  );
-  const strategyOutOfRange = poolPrice.lt(priceLower) || poolPrice.gt(priceUpper);
-  return { priceLower, poolPrice, priceUpper, strategyOutOfRange };
+  return { priceLower, priceUpper };
 }
