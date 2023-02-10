@@ -85,7 +85,6 @@ export async function initializeRaydiumPool(
   const [tokenAVault, _bump2] = await getPoolVaultAddress(poolAddress, tokenMintA, RAYDIUM_PROGRAM_ID);
   const [tokenBVault, _bump3] = await getPoolVaultAddress(poolAddress, tokenMintB, RAYDIUM_PROGRAM_ID);
 
-  console.log("RAYDIUM_PROGRAM_ID", RAYDIUM_PROGRAM_ID.toString());
   {
     let createPoolArgs: RaydiumInstructions.CreatePoolArgs = {
       sqrtPriceX64: sqrtPriceX64InitialPrice,

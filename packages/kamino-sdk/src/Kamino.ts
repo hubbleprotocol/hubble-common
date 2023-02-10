@@ -848,8 +848,6 @@ export class Kamino {
     }
 
     const programAddresses = await this.getStrategyProgramAddresses(strategy, tokenMintA, tokenMintB);
-    console.log('SILVIU!! tokenACollateralId:', this.getCollateralId(tokenA));
-    console.log('tokenBCollateralId:', this.getCollateralId(tokenB));
 
     const strategyArgs: InitializeStrategyArgs = {
       tokenACollateralId: new BN(this.getCollateralId(tokenA)),
@@ -1359,7 +1357,7 @@ export class Kamino {
 
     let globalConfig = await GlobalConfig.fetch(this._connection, strategyState.globalConfig);
     if (globalConfig == null) {
-      throw new Error (`Unable to fetch GlobalConfig with Pubkey ${strategyState.globalConfig}`);
+      throw new Error(`Unable to fetch GlobalConfig with Pubkey ${strategyState.globalConfig}`);
     }
     const args: ExecutiveWithdrawArgs = {
       action: action.discriminator,

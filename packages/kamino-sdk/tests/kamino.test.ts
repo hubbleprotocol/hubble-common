@@ -31,6 +31,8 @@ import { expect } from 'chai';
 import { WHIRLPOOL_PROGRAM_ID } from '../src/whirpools-client/programId';
 
 export const LOCAL_RAYDIUM_PROGRAM_ID = new PublicKey('devi51mZmdwUJGU9hjN27vEz64Gps7uUefqxg27EAtH');
+export const USDH_SCOPE_CHAIN_ID = BigInt(12);
+export const USDC_SCOPE_CHAIN_ID = BigInt(20);
 
 describe('Kamino SDK Tests', () => {
   let connection: Connection;
@@ -99,7 +101,7 @@ describe('Kamino SDK Tests', () => {
       kamino._connection,
       signer,
       1,
-      BigInt(12),
+      USDH_SCOPE_CHAIN_ID,
       globalConfig,
       'USDH',
       BigInt(0),
@@ -111,14 +113,13 @@ describe('Kamino SDK Tests', () => {
       kamino._connection,
       signer,
       0,
-      BigInt(20),
+      USDC_SCOPE_CHAIN_ID,
       globalConfig,
       'USDC',
       BigInt(0),
       tokenBMint
     );
-    // await updateCollateralInfo(kamino, signer, globalConfig, 'USDH', tokenAMint);
-    // await updateCollateralInfo(kamino, signer, globalConfig, 'USDC', tokenBMint);
+
     await sleep(100);
     fixtures.tokenInfos = collateralInfo;
 
@@ -160,7 +161,7 @@ describe('Kamino SDK Tests', () => {
       signer.publicKey,
       newRaydiumStrategy.publicKey
     );
-    console.log('raydiumPool.pool', raydiumPool.pool.toString());
+
     createRaydiumTx.add(createRaydiumStrategyAccountIx);
     let raydiumStrategyIx = await kamino.createStrategy(
       newRaydiumStrategy.publicKey,
@@ -1138,39 +1139,6 @@ export function getGlobalConfigValue(value: PublicKey | bigint | boolean): numbe
   return [...buffer];
 }
 
-// export async function updateCollateralInfo(
-//   kamino: Kamino,
-//   owner: Keypair,
-//   globalConfig: PublicKey,
-//   collateralToken: SupportedToken,
-//   collateralMint: PublicKey
-// ) {
-//   let config: GlobalConfig | null = await GlobalConfig.fetch(kamino.getConnection(), globalConfig);
-//   if (config == null) {
-//     throw new Error('Global config not found');
-//   }
-
-//   let args: Instructions.UpdateCollateralInfoArgs = {
-//     index: new BN(kamino.getCollateralId(collateralToken)),
-//     mode: new BN(0),
-//     value: new BN(kamino.getCollateralId(collateralToken)),
-//   };
-
-//   console.log('config.tokenInfos', config.tokenInfos.toString());
-//   let accounts: Instructions.UpdateCollateralInfoAccounts = {
-//     adminAuthority: owner.publicKey,
-//     globalConfig,
-//     systemProgram: SystemProgram.programId,
-//     tokenInfos: config.tokenInfos,
-//     mint: collateralMint,
-//   };
-
-//   let ix = Instructions.updateCollateralInfo(args, accounts);
-//   const tx = new Transaction().add(ix);
-
-//   await sendTransactionWithLogs(kamino.getConnection(), tx, owner.publicKey, [owner], 'confirmed', true);
-// }
-
 export async function updateCollateralInfoForToken(
   connection: Connection,
   signer: Keypair,
@@ -1182,7 +1150,6 @@ export async function updateCollateralInfoForToken(
   tokenMint: PublicKey
 ) {
   // Set Mint
-  console.log('tokenMint', tokenMint.toString());
   await updateCollateralInfo(
     connection,
     signer,
