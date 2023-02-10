@@ -12,7 +12,7 @@ import {
 } from '@solana/web3.js';
 import { struct, u32, u8 } from '@project-serum/borsh';
 import { sleep } from './utils';
-import { WhirlpoolStrategy } from '../kamino-client';
+import { WhirlpoolStrategy } from '../kamino-client/accounts';
 import { tickIndexToPrice } from '@orca-so/whirlpool-sdk';
 import Decimal from 'decimal.js';
 
