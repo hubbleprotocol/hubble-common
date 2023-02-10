@@ -848,6 +848,9 @@ export class Kamino {
     }
 
     const programAddresses = await this.getStrategyProgramAddresses(strategy, tokenMintA, tokenMintB);
+    console.log('SILVIU!! tokenACollateralId:', this.getCollateralId(tokenA));
+    console.log('tokenBCollateralId:', this.getCollateralId(tokenB));
+
     const strategyArgs: InitializeStrategyArgs = {
       tokenACollateralId: new BN(this.getCollateralId(tokenA)),
       tokenBCollateralId: new BN(this.getCollateralId(tokenB)),
@@ -1354,6 +1357,10 @@ export class Kamino {
   async executiveWithdraw(strategy: PublicKey | StrategyWithAddress, action: ExecutiveWithdrawActionKind) {
     const { address: strategyPubkey, strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
 
+    let globalConfig = await GlobalConfig.fetch(this._connection, strategyState.globalConfig);
+    if (globalConfig == null) {
+      throw new Error (`Unable to fetch GlobalConfig with Pubkey ${strategyState.globalConfig}`);
+    }
     const args: ExecutiveWithdrawArgs = {
       action: action.discriminator,
     };
@@ -1383,6 +1390,7 @@ export class Kamino {
       raydiumProtocolPositionOrBaseVaultAuthority: strategyState.raydiumProtocolPositionOrBaseVaultAuthority,
       tokenProgram: TOKEN_PROGRAM_ID,
       poolProgram: programId,
+      tokenInfos: globalConfig?.tokenInfos,
     };
 
     return executiveWithdraw(args, accounts);

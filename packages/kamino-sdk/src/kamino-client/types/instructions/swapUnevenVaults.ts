@@ -4,74 +4,69 @@ import * as borsh from "@project-serum/borsh" // eslint-disable-line @typescript
 import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
 import { PROGRAM_ID } from "../programId"
 
-export interface ExecutiveWithdrawArgs {
-  action: number
+export interface SwapUnevenVaultsArgs {
+  targetLimitBps: BN
 }
 
-export interface ExecutiveWithdrawAccounts {
-  adminAuthority: PublicKey
+export interface SwapUnevenVaultsAccounts {
+  actionsAuthority: PublicKey
   strategy: PublicKey
   globalConfig: PublicKey
-  pool: PublicKey
-  position: PublicKey
-  raydiumProtocolPositionOrBaseVaultAuthority: PublicKey
-  positionTokenAccount: PublicKey
-  tickArrayLower: PublicKey
-  tickArrayUpper: PublicKey
   tokenAVault: PublicKey
   tokenBVault: PublicKey
   baseVaultAuthority: PublicKey
+  pool: PublicKey
+  position: PublicKey
+  raydiumPoolConfigOrBaseVaultAuthority: PublicKey
   poolTokenVaultA: PublicKey
   poolTokenVaultB: PublicKey
-  tokenAMint: PublicKey
-  tokenBMint: PublicKey
-  scopePrices: PublicKey
-  tokenInfos: PublicKey
-  tokenProgram: PublicKey
+  /** Payer must send this correctly. */
+  tickArray0: PublicKey
+  /** Payer must send this correctly. */
+  tickArray1: PublicKey
+  /** Payer must send this correctly. */
+  tickArray2: PublicKey
+  oracle: PublicKey
   poolProgram: PublicKey
+  scopePrices: PublicKey
+  tokenProgram: PublicKey
 }
 
-export const layout = borsh.struct([borsh.u8("action")])
+export const layout = borsh.struct([borsh.u64("targetLimitBps")])
 
-export function executiveWithdraw(
-  args: ExecutiveWithdrawArgs,
-  accounts: ExecutiveWithdrawAccounts
+export function swapUnevenVaults(
+  args: SwapUnevenVaultsArgs,
+  accounts: SwapUnevenVaultsAccounts
 ) {
   const keys: Array<AccountMeta> = [
-    { pubkey: accounts.adminAuthority, isSigner: true, isWritable: true },
+    { pubkey: accounts.actionsAuthority, isSigner: true, isWritable: true },
     { pubkey: accounts.strategy, isSigner: false, isWritable: true },
     { pubkey: accounts.globalConfig, isSigner: false, isWritable: false },
+    { pubkey: accounts.tokenAVault, isSigner: false, isWritable: true },
+    { pubkey: accounts.tokenBVault, isSigner: false, isWritable: true },
+    { pubkey: accounts.baseVaultAuthority, isSigner: false, isWritable: true },
     { pubkey: accounts.pool, isSigner: false, isWritable: true },
     { pubkey: accounts.position, isSigner: false, isWritable: true },
     {
-      pubkey: accounts.raydiumProtocolPositionOrBaseVaultAuthority,
-      isSigner: false,
-      isWritable: true,
-    },
-    {
-      pubkey: accounts.positionTokenAccount,
+      pubkey: accounts.raydiumPoolConfigOrBaseVaultAuthority,
       isSigner: false,
       isWritable: false,
     },
-    { pubkey: accounts.tickArrayLower, isSigner: false, isWritable: true },
-    { pubkey: accounts.tickArrayUpper, isSigner: false, isWritable: true },
-    { pubkey: accounts.tokenAVault, isSigner: false, isWritable: true },
-    { pubkey: accounts.tokenBVault, isSigner: false, isWritable: true },
-    { pubkey: accounts.baseVaultAuthority, isSigner: false, isWritable: false },
     { pubkey: accounts.poolTokenVaultA, isSigner: false, isWritable: true },
     { pubkey: accounts.poolTokenVaultB, isSigner: false, isWritable: true },
-    { pubkey: accounts.tokenAMint, isSigner: false, isWritable: true },
-    { pubkey: accounts.tokenBMint, isSigner: false, isWritable: true },
-    { pubkey: accounts.scopePrices, isSigner: false, isWritable: false },
-    { pubkey: accounts.tokenInfos, isSigner: false, isWritable: false },
-    { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
+    { pubkey: accounts.tickArray0, isSigner: false, isWritable: true },
+    { pubkey: accounts.tickArray1, isSigner: false, isWritable: true },
+    { pubkey: accounts.tickArray2, isSigner: false, isWritable: true },
+    { pubkey: accounts.oracle, isSigner: false, isWritable: false },
     { pubkey: accounts.poolProgram, isSigner: false, isWritable: false },
+    { pubkey: accounts.scopePrices, isSigner: false, isWritable: false },
+    { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
   ]
-  const identifier = Buffer.from([159, 39, 110, 137, 100, 234, 204, 141])
+  const identifier = Buffer.from([143, 212, 101, 95, 105, 209, 184, 1])
   const buffer = Buffer.alloc(1000)
   const len = layout.encode(
     {
-      action: args.action,
+      targetLimitBps: args.targetLimitBps,
     },
     buffer
   )

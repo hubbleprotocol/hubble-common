@@ -4,18 +4,17 @@ import * as borsh from "@project-serum/borsh" // eslint-disable-line @typescript
 import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
 import { PROGRAM_ID } from "../programId"
 
-export interface ExecutiveWithdrawArgs {
-  action: number
+export interface WithdrawArgs {
+  sharesAmount: BN
 }
 
-export interface ExecutiveWithdrawAccounts {
-  adminAuthority: PublicKey
+export interface WithdrawAccounts {
+  user: PublicKey
   strategy: PublicKey
   globalConfig: PublicKey
   pool: PublicKey
   position: PublicKey
   raydiumProtocolPositionOrBaseVaultAuthority: PublicKey
-  positionTokenAccount: PublicKey
   tickArrayLower: PublicKey
   tickArrayUpper: PublicKey
   tokenAVault: PublicKey
@@ -23,22 +22,27 @@ export interface ExecutiveWithdrawAccounts {
   baseVaultAuthority: PublicKey
   poolTokenVaultA: PublicKey
   poolTokenVaultB: PublicKey
+  tokenAAta: PublicKey
+  tokenBAta: PublicKey
   tokenAMint: PublicKey
   tokenBMint: PublicKey
-  scopePrices: PublicKey
-  tokenInfos: PublicKey
+  userSharesAta: PublicKey
+  sharesMint: PublicKey
+  sharesMintAuthority: PublicKey
+  treasuryFeeTokenAVault: PublicKey
+  treasuryFeeTokenBVault: PublicKey
+  treasuryFeeVaultAuthority: PublicKey
   tokenProgram: PublicKey
+  positionTokenAccount: PublicKey
   poolProgram: PublicKey
+  instructionSysvarAccount: PublicKey
 }
 
-export const layout = borsh.struct([borsh.u8("action")])
+export const layout = borsh.struct([borsh.u64("sharesAmount")])
 
-export function executiveWithdraw(
-  args: ExecutiveWithdrawArgs,
-  accounts: ExecutiveWithdrawAccounts
-) {
+export function withdraw(args: WithdrawArgs, accounts: WithdrawAccounts) {
   const keys: Array<AccountMeta> = [
-    { pubkey: accounts.adminAuthority, isSigner: true, isWritable: true },
+    { pubkey: accounts.user, isSigner: true, isWritable: true },
     { pubkey: accounts.strategy, isSigner: false, isWritable: true },
     { pubkey: accounts.globalConfig, isSigner: false, isWritable: false },
     { pubkey: accounts.pool, isSigner: false, isWritable: true },
@@ -48,11 +52,6 @@ export function executiveWithdraw(
       isSigner: false,
       isWritable: true,
     },
-    {
-      pubkey: accounts.positionTokenAccount,
-      isSigner: false,
-      isWritable: false,
-    },
     { pubkey: accounts.tickArrayLower, isSigner: false, isWritable: true },
     { pubkey: accounts.tickArrayUpper, isSigner: false, isWritable: true },
     { pubkey: accounts.tokenAVault, isSigner: false, isWritable: true },
@@ -60,18 +59,50 @@ export function executiveWithdraw(
     { pubkey: accounts.baseVaultAuthority, isSigner: false, isWritable: false },
     { pubkey: accounts.poolTokenVaultA, isSigner: false, isWritable: true },
     { pubkey: accounts.poolTokenVaultB, isSigner: false, isWritable: true },
-    { pubkey: accounts.tokenAMint, isSigner: false, isWritable: true },
-    { pubkey: accounts.tokenBMint, isSigner: false, isWritable: true },
-    { pubkey: accounts.scopePrices, isSigner: false, isWritable: false },
-    { pubkey: accounts.tokenInfos, isSigner: false, isWritable: false },
+    { pubkey: accounts.tokenAAta, isSigner: false, isWritable: true },
+    { pubkey: accounts.tokenBAta, isSigner: false, isWritable: true },
+    { pubkey: accounts.tokenAMint, isSigner: false, isWritable: false },
+    { pubkey: accounts.tokenBMint, isSigner: false, isWritable: false },
+    { pubkey: accounts.userSharesAta, isSigner: false, isWritable: true },
+    { pubkey: accounts.sharesMint, isSigner: false, isWritable: true },
+    {
+      pubkey: accounts.sharesMintAuthority,
+      isSigner: false,
+      isWritable: false,
+    },
+    {
+      pubkey: accounts.treasuryFeeTokenAVault,
+      isSigner: false,
+      isWritable: true,
+    },
+    {
+      pubkey: accounts.treasuryFeeTokenBVault,
+      isSigner: false,
+      isWritable: true,
+    },
+    {
+      pubkey: accounts.treasuryFeeVaultAuthority,
+      isSigner: false,
+      isWritable: false,
+    },
     { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
+    {
+      pubkey: accounts.positionTokenAccount,
+      isSigner: false,
+      isWritable: true,
+    },
     { pubkey: accounts.poolProgram, isSigner: false, isWritable: false },
+    {
+      pubkey: accounts.instructionSysvarAccount,
+      isSigner: false,
+      isWritable: false,
+    },
   ]
-  const identifier = Buffer.from([159, 39, 110, 137, 100, 234, 204, 141])
+  const identifier = Buffer.from([183, 18, 70, 156, 148, 109, 161, 34])
   const buffer = Buffer.alloc(1000)
   const len = layout.encode(
     {
-      action: args.action,
+      sharesAmount: args.sharesAmount,
     },
     buffer
   )

@@ -6,14 +6,21 @@ import {
   createTransactionWithExtraBudget,
   getAssociatedTokenAddressAndData,
 } from '../src';
-import { GlobalConfig } from '../src/kamino-client';
 import * as Instructions from '../src/kamino-client/instructions';
-import { GlobalConfigOption, GlobalConfigOptionKind } from '../src/kamino-client/types';
-import { SupportedToken } from '../../scope-sdk/src';
+import { GlobalConfigOption, GlobalConfigOptionKind, UpdateCollateralInfoMode } from '../src/kamino-client/types';
 import BN from 'bn.js';
 import { initializeRaydiumPool, orderMints } from './raydium_utils';
 import { initializeWhirlpool } from './orca_utils';
-import { createMint, createUser, mintTo, updateStrategyConfig, updateTreasuryFeeVault } from './utils';
+import {
+  createMint,
+  createUser,
+  DEFAULT_MAX_PRICE_AGE,
+  getCollInfoEncodedName,
+  mintTo,
+  updateCollateralInfo,
+  updateStrategyConfig,
+  updateTreasuryFeeVault,
+} from './utils';
 import {
   AllowDepositWithoutInvest,
   UpdateDepositCap,
@@ -86,8 +93,32 @@ describe('Kamino SDK Tests', () => {
 
     let collateralInfo = await setUpCollateralInfo(kamino, signer);
     await sleep(1000);
-    await updateCollateralInfo(kamino, signer, globalConfig, 'USDH', tokenAMint);
-    await updateCollateralInfo(kamino, signer, globalConfig, 'USDC', tokenBMint);
+
+    await updateCollateralInfoForToken(
+      // @ts-ignore
+      kamino._connection,
+      signer,
+      1,
+      BigInt(12),
+      globalConfig,
+      'USDH',
+      BigInt(0),
+      tokenAMint
+    );
+
+    await updateCollateralInfoForToken(
+      // @ts-ignore
+      kamino._connection,
+      signer,
+      0,
+      BigInt(20),
+      globalConfig,
+      'USDC',
+      BigInt(0),
+      tokenBMint
+    );
+    // await updateCollateralInfo(kamino, signer, globalConfig, 'USDH', tokenAMint);
+    // await updateCollateralInfo(kamino, signer, globalConfig, 'USDC', tokenBMint);
     await sleep(100);
     fixtures.tokenInfos = collateralInfo;
 
@@ -129,6 +160,7 @@ describe('Kamino SDK Tests', () => {
       signer.publicKey,
       newRaydiumStrategy.publicKey
     );
+    console.log('raydiumPool.pool', raydiumPool.pool.toString());
     createRaydiumTx.add(createRaydiumStrategyAccountIx);
     let raydiumStrategyIx = await kamino.createStrategy(
       newRaydiumStrategy.publicKey,
@@ -177,14 +209,14 @@ describe('Kamino SDK Tests', () => {
       signer,
       fixtures.newOrcaStrategy,
       new UpdateDepositCapIxn(),
-      new Decimal(100000000000)
+      new Decimal(1000000000000000)
     );
     await updateStrategyConfig(
       connection,
       signer,
       fixtures.newOrcaStrategy,
       new UpdateDepositCap(),
-      new Decimal(100000000000)
+      new Decimal(10000000000000000)
     );
     await updateStrategyConfig(
       connection,
@@ -206,14 +238,14 @@ describe('Kamino SDK Tests', () => {
       signer,
       fixtures.newRaydiumStrategy,
       new UpdateDepositCapIxn(),
-      new Decimal(1000000000)
+      new Decimal(100000000000000)
     );
     await updateStrategyConfig(
       connection,
       signer,
       fixtures.newRaydiumStrategy,
       new UpdateDepositCap(),
-      new Decimal(1000000000)
+      new Decimal(100000000000000)
     );
     await updateStrategyConfig(
       connection,
@@ -385,7 +417,7 @@ describe('Kamino SDK Tests', () => {
       throw new Error(`Could not fetch strategy for pubkey ${fixtures.newOrcaStrategy.toString()}`);
     }
 
-    let tx = createTransactionWithExtraBudget(signer.publicKey);
+    let tx = createTransactionWithExtraBudget(signer.publicKey, 12000000);
     const [sharesAta, sharesMintData] = await getAssociatedTokenAddressAndData(
       connection,
       strategyState.sharesMint,
@@ -426,7 +458,7 @@ describe('Kamino SDK Tests', () => {
     await sleep(5000);
 
     let depositIx = await kamino.deposit(fixtures.newOrcaStrategy, usdcDeposit, usdhDeposit, signer.publicKey);
-    let depositTx = createTransactionWithExtraBudget(signer.publicKey);
+    let depositTx = createTransactionWithExtraBudget(signer.publicKey, 1200000);
     depositTx.add(depositIx);
     sendTransactionWithLogs(connection, depositTx, signer.publicKey, [signer]);
 
@@ -435,7 +467,7 @@ describe('Kamino SDK Tests', () => {
 
     let withdrawTx = createTransactionWithExtraBudget(signer.publicKey);
 
-    const withdrawIx = await kamino.withdrawShares(strategyWithAddress, new Decimal(0.002), signer.publicKey);
+    const withdrawIx = await kamino.withdrawShares(strategyWithAddress, new Decimal(0.02), signer.publicKey);
     withdrawTx.add(withdrawIx);
 
     withdrawTx = await assignBlockInfoToTransaction(connection, withdrawTx, signer.publicKey);
@@ -539,7 +571,7 @@ describe('Kamino SDK Tests', () => {
       usdhAirdropAmount
     );
 
-    let tx = createTransactionWithExtraBudget(user.owner.publicKey);
+    let tx = createTransactionWithExtraBudget(user.owner.publicKey, 1200000);
 
     const depositIx = await kamino.deposit(strategyWithAddress, new Decimal(1), new Decimal(2), user.owner.publicKey);
     tx.add(depositIx);
@@ -651,7 +683,7 @@ describe('Kamino SDK Tests', () => {
       usdhAirdropAmount
     );
 
-    let tx = createTransactionWithExtraBudget(user.owner.publicKey);
+    let tx = createTransactionWithExtraBudget(user.owner.publicKey, 1200000);
 
     const depositIx = await kamino.deposit(strategyWithAddress, new Decimal(1), new Decimal(2), user.owner.publicKey);
     tx.add(depositIx);
@@ -898,42 +930,6 @@ describe('Kamino SDK Tests', () => {
   });
 });
 
-export async function setUpEnvironmentForWhirlpool(
-  kamino: Kamino,
-  owner: Keypair,
-  whirlpool: PublicKey,
-  scopeProgramId: PublicKey,
-  scopePrices: PublicKey
-) {
-  // Setup (this is not required on devnet/mainnet)
-  let globalConfig = await setUpGlobalConfig(kamino, owner, scopeProgramId, scopePrices);
-
-  let whirlpoolState = await kamino.getWhirlpoolByAddress(whirlpool);
-  expect(whirlpoolState).to.not.be.null;
-
-  await setUpCollateralInfo(kamino, owner);
-  await updateCollateralInfo(kamino, owner, globalConfig, 'USDH', whirlpoolState!!.tokenMintA);
-  await updateCollateralInfo(kamino, owner, globalConfig, 'USDC', whirlpoolState!!.tokenMintB);
-}
-
-export async function setUpEnvironmentForRaydium(
-  kamino: Kamino,
-  owner: Keypair,
-  pool: PublicKey,
-  scopeProgramId: PublicKey,
-  scopePrices: PublicKey
-) {
-  // Setup (this is not required on devnet/mainnet)
-  let globalConfig = await setUpGlobalConfig(kamino, owner, scopeProgramId, scopePrices);
-
-  let poolState = await kamino.getRaydiumPoollByAddress(pool);
-  expect(poolState).to.not.be.null;
-
-  await setUpCollateralInfo(kamino, owner);
-  await updateCollateralInfo(kamino, owner, globalConfig, 'USDH', poolState!!.tokenMint0);
-  await updateCollateralInfo(kamino, owner, globalConfig, 'USDC', poolState!!.tokenMint1);
-}
-
 export async function createStrategy(kamino: Kamino, owner: Keypair, pool: PublicKey, dex: Dex): Promise<PublicKey> {
   // Create strategy
   const newStrategy = Keypair.generate();
@@ -1142,35 +1138,107 @@ export function getGlobalConfigValue(value: PublicKey | bigint | boolean): numbe
   return [...buffer];
 }
 
-export async function updateCollateralInfo(
-  kamino: Kamino,
-  owner: Keypair,
+// export async function updateCollateralInfo(
+//   kamino: Kamino,
+//   owner: Keypair,
+//   globalConfig: PublicKey,
+//   collateralToken: SupportedToken,
+//   collateralMint: PublicKey
+// ) {
+//   let config: GlobalConfig | null = await GlobalConfig.fetch(kamino.getConnection(), globalConfig);
+//   if (config == null) {
+//     throw new Error('Global config not found');
+//   }
+
+//   let args: Instructions.UpdateCollateralInfoArgs = {
+//     index: new BN(kamino.getCollateralId(collateralToken)),
+//     mode: new BN(0),
+//     value: new BN(kamino.getCollateralId(collateralToken)),
+//   };
+
+//   console.log('config.tokenInfos', config.tokenInfos.toString());
+//   let accounts: Instructions.UpdateCollateralInfoAccounts = {
+//     adminAuthority: owner.publicKey,
+//     globalConfig,
+//     systemProgram: SystemProgram.programId,
+//     tokenInfos: config.tokenInfos,
+//     mint: collateralMint,
+//   };
+
+//   let ix = Instructions.updateCollateralInfo(args, accounts);
+//   const tx = new Transaction().add(ix);
+
+//   await sendTransactionWithLogs(kamino.getConnection(), tx, owner.publicKey, [owner], 'confirmed', true);
+// }
+
+export async function updateCollateralInfoForToken(
+  connection: Connection,
+  signer: Keypair,
+  collTokenIndex: number,
+  scopeChainId: bigint,
   globalConfig: PublicKey,
-  collateralToken: SupportedToken,
-  collateralMint: PublicKey
+  collateralToken: string,
+  collInfoTwapId: bigint,
+  tokenMint: PublicKey
 ) {
-  let config: GlobalConfig | null = await GlobalConfig.fetch(kamino.getConnection(), globalConfig);
-  if (config == null) {
-    throw new Error('Global config not found');
-  }
-
-  let args: Instructions.UpdateCollateralInfoArgs = {
-    index: new BN(kamino.getCollateralId(collateralToken)),
-    mode: new BN(0),
-    value: new BN(kamino.getCollateralId(collateralToken)),
-  };
-
-  console.log('config.tokenInfos', config.tokenInfos.toString());
-  let accounts: Instructions.UpdateCollateralInfoAccounts = {
-    adminAuthority: owner.publicKey,
+  // Set Mint
+  console.log('tokenMint', tokenMint.toString());
+  await updateCollateralInfo(
+    connection,
+    signer,
     globalConfig,
-    systemProgram: SystemProgram.programId,
-    tokenInfos: config.tokenInfos,
-    mint: collateralMint,
-  };
+    collTokenIndex,
+    new UpdateCollateralInfoMode.CollateralId(),
+    tokenMint
+  );
 
-  let ix = Instructions.updateCollateralInfo(args, accounts);
-  const tx = new Transaction().add(ix);
+  // Set Label
+  await updateCollateralInfo(
+    connection,
+    signer,
+    globalConfig,
+    collTokenIndex,
+    new UpdateCollateralInfoMode.UpdateName(),
+    getCollInfoEncodedName(collateralToken)
+  );
 
-  await sendTransactionWithLogs(kamino.getConnection(), tx, owner.publicKey, [owner], 'confirmed', true);
+  // Set Twap
+  await updateCollateralInfo(
+    connection,
+    signer,
+    globalConfig,
+    collTokenIndex,
+    new UpdateCollateralInfoMode.UpdateScopeTwap(),
+    collInfoTwapId
+  );
+
+  // Set Scope Chain
+  await updateCollateralInfo(
+    connection,
+    signer,
+    globalConfig,
+    collTokenIndex,
+    new UpdateCollateralInfoMode.UpdateScopeChain(),
+    scopeChainId
+  );
+
+  // Set Twap Max Age
+  await updateCollateralInfo(
+    connection,
+    signer,
+    globalConfig,
+    collTokenIndex,
+    new UpdateCollateralInfoMode.UpdateTwapMaxAge(),
+    BigInt(DEFAULT_MAX_PRICE_AGE)
+  );
+
+  // Set Price Max Age
+  await updateCollateralInfo(
+    connection,
+    signer,
+    globalConfig,
+    collTokenIndex,
+    new UpdateCollateralInfoMode.UpdatePriceMaxAge(),
+    BigInt(DEFAULT_MAX_PRICE_AGE)
+  );
 }

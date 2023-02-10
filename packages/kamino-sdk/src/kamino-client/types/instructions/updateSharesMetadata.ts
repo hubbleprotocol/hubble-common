@@ -4,40 +4,52 @@ import * as borsh from "@project-serum/borsh" // eslint-disable-line @typescript
 import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
 import { PROGRAM_ID } from "../programId"
 
-export interface UpdateCollateralInfoArgs {
-  index: BN
-  mode: BN
-  value: Array<number>
+export interface UpdateSharesMetadataArgs {
+  name: string
+  symbol: string
+  uri: string
 }
 
-export interface UpdateCollateralInfoAccounts {
+export interface UpdateSharesMetadataAccounts {
   adminAuthority: PublicKey
+  strategy: PublicKey
   globalConfig: PublicKey
-  tokenInfos: PublicKey
+  sharesMint: PublicKey
+  sharesMetadata: PublicKey
+  sharesMintAuthority: PublicKey
+  metadataProgram: PublicKey
 }
 
 export const layout = borsh.struct([
-  borsh.u64("index"),
-  borsh.u64("mode"),
-  borsh.array(borsh.u8(), 32, "value"),
+  borsh.str("name"),
+  borsh.str("symbol"),
+  borsh.str("uri"),
 ])
 
-export function updateCollateralInfo(
-  args: UpdateCollateralInfoArgs,
-  accounts: UpdateCollateralInfoAccounts
+export function updateSharesMetadata(
+  args: UpdateSharesMetadataArgs,
+  accounts: UpdateSharesMetadataAccounts
 ) {
   const keys: Array<AccountMeta> = [
     { pubkey: accounts.adminAuthority, isSigner: true, isWritable: true },
+    { pubkey: accounts.strategy, isSigner: false, isWritable: false },
     { pubkey: accounts.globalConfig, isSigner: false, isWritable: false },
-    { pubkey: accounts.tokenInfos, isSigner: false, isWritable: true },
+    { pubkey: accounts.sharesMint, isSigner: false, isWritable: false },
+    { pubkey: accounts.sharesMetadata, isSigner: false, isWritable: true },
+    {
+      pubkey: accounts.sharesMintAuthority,
+      isSigner: false,
+      isWritable: false,
+    },
+    { pubkey: accounts.metadataProgram, isSigner: false, isWritable: false },
   ]
-  const identifier = Buffer.from([76, 94, 131, 44, 137, 61, 161, 110])
+  const identifier = Buffer.from([155, 34, 122, 165, 245, 137, 147, 107])
   const buffer = Buffer.alloc(1000)
   const len = layout.encode(
     {
-      index: args.index,
-      mode: args.mode,
-      value: args.value,
+      name: args.name,
+      symbol: args.symbol,
+      uri: args.uri,
     },
     buffer
   )

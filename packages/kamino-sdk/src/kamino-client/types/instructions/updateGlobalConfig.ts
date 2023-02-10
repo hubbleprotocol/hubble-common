@@ -4,39 +4,39 @@ import * as borsh from "@project-serum/borsh" // eslint-disable-line @typescript
 import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
 import { PROGRAM_ID } from "../programId"
 
-export interface UpdateCollateralInfoArgs {
-  index: BN
-  mode: BN
+export interface UpdateGlobalConfigArgs {
+  key: number
+  index: number
   value: Array<number>
 }
 
-export interface UpdateCollateralInfoAccounts {
+export interface UpdateGlobalConfigAccounts {
   adminAuthority: PublicKey
   globalConfig: PublicKey
-  tokenInfos: PublicKey
+  systemProgram: PublicKey
 }
 
 export const layout = borsh.struct([
-  borsh.u64("index"),
-  borsh.u64("mode"),
+  borsh.u16("key"),
+  borsh.u16("index"),
   borsh.array(borsh.u8(), 32, "value"),
 ])
 
-export function updateCollateralInfo(
-  args: UpdateCollateralInfoArgs,
-  accounts: UpdateCollateralInfoAccounts
+export function updateGlobalConfig(
+  args: UpdateGlobalConfigArgs,
+  accounts: UpdateGlobalConfigAccounts
 ) {
   const keys: Array<AccountMeta> = [
-    { pubkey: accounts.adminAuthority, isSigner: true, isWritable: true },
-    { pubkey: accounts.globalConfig, isSigner: false, isWritable: false },
-    { pubkey: accounts.tokenInfos, isSigner: false, isWritable: true },
+    { pubkey: accounts.adminAuthority, isSigner: true, isWritable: false },
+    { pubkey: accounts.globalConfig, isSigner: false, isWritable: true },
+    { pubkey: accounts.systemProgram, isSigner: false, isWritable: false },
   ]
-  const identifier = Buffer.from([76, 94, 131, 44, 137, 61, 161, 110])
+  const identifier = Buffer.from([164, 84, 130, 189, 111, 58, 250, 200])
   const buffer = Buffer.alloc(1000)
   const len = layout.encode(
     {
+      key: args.key,
       index: args.index,
-      mode: args.mode,
       value: args.value,
     },
     buffer

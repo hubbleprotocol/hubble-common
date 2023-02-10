@@ -4,44 +4,38 @@ import * as borsh from "@project-serum/borsh" // eslint-disable-line @typescript
 import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
 import { PROGRAM_ID } from "../programId"
 
-export interface ExecutiveWithdrawArgs {
-  action: number
-}
-
-export interface ExecutiveWithdrawAccounts {
-  adminAuthority: PublicKey
+export interface InvestAccounts {
+  payer: PublicKey
   strategy: PublicKey
   globalConfig: PublicKey
-  pool: PublicKey
-  position: PublicKey
-  raydiumProtocolPositionOrBaseVaultAuthority: PublicKey
-  positionTokenAccount: PublicKey
-  tickArrayLower: PublicKey
-  tickArrayUpper: PublicKey
   tokenAVault: PublicKey
   tokenBVault: PublicKey
   baseVaultAuthority: PublicKey
+  pool: PublicKey
+  tokenProgram: PublicKey
+  position: PublicKey
+  raydiumProtocolPositionOrBaseVaultAuthority: PublicKey
+  positionTokenAccount: PublicKey
   poolTokenVaultA: PublicKey
   poolTokenVaultB: PublicKey
-  tokenAMint: PublicKey
-  tokenBMint: PublicKey
+  tickArrayLower: PublicKey
+  tickArrayUpper: PublicKey
   scopePrices: PublicKey
   tokenInfos: PublicKey
-  tokenProgram: PublicKey
   poolProgram: PublicKey
+  instructionSysvarAccount: PublicKey
 }
 
-export const layout = borsh.struct([borsh.u8("action")])
-
-export function executiveWithdraw(
-  args: ExecutiveWithdrawArgs,
-  accounts: ExecutiveWithdrawAccounts
-) {
+export function invest(accounts: InvestAccounts) {
   const keys: Array<AccountMeta> = [
-    { pubkey: accounts.adminAuthority, isSigner: true, isWritable: true },
+    { pubkey: accounts.payer, isSigner: true, isWritable: true },
     { pubkey: accounts.strategy, isSigner: false, isWritable: true },
     { pubkey: accounts.globalConfig, isSigner: false, isWritable: false },
+    { pubkey: accounts.tokenAVault, isSigner: false, isWritable: true },
+    { pubkey: accounts.tokenBVault, isSigner: false, isWritable: true },
+    { pubkey: accounts.baseVaultAuthority, isSigner: false, isWritable: true },
     { pubkey: accounts.pool, isSigner: false, isWritable: true },
+    { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.position, isSigner: false, isWritable: true },
     {
       pubkey: accounts.raydiumProtocolPositionOrBaseVaultAuthority,
@@ -51,31 +45,23 @@ export function executiveWithdraw(
     {
       pubkey: accounts.positionTokenAccount,
       isSigner: false,
-      isWritable: false,
+      isWritable: true,
     },
-    { pubkey: accounts.tickArrayLower, isSigner: false, isWritable: true },
-    { pubkey: accounts.tickArrayUpper, isSigner: false, isWritable: true },
-    { pubkey: accounts.tokenAVault, isSigner: false, isWritable: true },
-    { pubkey: accounts.tokenBVault, isSigner: false, isWritable: true },
-    { pubkey: accounts.baseVaultAuthority, isSigner: false, isWritable: false },
     { pubkey: accounts.poolTokenVaultA, isSigner: false, isWritable: true },
     { pubkey: accounts.poolTokenVaultB, isSigner: false, isWritable: true },
-    { pubkey: accounts.tokenAMint, isSigner: false, isWritable: true },
-    { pubkey: accounts.tokenBMint, isSigner: false, isWritable: true },
+    { pubkey: accounts.tickArrayLower, isSigner: false, isWritable: true },
+    { pubkey: accounts.tickArrayUpper, isSigner: false, isWritable: true },
     { pubkey: accounts.scopePrices, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenInfos, isSigner: false, isWritable: false },
-    { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.poolProgram, isSigner: false, isWritable: false },
-  ]
-  const identifier = Buffer.from([159, 39, 110, 137, 100, 234, 204, 141])
-  const buffer = Buffer.alloc(1000)
-  const len = layout.encode(
     {
-      action: args.action,
+      pubkey: accounts.instructionSysvarAccount,
+      isSigner: false,
+      isWritable: false,
     },
-    buffer
-  )
-  const data = Buffer.concat([identifier, buffer]).slice(0, 8 + len)
+  ]
+  const identifier = Buffer.from([13, 245, 180, 103, 254, 182, 121, 4])
+  const data = identifier
   const ix = new TransactionInstruction({ keys, programId: PROGRAM_ID, data })
   return ix
 }

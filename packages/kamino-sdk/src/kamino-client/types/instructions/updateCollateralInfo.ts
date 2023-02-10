@@ -7,19 +7,21 @@ import { PROGRAM_ID } from "../programId"
 export interface UpdateCollateralInfoArgs {
   index: BN
   mode: BN
-  value: Array<number>
+  value: BN
 }
 
 export interface UpdateCollateralInfoAccounts {
   adminAuthority: PublicKey
   globalConfig: PublicKey
   tokenInfos: PublicKey
+  mint: PublicKey
+  systemProgram: PublicKey
 }
 
 export const layout = borsh.struct([
   borsh.u64("index"),
   borsh.u64("mode"),
-  borsh.array(borsh.u8(), 32, "value"),
+  borsh.u64("value"),
 ])
 
 export function updateCollateralInfo(
@@ -30,6 +32,8 @@ export function updateCollateralInfo(
     { pubkey: accounts.adminAuthority, isSigner: true, isWritable: true },
     { pubkey: accounts.globalConfig, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenInfos, isSigner: false, isWritable: true },
+    { pubkey: accounts.mint, isSigner: false, isWritable: false },
+    { pubkey: accounts.systemProgram, isSigner: false, isWritable: false },
   ]
   const identifier = Buffer.from([76, 94, 131, 44, 137, 61, 161, 110])
   const buffer = Buffer.alloc(1000)

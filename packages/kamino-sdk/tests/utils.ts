@@ -1,6 +1,6 @@
-import { Connection, Keypair, PublicKey } from '@solana/web3.js';
+import { Connection, Keypair, PublicKey, sendAndConfirmTransaction } from '@solana/web3.js';
 import * as anchor from '@project-serum/anchor';
-import { StrategyConfigOptionKind } from '../src/kamino-client/types';
+import { CollateralInfos, StrategyConfigOptionKind, UpdateCollateralInfoModeKind } from '../src/kamino-client/types';
 import * as Instructions from '../src/kamino-client/instructions';
 import { Transaction, TransactionInstruction } from '@solana/web3.js';
 import { Token } from '@solana/spl-token';
@@ -20,8 +20,10 @@ import { getTickArrayPubkeysFromRangeRaydium } from './raydium_utils';
 import { getTickArrayPubkeysFromRangeOrca } from './orca_utils';
 import { TokenInstructions } from '@project-serum/serum';
 import { collateralTokenToNumber, CollateralToken } from './token_utils';
+import { ScopeToken } from '@hubbleprotocol/scope-sdk';
 
-const GLOBAL_CONFIG_SIZE = 26832;
+// Seconds
+export const DEFAULT_MAX_PRICE_AGE = 60 * 3;
 
 export async function accountExist(connection: anchor.web3.Connection, account: anchor.web3.PublicKey) {
   const info = await connection.getAccountInfo(account);
@@ -358,4 +360,114 @@ export interface User {
   tokenAAta: PublicKey;
   tokenBAta: PublicKey;
   sharesAta: PublicKey;
+}
+
+export function getCollInfoEncodedName(token: string): Uint8Array {
+  let maxArray = new Uint8Array(32);
+  let s: Uint8Array = new TextEncoder().encode(token);
+  maxArray.set(s);
+  return maxArray;
+}
+
+export async function updateCollateralInfo(
+  connection: Connection,
+  signer: Keypair,
+  globalConfig: PublicKey,
+  collateralToken: CollateralToken | number,
+  mode: UpdateCollateralInfoModeKind,
+  value: bigint | PublicKey | Uint16Array | Uint8Array
+) {
+  console.log("Mode ", mode.discriminator);
+  console.log("value", value);
+  let config: GlobalConfig | null = await GlobalConfig.fetch(connection, globalConfig);
+  if (config == null) {
+    throw new Error('Global config not found');
+  }
+
+  let collateralNumber: number;
+  if (typeof collateralToken == 'number') {
+    collateralNumber = collateralToken;
+  } else {
+    let collInfos = await CollateralInfos.fetch(connection, new PublicKey(config.tokenInfos));
+    if (collInfos == null) {
+      throw new Error('CollateralInfos config not found');
+    }
+
+    collateralNumber = collateralTokenToNumber(collateralToken);
+  }
+  let argValue = toCollateralInfoValue(value);
+
+  console.log(
+    `UpdateCollateralInfo`,
+    mode.toJSON(),
+    `for ${collateralToken} with value ${value} encoded as ${argValue}`
+  );
+
+  let args: Instructions.UpdateCollateralInfoArgs = {
+    index: new anchor.BN(collateralNumber),
+    mode: new anchor.BN(mode.discriminator),
+    value: argValue,
+  };
+
+  let accounts: Instructions.UpdateCollateralInfoAccounts = {
+    adminAuthority: config.adminAuthority,
+    globalConfig,
+    tokenInfos: config.tokenInfos,
+  };
+
+  const tx = new Transaction();
+  let ix = Instructions.updateCollateralInfo(args, accounts);
+  let { blockhash } = await connection.getLatestBlockhash();
+  tx.recentBlockhash = blockhash;
+  tx.feePayer = config.adminAuthority;
+  tx.add(ix);
+
+  let sig = await sendAndConfirmTransaction(connection, tx, [signer]);
+  console.log('Update Collateral Info txn: ' + sig.toString());
+}
+
+export function toCollateralInfoValue(value: bigint | PublicKey | Uint16Array | Uint8Array): number[] {
+  console.log('value', value);
+  let buffer: Buffer;
+  if (typeof value === 'bigint') {
+    buffer = Buffer.alloc(32);
+    buffer.writeBigUInt64LE(value); // Because we send 32 bytes and a u64 has 8 bytes, we write it in LE
+  } else if (value.constructor === Uint16Array) {
+    buffer = Buffer.alloc(32);
+    let val = u16ArrayToU8Array(value);
+    for (let i = 0; i < val.length; i++) {
+      buffer[i] = value[i];
+    }
+  } else if (value.constructor === Uint8Array) {
+    buffer = Buffer.alloc(32);
+    for (let i = 0; i < value.length; i++) {
+      buffer[i] = value[i];
+    }
+  } else if (value.constructor === PublicKey) {
+    buffer = value.toBuffer(); // PublicKey, the previous if statement wasn't seeing value as an instance of PublicKey anymore (?)
+  } else {
+    throw 'Bad type ' + value;
+  }
+  return [...buffer];
+}
+
+export function u16ArrayToU8Array(x: Uint16Array): Uint8Array {
+  let arr: number[] = [];
+  for (let v of x) {
+    const buffer = Buffer.alloc(2);
+    buffer.writeUInt16LE(v);
+    let bytes = Array.from(buffer);
+    arr.push(...(bytes as number[]));
+  }
+
+  let uint8array = new Uint8Array(arr.flat());
+  return uint8array;
+}
+
+export function getCollInfoEncodedChain(token: number): Uint8Array {
+  const u16MAX = 65535;
+  let chain = [token, u16MAX, u16MAX, u16MAX];
+
+  let encodedChain = u16ArrayToU8Array(Uint16Array.from(chain));
+  return encodedChain;
 }
