@@ -377,8 +377,8 @@ export async function updateCollateralInfo(
   mode: UpdateCollateralInfoModeKind,
   value: bigint | PublicKey | Uint16Array | Uint8Array
 ) {
-  console.log("Mode ", mode.discriminator);
-  console.log("value", value);
+  console.log('Mode ', mode.discriminator);
+  console.log('value', value);
   let config: GlobalConfig | null = await GlobalConfig.fetch(connection, globalConfig);
   if (config == null) {
     throw new Error('Global config not found');
