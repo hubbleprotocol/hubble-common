@@ -30,6 +30,7 @@ export interface SwapRewardsAccounts {
   userTokenBAta: PublicKey
   userRewardTokenAccount: PublicKey
   scopePrices: PublicKey
+  tokenInfos: PublicKey
   systemProgram: PublicKey
   tokenProgram: PublicKey
   instructionSysvarAccount: PublicKey
@@ -81,6 +82,7 @@ export function swapRewards(
       isWritable: true,
     },
     { pubkey: accounts.scopePrices, isSigner: false, isWritable: false },
+    { pubkey: accounts.tokenInfos, isSigner: false, isWritable: false },
     { pubkey: accounts.systemProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
     {

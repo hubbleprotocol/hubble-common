@@ -62,7 +62,8 @@ export interface WhirlpoolStrategyFields {
   withdrawalCapA: types.WithdrawalCapsFields
   withdrawalCapB: types.WithdrawalCapsFields
   maxPriceDeviationBps: BN
-  swapVaultMaxSlippage: BN
+  swapVaultMaxSlippageBps: number
+  swapVaultMaxSlippageFromReferenceBps: number
   strategyType: BN
   depositFee: BN
   withdrawFee: BN
@@ -74,22 +75,23 @@ export interface WhirlpoolStrategyFields {
   kaminoRewards: Array<types.KaminoRewardInfoFields>
   strategyDex: BN
   raydiumProtocolPositionOrBaseVaultAuthority: PublicKey
-  blockDeposit: BN
+  allowDepositWithoutInvest: BN
   raydiumPoolConfigOrBaseVaultAuthority: PublicKey
   depositBlocked: number
-  reservedFlag0: number
+  creationStatus: number
   investBlocked: number
   reservedFlag1: number
   withdrawBlocked: number
   reservedFlag2: number
   localAdminBlocked: number
   flashVaultSwapAllowed: number
+  referenceSwapPriceA: types.PriceFields
+  referenceSwapPriceB: types.PriceFields
   padding1: Array<BN>
   padding2: Array<BN>
   padding3: Array<BN>
   padding4: Array<BN>
   padding5: Array<BN>
-  padding6: Array<BN>
 }
 
 export interface WhirlpoolStrategyJSON {
@@ -150,7 +152,8 @@ export interface WhirlpoolStrategyJSON {
   withdrawalCapA: types.WithdrawalCapsJSON
   withdrawalCapB: types.WithdrawalCapsJSON
   maxPriceDeviationBps: string
-  swapVaultMaxSlippage: string
+  swapVaultMaxSlippageBps: number
+  swapVaultMaxSlippageFromReferenceBps: number
   strategyType: string
   depositFee: string
   withdrawFee: string
@@ -162,22 +165,23 @@ export interface WhirlpoolStrategyJSON {
   kaminoRewards: Array<types.KaminoRewardInfoJSON>
   strategyDex: string
   raydiumProtocolPositionOrBaseVaultAuthority: string
-  blockDeposit: string
+  allowDepositWithoutInvest: string
   raydiumPoolConfigOrBaseVaultAuthority: string
   depositBlocked: number
-  reservedFlag0: number
+  creationStatus: number
   investBlocked: number
   reservedFlag1: number
   withdrawBlocked: number
   reservedFlag2: number
   localAdminBlocked: number
   flashVaultSwapAllowed: number
+  referenceSwapPriceA: types.PriceJSON
+  referenceSwapPriceB: types.PriceJSON
   padding1: Array<string>
   padding2: Array<string>
   padding3: Array<string>
   padding4: Array<string>
   padding5: Array<string>
-  padding6: Array<string>
 }
 
 export class WhirlpoolStrategy {
@@ -238,7 +242,8 @@ export class WhirlpoolStrategy {
   readonly withdrawalCapA: types.WithdrawalCaps
   readonly withdrawalCapB: types.WithdrawalCaps
   readonly maxPriceDeviationBps: BN
-  readonly swapVaultMaxSlippage: BN
+  readonly swapVaultMaxSlippageBps: number
+  readonly swapVaultMaxSlippageFromReferenceBps: number
   readonly strategyType: BN
   readonly depositFee: BN
   readonly withdrawFee: BN
@@ -250,22 +255,23 @@ export class WhirlpoolStrategy {
   readonly kaminoRewards: Array<types.KaminoRewardInfo>
   readonly strategyDex: BN
   readonly raydiumProtocolPositionOrBaseVaultAuthority: PublicKey
-  readonly blockDeposit: BN
+  readonly allowDepositWithoutInvest: BN
   readonly raydiumPoolConfigOrBaseVaultAuthority: PublicKey
   readonly depositBlocked: number
-  readonly reservedFlag0: number
+  readonly creationStatus: number
   readonly investBlocked: number
   readonly reservedFlag1: number
   readonly withdrawBlocked: number
   readonly reservedFlag2: number
   readonly localAdminBlocked: number
   readonly flashVaultSwapAllowed: number
+  readonly referenceSwapPriceA: types.Price
+  readonly referenceSwapPriceB: types.Price
   readonly padding1: Array<BN>
   readonly padding2: Array<BN>
   readonly padding3: Array<BN>
   readonly padding4: Array<BN>
   readonly padding5: Array<BN>
-  readonly padding6: Array<BN>
 
   static readonly discriminator = Buffer.from([
     190, 178, 231, 184, 49, 186, 103, 13,
@@ -329,7 +335,8 @@ export class WhirlpoolStrategy {
     types.WithdrawalCaps.layout("withdrawalCapA"),
     types.WithdrawalCaps.layout("withdrawalCapB"),
     borsh.u64("maxPriceDeviationBps"),
-    borsh.u64("swapVaultMaxSlippage"),
+    borsh.u32("swapVaultMaxSlippageBps"),
+    borsh.u32("swapVaultMaxSlippageFromReferenceBps"),
     borsh.u64("strategyType"),
     borsh.u64("depositFee"),
     borsh.u64("withdrawFee"),
@@ -341,22 +348,23 @@ export class WhirlpoolStrategy {
     borsh.array(types.KaminoRewardInfo.layout(), 3, "kaminoRewards"),
     borsh.u64("strategyDex"),
     borsh.publicKey("raydiumProtocolPositionOrBaseVaultAuthority"),
-    borsh.u64("blockDeposit"),
+    borsh.u64("allowDepositWithoutInvest"),
     borsh.publicKey("raydiumPoolConfigOrBaseVaultAuthority"),
     borsh.u8("depositBlocked"),
-    borsh.u8("reservedFlag0"),
+    borsh.u8("creationStatus"),
     borsh.u8("investBlocked"),
     borsh.u8("reservedFlag1"),
     borsh.u8("withdrawBlocked"),
     borsh.u8("reservedFlag2"),
     borsh.u8("localAdminBlocked"),
     borsh.u8("flashVaultSwapAllowed"),
-    borsh.array(borsh.u64(), 2, "padding1"),
-    borsh.array(borsh.u128(), 23, "padding2"),
+    types.Price.layout("referenceSwapPriceA"),
+    types.Price.layout("referenceSwapPriceB"),
+    borsh.array(borsh.u128(), 22, "padding1"),
+    borsh.array(borsh.u128(), 32, "padding2"),
     borsh.array(borsh.u128(), 32, "padding3"),
     borsh.array(borsh.u128(), 32, "padding4"),
     borsh.array(borsh.u128(), 32, "padding5"),
-    borsh.array(borsh.u128(), 32, "padding6"),
   ])
 
   constructor(fields: WhirlpoolStrategyFields) {
@@ -417,7 +425,9 @@ export class WhirlpoolStrategy {
     this.withdrawalCapA = new types.WithdrawalCaps({ ...fields.withdrawalCapA })
     this.withdrawalCapB = new types.WithdrawalCaps({ ...fields.withdrawalCapB })
     this.maxPriceDeviationBps = fields.maxPriceDeviationBps
-    this.swapVaultMaxSlippage = fields.swapVaultMaxSlippage
+    this.swapVaultMaxSlippageBps = fields.swapVaultMaxSlippageBps
+    this.swapVaultMaxSlippageFromReferenceBps =
+      fields.swapVaultMaxSlippageFromReferenceBps
     this.strategyType = fields.strategyType
     this.depositFee = fields.depositFee
     this.withdrawFee = fields.withdrawFee
@@ -432,23 +442,28 @@ export class WhirlpoolStrategy {
     this.strategyDex = fields.strategyDex
     this.raydiumProtocolPositionOrBaseVaultAuthority =
       fields.raydiumProtocolPositionOrBaseVaultAuthority
-    this.blockDeposit = fields.blockDeposit
+    this.allowDepositWithoutInvest = fields.allowDepositWithoutInvest
     this.raydiumPoolConfigOrBaseVaultAuthority =
       fields.raydiumPoolConfigOrBaseVaultAuthority
     this.depositBlocked = fields.depositBlocked
-    this.reservedFlag0 = fields.reservedFlag0
+    this.creationStatus = fields.creationStatus
     this.investBlocked = fields.investBlocked
     this.reservedFlag1 = fields.reservedFlag1
     this.withdrawBlocked = fields.withdrawBlocked
     this.reservedFlag2 = fields.reservedFlag2
     this.localAdminBlocked = fields.localAdminBlocked
     this.flashVaultSwapAllowed = fields.flashVaultSwapAllowed
+    this.referenceSwapPriceA = new types.Price({
+      ...fields.referenceSwapPriceA,
+    })
+    this.referenceSwapPriceB = new types.Price({
+      ...fields.referenceSwapPriceB,
+    })
     this.padding1 = fields.padding1
     this.padding2 = fields.padding2
     this.padding3 = fields.padding3
     this.padding4 = fields.padding4
     this.padding5 = fields.padding5
-    this.padding6 = fields.padding6
   }
 
   static async fetch(
@@ -550,7 +565,9 @@ export class WhirlpoolStrategy {
       withdrawalCapA: types.WithdrawalCaps.fromDecoded(dec.withdrawalCapA),
       withdrawalCapB: types.WithdrawalCaps.fromDecoded(dec.withdrawalCapB),
       maxPriceDeviationBps: dec.maxPriceDeviationBps,
-      swapVaultMaxSlippage: dec.swapVaultMaxSlippage,
+      swapVaultMaxSlippageBps: dec.swapVaultMaxSlippageBps,
+      swapVaultMaxSlippageFromReferenceBps:
+        dec.swapVaultMaxSlippageFromReferenceBps,
       strategyType: dec.strategyType,
       depositFee: dec.depositFee,
       withdrawFee: dec.withdrawFee,
@@ -567,23 +584,24 @@ export class WhirlpoolStrategy {
       strategyDex: dec.strategyDex,
       raydiumProtocolPositionOrBaseVaultAuthority:
         dec.raydiumProtocolPositionOrBaseVaultAuthority,
-      blockDeposit: dec.blockDeposit,
+      allowDepositWithoutInvest: dec.allowDepositWithoutInvest,
       raydiumPoolConfigOrBaseVaultAuthority:
         dec.raydiumPoolConfigOrBaseVaultAuthority,
       depositBlocked: dec.depositBlocked,
-      reservedFlag0: dec.reservedFlag0,
+      creationStatus: dec.creationStatus,
       investBlocked: dec.investBlocked,
       reservedFlag1: dec.reservedFlag1,
       withdrawBlocked: dec.withdrawBlocked,
       reservedFlag2: dec.reservedFlag2,
       localAdminBlocked: dec.localAdminBlocked,
       flashVaultSwapAllowed: dec.flashVaultSwapAllowed,
+      referenceSwapPriceA: types.Price.fromDecoded(dec.referenceSwapPriceA),
+      referenceSwapPriceB: types.Price.fromDecoded(dec.referenceSwapPriceB),
       padding1: dec.padding1,
       padding2: dec.padding2,
       padding3: dec.padding3,
       padding4: dec.padding4,
       padding5: dec.padding5,
-      padding6: dec.padding6,
     })
   }
 
@@ -646,7 +664,9 @@ export class WhirlpoolStrategy {
       withdrawalCapA: this.withdrawalCapA.toJSON(),
       withdrawalCapB: this.withdrawalCapB.toJSON(),
       maxPriceDeviationBps: this.maxPriceDeviationBps.toString(),
-      swapVaultMaxSlippage: this.swapVaultMaxSlippage.toString(),
+      swapVaultMaxSlippageBps: this.swapVaultMaxSlippageBps,
+      swapVaultMaxSlippageFromReferenceBps:
+        this.swapVaultMaxSlippageFromReferenceBps,
       strategyType: this.strategyType.toString(),
       depositFee: this.depositFee.toString(),
       withdrawFee: this.withdrawFee.toString(),
@@ -659,23 +679,24 @@ export class WhirlpoolStrategy {
       strategyDex: this.strategyDex.toString(),
       raydiumProtocolPositionOrBaseVaultAuthority:
         this.raydiumProtocolPositionOrBaseVaultAuthority.toString(),
-      blockDeposit: this.blockDeposit.toString(),
+      allowDepositWithoutInvest: this.allowDepositWithoutInvest.toString(),
       raydiumPoolConfigOrBaseVaultAuthority:
         this.raydiumPoolConfigOrBaseVaultAuthority.toString(),
       depositBlocked: this.depositBlocked,
-      reservedFlag0: this.reservedFlag0,
+      creationStatus: this.creationStatus,
       investBlocked: this.investBlocked,
       reservedFlag1: this.reservedFlag1,
       withdrawBlocked: this.withdrawBlocked,
       reservedFlag2: this.reservedFlag2,
       localAdminBlocked: this.localAdminBlocked,
       flashVaultSwapAllowed: this.flashVaultSwapAllowed,
+      referenceSwapPriceA: this.referenceSwapPriceA.toJSON(),
+      referenceSwapPriceB: this.referenceSwapPriceB.toJSON(),
       padding1: this.padding1.map((item) => item.toString()),
       padding2: this.padding2.map((item) => item.toString()),
       padding3: this.padding3.map((item) => item.toString()),
       padding4: this.padding4.map((item) => item.toString()),
       padding5: this.padding5.map((item) => item.toString()),
-      padding6: this.padding6.map((item) => item.toString()),
     }
   }
 
@@ -738,7 +759,9 @@ export class WhirlpoolStrategy {
       withdrawalCapA: types.WithdrawalCaps.fromJSON(obj.withdrawalCapA),
       withdrawalCapB: types.WithdrawalCaps.fromJSON(obj.withdrawalCapB),
       maxPriceDeviationBps: new BN(obj.maxPriceDeviationBps),
-      swapVaultMaxSlippage: new BN(obj.swapVaultMaxSlippage),
+      swapVaultMaxSlippageBps: obj.swapVaultMaxSlippageBps,
+      swapVaultMaxSlippageFromReferenceBps:
+        obj.swapVaultMaxSlippageFromReferenceBps,
       strategyType: new BN(obj.strategyType),
       depositFee: new BN(obj.depositFee),
       withdrawFee: new BN(obj.withdrawFee),
@@ -754,24 +777,25 @@ export class WhirlpoolStrategy {
       raydiumProtocolPositionOrBaseVaultAuthority: new PublicKey(
         obj.raydiumProtocolPositionOrBaseVaultAuthority
       ),
-      blockDeposit: new BN(obj.blockDeposit),
+      allowDepositWithoutInvest: new BN(obj.allowDepositWithoutInvest),
       raydiumPoolConfigOrBaseVaultAuthority: new PublicKey(
         obj.raydiumPoolConfigOrBaseVaultAuthority
       ),
       depositBlocked: obj.depositBlocked,
-      reservedFlag0: obj.reservedFlag0,
+      creationStatus: obj.creationStatus,
       investBlocked: obj.investBlocked,
       reservedFlag1: obj.reservedFlag1,
       withdrawBlocked: obj.withdrawBlocked,
       reservedFlag2: obj.reservedFlag2,
       localAdminBlocked: obj.localAdminBlocked,
       flashVaultSwapAllowed: obj.flashVaultSwapAllowed,
+      referenceSwapPriceA: types.Price.fromJSON(obj.referenceSwapPriceA),
+      referenceSwapPriceB: types.Price.fromJSON(obj.referenceSwapPriceB),
       padding1: obj.padding1.map((item) => new BN(item)),
       padding2: obj.padding2.map((item) => new BN(item)),
       padding3: obj.padding3.map((item) => new BN(item)),
       padding4: obj.padding4.map((item) => new BN(item)),
       padding5: obj.padding5.map((item) => new BN(item)),
-      padding6: obj.padding6.map((item) => new BN(item)),
     })
   }
 }

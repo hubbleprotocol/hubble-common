@@ -29,6 +29,7 @@ export interface EmergencySwapAccounts {
   oracle: PublicKey
   poolProgram: PublicKey
   scopePrices: PublicKey
+  tokenInfos: PublicKey
   tokenProgram: PublicKey
 }
 
@@ -58,6 +59,7 @@ export function emergencySwap(
     { pubkey: accounts.oracle, isSigner: false, isWritable: false },
     { pubkey: accounts.poolProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.scopePrices, isSigner: false, isWritable: false },
+    { pubkey: accounts.tokenInfos, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
   ]
   const identifier = Buffer.from([73, 226, 248, 215, 5, 197, 211, 229])

@@ -88,7 +88,6 @@ export function deposit(args: DepositArgs, accounts: DepositAccounts) {
       isWritable: false,
     },
   ]
-
   const identifier = Buffer.from([242, 35, 198, 137, 82, 225, 242, 182])
   const buffer = Buffer.alloc(1000)
   const len = layout.encode(

@@ -22,8 +22,6 @@ export type {
   UpdateCollateralInfoArgs,
   UpdateCollateralInfoAccounts,
 } from "./updateCollateralInfo"
-export { initializeScopeChain } from "./initializeScopeChain"
-export type { InitializeScopeChainAccounts } from "./initializeScopeChain"
 export { initializeSharesMetadata } from "./initializeSharesMetadata"
 export type {
   InitializeSharesMetadataArgs,
@@ -54,8 +52,6 @@ export type {
   UpdateRewardMappingArgs,
   UpdateRewardMappingAccounts,
 } from "./updateRewardMapping"
-export { updateScopeChain } from "./updateScopeChain"
-export type { UpdateScopeChainAccounts } from "./updateScopeChain"
 export { openLiquidityPosition } from "./openLiquidityPosition"
 export type {
   OpenLiquidityPositionArgs,
@@ -98,5 +94,10 @@ export type {
 } from "./flashSwapUnevenVaultsEnd"
 export { emergencySwap } from "./emergencySwap"
 export type { EmergencySwapArgs, EmergencySwapAccounts } from "./emergencySwap"
+export { withdrawFromTreasury } from "./withdrawFromTreasury"
+export type {
+  WithdrawFromTreasuryArgs,
+  WithdrawFromTreasuryAccounts,
+} from "./withdrawFromTreasury"
 export { orcaSwap } from "./orcaSwap"
 export type { OrcaSwapArgs, OrcaSwapAccounts } from "./orcaSwap"

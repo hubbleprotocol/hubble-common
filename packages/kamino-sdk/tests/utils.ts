@@ -1,13 +1,13 @@
 import { Connection, Keypair, PublicKey, sendAndConfirmTransaction } from '@solana/web3.js';
 import * as anchor from '@project-serum/anchor';
-import { CollateralInfos, StrategyConfigOptionKind, UpdateCollateralInfoModeKind } from '../src/kamino-client/types';
+import { StrategyConfigOptionKind, UpdateCollateralInfoModeKind } from '../src/kamino-client/types';
 import * as Instructions from '../src/kamino-client/instructions';
 import { Transaction, TransactionInstruction } from '@solana/web3.js';
 import { Token } from '@solana/spl-token';
 import { getMintDecimals } from '@project-serum/serum/lib/market';
 
 import Decimal from 'decimal.js';
-import { GlobalConfig, WhirlpoolStrategy } from '../src/kamino-client/accounts';
+import { CollateralInfos, GlobalConfig, WhirlpoolStrategy } from '../src/kamino-client/accounts';
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
   Dex,

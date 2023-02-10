@@ -118,6 +118,121 @@ export class TwapDivergence {
   }
 }
 
+export interface UpdateScopeTwapJSON {
+  kind: "UpdateScopeTwap"
+}
+
+export class UpdateScopeTwap {
+  static readonly discriminator = 5
+  static readonly kind = "UpdateScopeTwap"
+  readonly discriminator = 5
+  readonly kind = "UpdateScopeTwap"
+
+  toJSON(): UpdateScopeTwapJSON {
+    return {
+      kind: "UpdateScopeTwap",
+    }
+  }
+
+  toEncodable() {
+    return {
+      UpdateScopeTwap: {},
+    }
+  }
+}
+
+export interface UpdateScopeChainJSON {
+  kind: "UpdateScopeChain"
+}
+
+export class UpdateScopeChain {
+  static readonly discriminator = 6
+  static readonly kind = "UpdateScopeChain"
+  readonly discriminator = 6
+  readonly kind = "UpdateScopeChain"
+
+  toJSON(): UpdateScopeChainJSON {
+    return {
+      kind: "UpdateScopeChain",
+    }
+  }
+
+  toEncodable() {
+    return {
+      UpdateScopeChain: {},
+    }
+  }
+}
+
+export interface UpdateNameJSON {
+  kind: "UpdateName"
+}
+
+export class UpdateName {
+  static readonly discriminator = 7
+  static readonly kind = "UpdateName"
+  readonly discriminator = 7
+  readonly kind = "UpdateName"
+
+  toJSON(): UpdateNameJSON {
+    return {
+      kind: "UpdateName",
+    }
+  }
+
+  toEncodable() {
+    return {
+      UpdateName: {},
+    }
+  }
+}
+
+export interface UpdatePriceMaxAgeJSON {
+  kind: "UpdatePriceMaxAge"
+}
+
+export class UpdatePriceMaxAge {
+  static readonly discriminator = 8
+  static readonly kind = "UpdatePriceMaxAge"
+  readonly discriminator = 8
+  readonly kind = "UpdatePriceMaxAge"
+
+  toJSON(): UpdatePriceMaxAgeJSON {
+    return {
+      kind: "UpdatePriceMaxAge",
+    }
+  }
+
+  toEncodable() {
+    return {
+      UpdatePriceMaxAge: {},
+    }
+  }
+}
+
+export interface UpdateTwapMaxAgeJSON {
+  kind: "UpdateTwapMaxAge"
+}
+
+export class UpdateTwapMaxAge {
+  static readonly discriminator = 9
+  static readonly kind = "UpdateTwapMaxAge"
+  readonly discriminator = 9
+  readonly kind = "UpdateTwapMaxAge"
+
+  toJSON(): UpdateTwapMaxAgeJSON {
+    return {
+      kind: "UpdateTwapMaxAge",
+    }
+  }
+
+  toEncodable() {
+    return {
+      UpdateTwapMaxAge: {},
+    }
+  }
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function fromDecoded(obj: any): types.UpdateCollateralInfoModeKind {
   if (typeof obj !== "object") {
@@ -138,6 +253,21 @@ export function fromDecoded(obj: any): types.UpdateCollateralInfoModeKind {
   }
   if ("TwapDivergence" in obj) {
     return new TwapDivergence()
+  }
+  if ("UpdateScopeTwap" in obj) {
+    return new UpdateScopeTwap()
+  }
+  if ("UpdateScopeChain" in obj) {
+    return new UpdateScopeChain()
+  }
+  if ("UpdateName" in obj) {
+    return new UpdateName()
+  }
+  if ("UpdatePriceMaxAge" in obj) {
+    return new UpdatePriceMaxAge()
+  }
+  if ("UpdateTwapMaxAge" in obj) {
+    return new UpdateTwapMaxAge()
   }
 
   throw new Error("Invalid enum object")
@@ -162,6 +292,21 @@ export function fromJSON(
     case "TwapDivergence": {
       return new TwapDivergence()
     }
+    case "UpdateScopeTwap": {
+      return new UpdateScopeTwap()
+    }
+    case "UpdateScopeChain": {
+      return new UpdateScopeChain()
+    }
+    case "UpdateName": {
+      return new UpdateName()
+    }
+    case "UpdatePriceMaxAge": {
+      return new UpdatePriceMaxAge()
+    }
+    case "UpdateTwapMaxAge": {
+      return new UpdateTwapMaxAge()
+    }
   }
 }
 
@@ -172,6 +317,11 @@ export function layout(property?: string) {
     borsh.struct([], "UpperHeuristic"),
     borsh.struct([], "ExpHeuristic"),
     borsh.struct([], "TwapDivergence"),
+    borsh.struct([], "UpdateScopeTwap"),
+    borsh.struct([], "UpdateScopeChain"),
+    borsh.struct([], "UpdateName"),
+    borsh.struct([], "UpdatePriceMaxAge"),
+    borsh.struct([], "UpdateTwapMaxAge"),
   ])
   if (property !== undefined) {
     return ret.replicate(property)

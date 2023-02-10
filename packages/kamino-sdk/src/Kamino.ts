@@ -14,7 +14,7 @@ import {
   TransactionInstruction,
 } from '@solana/web3.js';
 import { setKaminoProgramId } from './kamino-client/programId';
-import { GlobalConfig, WhirlpoolStrategy } from './kamino-client';
+import { GlobalConfig, WhirlpoolStrategy } from './kamino-client/accounts';
 import Decimal from 'decimal.js';
 import { Position, Whirlpool } from './whirpools-client';
 import { getMintDecimals } from '@project-serum/serum/lib/market';
@@ -74,14 +74,14 @@ import {
   withdraw,
   WithdrawAccounts,
   WithdrawArgs,
-} from './kamino-client';
+} from './kamino-client/instructions';
 import BN from 'bn.js';
 import { StrategyWithAddress } from './models/StrategyWithAddress';
 import { StrategyProgramAddress } from './models';
 import { Idl, Program, Provider } from '@project-serum/anchor';
 import { Rebalancing, Uninitialized } from './kamino-client/types/StrategyStatus';
 import { METADATA_PROGRAM_ID, METADATA_UPDATE_AUTH } from './constants';
-import { ExecutiveWithdrawActionKind, StrategyStatusKind } from './kamino-client';
+import { ExecutiveWithdrawActionKind, StrategyStatusKind } from './kamino-client/types';
 import { Rebalance } from './kamino-client/types/ExecutiveWithdrawAction';
 import { PoolState, PersonalPositionState, AmmConfig } from './raydium_client';
 import { LiquidityMath, SqrtPriceMath, TickMath } from '@raydium-io/raydium-sdk/lib/ammV3/utils/math';

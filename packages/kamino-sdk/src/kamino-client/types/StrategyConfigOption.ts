@@ -785,6 +785,75 @@ export class AllowDepositWithoutInvest {
   }
 }
 
+export interface UpdateSwapVaultMaxSlippageFromRefJSON {
+  kind: "UpdateSwapVaultMaxSlippageFromRef"
+}
+
+export class UpdateSwapVaultMaxSlippageFromRef {
+  static readonly discriminator = 34
+  static readonly kind = "UpdateSwapVaultMaxSlippageFromRef"
+  readonly discriminator = 34
+  readonly kind = "UpdateSwapVaultMaxSlippageFromRef"
+
+  toJSON(): UpdateSwapVaultMaxSlippageFromRefJSON {
+    return {
+      kind: "UpdateSwapVaultMaxSlippageFromRef",
+    }
+  }
+
+  toEncodable() {
+    return {
+      UpdateSwapVaultMaxSlippageFromRef: {},
+    }
+  }
+}
+
+export interface ResetReferencePricesJSON {
+  kind: "ResetReferencePrices"
+}
+
+export class ResetReferencePrices {
+  static readonly discriminator = 35
+  static readonly kind = "ResetReferencePrices"
+  readonly discriminator = 35
+  readonly kind = "ResetReferencePrices"
+
+  toJSON(): ResetReferencePricesJSON {
+    return {
+      kind: "ResetReferencePrices",
+    }
+  }
+
+  toEncodable() {
+    return {
+      ResetReferencePrices: {},
+    }
+  }
+}
+
+export interface UpdateStrategyCreationStateJSON {
+  kind: "UpdateStrategyCreationState"
+}
+
+export class UpdateStrategyCreationState {
+  static readonly discriminator = 36
+  static readonly kind = "UpdateStrategyCreationState"
+  readonly discriminator = 36
+  readonly kind = "UpdateStrategyCreationState"
+
+  toJSON(): UpdateStrategyCreationStateJSON {
+    return {
+      kind: "UpdateStrategyCreationState",
+    }
+  }
+
+  toEncodable() {
+    return {
+      UpdateStrategyCreationState: {},
+    }
+  }
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function fromDecoded(obj: any): types.StrategyConfigOptionKind {
   if (typeof obj !== "object") {
@@ -892,6 +961,15 @@ export function fromDecoded(obj: any): types.StrategyConfigOptionKind {
   }
   if ("AllowDepositWithoutInvest" in obj) {
     return new AllowDepositWithoutInvest()
+  }
+  if ("UpdateSwapVaultMaxSlippageFromRef" in obj) {
+    return new UpdateSwapVaultMaxSlippageFromRef()
+  }
+  if ("ResetReferencePrices" in obj) {
+    return new ResetReferencePrices()
+  }
+  if ("UpdateStrategyCreationState" in obj) {
+    return new UpdateStrategyCreationState()
   }
 
   throw new Error("Invalid enum object")
@@ -1003,6 +1081,15 @@ export function fromJSON(
     case "AllowDepositWithoutInvest": {
       return new AllowDepositWithoutInvest()
     }
+    case "UpdateSwapVaultMaxSlippageFromRef": {
+      return new UpdateSwapVaultMaxSlippageFromRef()
+    }
+    case "ResetReferencePrices": {
+      return new ResetReferencePrices()
+    }
+    case "UpdateStrategyCreationState": {
+      return new UpdateStrategyCreationState()
+    }
   }
 }
 
@@ -1042,6 +1129,9 @@ export function layout(property?: string) {
     borsh.struct([], "UpdateCollateralIdB"),
     borsh.struct([], "UpdateFlashVaultSwap"),
     borsh.struct([], "AllowDepositWithoutInvest"),
+    borsh.struct([], "UpdateSwapVaultMaxSlippageFromRef"),
+    borsh.struct([], "ResetReferencePrices"),
+    borsh.struct([], "UpdateStrategyCreationState"),
   ])
   if (property !== undefined) {
     return ret.replicate(property)

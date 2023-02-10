@@ -29,6 +29,7 @@ export interface SwapUnevenVaultsAccounts {
   oracle: PublicKey
   poolProgram: PublicKey
   scopePrices: PublicKey
+  tokenInfos: PublicKey
   tokenProgram: PublicKey
 }
 
@@ -60,6 +61,7 @@ export function swapUnevenVaults(
     { pubkey: accounts.oracle, isSigner: false, isWritable: false },
     { pubkey: accounts.poolProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.scopePrices, isSigner: false, isWritable: false },
+    { pubkey: accounts.tokenInfos, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
   ]
   const identifier = Buffer.from([143, 212, 101, 95, 105, 209, 184, 1])

@@ -100,6 +100,11 @@ export type CustomError =
   | FlashIxsIncludeScope
   | FlashVaultSwapBlocked
   | FlashVaultSwapWrongAmountToLeave
+  | DepositLessThanMinimum
+  | DepositWithoutInvestDisallowed
+  | InvalidScopeChain
+  | InvalidTwapId
+  | PositionHasRemainingLiquidity
 
 export class IntegerOverflow extends Error {
   static readonly code = 6000
@@ -1224,6 +1229,64 @@ export class FlashVaultSwapWrongAmountToLeave extends Error {
   }
 }
 
+export class DepositLessThanMinimum extends Error {
+  static readonly code = 6101
+  readonly code = 6101
+  readonly name = "DepositLessThanMinimum"
+  readonly msg = "Deposit amount less than minimal allowed"
+
+  constructor(readonly logs?: string[]) {
+    super("6101: Deposit amount less than minimal allowed")
+  }
+}
+
+export class DepositWithoutInvestDisallowed extends Error {
+  static readonly code = 6102
+  readonly code = 6102
+  readonly name = "DepositWithoutInvestDisallowed"
+  readonly msg = "Cannot deposit without invest"
+
+  constructor(readonly logs?: string[]) {
+    super("6102: Cannot deposit without invest")
+  }
+}
+
+export class InvalidScopeChain extends Error {
+  static readonly code = 6103
+  readonly code = 6103
+  readonly name = "InvalidScopeChain"
+  readonly msg = "Invalid Scope Chain"
+
+  constructor(readonly logs?: string[]) {
+    super("6103: Invalid Scope Chain")
+  }
+}
+
+export class InvalidTwapId extends Error {
+  static readonly code = 6104
+  readonly code = 6104
+  readonly name = "InvalidTwapId"
+  readonly msg = "Invalid Twap Value"
+
+  constructor(readonly logs?: string[]) {
+    super("6104: Invalid Twap Value")
+  }
+}
+
+export class PositionHasRemainingLiquidity extends Error {
+  static readonly code = 6105
+  readonly code = 6105
+  readonly name = "PositionHasRemainingLiquidity"
+  readonly msg =
+    "Existent position has liquidity, new position creation is forbidden"
+
+  constructor(readonly logs?: string[]) {
+    super(
+      "6105: Existent position has liquidity, new position creation is forbidden"
+    )
+  }
+}
+
 export function fromCode(code: number, logs?: string[]): CustomError | null {
   switch (code) {
     case 6000:
@@ -1428,6 +1491,16 @@ export function fromCode(code: number, logs?: string[]): CustomError | null {
       return new FlashVaultSwapBlocked(logs)
     case 6100:
       return new FlashVaultSwapWrongAmountToLeave(logs)
+    case 6101:
+      return new DepositLessThanMinimum(logs)
+    case 6102:
+      return new DepositWithoutInvestDisallowed(logs)
+    case 6103:
+      return new InvalidScopeChain(logs)
+    case 6104:
+      return new InvalidTwapId(logs)
+    case 6105:
+      return new PositionHasRemainingLiquidity(logs)
   }
 
   return null
