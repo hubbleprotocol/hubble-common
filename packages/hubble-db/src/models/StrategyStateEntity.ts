@@ -18,6 +18,12 @@ export interface StrategyStateEntity {
   reward_0_price: string;
   reward_1_price: string;
   reward_2_price: string;
+  kamino_rewards_issued_cumulative_0: string;
+  kamino_rewards_issued_cumulative_1: string;
+  kamino_rewards_issued_cumulative_2: string;
+  kamino_reward_0_price: string;
+  kamino_reward_1_price: string;
+  kamino_reward_2_price: string;
 }
 
 export default StrategyStateEntity;
