@@ -4,7 +4,7 @@ import { estimateAprsForPriceRange, OrcaNetwork, OrcaWhirlpoolClient } from '@or
 import axios from 'axios';
 import { OrcaWhirlpoolsResponse } from './OrcaWhirlpoolsResponse';
 import { HubbleConfig, SolanaCluster } from '@hubbleprotocol/hubble-config';
-import { WhirlpoolStrategy } from '../kamino-client';
+import { WhirlpoolStrategy } from '../kamino-client/accounts';
 import { Scope, ScopeToken } from '@hubbleprotocol/scope-sdk';
 import { Position } from '../whirpools-client';
 import { getKaminoTokenName, getScopeTokenFromKaminoMints } from '../constants';

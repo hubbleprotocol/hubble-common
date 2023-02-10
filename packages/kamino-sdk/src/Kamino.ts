@@ -14,7 +14,7 @@ import {
   TransactionInstruction,
 } from '@solana/web3.js';
 import { setKaminoProgramId } from './kamino-client/programId';
-import { GlobalConfig, WhirlpoolStrategy } from './kamino-client';
+import { GlobalConfig, WhirlpoolStrategy } from './kamino-client/accounts';
 import Decimal from 'decimal.js';
 import { Position, Whirlpool } from './whirpools-client';
 import { getMintDecimals } from '@project-serum/serum/lib/market';
@@ -74,14 +74,14 @@ import {
   withdraw,
   WithdrawAccounts,
   WithdrawArgs,
-} from './kamino-client';
+} from './kamino-client/instructions';
 import BN from 'bn.js';
 import { StrategyWithAddress } from './models/StrategyWithAddress';
 import { StrategyProgramAddress } from './models';
 import { Idl, Program, Provider } from '@project-serum/anchor';
 import { Rebalancing, Uninitialized } from './kamino-client/types/StrategyStatus';
 import { METADATA_PROGRAM_ID, METADATA_UPDATE_AUTH } from './constants';
-import { ExecutiveWithdrawActionKind, StrategyStatusKind } from './kamino-client';
+import { ExecutiveWithdrawActionKind, StrategyStatusKind } from './kamino-client/types';
 import { Rebalance } from './kamino-client/types/ExecutiveWithdrawAction';
 import { PoolState, PersonalPositionState, AmmConfig } from './raydium_client';
 import { LiquidityMath, SqrtPriceMath, TickMath } from '@raydium-io/raydium-sdk/lib/ammV3/utils/math';
@@ -848,6 +848,7 @@ export class Kamino {
     }
 
     const programAddresses = await this.getStrategyProgramAddresses(strategy, tokenMintA, tokenMintB);
+
     const strategyArgs: InitializeStrategyArgs = {
       tokenACollateralId: new BN(this.getCollateralId(tokenA)),
       tokenBCollateralId: new BN(this.getCollateralId(tokenB)),
@@ -1354,6 +1355,10 @@ export class Kamino {
   async executiveWithdraw(strategy: PublicKey | StrategyWithAddress, action: ExecutiveWithdrawActionKind) {
     const { address: strategyPubkey, strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
 
+    let globalConfig = await GlobalConfig.fetch(this._connection, strategyState.globalConfig);
+    if (globalConfig == null) {
+      throw new Error(`Unable to fetch GlobalConfig with Pubkey ${strategyState.globalConfig}`);
+    }
     const args: ExecutiveWithdrawArgs = {
       action: action.discriminator,
     };
@@ -1383,6 +1388,7 @@ export class Kamino {
       raydiumProtocolPositionOrBaseVaultAuthority: strategyState.raydiumProtocolPositionOrBaseVaultAuthority,
       tokenProgram: TOKEN_PROGRAM_ID,
       poolProgram: programId,
+      tokenInfos: globalConfig.tokenInfos,
     };
 
     return executiveWithdraw(args, accounts);

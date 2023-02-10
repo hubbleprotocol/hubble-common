@@ -648,7 +648,7 @@ export class BSOL {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function fromDecoded(obj: any): types.CollateralTokenKind {
+export function fromDecoded(obj: any): types.CollateralTestTokenKind {
   if (typeof obj !== "object") {
     throw new Error("Invalid enum object")
   }
@@ -742,8 +742,8 @@ export function fromDecoded(obj: any): types.CollateralTokenKind {
 }
 
 export function fromJSON(
-  obj: types.CollateralTokenJSON
-): types.CollateralTokenKind {
+  obj: types.CollateralTestTokenJSON
+): types.CollateralTestTokenKind {
   switch (obj.kind) {
     case "USDC": {
       return new USDC()

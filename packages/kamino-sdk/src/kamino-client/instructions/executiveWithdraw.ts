@@ -26,6 +26,7 @@ export interface ExecutiveWithdrawAccounts {
   tokenAMint: PublicKey
   tokenBMint: PublicKey
   scopePrices: PublicKey
+  tokenInfos: PublicKey
   tokenProgram: PublicKey
   poolProgram: PublicKey
 }
@@ -62,6 +63,7 @@ export function executiveWithdraw(
     { pubkey: accounts.tokenAMint, isSigner: false, isWritable: true },
     { pubkey: accounts.tokenBMint, isSigner: false, isWritable: true },
     { pubkey: accounts.scopePrices, isSigner: false, isWritable: false },
+    { pubkey: accounts.tokenInfos, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.poolProgram, isSigner: false, isWritable: false },
   ]

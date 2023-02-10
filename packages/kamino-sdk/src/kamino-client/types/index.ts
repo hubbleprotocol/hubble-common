@@ -1,8 +1,5 @@
-import * as WithdrawalCapAction from "./WithdrawalCapAction"
-import * as WithdrawalCapOverflowAction from "./WithdrawalCapOverflowAction"
 import * as WithdrawalCapAccumulatorAction from "./WithdrawalCapAccumulatorAction"
 import * as SwapLimit from "./SwapLimit"
-import * as CollateralToken from "./CollateralToken"
 import * as GlobalConfigOption from "./GlobalConfigOption"
 import * as StrategyConfigOption from "./StrategyConfigOption"
 import * as StrategyStatus from "./StrategyStatus"
@@ -10,7 +7,8 @@ import * as StrategyType from "./StrategyType"
 import * as ExecutiveWithdrawAction from "./ExecutiveWithdrawAction"
 import * as LiquidityCalculationMode from "./LiquidityCalculationMode"
 import * as UpdateCollateralInfoMode from "./UpdateCollateralInfoMode"
-import * as ScopePriceId from "./ScopePriceId"
+import * as CollateralTestToken from "./CollateralTestToken"
+import * as ScopePriceIdTest from "./ScopePriceIdTest"
 import * as DEX from "./DEX"
 
 export { PositionRewardInfo } from "./PositionRewardInfo"
@@ -38,24 +36,6 @@ export { WithdrawalCaps } from "./WithdrawalCaps"
 export type { WithdrawalCapsFields, WithdrawalCapsJSON } from "./WithdrawalCaps"
 export { Price } from "./Price"
 export type { PriceFields, PriceJSON } from "./Price"
-export { WithdrawalCapAction }
-
-export type WithdrawalCapActionKind =
-  | WithdrawalCapAction.Add
-  | WithdrawalCapAction.Remove
-export type WithdrawalCapActionJSON =
-  | WithdrawalCapAction.AddJSON
-  | WithdrawalCapAction.RemoveJSON
-
-export { WithdrawalCapOverflowAction }
-
-export type WithdrawalCapOverflowActionKind =
-  | WithdrawalCapOverflowAction.SaturatingOverflow
-  | WithdrawalCapOverflowAction.ErrorOnOverflow
-export type WithdrawalCapOverflowActionJSON =
-  | WithdrawalCapOverflowAction.SaturatingOverflowJSON
-  | WithdrawalCapOverflowAction.ErrorOnOverflowJSON
-
 export { WithdrawalCapAccumulatorAction }
 
 export type WithdrawalCapAccumulatorActionKind =
@@ -69,67 +49,6 @@ export { SwapLimit }
 
 export type SwapLimitKind = SwapLimit.Bps | SwapLimit.Absolute
 export type SwapLimitJSON = SwapLimit.BpsJSON | SwapLimit.AbsoluteJSON
-
-export { CollateralToken }
-
-export type CollateralTokenKind =
-  | CollateralToken.USDC
-  | CollateralToken.USDH
-  | CollateralToken.SOL
-  | CollateralToken.ETH
-  | CollateralToken.BTC
-  | CollateralToken.MSOL
-  | CollateralToken.STSOL
-  | CollateralToken.USDT
-  | CollateralToken.ORCA
-  | CollateralToken.MNDE
-  | CollateralToken.HBB
-  | CollateralToken.JSOL
-  | CollateralToken.USH
-  | CollateralToken.DAI
-  | CollateralToken.LDO
-  | CollateralToken.SCNSOL
-  | CollateralToken.UXD
-  | CollateralToken.HDG
-  | CollateralToken.DUST
-  | CollateralToken.USDR
-  | CollateralToken.RATIO
-  | CollateralToken.UXP
-  | CollateralToken.JITOSOL
-  | CollateralToken.RAY
-  | CollateralToken.BONK
-  | CollateralToken.SAMO
-  | CollateralToken.LaineSOL
-  | CollateralToken.BSOL
-export type CollateralTokenJSON =
-  | CollateralToken.USDCJSON
-  | CollateralToken.USDHJSON
-  | CollateralToken.SOLJSON
-  | CollateralToken.ETHJSON
-  | CollateralToken.BTCJSON
-  | CollateralToken.MSOLJSON
-  | CollateralToken.STSOLJSON
-  | CollateralToken.USDTJSON
-  | CollateralToken.ORCAJSON
-  | CollateralToken.MNDEJSON
-  | CollateralToken.HBBJSON
-  | CollateralToken.JSOLJSON
-  | CollateralToken.USHJSON
-  | CollateralToken.DAIJSON
-  | CollateralToken.LDOJSON
-  | CollateralToken.SCNSOLJSON
-  | CollateralToken.UXDJSON
-  | CollateralToken.HDGJSON
-  | CollateralToken.DUSTJSON
-  | CollateralToken.USDRJSON
-  | CollateralToken.RATIOJSON
-  | CollateralToken.UXPJSON
-  | CollateralToken.JITOSOLJSON
-  | CollateralToken.RAYJSON
-  | CollateralToken.BONKJSON
-  | CollateralToken.SAMOJSON
-  | CollateralToken.LaineSOLJSON
-  | CollateralToken.BSOLJSON
 
 export { GlobalConfigOption }
 
@@ -209,6 +128,9 @@ export type StrategyConfigOptionKind =
   | StrategyConfigOption.UpdateCollateralIdB
   | StrategyConfigOption.UpdateFlashVaultSwap
   | StrategyConfigOption.AllowDepositWithoutInvest
+  | StrategyConfigOption.UpdateSwapVaultMaxSlippageFromRef
+  | StrategyConfigOption.ResetReferencePrices
+  | StrategyConfigOption.UpdateStrategyCreationState
 export type StrategyConfigOptionJSON =
   | StrategyConfigOption.UpdateDepositCapJSON
   | StrategyConfigOption.UpdateDepositCapIxnJSON
@@ -244,6 +166,9 @@ export type StrategyConfigOptionJSON =
   | StrategyConfigOption.UpdateCollateralIdBJSON
   | StrategyConfigOption.UpdateFlashVaultSwapJSON
   | StrategyConfigOption.AllowDepositWithoutInvestJSON
+  | StrategyConfigOption.UpdateSwapVaultMaxSlippageFromRefJSON
+  | StrategyConfigOption.ResetReferencePricesJSON
+  | StrategyConfigOption.UpdateStrategyCreationStateJSON
 
 export { StrategyStatus }
 
@@ -297,157 +222,228 @@ export type UpdateCollateralInfoModeKind =
   | UpdateCollateralInfoMode.UpperHeuristic
   | UpdateCollateralInfoMode.ExpHeuristic
   | UpdateCollateralInfoMode.TwapDivergence
+  | UpdateCollateralInfoMode.UpdateScopeTwap
+  | UpdateCollateralInfoMode.UpdateScopeChain
+  | UpdateCollateralInfoMode.UpdateName
+  | UpdateCollateralInfoMode.UpdatePriceMaxAge
+  | UpdateCollateralInfoMode.UpdateTwapMaxAge
 export type UpdateCollateralInfoModeJSON =
   | UpdateCollateralInfoMode.CollateralIdJSON
   | UpdateCollateralInfoMode.LowerHeuristicJSON
   | UpdateCollateralInfoMode.UpperHeuristicJSON
   | UpdateCollateralInfoMode.ExpHeuristicJSON
   | UpdateCollateralInfoMode.TwapDivergenceJSON
+  | UpdateCollateralInfoMode.UpdateScopeTwapJSON
+  | UpdateCollateralInfoMode.UpdateScopeChainJSON
+  | UpdateCollateralInfoMode.UpdateNameJSON
+  | UpdateCollateralInfoMode.UpdatePriceMaxAgeJSON
+  | UpdateCollateralInfoMode.UpdateTwapMaxAgeJSON
 
-export { ScopePriceId }
+export { CollateralTestToken }
 
-export type ScopePriceIdKind =
-  | ScopePriceId.SOL
-  | ScopePriceId.ETH
-  | ScopePriceId.BTC
-  | ScopePriceId.SRM
-  | ScopePriceId.RAY
-  | ScopePriceId.FTT
-  | ScopePriceId.MSOL
-  | ScopePriceId.scnSOL_SOL
-  | ScopePriceId.BNB
-  | ScopePriceId.AVAX
-  | ScopePriceId.DaoSOL_SOL
-  | ScopePriceId.SaberMSOL_SOL
-  | ScopePriceId.USDH
-  | ScopePriceId.StSOL
-  | ScopePriceId.CSOL_SOL
-  | ScopePriceId.CETH_ETH
-  | ScopePriceId.CBTC_BTC
-  | ScopePriceId.CMSOL_SOL
-  | ScopePriceId.wstETH
-  | ScopePriceId.LDO
-  | ScopePriceId.USDC
-  | ScopePriceId.CUSDC_USDC
-  | ScopePriceId.USDT
-  | ScopePriceId.ORCA
-  | ScopePriceId.MNDE
-  | ScopePriceId.HBB
-  | ScopePriceId.CORCA_ORCA
-  | ScopePriceId.CSLND_SLND
-  | ScopePriceId.CSRM_SRM
-  | ScopePriceId.CRAY_RAY
-  | ScopePriceId.CFTT_FTT
-  | ScopePriceId.CSTSOL_STSOL
-  | ScopePriceId.SLND
-  | ScopePriceId.DAI
-  | ScopePriceId.JSOL_SOL
-  | ScopePriceId.USH
-  | ScopePriceId.UXD
-  | ScopePriceId.USDH_TWAP
-  | ScopePriceId.USH_TWAP
-  | ScopePriceId.UXD_TWAP
-  | ScopePriceId.HDG
-  | ScopePriceId.DUST
-  | ScopePriceId.USDR
-  | ScopePriceId.USDR_TWAP
-  | ScopePriceId.RATIO
-  | ScopePriceId.UXP
-  | ScopePriceId.KUXDUSDCORCA
-  | ScopePriceId.JITOSOL_SOL
-  | ScopePriceId.SOL_EMA
-  | ScopePriceId.ETH_EMA
-  | ScopePriceId.BTC_EMA
-  | ScopePriceId.SRM_EMA
-  | ScopePriceId.RAY_EMA
-  | ScopePriceId.FTT_EMA
-  | ScopePriceId.MSOL_EMA
-  | ScopePriceId.BNB_EMA
-  | ScopePriceId.AVAX_EMA
-  | ScopePriceId.STSOL_EMA
-  | ScopePriceId.USDC_EMA
-  | ScopePriceId.USDT_EMA
-  | ScopePriceId.SLND_EMA
-  | ScopePriceId.DAI_EMA
-  | ScopePriceId.wstETH_TWAP
-  | ScopePriceId.DUST_TWAP
-  | ScopePriceId.BONK
-  | ScopePriceId.BONK_TWAP
-  | ScopePriceId.SAMO
-  | ScopePriceId.SAMO_TWAP
-  | ScopePriceId.BSOL
-  | ScopePriceId.LaineSOL
-export type ScopePriceIdJSON =
-  | ScopePriceId.SOLJSON
-  | ScopePriceId.ETHJSON
-  | ScopePriceId.BTCJSON
-  | ScopePriceId.SRMJSON
-  | ScopePriceId.RAYJSON
-  | ScopePriceId.FTTJSON
-  | ScopePriceId.MSOLJSON
-  | ScopePriceId.scnSOL_SOLJSON
-  | ScopePriceId.BNBJSON
-  | ScopePriceId.AVAXJSON
-  | ScopePriceId.DaoSOL_SOLJSON
-  | ScopePriceId.SaberMSOL_SOLJSON
-  | ScopePriceId.USDHJSON
-  | ScopePriceId.StSOLJSON
-  | ScopePriceId.CSOL_SOLJSON
-  | ScopePriceId.CETH_ETHJSON
-  | ScopePriceId.CBTC_BTCJSON
-  | ScopePriceId.CMSOL_SOLJSON
-  | ScopePriceId.wstETHJSON
-  | ScopePriceId.LDOJSON
-  | ScopePriceId.USDCJSON
-  | ScopePriceId.CUSDC_USDCJSON
-  | ScopePriceId.USDTJSON
-  | ScopePriceId.ORCAJSON
-  | ScopePriceId.MNDEJSON
-  | ScopePriceId.HBBJSON
-  | ScopePriceId.CORCA_ORCAJSON
-  | ScopePriceId.CSLND_SLNDJSON
-  | ScopePriceId.CSRM_SRMJSON
-  | ScopePriceId.CRAY_RAYJSON
-  | ScopePriceId.CFTT_FTTJSON
-  | ScopePriceId.CSTSOL_STSOLJSON
-  | ScopePriceId.SLNDJSON
-  | ScopePriceId.DAIJSON
-  | ScopePriceId.JSOL_SOLJSON
-  | ScopePriceId.USHJSON
-  | ScopePriceId.UXDJSON
-  | ScopePriceId.USDH_TWAPJSON
-  | ScopePriceId.USH_TWAPJSON
-  | ScopePriceId.UXD_TWAPJSON
-  | ScopePriceId.HDGJSON
-  | ScopePriceId.DUSTJSON
-  | ScopePriceId.USDRJSON
-  | ScopePriceId.USDR_TWAPJSON
-  | ScopePriceId.RATIOJSON
-  | ScopePriceId.UXPJSON
-  | ScopePriceId.KUXDUSDCORCAJSON
-  | ScopePriceId.JITOSOL_SOLJSON
-  | ScopePriceId.SOL_EMAJSON
-  | ScopePriceId.ETH_EMAJSON
-  | ScopePriceId.BTC_EMAJSON
-  | ScopePriceId.SRM_EMAJSON
-  | ScopePriceId.RAY_EMAJSON
-  | ScopePriceId.FTT_EMAJSON
-  | ScopePriceId.MSOL_EMAJSON
-  | ScopePriceId.BNB_EMAJSON
-  | ScopePriceId.AVAX_EMAJSON
-  | ScopePriceId.STSOL_EMAJSON
-  | ScopePriceId.USDC_EMAJSON
-  | ScopePriceId.USDT_EMAJSON
-  | ScopePriceId.SLND_EMAJSON
-  | ScopePriceId.DAI_EMAJSON
-  | ScopePriceId.wstETH_TWAPJSON
-  | ScopePriceId.DUST_TWAPJSON
-  | ScopePriceId.BONKJSON
-  | ScopePriceId.BONK_TWAPJSON
-  | ScopePriceId.SAMOJSON
-  | ScopePriceId.SAMO_TWAPJSON
-  | ScopePriceId.BSOLJSON
-  | ScopePriceId.LaineSOLJSON
+export type CollateralTestTokenKind =
+  | CollateralTestToken.USDC
+  | CollateralTestToken.USDH
+  | CollateralTestToken.SOL
+  | CollateralTestToken.ETH
+  | CollateralTestToken.BTC
+  | CollateralTestToken.MSOL
+  | CollateralTestToken.STSOL
+  | CollateralTestToken.USDT
+  | CollateralTestToken.ORCA
+  | CollateralTestToken.MNDE
+  | CollateralTestToken.HBB
+  | CollateralTestToken.JSOL
+  | CollateralTestToken.USH
+  | CollateralTestToken.DAI
+  | CollateralTestToken.LDO
+  | CollateralTestToken.SCNSOL
+  | CollateralTestToken.UXD
+  | CollateralTestToken.HDG
+  | CollateralTestToken.DUST
+  | CollateralTestToken.USDR
+  | CollateralTestToken.RATIO
+  | CollateralTestToken.UXP
+  | CollateralTestToken.JITOSOL
+  | CollateralTestToken.RAY
+  | CollateralTestToken.BONK
+  | CollateralTestToken.SAMO
+  | CollateralTestToken.LaineSOL
+  | CollateralTestToken.BSOL
+export type CollateralTestTokenJSON =
+  | CollateralTestToken.USDCJSON
+  | CollateralTestToken.USDHJSON
+  | CollateralTestToken.SOLJSON
+  | CollateralTestToken.ETHJSON
+  | CollateralTestToken.BTCJSON
+  | CollateralTestToken.MSOLJSON
+  | CollateralTestToken.STSOLJSON
+  | CollateralTestToken.USDTJSON
+  | CollateralTestToken.ORCAJSON
+  | CollateralTestToken.MNDEJSON
+  | CollateralTestToken.HBBJSON
+  | CollateralTestToken.JSOLJSON
+  | CollateralTestToken.USHJSON
+  | CollateralTestToken.DAIJSON
+  | CollateralTestToken.LDOJSON
+  | CollateralTestToken.SCNSOLJSON
+  | CollateralTestToken.UXDJSON
+  | CollateralTestToken.HDGJSON
+  | CollateralTestToken.DUSTJSON
+  | CollateralTestToken.USDRJSON
+  | CollateralTestToken.RATIOJSON
+  | CollateralTestToken.UXPJSON
+  | CollateralTestToken.JITOSOLJSON
+  | CollateralTestToken.RAYJSON
+  | CollateralTestToken.BONKJSON
+  | CollateralTestToken.SAMOJSON
+  | CollateralTestToken.LaineSOLJSON
+  | CollateralTestToken.BSOLJSON
+
+export { ScopePriceIdTest }
+
+export type ScopePriceIdTestKind =
+  | ScopePriceIdTest.SOL
+  | ScopePriceIdTest.ETH
+  | ScopePriceIdTest.BTC
+  | ScopePriceIdTest.SRM
+  | ScopePriceIdTest.RAY
+  | ScopePriceIdTest.FTT
+  | ScopePriceIdTest.MSOL
+  | ScopePriceIdTest.scnSOL_SOL
+  | ScopePriceIdTest.BNB
+  | ScopePriceIdTest.AVAX
+  | ScopePriceIdTest.DaoSOL_SOL
+  | ScopePriceIdTest.SaberMSOL_SOL
+  | ScopePriceIdTest.USDH
+  | ScopePriceIdTest.StSOL
+  | ScopePriceIdTest.CSOL_SOL
+  | ScopePriceIdTest.CETH_ETH
+  | ScopePriceIdTest.CBTC_BTC
+  | ScopePriceIdTest.CMSOL_SOL
+  | ScopePriceIdTest.wstETH
+  | ScopePriceIdTest.LDO
+  | ScopePriceIdTest.USDC
+  | ScopePriceIdTest.CUSDC_USDC
+  | ScopePriceIdTest.USDT
+  | ScopePriceIdTest.ORCA
+  | ScopePriceIdTest.MNDE
+  | ScopePriceIdTest.HBB
+  | ScopePriceIdTest.CORCA_ORCA
+  | ScopePriceIdTest.CSLND_SLND
+  | ScopePriceIdTest.CSRM_SRM
+  | ScopePriceIdTest.CRAY_RAY
+  | ScopePriceIdTest.CFTT_FTT
+  | ScopePriceIdTest.CSTSOL_STSOL
+  | ScopePriceIdTest.SLND
+  | ScopePriceIdTest.DAI
+  | ScopePriceIdTest.JSOL_SOL
+  | ScopePriceIdTest.USH
+  | ScopePriceIdTest.UXD
+  | ScopePriceIdTest.USDH_TWAP
+  | ScopePriceIdTest.USH_TWAP
+  | ScopePriceIdTest.UXD_TWAP
+  | ScopePriceIdTest.HDG
+  | ScopePriceIdTest.DUST
+  | ScopePriceIdTest.USDR
+  | ScopePriceIdTest.USDR_TWAP
+  | ScopePriceIdTest.RATIO
+  | ScopePriceIdTest.UXP
+  | ScopePriceIdTest.KUXDUSDCORCA
+  | ScopePriceIdTest.JITOSOL_SOL
+  | ScopePriceIdTest.SOL_EMA
+  | ScopePriceIdTest.ETH_EMA
+  | ScopePriceIdTest.BTC_EMA
+  | ScopePriceIdTest.SRM_EMA
+  | ScopePriceIdTest.RAY_EMA
+  | ScopePriceIdTest.FTT_EMA
+  | ScopePriceIdTest.MSOL_EMA
+  | ScopePriceIdTest.BNB_EMA
+  | ScopePriceIdTest.AVAX_EMA
+  | ScopePriceIdTest.STSOL_EMA
+  | ScopePriceIdTest.USDC_EMA
+  | ScopePriceIdTest.USDT_EMA
+  | ScopePriceIdTest.SLND_EMA
+  | ScopePriceIdTest.DAI_EMA
+  | ScopePriceIdTest.wstETH_TWAP
+  | ScopePriceIdTest.DUST_TWAP
+  | ScopePriceIdTest.BONK
+  | ScopePriceIdTest.BONK_TWAP
+  | ScopePriceIdTest.SAMO
+  | ScopePriceIdTest.SAMO_TWAP
+  | ScopePriceIdTest.BSOL
+  | ScopePriceIdTest.LaineSOL
+export type ScopePriceIdTestJSON =
+  | ScopePriceIdTest.SOLJSON
+  | ScopePriceIdTest.ETHJSON
+  | ScopePriceIdTest.BTCJSON
+  | ScopePriceIdTest.SRMJSON
+  | ScopePriceIdTest.RAYJSON
+  | ScopePriceIdTest.FTTJSON
+  | ScopePriceIdTest.MSOLJSON
+  | ScopePriceIdTest.scnSOL_SOLJSON
+  | ScopePriceIdTest.BNBJSON
+  | ScopePriceIdTest.AVAXJSON
+  | ScopePriceIdTest.DaoSOL_SOLJSON
+  | ScopePriceIdTest.SaberMSOL_SOLJSON
+  | ScopePriceIdTest.USDHJSON
+  | ScopePriceIdTest.StSOLJSON
+  | ScopePriceIdTest.CSOL_SOLJSON
+  | ScopePriceIdTest.CETH_ETHJSON
+  | ScopePriceIdTest.CBTC_BTCJSON
+  | ScopePriceIdTest.CMSOL_SOLJSON
+  | ScopePriceIdTest.wstETHJSON
+  | ScopePriceIdTest.LDOJSON
+  | ScopePriceIdTest.USDCJSON
+  | ScopePriceIdTest.CUSDC_USDCJSON
+  | ScopePriceIdTest.USDTJSON
+  | ScopePriceIdTest.ORCAJSON
+  | ScopePriceIdTest.MNDEJSON
+  | ScopePriceIdTest.HBBJSON
+  | ScopePriceIdTest.CORCA_ORCAJSON
+  | ScopePriceIdTest.CSLND_SLNDJSON
+  | ScopePriceIdTest.CSRM_SRMJSON
+  | ScopePriceIdTest.CRAY_RAYJSON
+  | ScopePriceIdTest.CFTT_FTTJSON
+  | ScopePriceIdTest.CSTSOL_STSOLJSON
+  | ScopePriceIdTest.SLNDJSON
+  | ScopePriceIdTest.DAIJSON
+  | ScopePriceIdTest.JSOL_SOLJSON
+  | ScopePriceIdTest.USHJSON
+  | ScopePriceIdTest.UXDJSON
+  | ScopePriceIdTest.USDH_TWAPJSON
+  | ScopePriceIdTest.USH_TWAPJSON
+  | ScopePriceIdTest.UXD_TWAPJSON
+  | ScopePriceIdTest.HDGJSON
+  | ScopePriceIdTest.DUSTJSON
+  | ScopePriceIdTest.USDRJSON
+  | ScopePriceIdTest.USDR_TWAPJSON
+  | ScopePriceIdTest.RATIOJSON
+  | ScopePriceIdTest.UXPJSON
+  | ScopePriceIdTest.KUXDUSDCORCAJSON
+  | ScopePriceIdTest.JITOSOL_SOLJSON
+  | ScopePriceIdTest.SOL_EMAJSON
+  | ScopePriceIdTest.ETH_EMAJSON
+  | ScopePriceIdTest.BTC_EMAJSON
+  | ScopePriceIdTest.SRM_EMAJSON
+  | ScopePriceIdTest.RAY_EMAJSON
+  | ScopePriceIdTest.FTT_EMAJSON
+  | ScopePriceIdTest.MSOL_EMAJSON
+  | ScopePriceIdTest.BNB_EMAJSON
+  | ScopePriceIdTest.AVAX_EMAJSON
+  | ScopePriceIdTest.STSOL_EMAJSON
+  | ScopePriceIdTest.USDC_EMAJSON
+  | ScopePriceIdTest.USDT_EMAJSON
+  | ScopePriceIdTest.SLND_EMAJSON
+  | ScopePriceIdTest.DAI_EMAJSON
+  | ScopePriceIdTest.wstETH_TWAPJSON
+  | ScopePriceIdTest.DUST_TWAPJSON
+  | ScopePriceIdTest.BONKJSON
+  | ScopePriceIdTest.BONK_TWAPJSON
+  | ScopePriceIdTest.SAMOJSON
+  | ScopePriceIdTest.SAMO_TWAPJSON
+  | ScopePriceIdTest.BSOLJSON
+  | ScopePriceIdTest.LaineSOLJSON
 
 export { DEX }
 

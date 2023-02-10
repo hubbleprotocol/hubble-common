@@ -6,7 +6,7 @@ import Decimal from 'decimal.js';
 import { AmmV3, AmmV3PoolInfo } from '@raydium-io/raydium-sdk';
 import { WhirlpoolAprApy } from './WhirlpoolAprApy';
 import { PROGRAM_ID } from '../raydium_client/programId';
-import { WhirlpoolStrategy } from '../kamino-client';
+import { WhirlpoolStrategy } from '../kamino-client/accounts';
 import { aprToApy, getStrategyPriceRangeRaydium, ZERO } from '../utils';
 import axios from 'axios';
 

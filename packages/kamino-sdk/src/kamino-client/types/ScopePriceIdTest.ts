@@ -1614,7 +1614,7 @@ export class LaineSOL {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function fromDecoded(obj: any): types.ScopePriceIdKind {
+export function fromDecoded(obj: any): types.ScopePriceIdTestKind {
   if (typeof obj !== "object") {
     throw new Error("Invalid enum object")
   }
@@ -1833,7 +1833,9 @@ export function fromDecoded(obj: any): types.ScopePriceIdKind {
   throw new Error("Invalid enum object")
 }
 
-export function fromJSON(obj: types.ScopePriceIdJSON): types.ScopePriceIdKind {
+export function fromJSON(
+  obj: types.ScopePriceIdTestJSON
+): types.ScopePriceIdTestKind {
   switch (obj.kind) {
     case "SOL": {
       return new SOL()

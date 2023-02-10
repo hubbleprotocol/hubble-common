@@ -308,16 +308,6 @@
             "name": "tokenInfos",
             "isMut": true,
             "isSigner": false
-          },
-          {
-            "name": "mint",
-            "isMut": false,
-            "isSigner": false
-          },
-          {
-            "name": "systemProgram",
-            "isMut": false,
-            "isSigner": false
           }
         ],
         "args": [
@@ -331,35 +321,14 @@
           },
           {
             "name": "value",
-            "type": "u64"
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
           }
         ]
-      },
-      {
-        "name": "initializeScopeChain",
-        "accounts": [
-          {
-            "name": "adminAuthority",
-            "isMut": true,
-            "isSigner": true
-          },
-          {
-            "name": "globalConfig",
-            "isMut": true,
-            "isSigner": false
-          },
-          {
-            "name": "scopeChain",
-            "isMut": true,
-            "isSigner": false
-          },
-          {
-            "name": "systemProgram",
-            "isMut": false,
-            "isSigner": false
-          }
-        ],
-        "args": []
       },
       {
         "name": "initializeSharesMetadata",
@@ -680,27 +649,6 @@
         ]
       },
       {
-        "name": "updateScopeChain",
-        "accounts": [
-          {
-            "name": "adminAuthority",
-            "isMut": true,
-            "isSigner": true
-          },
-          {
-            "name": "globalConfig",
-            "isMut": true,
-            "isSigner": false
-          },
-          {
-            "name": "scopeChain",
-            "isMut": true,
-            "isSigner": false
-          }
-        ],
-        "args": []
-      },
-      {
         "name": "openLiquidityPosition",
         "accounts": [
           {
@@ -919,11 +867,6 @@
             "isSigner": false
           },
           {
-            "name": "treasuryFeeVaultAuthority",
-            "isMut": false,
-            "isSigner": false
-          },
-          {
             "name": "tokenAAta",
             "isMut": true,
             "isSigner": false
@@ -1089,6 +1032,11 @@
             "isSigner": false
           },
           {
+            "name": "tokenInfos",
+            "isMut": false,
+            "isSigner": false
+          },
+          {
             "name": "poolProgram",
             "isMut": false,
             "isSigner": false
@@ -1234,11 +1182,6 @@
           },
           {
             "name": "systemProgram",
-            "isMut": false,
-            "isSigner": false
-          },
-          {
-            "name": "rent",
             "isMut": false,
             "isSigner": false
           },
@@ -1505,6 +1448,11 @@
           },
           {
             "name": "scopePrices",
+            "isMut": false,
+            "isSigner": false
+          },
+          {
+            "name": "tokenInfos",
             "isMut": false,
             "isSigner": false
           },
@@ -1779,6 +1727,11 @@
             "isSigner": false
           },
           {
+            "name": "tokenInfos",
+            "isMut": false,
+            "isSigner": false
+          },
+          {
             "name": "systemProgram",
             "isMut": false,
             "isSigner": false
@@ -1915,6 +1868,11 @@
             "isSigner": false
           },
           {
+            "name": "tokenInfos",
+            "isMut": false,
+            "isSigner": false
+          },
+          {
             "name": "tokenProgram",
             "isMut": false,
             "isSigner": false
@@ -1993,6 +1951,11 @@
           },
           {
             "name": "scopePrices",
+            "isMut": false,
+            "isSigner": false
+          },
+          {
+            "name": "tokenInfos",
             "isMut": false,
             "isSigner": false
           },
@@ -2082,6 +2045,11 @@
           },
           {
             "name": "scopePrices",
+            "isMut": false,
+            "isSigner": false
+          },
+          {
+            "name": "tokenInfos",
             "isMut": false,
             "isSigner": false
           },
@@ -2204,6 +2172,11 @@
             "isSigner": false
           },
           {
+            "name": "tokenInfos",
+            "isMut": false,
+            "isSigner": false
+          },
+          {
             "name": "tokenProgram",
             "isMut": false,
             "isSigner": false
@@ -2216,6 +2189,62 @@
           },
           {
             "name": "targetLimitBps",
+            "type": "u64"
+          }
+        ]
+      },
+      {
+        "name": "withdrawFromTreasury",
+        "accounts": [
+          {
+            "name": "adminAuthority",
+            "isMut": true,
+            "isSigner": true
+          },
+          {
+            "name": "globalConfig",
+            "isMut": false,
+            "isSigner": false
+          },
+          {
+            "name": "mint",
+            "isMut": false,
+            "isSigner": false
+          },
+          {
+            "name": "treasuryFeeVault",
+            "isMut": true,
+            "isSigner": false
+          },
+          {
+            "name": "treasuryFeeVaultAuthority",
+            "isMut": true,
+            "isSigner": false
+          },
+          {
+            "name": "tokenAccount",
+            "isMut": true,
+            "isSigner": false
+          },
+          {
+            "name": "systemProgram",
+            "isMut": false,
+            "isSigner": false
+          },
+          {
+            "name": "rent",
+            "isMut": false,
+            "isSigner": false
+          },
+          {
+            "name": "tokenProgram",
+            "isMut": false,
+            "isSigner": false
+          }
+        ],
+        "args": [
+          {
+            "name": "amount",
             "type": "u64"
           }
         ]
@@ -2314,28 +2343,6 @@
       }
     ],
     "accounts": [
-      {
-        "name": "ScopeChainAccount",
-        "type": {
-          "kind": "struct",
-          "fields": [
-            {
-              "name": "chainArray",
-              "type": {
-                "array": [
-                  {
-                    "array": [
-                      "u16",
-                      4
-                    ]
-                  },
-                  512
-                ]
-              }
-            }
-          ]
-        }
-      },
       {
         "name": "Whirlpool",
         "docs": [
@@ -3097,8 +3104,12 @@
               "type": "u64"
             },
             {
-              "name": "swapVaultMaxSlippage",
-              "type": "u64"
+              "name": "swapVaultMaxSlippageBps",
+              "type": "u32"
+            },
+            {
+              "name": "swapVaultMaxSlippageFromReferenceBps",
+              "type": "u32"
             },
             {
               "name": "strategyType",
@@ -3152,7 +3163,7 @@
               "type": "publicKey"
             },
             {
-              "name": "blockDeposit",
+              "name": "allowDepositWithoutInvest",
               "type": "u64"
             },
             {
@@ -3164,7 +3175,7 @@
               "type": "u8"
             },
             {
-              "name": "reservedFlag0",
+              "name": "creationStatus",
               "type": "u8"
             },
             {
@@ -3192,11 +3203,23 @@
               "type": "u8"
             },
             {
+              "name": "referenceSwapPriceA",
+              "type": {
+                "defined": "Price"
+              }
+            },
+            {
+              "name": "referenceSwapPriceB",
+              "type": {
+                "defined": "Price"
+              }
+            },
+            {
               "name": "padding1",
               "type": {
                 "array": [
-                  "u64",
-                  2
+                  "u128",
+                  22
                 ]
               }
             },
@@ -3205,7 +3228,7 @@
               "type": {
                 "array": [
                   "u128",
-                  23
+                  32
                 ]
               }
             },
@@ -3229,15 +3252,6 @@
             },
             {
               "name": "padding5",
-              "type": {
-                "array": [
-                  "u128",
-                  32
-                ]
-              }
-            },
-            {
-              "name": "padding6",
               "type": {
                 "array": [
                   "u128",
@@ -3360,6 +3374,28 @@
                     "defined": "CollateralInfo"
                   },
                   256
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "name": "ScopeChainAccount",
+        "type": {
+          "kind": "struct",
+          "fields": [
+            {
+              "name": "chainArray",
+              "type": {
+                "array": [
+                  {
+                    "array": [
+                      "u16",
+                      4
+                    ]
+                  },
+                  512
                 ]
               }
             }
@@ -3573,11 +3609,45 @@
               "type": "u64"
             },
             {
+              "name": "maxTwapDivergenceBps",
+              "type": "u64"
+            },
+            {
+              "name": "scopePriceIdTwap",
+              "type": "u64"
+            },
+            {
+              "name": "scopePriceChain",
+              "type": {
+                "array": [
+                  "u16",
+                  4
+                ]
+              }
+            },
+            {
+              "name": "name",
+              "type": {
+                "array": [
+                  "u8",
+                  32
+                ]
+              }
+            },
+            {
+              "name": "maxAgePriceSeconds",
+              "type": "u64"
+            },
+            {
+              "name": "maxAgeTwapSeconds",
+              "type": "u64"
+            },
+            {
               "name": "padding",
               "type": {
                 "array": [
-                  "u128",
-                  10
+                  "u64",
+                  11
                 ]
               }
             }
@@ -3669,34 +3739,6 @@
         }
       },
       {
-        "name": "WithdrawalCapAction",
-        "type": {
-          "kind": "enum",
-          "variants": [
-            {
-              "name": "Add"
-            },
-            {
-              "name": "Remove"
-            }
-          ]
-        }
-      },
-      {
-        "name": "WithdrawalCapOverflowAction",
-        "type": {
-          "kind": "enum",
-          "variants": [
-            {
-              "name": "SaturatingOverflow"
-            },
-            {
-              "name": "ErrorOnOverflow"
-            }
-          ]
-        }
-      },
-      {
         "name": "WithdrawalCapAccumulatorAction",
         "type": {
           "kind": "enum",
@@ -3743,86 +3785,6 @@
                   "type": "bool"
                 }
               ]
-            }
-          ]
-        }
-      },
-      {
-        "name": "CollateralToken",
-        "type": {
-          "kind": "enum",
-          "variants": [
-            {
-              "name": "USDC"
-            },
-            {
-              "name": "USDH"
-            },
-            {
-              "name": "SOL"
-            },
-            {
-              "name": "ETH"
-            },
-            {
-              "name": "BTC"
-            },
-            {
-              "name": "MSOL"
-            },
-            {
-              "name": "STSOL"
-            },
-            {
-              "name": "USDT"
-            },
-            {
-              "name": "ORCA"
-            },
-            {
-              "name": "MNDE"
-            },
-            {
-              "name": "HBB"
-            },
-            {
-              "name": "JSOL"
-            },
-            {
-              "name": "USH"
-            },
-            {
-              "name": "DAI"
-            },
-            {
-              "name": "LDO"
-            },
-            {
-              "name": "SCNSOL"
-            },
-            {
-              "name": "UXD"
-            },
-            {
-              "name": "HDG"
-            },
-            {
-              "name": "DUST"
-            },
-            {
-              "name": "USDR"
-            },
-            {
-              "name": "RATIO"
-            },
-            {
-              "name": "UXP"
-            },
-            {
-              "name": "JITOSOL"
-            },
-            {
-              "name": "RAY"
             }
           ]
         }
@@ -3992,6 +3954,18 @@
             },
             {
               "name": "UpdateFlashVaultSwap"
+            },
+            {
+              "name": "AllowDepositWithoutInvest"
+            },
+            {
+              "name": "UpdateSwapVaultMaxSlippageFromRef"
+            },
+            {
+              "name": "ResetReferencePrices"
+            },
+            {
+              "name": "UpdateStrategyCreationState"
             }
           ]
         }
@@ -4080,12 +4054,122 @@
             },
             {
               "name": "ExpHeuristic"
+            },
+            {
+              "name": "TwapDivergence"
+            },
+            {
+              "name": "UpdateScopeTwap"
+            },
+            {
+              "name": "UpdateScopeChain"
+            },
+            {
+              "name": "UpdateName"
+            },
+            {
+              "name": "UpdatePriceMaxAge"
+            },
+            {
+              "name": "UpdateTwapMaxAge"
             }
           ]
         }
       },
       {
-        "name": "ScopePriceId",
+        "name": "CollateralTestToken",
+        "type": {
+          "kind": "enum",
+          "variants": [
+            {
+              "name": "USDC"
+            },
+            {
+              "name": "USDH"
+            },
+            {
+              "name": "SOL"
+            },
+            {
+              "name": "ETH"
+            },
+            {
+              "name": "BTC"
+            },
+            {
+              "name": "MSOL"
+            },
+            {
+              "name": "STSOL"
+            },
+            {
+              "name": "USDT"
+            },
+            {
+              "name": "ORCA"
+            },
+            {
+              "name": "MNDE"
+            },
+            {
+              "name": "HBB"
+            },
+            {
+              "name": "JSOL"
+            },
+            {
+              "name": "USH"
+            },
+            {
+              "name": "DAI"
+            },
+            {
+              "name": "LDO"
+            },
+            {
+              "name": "SCNSOL"
+            },
+            {
+              "name": "UXD"
+            },
+            {
+              "name": "HDG"
+            },
+            {
+              "name": "DUST"
+            },
+            {
+              "name": "USDR"
+            },
+            {
+              "name": "RATIO"
+            },
+            {
+              "name": "UXP"
+            },
+            {
+              "name": "JITOSOL"
+            },
+            {
+              "name": "RAY"
+            },
+            {
+              "name": "BONK"
+            },
+            {
+              "name": "SAMO"
+            },
+            {
+              "name": "LaineSOL"
+            },
+            {
+              "name": "BSOL"
+            }
+          ]
+        }
+      },
+      {
+        "name": "ScopePriceIdTest",
         "type": {
           "kind": "enum",
           "variants": [
@@ -4280,6 +4364,24 @@
             },
             {
               "name": "DUST_TWAP"
+            },
+            {
+              "name": "BONK"
+            },
+            {
+              "name": "BONK_TWAP"
+            },
+            {
+              "name": "SAMO"
+            },
+            {
+              "name": "SAMO_TWAP"
+            },
+            {
+              "name": "BSOL"
+            },
+            {
+              "name": "LaineSOL"
             }
           ]
         }
@@ -4807,6 +4909,31 @@
         "code": 6100,
         "name": "FlashVaultSwapWrongAmountToLeave",
         "msg": "Unexpected amount of tokens in ata prior flash vault swap (wrong amount_to_leave_to_user)"
+      },
+      {
+        "code": 6101,
+        "name": "DepositLessThanMinimum",
+        "msg": "Deposit amount less than minimal allowed"
+      },
+      {
+        "code": 6102,
+        "name": "DepositWithoutInvestDisallowed",
+        "msg": "Cannot deposit without invest"
+      },
+      {
+        "code": 6103,
+        "name": "InvalidScopeChain",
+        "msg": "Invalid Scope Chain"
+      },
+      {
+        "code": 6104,
+        "name": "InvalidTwapId",
+        "msg": "Invalid Twap Value"
+      },
+      {
+        "code": 6105,
+        "name": "PositionHasRemainingLiquidity",
+        "msg": "Existent position has liquidity, new position creation is forbidden"
       }
     ]
   }

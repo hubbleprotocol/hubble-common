@@ -73,8 +73,6 @@ export async function initializeRaydiumPool(
       console.log('Initialize Observer:', txHash);
     }
   }
-  let decimalsA = await getMintDecimals(connection, tokenMintA);
-  let decimalsB = await getMintDecimals(connection, tokenMintB);
 
   let sqrtPriceX64InitialPrice = SqrtPriceMath.priceToSqrtPriceX64(new Decimal(initialPrice), 6, 6);
 

@@ -1,8 +1,3 @@
-export { ScopeChainAccount } from "./ScopeChainAccount"
-export type {
-  ScopeChainAccountFields,
-  ScopeChainAccountJSON,
-} from "./ScopeChainAccount"
 export { Whirlpool } from "./Whirlpool"
 export type { WhirlpoolFields, WhirlpoolJSON } from "./Whirlpool"
 export { Position } from "./Position"
@@ -28,3 +23,8 @@ export type {
   CollateralInfosFields,
   CollateralInfosJSON,
 } from "./CollateralInfos"
+export { ScopeChainAccount } from "./ScopeChainAccount"
+export type {
+  ScopeChainAccountFields,
+  ScopeChainAccountJSON,
+} from "./ScopeChainAccount"

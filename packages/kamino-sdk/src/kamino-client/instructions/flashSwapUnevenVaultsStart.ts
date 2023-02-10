@@ -21,6 +21,7 @@ export interface FlashSwapUnevenVaultsStartAccounts {
   pool: PublicKey
   position: PublicKey
   scopePrices: PublicKey
+  tokenInfos: PublicKey
   tokenProgram: PublicKey
   instructionSysvarAccount: PublicKey
 }
@@ -54,6 +55,7 @@ export function flashSwapUnevenVaultsStart(
     { pubkey: accounts.pool, isSigner: false, isWritable: true },
     { pubkey: accounts.position, isSigner: false, isWritable: true },
     { pubkey: accounts.scopePrices, isSigner: false, isWritable: false },
+    { pubkey: accounts.tokenInfos, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
     {
       pubkey: accounts.instructionSysvarAccount,
