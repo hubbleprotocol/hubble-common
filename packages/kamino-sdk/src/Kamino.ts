@@ -1388,7 +1388,7 @@ export class Kamino {
       raydiumProtocolPositionOrBaseVaultAuthority: strategyState.raydiumProtocolPositionOrBaseVaultAuthority,
       tokenProgram: TOKEN_PROGRAM_ID,
       poolProgram: programId,
-      tokenInfos: globalConfig?.tokenInfos,
+      tokenInfos: globalConfig.tokenInfos,
     };
 
     return executiveWithdraw(args, accounts);
