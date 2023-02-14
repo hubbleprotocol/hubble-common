@@ -468,7 +468,7 @@ describe('Kamino SDK Tests', () => {
 
     let withdrawTx = createTransactionWithExtraBudget(signer.publicKey);
 
-    const withdrawIx = await kamino.withdrawShares(strategyWithAddress, new Decimal(0.02), signer.publicKey);
+    const withdrawIx = await kamino.withdrawShares(strategyWithAddress, new Decimal(0.2), signer.publicKey);
     withdrawTx.add(withdrawIx);
 
     withdrawTx = await assignBlockInfoToTransaction(connection, withdrawTx, signer.publicKey);
