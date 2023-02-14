@@ -7,6 +7,8 @@ import {
 import {
   AccountInfo,
   Connection,
+  GetProgramAccountsFilter,
+  MemcmpFilter,
   PublicKey,
   SystemProgram,
   SYSVAR_INSTRUCTIONS_PUBKEY,
@@ -189,23 +191,28 @@ export class Kamino {
   }
 
   async getAllStrategies(strategyFilters: StrategiesFilters): Promise<Array<WhirlpoolStrategy | null>> {
-    const strategies = (await this._kaminoProgram.account.whirlpoolStrategy.all([]))
-      .map((x) => x.account as WhirlpoolStrategy)
-      .filter((x) => {
-        if (
-          strategyFilters.strategyCreationStatus != undefined &&
-          x.creationStatus != strategyCreationStatusToNumber(strategyFilters.strategyCreationStatus)
-        ) {
-          return false;
-        }
-        if (
-          strategyFilters.strategyType != undefined &&
-          x.strategyType.toNumber() != strategyTypeToNumber(strategyFilters.strategyType)
-        ) {
-          return false;
-        }
-        return true;
+    let filters: GetProgramAccountsFilter[] = [];
+
+    if (strategyFilters.strategyCreationStatus) {
+      filters.push({
+        memcmp: {
+          bytes: strategyCreationStatusToNumber(strategyFilters.strategyCreationStatus).toString(),
+          offset: 2,
+        },
       });
+    }
+    if (strategyFilters.strategyType) {
+      filters.push({
+        memcmp: {
+          bytes: strategyCreationStatusToNumber(strategyFilters.strategyCreationStatus).toString(),
+          offset: 2,
+        },
+      });
+    }
+
+    const strategies = (await this._kaminoProgram.account.whirlpoolStrategy.all(filters)).map(
+      (x) => x.account as WhirlpoolStrategy
+    );
 
     return strategies;
   }
