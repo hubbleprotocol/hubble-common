@@ -52,6 +52,9 @@ import {
   getAssociatedTokenAddressAndData,
   getDexProgramId,
   getReadOnlyWallet,
+  StrategiesFilters,
+  strategyCreationStatusToNumber,
+  strategyTypeToNumber,
 } from './utils';
 import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import {
@@ -185,10 +188,24 @@ export class Kamino {
     return await batchFetch(strategies, (chunk) => WhirlpoolStrategy.fetchMultiple(this._connection, chunk));
   }
 
-  async getAllStrategies(): Promise<Array<WhirlpoolStrategy | null>> {
-    const strategies = (await this._kaminoProgram.account.whirlpoolStrategy.all([])).map(
-      (x) => x.account as WhirlpoolStrategy
-    );
+  async getAllStrategies(strategyFilters: StrategiesFilters): Promise<Array<WhirlpoolStrategy | null>> {
+    const strategies = (await this._kaminoProgram.account.whirlpoolStrategy.all([]))
+      .map((x) => x.account as WhirlpoolStrategy)
+      .filter((x) => {
+        if (
+          strategyFilters.strategyCreationStatus != undefined &&
+          x.creationStatus != strategyCreationStatusToNumber(strategyFilters.strategyCreationStatus)
+        ) {
+          return false;
+        }
+        if (
+          strategyFilters.strategyType != undefined &&
+          x.strategyType.toNumber() != strategyTypeToNumber(strategyFilters.strategyType)
+        ) {
+          return false;
+        }
+        return true;
+      });
 
     return strategies;
   }
