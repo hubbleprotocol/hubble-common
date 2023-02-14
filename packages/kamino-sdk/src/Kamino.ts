@@ -185,6 +185,14 @@ export class Kamino {
     return await batchFetch(strategies, (chunk) => WhirlpoolStrategy.fetchMultiple(this._connection, chunk));
   }
 
+  async getAllStrategies(): Promise<Array<WhirlpoolStrategy | null>> {
+    const strategies = (await this._kaminoProgram.account.whirlpoolStrategy.all([])).map(
+      (x) => x.account as WhirlpoolStrategy
+    );
+
+    return strategies;
+  }
+
   /**
    * Get a Kamino whirlpool strategy by its public key address
    * @param address
