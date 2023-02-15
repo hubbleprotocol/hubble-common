@@ -1,5 +1,5 @@
 import { Connection, Keypair, PublicKey, sendAndConfirmTransaction, SystemProgram, Transaction } from '@solana/web3.js';
-import { Dex, Kamino, sendTransactionWithLogs, sleep } from '../src';
+import { Dex, Kamino, sendTransactionWithLogs, sleep, StrategiesFilters } from '../src';
 import Decimal from 'decimal.js';
 import {
   assignBlockInfoToTransaction,
@@ -26,9 +26,12 @@ import {
   UpdateDepositCap,
   UpdateDepositCapIxn,
   UpdateMaxDeviationBps,
+  UpdateStrategyCreationState,
+  UpdateStrategyType,
 } from '../src/kamino-client/types/StrategyConfigOption';
 import { expect } from 'chai';
 import { WHIRLPOOL_PROGRAM_ID } from '../src/whirpools-client/programId';
+import { assert } from 'console';
 
 export const LOCAL_RAYDIUM_PROGRAM_ID = new PublicKey('devi51mZmdwUJGU9hjN27vEz64Gps7uUefqxg27EAtH');
 export const USDH_SCOPE_CHAIN_ID = BigInt(12);
@@ -929,6 +932,163 @@ describe('Kamino SDK Tests', () => {
       expect(sig).not.to.be.null;
     }
   });
+
+  it('should read all strats correctly with no filter', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      fixtures.globalConfig,
+      fixtures.kaminoProgramId,
+      WHIRLPOOL_PROGRAM_ID,
+      LOCAL_RAYDIUM_PROGRAM_ID
+    );
+
+    let filters: StrategiesFilters = {
+      strategyType: undefined,
+      strategyCreationStatus: undefined,
+    };
+    let strats = await kamino.getAllStrategies(filters);
+    expect(strats.length).to.be.eq(2);
+  });
+
+  it('should read strats correctly when no strat match the filter', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      fixtures.globalConfig,
+      fixtures.kaminoProgramId,
+      WHIRLPOOL_PROGRAM_ID,
+      LOCAL_RAYDIUM_PROGRAM_ID
+    );
+
+    let filters: StrategiesFilters = {
+      strategyType: 'STABLE',
+      strategyCreationStatus: undefined,
+    };
+    let strats = await kamino.getAllStrategies(filters);
+    console.log('strats.length', strats.length);
+    expect(strats.length).to.be.eq(0);
+  });
+
+  it('should read strats correctly with creation status SHADOW', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      fixtures.globalConfig,
+      fixtures.kaminoProgramId,
+      WHIRLPOOL_PROGRAM_ID,
+      LOCAL_RAYDIUM_PROGRAM_ID
+    );
+
+    let filters: StrategiesFilters = {
+      strategyType: undefined,
+      strategyCreationStatus: 'SHADOW',
+    };
+    let strats = await kamino.getAllStrategies(filters);
+    expect(strats.length).to.be.eq(2);
+  });
+
+  it('should read strats correctly with strategy type NON_PEGGED', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      fixtures.globalConfig,
+      fixtures.kaminoProgramId,
+      WHIRLPOOL_PROGRAM_ID,
+      LOCAL_RAYDIUM_PROGRAM_ID
+    );
+
+    let filters: StrategiesFilters = {
+      strategyType: 'NON_PEGGED',
+      strategyCreationStatus: undefined,
+    };
+    let strats = await kamino.getAllStrategies(filters);
+    expect(strats.length).to.be.eq(2);
+  });
+
+  it('should read strats correctly after creation status changes', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      fixtures.globalConfig,
+      fixtures.kaminoProgramId,
+      WHIRLPOOL_PROGRAM_ID,
+      LOCAL_RAYDIUM_PROGRAM_ID
+    );
+
+    let filters: StrategiesFilters = {
+      strategyType: undefined,
+      strategyCreationStatus: 'SHADOW',
+    };
+    let strats = await kamino.getAllStrategies(filters);
+    expect(strats.length).to.be.eq(2);
+
+    // set creation state to live
+    await updateStrategyConfig(
+      connection,
+      signer,
+      fixtures.newOrcaStrategy,
+      new UpdateStrategyCreationState(),
+      new Decimal(2)
+    );
+
+    // assert only a single strat remained SHADOW
+    strats = await kamino.getAllStrategies(filters);
+    expect(strats.length).to.be.eq(1);
+
+    // assert there is a strategy with creation status LIVE
+    filters.strategyCreationStatus = 'DEPRECATED';
+    strats = await kamino.getAllStrategies(filters);
+    expect(strats.length).to.be.eq(1);
+  });
+
+  it('should read strats correctly after strategy type changes', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      fixtures.globalConfig,
+      fixtures.kaminoProgramId,
+      WHIRLPOOL_PROGRAM_ID,
+      LOCAL_RAYDIUM_PROGRAM_ID
+    );
+
+    let filters: StrategiesFilters = {
+      strategyType: 'NON_PEGGED',
+      strategyCreationStatus: undefined,
+    };
+    let strats = await kamino.getAllStrategies(filters);
+    expect(strats.length).to.be.eq(2);
+
+    // set it to STABLE
+    await updateStrategyConfig(connection, signer, fixtures.newOrcaStrategy, new UpdateStrategyType(), new Decimal(2));
+
+    // assert that only one strat is NON_PEGGED
+    strats = await kamino.getAllStrategies(filters);
+    expect(strats.length).to.be.eq(1);
+
+    // assert there is one strat that is STABLE
+    filters.strategyType = 'STABLE';
+    strats = await kamino.getAllStrategies(filters);
+    expect(strats.length).to.be.eq(1);
+  });
+
+  // it('should read strats correctly with creation_status SHADOW and strategy_type NON_PEGGED ', async () => {
+  //   let kamino = new Kamino(
+  //     cluster,
+  //     connection,
+  //     fixtures.globalConfig,
+  //     fixtures.kaminoProgramId,
+  //     WHIRLPOOL_PROGRAM_ID,
+  //     LOCAL_RAYDIUM_PROGRAM_ID
+  //   );
+
+  //   let filters: StrategiesFilters = {
+  //     strategyType: 'NON_PEGGED',
+  //     strategyCreationStatus: 'SHADOW',
+  //   };
+  //   let strats = await kamino.getAllStrategies(filters);
+  //   assert(strats.length == 2);
+  // });
 });
 
 export async function createStrategy(kamino: Kamino, owner: Keypair, pool: PublicKey, dex: Dex): Promise<PublicKey> {

@@ -55,8 +55,8 @@ import {
   getDexProgramId,
   getReadOnlyWallet,
   StrategiesFilters,
-  strategyCreationStatusToNumber,
-  strategyTypeToNumber,
+  strategyCreationStatusToBase58,
+  strategyTypeToBase58,
 } from './utils';
 import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import {
@@ -196,16 +196,16 @@ export class Kamino {
     if (strategyFilters.strategyCreationStatus) {
       filters.push({
         memcmp: {
-          bytes: strategyCreationStatusToNumber(strategyFilters.strategyCreationStatus).toString(),
-          offset: 2,
+          bytes: strategyCreationStatusToBase58(strategyFilters.strategyCreationStatus),
+          offset: 1625,
         },
       });
     }
     if (strategyFilters.strategyType) {
       filters.push({
         memcmp: {
-          bytes: strategyCreationStatusToNumber(strategyFilters.strategyCreationStatus).toString(),
-          offset: 2,
+          bytes: strategyTypeToBase58(strategyFilters.strategyType).toString(),
+          offset: 1120,
         },
       });
     }
