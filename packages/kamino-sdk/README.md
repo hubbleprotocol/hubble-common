@@ -409,3 +409,39 @@ for (const rebalanceInstruction of rebalanceInstructions) {
 }
 
 ```
+
+### Get all strategies with filters
+
+* The current filters that are supported are:
+  * `strategyType` which can be:
+    * `NON_PEGGED`: e.g. SOL-BONK
+    * `PEGGED`: e.g. BSOL-JitoSOL
+    * `STABLE`: e.g. USDH-USDC
+
+  * `strategyCreationStatus` which can be:
+    * `SHADOW`
+    * `LIVE`
+    * `DEPRECATED`
+    * `TEST`
+
+```javascript
+import { clusterApiUrl, Connection, PublicKey, sendAndConfirmTransaction, Keypair, Transaction } from '@solana/web3.js';
+import {
+  Kamino,
+  createTransactionWithExtraBudget,
+  assignBlockInfoToTransaction,
+  StrategiesFilters
+} from '@hubbleprotocol/kamino-sdk';
+import Decimal from 'decimal.js';
+
+// create a Kamino instance
+const kamino = new Kamino('mainnet-beta', connection);
+
+// get all Kamino strategies that are non_pegged
+let filters: StrategiesFilters = {
+      strategyType: 'NON_PEGGED',
+      strategyCreationStatus: undefined,
+    };
+
+let nonPeggedStrats = await kamino.getAllStrategiesWithFilters(filters);
+```

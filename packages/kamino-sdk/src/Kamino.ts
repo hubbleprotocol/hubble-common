@@ -7,6 +7,8 @@ import {
 import {
   AccountInfo,
   Connection,
+  GetProgramAccountsFilter,
+  MemcmpFilter,
   PublicKey,
   SystemProgram,
   SYSVAR_INSTRUCTIONS_PUBKEY,
@@ -52,6 +54,9 @@ import {
   getAssociatedTokenAddressAndData,
   getDexProgramId,
   getReadOnlyWallet,
+  StrategiesFilters,
+  strategyCreationStatusToBase58,
+  strategyTypeToBase58,
 } from './utils';
 import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import {
@@ -183,6 +188,33 @@ export class Kamino {
     strategies: Array<PublicKey> = this._config.kamino.strategies
   ): Promise<Array<WhirlpoolStrategy | null>> {
     return await batchFetch(strategies, (chunk) => WhirlpoolStrategy.fetchMultiple(this._connection, chunk));
+  }
+
+  async getAllStrategiesWithFilters(strategyFilters: StrategiesFilters): Promise<Array<WhirlpoolStrategy | null>> {
+    let filters: GetProgramAccountsFilter[] = [];
+
+    if (strategyFilters.strategyCreationStatus) {
+      filters.push({
+        memcmp: {
+          bytes: strategyCreationStatusToBase58(strategyFilters.strategyCreationStatus),
+          offset: 1625,
+        },
+      });
+    }
+    if (strategyFilters.strategyType) {
+      filters.push({
+        memcmp: {
+          bytes: strategyTypeToBase58(strategyFilters.strategyType).toString(),
+          offset: 1120,
+        },
+      });
+    }
+
+    const strategies = (await this._kaminoProgram.account.whirlpoolStrategy.all(filters)).map(
+      (x) => x.account as WhirlpoolStrategy
+    );
+
+    return strategies;
   }
 
   /**
