@@ -81,6 +81,7 @@ import {
   WithdrawArgs,
 } from './kamino-client/instructions';
 import BN from 'bn.js';
+import StrategyWithAddress from './models/StrategyWithAddress';
 import { StrategyProgramAddress } from './models';
 import { Idl, Program, Provider } from '@project-serum/anchor';
 import { Rebalancing, Uninitialized } from './kamino-client/types/StrategyStatus';
@@ -101,7 +102,6 @@ import {
   InternalAddLiquidityQuoteParam,
   InternalAddLiquidityQuote,
 } from '@orca-so/whirlpool-sdk/dist/position/quotes/add-liquidity';
-import StrategyWithAddress from './models/StrategyWithAddress';
 export const KAMINO_IDL = KaminoIdl;
 
 export class Kamino {
