@@ -947,7 +947,7 @@ describe('Kamino SDK Tests', () => {
       strategyType: undefined,
       strategyCreationStatus: undefined,
     };
-    let strats = await kamino.getAllStrategies(filters);
+    let strats = await kamino.getAllStrategiesWithFilters(filters);
     expect(strats.length).to.be.eq(2);
   });
 
@@ -965,7 +965,7 @@ describe('Kamino SDK Tests', () => {
       strategyType: 'STABLE',
       strategyCreationStatus: undefined,
     };
-    let strats = await kamino.getAllStrategies(filters);
+    let strats = await kamino.getAllStrategiesWithFilters(filters);
     console.log('strats.length', strats.length);
     expect(strats.length).to.be.eq(0);
   });
@@ -984,7 +984,7 @@ describe('Kamino SDK Tests', () => {
       strategyType: undefined,
       strategyCreationStatus: 'SHADOW',
     };
-    let strats = await kamino.getAllStrategies(filters);
+    let strats = await kamino.getAllStrategiesWithFilters(filters);
     expect(strats.length).to.be.eq(2);
   });
 
@@ -1002,7 +1002,7 @@ describe('Kamino SDK Tests', () => {
       strategyType: 'NON_PEGGED',
       strategyCreationStatus: undefined,
     };
-    let strats = await kamino.getAllStrategies(filters);
+    let strats = await kamino.getAllStrategiesWithFilters(filters);
     expect(strats.length).to.be.eq(2);
   });
 
@@ -1020,7 +1020,7 @@ describe('Kamino SDK Tests', () => {
       strategyType: undefined,
       strategyCreationStatus: 'SHADOW',
     };
-    let strats = await kamino.getAllStrategies(filters);
+    let strats = await kamino.getAllStrategiesWithFilters(filters);
     expect(strats.length).to.be.eq(2);
 
     // set creation state to live
@@ -1033,12 +1033,12 @@ describe('Kamino SDK Tests', () => {
     );
 
     // assert only a single strat remained SHADOW
-    strats = await kamino.getAllStrategies(filters);
+    strats = await kamino.getAllStrategiesWithFilters(filters);
     expect(strats.length).to.be.eq(1);
 
     // assert there is a strategy with creation status LIVE
     filters.strategyCreationStatus = 'DEPRECATED';
-    strats = await kamino.getAllStrategies(filters);
+    strats = await kamino.getAllStrategiesWithFilters(filters);
     expect(strats.length).to.be.eq(1);
   });
 
@@ -1056,19 +1056,19 @@ describe('Kamino SDK Tests', () => {
       strategyType: 'NON_PEGGED',
       strategyCreationStatus: undefined,
     };
-    let strats = await kamino.getAllStrategies(filters);
+    let strats = await kamino.getAllStrategiesWithFilters(filters);
     expect(strats.length).to.be.eq(2);
 
     // set it to STABLE
     await updateStrategyConfig(connection, signer, fixtures.newOrcaStrategy, new UpdateStrategyType(), new Decimal(2));
 
     // assert that only one strat is NON_PEGGED
-    strats = await kamino.getAllStrategies(filters);
+    strats = await kamino.getAllStrategiesWithFilters(filters);
     expect(strats.length).to.be.eq(1);
 
     // assert there is one strat that is STABLE
     filters.strategyType = 'STABLE';
-    strats = await kamino.getAllStrategies(filters);
+    strats = await kamino.getAllStrategiesWithFilters(filters);
     expect(strats.length).to.be.eq(1);
   });
 

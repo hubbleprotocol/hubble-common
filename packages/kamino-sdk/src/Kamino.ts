@@ -190,7 +190,7 @@ export class Kamino {
     return await batchFetch(strategies, (chunk) => WhirlpoolStrategy.fetchMultiple(this._connection, chunk));
   }
 
-  async getAllStrategies(strategyFilters: StrategiesFilters): Promise<Array<WhirlpoolStrategy | null>> {
+  async getAllStrategiesWithFilters(strategyFilters: StrategiesFilters): Promise<Array<WhirlpoolStrategy | null>> {
     let filters: GetProgramAccountsFilter[] = [];
 
     if (strategyFilters.strategyCreationStatus) {
