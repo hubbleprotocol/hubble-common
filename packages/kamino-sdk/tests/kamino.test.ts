@@ -982,7 +982,7 @@ describe('Kamino SDK Tests', () => {
 
     let filters: StrategiesFilters = {
       strategyType: undefined,
-      strategyCreationStatus: 'SHADOW',
+      strategyCreationStatus: 'IGNORED',
     };
     let strats = await kamino.getAllStrategiesWithFilters(filters);
     expect(strats.length).to.be.eq(2);
@@ -1018,7 +1018,7 @@ describe('Kamino SDK Tests', () => {
 
     let filters: StrategiesFilters = {
       strategyType: undefined,
-      strategyCreationStatus: 'SHADOW',
+      strategyCreationStatus: 'IGNORED',
     };
     let strats = await kamino.getAllStrategiesWithFilters(filters);
     expect(strats.length).to.be.eq(2);
@@ -1037,7 +1037,7 @@ describe('Kamino SDK Tests', () => {
     expect(strats.length).to.be.eq(1);
 
     // assert there is a strategy with creation status LIVE
-    filters.strategyCreationStatus = 'DEPRECATED';
+    filters.strategyCreationStatus = 'LIVE';
     strats = await kamino.getAllStrategiesWithFilters(filters);
     expect(strats.length).to.be.eq(1);
   });
@@ -1071,24 +1071,6 @@ describe('Kamino SDK Tests', () => {
     strats = await kamino.getAllStrategiesWithFilters(filters);
     expect(strats.length).to.be.eq(1);
   });
-
-  // it('should read strats correctly with creation_status SHADOW and strategy_type NON_PEGGED ', async () => {
-  //   let kamino = new Kamino(
-  //     cluster,
-  //     connection,
-  //     fixtures.globalConfig,
-  //     fixtures.kaminoProgramId,
-  //     WHIRLPOOL_PROGRAM_ID,
-  //     LOCAL_RAYDIUM_PROGRAM_ID
-  //   );
-
-  //   let filters: StrategiesFilters = {
-  //     strategyType: 'NON_PEGGED',
-  //     strategyCreationStatus: 'SHADOW',
-  //   };
-  //   let strats = await kamino.getAllStrategies(filters);
-  //   assert(strats.length == 2);
-  // });
 });
 
 export async function createStrategy(kamino: Kamino, owner: Keypair, pool: PublicKey, dex: Dex): Promise<PublicKey> {

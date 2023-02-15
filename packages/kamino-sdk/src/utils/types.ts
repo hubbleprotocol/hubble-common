@@ -1,5 +1,5 @@
 type StrategyType = 'NON_PEGGED' | 'PEGGED' | 'STABLE' | undefined;
-type StrategyCreationStatus = 'SHADOW' | 'LIVE' | 'DEPRECATED' | 'TEST' | undefined;
+type StrategyCreationStatus = 'IGNORED' | 'SHADOW' | 'LIVE' | 'DEPRECATED' | 'TEST' | undefined;
 
 export type StrategiesFilters = {
   strategyType: StrategyType;
@@ -34,14 +34,16 @@ export function strategyTypeToNumber(strategyType: StrategyType): number {
 
 export function strategyCreationStatusToBase58(strategyCreationStatus: StrategyCreationStatus): string {
   switch (strategyCreationStatus) {
-    case 'SHADOW':
+    case 'IGNORED':
       return '1';
-    case 'LIVE':
+    case 'SHADOW':
       return '2';
-    case 'DEPRECATED':
+    case 'LIVE':
       return '3';
-    case 'TEST':
+    case 'DEPRECATED':
       return '4';
+    case 'TEST':
+      return '5';
     default:
       throw new Error(`Invalid strategyCreationStatus ${strategyCreationStatus}`);
   }
@@ -49,14 +51,16 @@ export function strategyCreationStatusToBase58(strategyCreationStatus: StrategyC
 
 export function strategyCreationStatusToNumber(strategyCreationStatus: StrategyCreationStatus): number {
   switch (strategyCreationStatus) {
-    case 'SHADOW':
+    case 'IGNORED':
       return 0;
-    case 'LIVE':
+    case 'SHADOW':
       return 1;
-    case 'DEPRECATED':
+    case 'LIVE':
       return 2;
-    case 'TEST':
+    case 'DEPRECATED':
       return 3;
+    case 'TEST':
+      return 4;
     default:
       throw new Error(`Invalid strategyCreationStatus ${strategyCreationStatus}`);
   }
