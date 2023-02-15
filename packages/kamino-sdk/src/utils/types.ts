@@ -1,5 +1,5 @@
-type StrategyType = 'NON_PEGGED' | 'PEGGED' | 'STABLE' | undefined;
-type StrategyCreationStatus = 'IGNORED' | 'SHADOW' | 'LIVE' | 'DEPRECATED' | 'TEST' | undefined;
+export type StrategyType = 'NON_PEGGED' | 'PEGGED' | 'STABLE' | undefined;
+export type StrategyCreationStatus = 'IGNORED' | 'SHADOW' | 'LIVE' | 'DEPRECATED' | 'TEST' | undefined;
 
 export type StrategiesFilters = {
   strategyType: StrategyType;
