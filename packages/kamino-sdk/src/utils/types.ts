@@ -1,3 +1,5 @@
+import { WhirlpoolStrategy } from '../kamino-client/accounts';
+
 export type StrategyType = 'NON_PEGGED' | 'PEGGED' | 'STABLE' | undefined;
 export type StrategyCreationStatus = 'IGNORED' | 'SHADOW' | 'LIVE' | 'DEPRECATED' | 'TEST' | undefined;
 
@@ -32,6 +34,19 @@ export function strategyTypeToNumber(strategyType: StrategyType): number {
   }
 }
 
+export function getStrategyTypeFromStrategy(strategy: WhirlpoolStrategy): StrategyType {
+  switch (strategy.strategyType.toNumber()) {
+    case 0:
+      return 'NON_PEGGED';
+    case 1:
+      return 'PEGGED';
+    case 2:
+      return 'STABLE';
+    default:
+      throw new Error(`Unknown strategyType value ${strategy.strategyType.toNumber()}`);
+  }
+}
+
 export function strategyCreationStatusToBase58(strategyCreationStatus: StrategyCreationStatus): string {
   switch (strategyCreationStatus) {
     case 'IGNORED':
@@ -63,5 +78,22 @@ export function strategyCreationStatusToNumber(strategyCreationStatus: StrategyC
       return 4;
     default:
       throw new Error(`Invalid strategyCreationStatus ${strategyCreationStatus}`);
+  }
+}
+
+export function getStrategyCreationStatusFromStrategy(strategy: WhirlpoolStrategy): StrategyCreationStatus {
+  switch (strategy.creationStatus) {
+    case 0:
+      return 'IGNORED';
+    case 1:
+      return 'SHADOW';
+    case 2:
+      return 'LIVE';
+    case 3:
+      return 'DEPRECATED';
+    case 4:
+      return 'TEST';
+    default:
+      throw new Error(`Invalid strategyCreationStatus ${strategy.creationStatus}`);
   }
 }
