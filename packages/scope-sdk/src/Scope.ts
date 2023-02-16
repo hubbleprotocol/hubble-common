@@ -150,7 +150,7 @@ export class Scope {
   /**
    * Get all prices of the supported tokens
    */
-  getMappings(): ScopeToken[] {
+  public getMappings(): ScopeToken[] {
     return this._tokens;
   }
 
