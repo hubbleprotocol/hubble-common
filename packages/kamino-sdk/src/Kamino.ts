@@ -81,7 +81,7 @@ import {
   WithdrawArgs,
 } from './kamino-client/instructions';
 import BN from 'bn.js';
-import { StrategyWithAddress } from './models/StrategyWithAddress';
+import StrategyWithAddress from './models/StrategyWithAddress';
 import { StrategyProgramAddress } from './models';
 import { Idl, Program, Provider } from '@project-serum/anchor';
 import { Rebalancing, Uninitialized } from './kamino-client/types/StrategyStatus';
@@ -190,7 +190,7 @@ export class Kamino {
     return await batchFetch(strategies, (chunk) => WhirlpoolStrategy.fetchMultiple(this._connection, chunk));
   }
 
-  async getAllStrategiesWithFilters(strategyFilters: StrategiesFilters): Promise<Array<WhirlpoolStrategy | null>> {
+  async getAllStrategiesWithFilters(strategyFilters: StrategiesFilters): Promise<Array<StrategyWithAddress | null>> {
     let filters: GetProgramAccountsFilter[] = [];
 
     if (strategyFilters.strategyCreationStatus) {
@@ -210,9 +210,13 @@ export class Kamino {
       });
     }
 
-    const strategies = (await this._kaminoProgram.account.whirlpoolStrategy.all(filters)).map(
-      (x) => x.account as WhirlpoolStrategy
-    );
+    const strategies = (await this._kaminoProgram.account.whirlpoolStrategy.all(filters)).map((x) => {
+      let res: StrategyWithAddress = {
+        strategy: x.account as WhirlpoolStrategy,
+        address: x.publicKey,
+      };
+      return res;
+    });
 
     return strategies;
   }
