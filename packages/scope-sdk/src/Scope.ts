@@ -86,8 +86,6 @@ export class Scope {
     { id: 73, pair: 'LaineSOL/SOL', name: 'LaineSOL', price: new Decimal(0), nonUsdPairId: 0 },
     { id: 74, pair: 'HADES/USD', name: 'HADES', price: new Decimal(0) },
     { id: 75, pair: 'HADESTwap/USD', name: 'HADESTwap', price: new Decimal(0) },
-    { id: 74, pair: 'HADES/USD', name: 'HADES', price: new Decimal(0) },
-    { id: 75, pair: 'HADESTwap/USD', name: 'HADESTwap', price: new Decimal(0) },
     { id: 76, pair: 'STSOL/SOL', name: 'STSOL', price: new Decimal(0), nonUsdPairId: 0 },
     { id: 77, pair: 'STSOLTwap/SOL', name: 'STSOLTwap', price: new Decimal(0), nonUsdPairId: 52 },
     { id: 78, pair: 'RLB/USD', name: 'RLB', price: new Decimal(0) },
