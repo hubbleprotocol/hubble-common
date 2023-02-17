@@ -192,6 +192,9 @@ export class Kamino {
 
   async getAllStrategiesWithFilters(strategyFilters: StrategiesFilters): Promise<Array<StrategyWithAddress | null>> {
     let filters: GetProgramAccountsFilter[] = [];
+    filters.push({
+      dataSize: 4064,
+    });
 
     if (strategyFilters.strategyCreationStatus) {
       filters.push({
