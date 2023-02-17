@@ -419,10 +419,11 @@ for (const rebalanceInstruction of rebalanceInstructions) {
     * `STABLE`: e.g. USDH-USDC
 
   * `strategyCreationStatus` which can be:
+    * `IGNORED`
     * `SHADOW`
     * `LIVE`
     * `DEPRECATED`
-    * `TEST`
+    * `STAGING`
 
 ```javascript
 import { clusterApiUrl, Connection, PublicKey, sendAndConfirmTransaction, Keypair, Transaction } from '@solana/web3.js';
