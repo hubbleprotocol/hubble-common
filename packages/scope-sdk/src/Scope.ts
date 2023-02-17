@@ -25,7 +25,7 @@ export class Scope {
     { id: 9, pair: 'AVAX/USD', name: 'AVAX', price: new Decimal(0) },
     { id: 10, pair: 'daoSOL/SOL', name: 'daoSOL', price: new Decimal(0), nonUsdPairId: 0 },
     { id: 12, pair: 'USDH/USD', name: 'USDH', price: new Decimal(0) },
-    { id: 13, pair: 'STSOL/USD', name: 'STSOL', price: new Decimal(0) },
+    { id: 13, pair: 'STSOL/USD', name: 'STSOLUSD', price: new Decimal(0) },
     { id: 14, pair: 'cSOL/SOL', name: 'cSOL', price: new Decimal(0), nonUsdPairId: 0 },
     { id: 15, pair: 'cETH/ETH', name: 'cETH', price: new Decimal(0), nonUsdPairId: 1 },
     { id: 16, pair: 'cBTC/BTC', name: 'cBTC', price: new Decimal(0), nonUsdPairId: 2 },
@@ -66,6 +66,7 @@ export class Scope {
     { id: 51, pair: 'JITOSOL/SOL', name: 'JITOSOL', price: new Decimal(0), nonUsdPairId: 0 },
     { id: 52, pair: 'SOLEma/USD', name: 'SOLEma', price: new Decimal(0) },
     { id: 53, pair: 'ETHEma/USD', name: 'ETHEma', price: new Decimal(0) },
+    { id: 54, pair: 'BTCEma/USD', name: 'BTCEma', price: new Decimal(0) },
     { id: 55, pair: 'SRMEma/USD', name: 'SRMEma', price: new Decimal(0) },
     { id: 56, pair: 'RAYEma/USD', name: 'RAYEma', price: new Decimal(0) },
     { id: 57, pair: 'FTTEma/USD', name: 'FTTEma', price: new Decimal(0) },
@@ -85,6 +86,12 @@ export class Scope {
     { id: 73, pair: 'LaineSOL/SOL', name: 'LaineSOL', price: new Decimal(0), nonUsdPairId: 0 },
     { id: 74, pair: 'HADES/USD', name: 'HADES', price: new Decimal(0) },
     { id: 75, pair: 'HADESTwap/USD', name: 'HADESTwap', price: new Decimal(0) },
+    { id: 74, pair: 'HADES/USD', name: 'HADES', price: new Decimal(0) },
+    { id: 75, pair: 'HADESTwap/USD', name: 'HADESTwap', price: new Decimal(0) },
+    { id: 76, pair: 'STSOL/SOL', name: 'STSOL', price: new Decimal(0), nonUsdPairId: 0 },
+    { id: 77, pair: 'STSOLTwap/SOL', name: 'STSOLTwap', price: new Decimal(0), nonUsdPairId: 52 },
+    { id: 78, pair: 'RLB/USD', name: 'RLB', price: new Decimal(0) },
+    { id: 79, pair: 'RLBTwap/USD', name: 'RLBTwap', price: new Decimal(0) },
   ];
 
   /**

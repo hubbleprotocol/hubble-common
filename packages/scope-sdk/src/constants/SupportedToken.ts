@@ -11,7 +11,7 @@ export const SupportedTokens = [
   'AVAX',
   'daoSOL',
   'USDH',
-  'STSOL',
+  'STSOLUSD',
   'cSOL',
   'cETH',
   'cBTC',
@@ -52,6 +52,7 @@ export const SupportedTokens = [
   'JITOSOL',
   'SOLEma',
   'ETHEma',
+  'BTCEma',
   'SRMEma',
   'RAYEma',
   'FTTEma',
@@ -71,5 +72,9 @@ export const SupportedTokens = [
   'LaineSOL',
   'HADES',
   'HADESTwap',
+  'STSOL',
+  'STSOLTwap',
+  'RLB',
+  'RLBTwap',
 ] as const;
-export type SupportedToken = (typeof SupportedTokens)[number];
+export type SupportedToken = typeof SupportedTokens[number];
