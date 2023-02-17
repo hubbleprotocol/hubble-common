@@ -77,4 +77,4 @@ export const SupportedTokens = [
   'RLB',
   'RLBTwap',
 ] as const;
-export type SupportedToken = typeof SupportedTokens[number];
+export type SupportedToken = (typeof SupportedTokens)[number];
