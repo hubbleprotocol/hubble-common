@@ -25,7 +25,6 @@ export class Scope {
     { id: 9, pair: 'AVAX/USD', name: 'AVAX', price: new Decimal(0) },
     { id: 10, pair: 'daoSOL/SOL', name: 'daoSOL', price: new Decimal(0), nonUsdPairId: 0 },
     { id: 12, pair: 'USDH/USD', name: 'USDH', price: new Decimal(0) },
-    { id: 13, pair: 'STSOL/USD', name: 'STSOLUSD', price: new Decimal(0) },
     { id: 14, pair: 'cSOL/SOL', name: 'cSOL', price: new Decimal(0), nonUsdPairId: 0 },
     { id: 15, pair: 'cETH/ETH', name: 'cETH', price: new Decimal(0), nonUsdPairId: 1 },
     { id: 16, pair: 'cBTC/BTC', name: 'cBTC', price: new Decimal(0), nonUsdPairId: 2 },
@@ -86,7 +85,7 @@ export class Scope {
     { id: 74, pair: 'HADES/USD', name: 'HADES', price: new Decimal(0) },
     { id: 75, pair: 'HADESTwap/USD', name: 'HADESTwap', price: new Decimal(0) },
     { id: 76, pair: 'STSOL/SOL', name: 'STSOL', price: new Decimal(0), nonUsdPairId: 0 },
-    { id: 77, pair: 'STSOLTwap/SOL', name: 'STSOLTwap', price: new Decimal(0), nonUsdPairId: 52 },
+    { id: 77, pair: 'STSOLTwap/USD', name: 'STSOLTwap', price: new Decimal(0), nonUsdPairId: 52 },
     { id: 78, pair: 'RLB/USD', name: 'RLB', price: new Decimal(0) },
     { id: 79, pair: 'RLBTwap/USD', name: 'RLBTwap', price: new Decimal(0) },
   ];
