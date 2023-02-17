@@ -40,7 +40,7 @@ export type StrategyInfo = {
   address: PublicKey;
   type: 'NON_PEGGED' | 'PEGGED' | 'STABLE';
   shareMint: PublicKey;
-  status: 'SHADOW' | 'LIVE' | 'DEPRECATED';
+  status: 'IGNORED' | 'SHADOW' | 'LIVE' | 'DEPRECATED' | 'TEST';
 };
 
 export type ReserveInfo = {
