@@ -12,6 +12,7 @@ describe('Scope SDK Tests', () => {
   it('should have all mints specified in the mint token map', () => {
     for (const supportedToken of SupportedTokens.filter((x) => !x.endsWith('Ema') && !x.endsWith('Twap'))) {
       const mint = scopeTokenToMint(supportedToken);
+      console.log(supportedToken, mint);
       expect(mint).not.to.be.undefined;
     }
   });

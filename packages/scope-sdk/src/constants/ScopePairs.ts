@@ -59,7 +59,6 @@ export const ScopePairs = [
   'MSOLTwap/USD',
   'BNBEma/USD',
   'AVAXEma/USD',
-  'STSOLTwap/USD',
   'USDCEma/USD',
   'USDTEma/USD',
   'DAIEma/USD',
@@ -73,8 +72,8 @@ export const ScopePairs = [
   'HADES/USD',
   'HADESTwap/USD',
   'STSOL/SOL',
-  'STSOLTwap/SOL',
+  'STSOLTwap/USD',
   'RLB/USD',
   'RLBTwap/USD',
 ] as const;
-export type ScopePair = (typeof ScopePairs)[number];
+export type ScopePair = typeof ScopePairs[number];
