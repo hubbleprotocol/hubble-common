@@ -24,9 +24,7 @@
           "name": "pool",
           "isMut": false,
           "isSigner": false,
-          "docs": [
-            "Program owner also checked."
-          ]
+          "docs": ["Program owner also checked."]
         },
         {
           "name": "tokenAMint",
@@ -74,6 +72,11 @@
           "isSigner": false
         },
         {
+          "name": "tokenInfos",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "systemProgram",
           "isMut": false,
           "isSigner": false
@@ -95,6 +98,10 @@
         }
       ],
       "args": [
+        {
+          "name": "strategyType",
+          "type": "u64"
+        },
         {
           "name": "tokenACollateralId",
           "type": "u64"
@@ -119,6 +126,11 @@
           "isSigner": false
         },
         {
+          "name": "globalConfig",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "rewardMint",
           "isMut": false,
           "isSigner": false
@@ -127,6 +139,11 @@
           "name": "rewardVault",
           "isMut": true,
           "isSigner": true
+        },
+        {
+          "name": "tokenInfos",
+          "isMut": false,
+          "isSigner": false
         },
         {
           "name": "baseVaultAuthority",
@@ -152,11 +169,11 @@
       "args": [
         {
           "name": "kaminoRewardIndex",
-          "type": "u8"
+          "type": "u64"
         },
         {
           "name": "collateralToken",
-          "type": "u8"
+          "type": "u64"
         }
       ]
     },
@@ -217,7 +234,7 @@
       "args": [
         {
           "name": "kaminoRewardIndex",
-          "type": "u8"
+          "type": "u64"
         },
         {
           "name": "amount",
@@ -247,7 +264,7 @@
       "args": []
     },
     {
-      "name": "initializeScopeChain",
+      "name": "initializeCollateralInfo",
       "accounts": [
         {
           "name": "adminAuthority",
@@ -260,7 +277,7 @@
           "isSigner": false
         },
         {
-          "name": "scopeChain",
+          "name": "collInfo",
           "isMut": true,
           "isSigner": false
         },
@@ -271,6 +288,42 @@
         }
       ],
       "args": []
+    },
+    {
+      "name": "updateCollateralInfo",
+      "accounts": [
+        {
+          "name": "adminAuthority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "globalConfig",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenInfos",
+          "isMut": true,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "index",
+          "type": "u64"
+        },
+        {
+          "name": "mode",
+          "type": "u64"
+        },
+        {
+          "name": "value",
+          "type": {
+            "array": ["u8", 32]
+          }
+        }
+      ]
     },
     {
       "name": "initializeSharesMetadata",
@@ -421,10 +474,7 @@
         {
           "name": "value",
           "type": {
-            "array": [
-              "u8",
-              32
-            ]
+            "array": ["u8", 32]
           }
         }
       ]
@@ -481,32 +531,6 @@
       ]
     },
     {
-      "name": "updateAdminAuthority",
-      "accounts": [
-        {
-          "name": "adminAuthority",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "newAdminAuthority",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "strategy",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": []
-    },
-    {
       "name": "updateStrategyConfig",
       "accounts": [
         {
@@ -522,6 +546,11 @@
         {
           "name": "strategy",
           "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "globalConfig",
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -555,6 +584,11 @@
           "isSigner": false
         },
         {
+          "name": "globalConfig",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "pool",
           "isMut": false,
           "isSigner": false
@@ -572,6 +606,11 @@
         {
           "name": "baseVaultAuthority",
           "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenInfos",
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -602,27 +641,6 @@
       ]
     },
     {
-      "name": "updateScopeChain",
-      "accounts": [
-        {
-          "name": "adminAuthority",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "globalConfig",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "scopeChain",
-          "isMut": true,
-          "isSigner": false
-        }
-      ],
-      "args": []
-    },
-    {
       "name": "openLiquidityPosition",
       "accounts": [
         {
@@ -641,13 +659,13 @@
           "isSigner": false
         },
         {
-          "name": "tickerArrayLower",
-          "isMut": false,
+          "name": "tickArrayLower",
+          "isMut": true,
           "isSigner": false
         },
         {
-          "name": "tickerArrayUpper",
-          "isMut": false,
+          "name": "tickArrayUpper",
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -659,33 +677,50 @@
           "name": "position",
           "isMut": true,
           "isSigner": false,
-          "docs": [
-            "Also whirlpools will fail if this is not set correctly"
-          ]
+          "docs": ["Also whirlpools will fail if this is not set correctly"]
+        },
+        {
+          "name": "raydiumProtocolPositionOrBaseVaultAuthority",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "adminTokenAAtaOrBaseVaultAuthority",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "adminTokenBAtaOrBaseVaultAuthority",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "poolTokenVaultAOrBaseVaultAuthority",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "poolTokenVaultBOrBaseVaultAuthority",
+          "isMut": true,
+          "isSigner": false
         },
         {
           "name": "positionMint",
           "isMut": true,
           "isSigner": true,
-          "docs": [
-            "Also whirlpools will fail if this is not set correctly"
-          ]
+          "docs": ["Also whirlpools will fail if this is not set correctly"]
         },
         {
           "name": "positionMetadataAccount",
           "isMut": true,
           "isSigner": false,
-          "docs": [
-            "Also whirlpools will fail if this is not set correctly"
-          ]
+          "docs": ["Also whirlpools will fail if this is not set correctly"]
         },
         {
           "name": "positionTokenAccount",
           "isMut": true,
           "isSigner": false,
-          "docs": [
-            "Also whirlpools will fail if this is not set correctly"
-          ]
+          "docs": ["Also whirlpools will fail if this is not set correctly"]
         },
         {
           "name": "rent",
@@ -726,25 +761,19 @@
           "name": "oldPositionOrBaseVaultAuthority",
           "isMut": true,
           "isSigner": false,
-          "docs": [
-            "If strategy is uninitialized then pass base_vault_authority"
-          ]
+          "docs": ["If strategy is uninitialized then pass base_vault_authority"]
         },
         {
           "name": "oldPositionMintOrBaseVaultAuthority",
           "isMut": true,
           "isSigner": false,
-          "docs": [
-            "If strategy is uninitialized then pass base_vault_authority"
-          ]
+          "docs": ["If strategy is uninitialized then pass base_vault_authority"]
         },
         {
           "name": "oldPositionTokenAccountOrBaseVaultAuthority",
           "isMut": true,
           "isSigner": false,
-          "docs": [
-            "If strategy is uninitialized then pass base_vault_authority"
-          ]
+          "docs": ["If strategy is uninitialized then pass base_vault_authority"]
         }
       ],
       "args": [
@@ -816,11 +845,6 @@
           "isSigner": false
         },
         {
-          "name": "treasuryFeeVaultAuthority",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "tokenAAta",
           "isMut": true,
           "isSigner": false
@@ -857,6 +881,11 @@
         },
         {
           "name": "scopePrices",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenInfos",
           "isMut": false,
           "isSigner": false
         },
@@ -927,7 +956,7 @@
         },
         {
           "name": "baseVaultAuthority",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -946,8 +975,13 @@
           "isSigner": false
         },
         {
+          "name": "raydiumProtocolPositionOrBaseVaultAuthority",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
           "name": "positionTokenAccount",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -972,6 +1006,11 @@
         },
         {
           "name": "scopePrices",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenInfos",
           "isMut": false,
           "isSigner": false
         },
@@ -1009,7 +1048,8 @@
         {
           "name": "pool",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": ["check that the pool is owned either by orca or by raydium"]
         },
         {
           "name": "position",
@@ -1017,8 +1057,13 @@
           "isSigner": false
         },
         {
+          "name": "raydiumProtocolPositionOrBaseVaultAuthority",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
           "name": "positionTokenAccount",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -1053,7 +1098,7 @@
         },
         {
           "name": "baseVaultAuthority",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -1107,12 +1152,12 @@
           "isSigner": false
         },
         {
-          "name": "systemProgram",
+          "name": "tokenInfos",
           "isMut": false,
           "isSigner": false
         },
         {
-          "name": "rent",
+          "name": "systemProgram",
           "isMut": false,
           "isSigner": false
         },
@@ -1173,6 +1218,11 @@
         },
         {
           "name": "position",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "raydiumProtocolPositionOrBaseVaultAuthority",
           "isMut": true,
           "isSigner": false
         },
@@ -1318,6 +1368,11 @@
           "isSigner": false
         },
         {
+          "name": "raydiumProtocolPositionOrBaseVaultAuthority",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
           "name": "positionTokenAccount",
           "isMut": false,
           "isSigner": false
@@ -1373,6 +1428,11 @@
           "isSigner": false
         },
         {
+          "name": "tokenInfos",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "tokenProgram",
           "isMut": false,
           "isSigner": false
@@ -1420,16 +1480,21 @@
         },
         {
           "name": "tickArrayLower",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
           "name": "tickArrayUpper",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
           "name": "position",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "raydiumProtocolPositionOrBaseVaultAuthority",
           "isMut": true,
           "isSigner": false
         },
@@ -1477,49 +1542,37 @@
           "name": "reward0Vault",
           "isMut": true,
           "isSigner": false,
-          "docs": [
-            "If rewards are uninitialized, pass this as strategy."
-          ]
+          "docs": ["If rewards are uninitialized, pass this as strategy."]
         },
         {
           "name": "reward1Vault",
           "isMut": true,
           "isSigner": false,
-          "docs": [
-            "If rewards are uninitialized, pass this as strategy."
-          ]
+          "docs": ["If rewards are uninitialized, pass this as strategy."]
         },
         {
           "name": "reward2Vault",
           "isMut": true,
           "isSigner": false,
-          "docs": [
-            "If rewards are uninitialized, pass this as strategy."
-          ]
+          "docs": ["If rewards are uninitialized, pass this as strategy."]
         },
         {
           "name": "poolRewardVault0",
           "isMut": true,
           "isSigner": false,
-          "docs": [
-            "If rewards are uninitialized, pass this as strategy."
-          ]
+          "docs": ["If rewards are uninitialized, pass this as strategy."]
         },
         {
           "name": "poolRewardVault1",
           "isMut": true,
           "isSigner": false,
-          "docs": [
-            "If rewards are uninitialized, pass this as strategy."
-          ]
+          "docs": ["If rewards are uninitialized, pass this as strategy."]
         },
         {
           "name": "poolRewardVault2",
           "isMut": true,
           "isSigner": false,
-          "docs": [
-            "If rewards are uninitialized, pass this as strategy."
-          ]
+          "docs": ["If rewards are uninitialized, pass this as strategy."]
         },
         {
           "name": "tokenAMint",
@@ -1638,6 +1691,11 @@
           "isSigner": false
         },
         {
+          "name": "tokenInfos",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "systemProgram",
           "isMut": false,
           "isSigner": false
@@ -1720,6 +1778,11 @@
           "isSigner": false
         },
         {
+          "name": "raydiumPoolConfigOrBaseVaultAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "poolTokenVaultA",
           "isMut": true,
           "isSigner": false
@@ -1733,25 +1796,19 @@
           "name": "tickArray0",
           "isMut": true,
           "isSigner": false,
-          "docs": [
-            "Payer must send this correctly."
-          ]
+          "docs": ["Payer must send this correctly."]
         },
         {
           "name": "tickArray1",
           "isMut": true,
           "isSigner": false,
-          "docs": [
-            "Payer must send this correctly."
-          ]
+          "docs": ["Payer must send this correctly."]
         },
         {
           "name": "tickArray2",
           "isMut": true,
           "isSigner": false,
-          "docs": [
-            "Payer must send this correctly."
-          ]
+          "docs": ["Payer must send this correctly."]
         },
         {
           "name": "oracle",
@@ -1759,12 +1816,17 @@
           "isSigner": false
         },
         {
-          "name": "whirlpoolProgram",
+          "name": "poolProgram",
           "isMut": false,
           "isSigner": false
         },
         {
           "name": "scopePrices",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenInfos",
           "isMut": false,
           "isSigner": false
         },
@@ -1778,6 +1840,200 @@
         {
           "name": "targetLimitBps",
           "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "flashSwapUnevenVaultsStart",
+      "docs": [
+        "Start of a Flash swap uneven vaults.",
+        "",
+        "This needs to be the first instruction of the transaction or preceded only by a",
+        "ComputeBudget.",
+        "",
+        "This ix has to be paired with a `flash_swap_uneven_vaults_end` (`FlashSwapUnevenVaultsEnd`)",
+        "as the last instruction of the transaction. No other instruction targeted the program is",
+        "allowed.",
+        "The instructions between the start and end instructions are expected to perform the swap."
+      ],
+      "accounts": [
+        {
+          "name": "actionsAuthority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "strategy",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "globalConfig",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenAVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenBVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenAAta",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenBAta",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "baseVaultAuthority",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "pool",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "position",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "scopePrices",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenInfos",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "instructionSysvarAccount",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        },
+        {
+          "name": "aToB",
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "name": "flashSwapUnevenVaultsEnd",
+      "docs": [
+        "End of Flash swap uneven vaults.",
+        "",
+        "See [`flash_swap_uneven_vaults_start`] for details.",
+        "",
+        "Warning: This instruction is allowed to be used independently from",
+        "`FlashSwapUnevenVaultsStart` and shall not perform any operation",
+        "that can be exploited when used alone."
+      ],
+      "accounts": [
+        {
+          "name": "actionsAuthority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "strategy",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "globalConfig",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenAVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenBVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenAAta",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenBAta",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "baseVaultAuthority",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "pool",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "position",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "scopePrices",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenInfos",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "instructionSysvarAccount",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "minRepayAmount",
+          "type": "u64"
+        },
+        {
+          "name": "amountToLeaveToUser",
+          "type": "u64"
+        },
+        {
+          "name": "aToB",
+          "type": "bool"
         }
       ]
     },
@@ -1838,25 +2094,19 @@
           "name": "tickArray0",
           "isMut": true,
           "isSigner": false,
-          "docs": [
-            "Payer must send this correctly."
-          ]
+          "docs": ["Payer must send this correctly."]
         },
         {
           "name": "tickArray1",
           "isMut": true,
           "isSigner": false,
-          "docs": [
-            "Payer must send this correctly."
-          ]
+          "docs": ["Payer must send this correctly."]
         },
         {
           "name": "tickArray2",
           "isMut": true,
           "isSigner": false,
-          "docs": [
-            "Payer must send this correctly."
-          ]
+          "docs": ["Payer must send this correctly."]
         },
         {
           "name": "oracle",
@@ -1864,12 +2114,17 @@
           "isSigner": false
         },
         {
-          "name": "whirlpoolProgram",
+          "name": "poolProgram",
           "isMut": false,
           "isSigner": false
         },
         {
           "name": "scopePrices",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenInfos",
           "isMut": false,
           "isSigner": false
         },
@@ -1889,6 +2144,103 @@
           "type": "u64"
         }
       ]
+    },
+    {
+      "name": "withdrawFromTreasury",
+      "accounts": [
+        {
+          "name": "adminAuthority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "globalConfig",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "mint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "treasuryFeeVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "treasuryFeeVaultAuthority",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "changePool",
+      "accounts": [
+        {
+          "name": "adminAuthority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "strategy",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "oldPosition",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "baseVaultAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "globalConfig",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "newPool",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "poolProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
     },
     {
       "name": "orcaSwap",
@@ -1985,32 +2337,8 @@
   ],
   "accounts": [
     {
-      "name": "ScopeChainAccount",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "chainArray",
-            "type": {
-              "array": [
-                {
-                  "array": [
-                    "u16",
-                    4
-                  ]
-                },
-                512
-              ]
-            }
-          }
-        ]
-      }
-    },
-    {
       "name": "Whirlpool",
-      "docs": [
-        "External types"
-      ],
+      "docs": ["External types"],
       "type": {
         "kind": "struct",
         "fields": [
@@ -2021,10 +2349,7 @@
           {
             "name": "whirlpoolBump",
             "type": {
-              "array": [
-                "u8",
-                1
-              ]
+              "array": ["u8", 1]
             }
           },
           {
@@ -2034,10 +2359,7 @@
           {
             "name": "tickSpacingSeed",
             "type": {
-              "array": [
-                "u8",
-                2
-              ]
+              "array": ["u8", 2]
             }
           },
           {
@@ -2199,9 +2521,7 @@
         "fields": [
           {
             "name": "bump",
-            "docs": [
-              "Bump to identify PDA"
-            ],
+            "docs": ["Bump to identify PDA"],
             "type": "u8"
           },
           {
@@ -2214,9 +2534,7 @@
           },
           {
             "name": "tokenMint0",
-            "docs": [
-              "Token pair of the pool, where token_mint_0 address < token_mint_1 address"
-            ],
+            "docs": ["Token pair of the pool, where token_mint_0 address < token_mint_1 address"],
             "type": "publicKey"
           },
           {
@@ -2225,9 +2543,7 @@
           },
           {
             "name": "tokenVault0",
-            "docs": [
-              "Token pair vault"
-            ],
+            "docs": ["Token pair vault"],
             "type": "publicKey"
           },
           {
@@ -2236,16 +2552,12 @@
           },
           {
             "name": "observationKey",
-            "docs": [
-              "observation account key"
-            ],
+            "docs": ["observation account key"],
             "type": "publicKey"
           },
           {
             "name": "mintDecimals0",
-            "docs": [
-              "mint0 and mint1 decimals"
-            ],
+            "docs": ["mint0 and mint1 decimals"],
             "type": "u8"
           },
           {
@@ -2254,37 +2566,27 @@
           },
           {
             "name": "tickSpacing",
-            "docs": [
-              "The minimum number of ticks between initialized ticks"
-            ],
+            "docs": ["The minimum number of ticks between initialized ticks"],
             "type": "u16"
           },
           {
             "name": "liquidity",
-            "docs": [
-              "The currently in range liquidity available to the pool."
-            ],
+            "docs": ["The currently in range liquidity available to the pool."],
             "type": "u128"
           },
           {
             "name": "sqrtPriceX64",
-            "docs": [
-              "The current price of the pool as a sqrt(token_1/token_0) Q64.64 value"
-            ],
+            "docs": ["The current price of the pool as a sqrt(token_1/token_0) Q64.64 value"],
             "type": "u128"
           },
           {
             "name": "tickCurrent",
-            "docs": [
-              "The current tick of the pool, i.e. according to the last tick transition that was run."
-            ],
+            "docs": ["The current tick of the pool, i.e. according to the last tick transition that was run."],
             "type": "i32"
           },
           {
             "name": "observationIndex",
-            "docs": [
-              "the most-recently updated index of the observations array"
-            ],
+            "docs": ["the most-recently updated index of the observations array"],
             "type": "u16"
           },
           {
@@ -2305,9 +2607,7 @@
           },
           {
             "name": "protocolFeesToken0",
-            "docs": [
-              "The amounts of token_0 and token_1 that are owed to the protocol."
-            ],
+            "docs": ["The amounts of token_0 and token_1 that are owed to the protocol."],
             "type": "u64"
           },
           {
@@ -2316,9 +2616,7 @@
           },
           {
             "name": "swapInAmountToken0",
-            "docs": [
-              "The amounts in and out of swap token_0 and token_1"
-            ],
+            "docs": ["The amounts in and out of swap token_0 and token_1"],
             "type": "u128"
           },
           {
@@ -2334,11 +2632,23 @@
             "type": "u128"
           },
           {
-            "name": "padding",
+            "name": "status",
             "docs": [
-              "The lastest updated time of reward info."
+              "Bitwise representation of the state of the pool",
+              "bit0, 1: disable open position and increase liquidity, 0: normal",
+              "bit1, 1: disable decrease liquidity, 0: normal",
+              "bit2, 1: disable collect fee, 0: normal",
+              "bit3, 1: disable collect reward, 0: normal",
+              "bit4, 1: disable swap, 0: normal"
             ],
-            "type": "u64"
+            "type": "u8"
+          },
+          {
+            "name": "padding",
+            "docs": ["Leave blank for future use"],
+            "type": {
+              "array": ["u8", 7]
+            }
           },
           {
             "name": "rewardInfos",
@@ -2353,14 +2663,126 @@
           },
           {
             "name": "tickArrayBitmap",
+            "docs": ["Packed initialized tick array state"],
+            "type": {
+              "array": ["u64", 16]
+            }
+          },
+          {
+            "name": "totalFeesToken0",
+            "docs": ["except protocol_fee and fund_fee"],
+            "type": "u64"
+          },
+          {
+            "name": "totalFeesClaimedToken0",
+            "docs": ["except protocol_fee and fund_fee"],
+            "type": "u64"
+          },
+          {
+            "name": "totalFeesToken1",
+            "type": "u64"
+          },
+          {
+            "name": "totalFeesClaimedToken1",
+            "type": "u64"
+          },
+          {
+            "name": "fundFeesToken0",
+            "type": "u64"
+          },
+          {
+            "name": "fundFeesToken1",
+            "type": "u64"
+          },
+          {
+            "name": "padding1",
+            "type": {
+              "array": ["u64", 26]
+            }
+          },
+          {
+            "name": "padding2",
+            "type": {
+              "array": ["u64", 32]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "PersonalPositionState",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bump",
+            "docs": ["Bump to identify PDA"],
+            "type": "u8"
+          },
+          {
+            "name": "nftMint",
+            "docs": ["Mint address of the tokenized position"],
+            "type": "publicKey"
+          },
+          {
+            "name": "poolId",
+            "docs": ["The ID of the pool with which this token is connected"],
+            "type": "publicKey"
+          },
+          {
+            "name": "tickLowerIndex",
+            "docs": ["The lower bound tick of the position"],
+            "type": "i32"
+          },
+          {
+            "name": "tickUpperIndex",
+            "docs": ["The upper bound tick of the position"],
+            "type": "i32"
+          },
+          {
+            "name": "liquidity",
+            "docs": ["The amount of liquidity owned by this position"],
+            "type": "u128"
+          },
+          {
+            "name": "feeGrowthInside0LastX64",
             "docs": [
-              "Packed initialized tick array state"
+              "The token_0 fee growth of the aggregate position as of the last action on the individual position"
             ],
+            "type": "u128"
+          },
+          {
+            "name": "feeGrowthInside1LastX64",
+            "docs": [
+              "The token_1 fee growth of the aggregate position as of the last action on the individual position"
+            ],
+            "type": "u128"
+          },
+          {
+            "name": "tokenFeesOwed0",
+            "docs": ["The fees owed to the position owner in token_0, as of the last computation"],
+            "type": "u64"
+          },
+          {
+            "name": "tokenFeesOwed1",
+            "docs": ["The fees owed to the position owner in token_1, as of the last computation"],
+            "type": "u64"
+          },
+          {
+            "name": "rewardInfos",
             "type": {
               "array": [
-                "u64",
-                16
+                {
+                  "defined": "PositionRewardInfo"
+                },
+                3
               ]
+            }
+          },
+          {
+            "name": "padding",
+            "type": {
+              "array": ["u64", 8]
             }
           }
         ]
@@ -2604,8 +3026,12 @@
             "type": "u64"
           },
           {
-            "name": "swapVaultMaxSlippage",
-            "type": "u64"
+            "name": "swapVaultMaxSlippageBps",
+            "type": "u32"
+          },
+          {
+            "name": "swapVaultMaxSlippageFromReferenceBps",
+            "type": "u32"
           },
           {
             "name": "strategyType",
@@ -2659,57 +3085,85 @@
             "type": "publicKey"
           },
           {
+            "name": "allowDepositWithoutInvest",
+            "type": "u64"
+          },
+          {
+            "name": "raydiumPoolConfigOrBaseVaultAuthority",
+            "type": "publicKey"
+          },
+          {
+            "name": "depositBlocked",
+            "type": "u8"
+          },
+          {
+            "name": "creationStatus",
+            "type": "u8"
+          },
+          {
+            "name": "investBlocked",
+            "type": "u8"
+          },
+          {
+            "name": "reservedFlag1",
+            "type": "u8"
+          },
+          {
+            "name": "withdrawBlocked",
+            "type": "u8"
+          },
+          {
+            "name": "reservedFlag2",
+            "type": "u8"
+          },
+          {
+            "name": "localAdminBlocked",
+            "type": "u8"
+          },
+          {
+            "name": "flashVaultSwapAllowed",
+            "type": "u8"
+          },
+          {
+            "name": "referenceSwapPriceA",
+            "type": {
+              "defined": "Price"
+            }
+          },
+          {
+            "name": "referenceSwapPriceB",
+            "type": {
+              "defined": "Price"
+            }
+          },
+          {
             "name": "padding1",
             "type": {
-              "array": [
-                "u64",
-                2
-              ]
+              "array": ["u128", 22]
+            }
+          },
+          {
+            "name": "padding2",
+            "type": {
+              "array": ["u128", 32]
             }
           },
           {
             "name": "padding3",
             "type": {
-              "array": [
-                "u128",
-                26
-              ]
+              "array": ["u128", 32]
             }
           },
           {
             "name": "padding4",
             "type": {
-              "array": [
-                "u128",
-                32
-              ]
+              "array": ["u128", 32]
             }
           },
           {
             "name": "padding5",
             "type": {
-              "array": [
-                "u128",
-                32
-              ]
-            }
-          },
-          {
-            "name": "padding6",
-            "type": {
-              "array": [
-                "u128",
-                32
-              ]
-            }
-          },
-          {
-            "name": "padding7",
-            "type": {
-              "array": [
-                "u128",
-                32
-              ]
+              "array": ["u128", 32]
             }
           }
         ]
@@ -2771,10 +3225,7 @@
           {
             "name": "swapRewardsDiscountBps",
             "type": {
-              "array": [
-                "u64",
-                256
-              ]
+              "array": ["u64", 256]
             }
           },
           {
@@ -2788,18 +3239,58 @@
           {
             "name": "treasuryFeeVaults",
             "type": {
-              "array": [
-                "publicKey",
-                256
-              ]
+              "array": ["publicKey", 256]
             }
+          },
+          {
+            "name": "tokenInfos",
+            "type": "publicKey"
+          },
+          {
+            "name": "blockLocalAdmin",
+            "type": "u64"
           },
           {
             "name": "padding",
             "type": {
+              "array": ["u64", 2043]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "CollateralInfos",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "infos",
+            "type": {
               "array": [
-                "u64",
-                2048
+                {
+                  "defined": "CollateralInfo"
+                },
+                256
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "ScopeChainAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "chainArray",
+            "type": {
+              "array": [
+                {
+                  "array": ["u16", 4]
+                },
+                512
               ]
             }
           }
@@ -2831,30 +3322,22 @@
         "fields": [
           {
             "name": "mint",
-            "docs": [
-              "Reward token mint."
-            ],
+            "docs": ["Reward token mint."],
             "type": "publicKey"
           },
           {
             "name": "vault",
-            "docs": [
-              "Reward vault token account."
-            ],
+            "docs": ["Reward vault token account."],
             "type": "publicKey"
           },
           {
             "name": "authority",
-            "docs": [
-              "Authority account that has permission to initialize the reward and set emissions."
-            ],
+            "docs": ["Authority account that has permission to initialize the reward and set emissions."],
             "type": "publicKey"
           },
           {
             "name": "emissionsPerSecondX64",
-            "docs": [
-              "Q64.64 number that indicates how many tokens per second are earned per unit of liquidity."
-            ],
+            "docs": ["Q64.64 number that indicates how many tokens per second are earned per unit of liquidity."],
             "type": "u128"
           },
           {
@@ -2896,10 +3379,7 @@
           {
             "name": "rewardGrowthsOutside",
             "type": {
-              "array": [
-                "u128",
-                3
-              ]
+              "array": ["u128", 3]
             }
           }
         ]
@@ -2912,72 +3392,52 @@
         "fields": [
           {
             "name": "rewardState",
-            "docs": [
-              "Reward state"
-            ],
+            "docs": ["Reward state"],
             "type": "u8"
           },
           {
             "name": "openTime",
-            "docs": [
-              "Reward open time"
-            ],
+            "docs": ["Reward open time"],
             "type": "u64"
           },
           {
             "name": "endTime",
-            "docs": [
-              "Reward end time"
-            ],
+            "docs": ["Reward end time"],
             "type": "u64"
           },
           {
             "name": "lastUpdateTime",
-            "docs": [
-              "Reward last update time"
-            ],
+            "docs": ["Reward last update time"],
             "type": "u64"
           },
           {
             "name": "emissionsPerSecondX64",
-            "docs": [
-              "Q64.64 number indicates how many tokens per second are earned per unit of liquidity."
-            ],
+            "docs": ["Q64.64 number indicates how many tokens per second are earned per unit of liquidity."],
             "type": "u128"
           },
           {
             "name": "rewardTotalEmissioned",
-            "docs": [
-              "The total amount of reward emissioned"
-            ],
+            "docs": ["The total amount of reward emissioned"],
             "type": "u64"
           },
           {
             "name": "rewardClaimed",
-            "docs": [
-              "The total amount of claimed reward"
-            ],
+            "docs": ["The total amount of claimed reward"],
             "type": "u64"
           },
           {
             "name": "tokenMint",
-            "docs": [
-              "Reward token mint."
-            ],
+            "docs": ["Reward token mint."],
             "type": "publicKey"
           },
           {
             "name": "tokenVault",
-            "docs": [
-              "Reward vault token account."
-            ],
+            "docs": ["Reward vault token account."],
             "type": "publicKey"
           },
           {
             "name": "authority",
-            "docs": [
-              "The owner that has permission to set reward param"
-            ],
+            "docs": ["The owner that has permission to set reward param"],
             "type": "publicKey"
           },
           {
@@ -2987,6 +3447,64 @@
               "emissions were turned on."
             ],
             "type": "u128"
+          }
+        ]
+      }
+    },
+    {
+      "name": "CollateralInfo",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "mint",
+            "type": "publicKey"
+          },
+          {
+            "name": "lowerHeuristic",
+            "type": "u64"
+          },
+          {
+            "name": "upperHeuristic",
+            "type": "u64"
+          },
+          {
+            "name": "expHeuristic",
+            "type": "u64"
+          },
+          {
+            "name": "maxTwapDivergenceBps",
+            "type": "u64"
+          },
+          {
+            "name": "scopePriceIdTwap",
+            "type": "u64"
+          },
+          {
+            "name": "scopePriceChain",
+            "type": {
+              "array": ["u16", 4]
+            }
+          },
+          {
+            "name": "name",
+            "type": {
+              "array": ["u8", 32]
+            }
+          },
+          {
+            "name": "maxAgePriceSeconds",
+            "type": "u64"
+          },
+          {
+            "name": "maxAgeTwapSeconds",
+            "type": "u64"
+          },
+          {
+            "name": "padding",
+            "type": {
+              "array": ["u64", 11]
+            }
           }
         ]
       }
@@ -3076,34 +3594,6 @@
       }
     },
     {
-      "name": "WithdrawalCapAction",
-      "type": {
-        "kind": "enum",
-        "variants": [
-          {
-            "name": "Add"
-          },
-          {
-            "name": "Remove"
-          }
-        ]
-      }
-    },
-    {
-      "name": "WithdrawalCapOverflowAction",
-      "type": {
-        "kind": "enum",
-        "variants": [
-          {
-            "name": "SaturatingOverflow"
-          },
-          {
-            "name": "ErrorOnOverflow"
-          }
-        ]
-      }
-    },
-    {
       "name": "WithdrawalCapAccumulatorAction",
       "type": {
         "kind": "enum",
@@ -3118,75 +3608,32 @@
       }
     },
     {
-      "name": "CollateralToken",
+      "name": "SwapLimit",
       "type": {
         "kind": "enum",
         "variants": [
           {
-            "name": "USDC"
+            "name": "Bps",
+            "fields": ["u64"]
           },
           {
-            "name": "USDH"
-          },
-          {
-            "name": "SOL"
-          },
-          {
-            "name": "ETH"
-          },
-          {
-            "name": "BTC"
-          },
-          {
-            "name": "MSOL"
-          },
-          {
-            "name": "STSOL"
-          },
-          {
-            "name": "USDT"
-          },
-          {
-            "name": "ORCA"
-          },
-          {
-            "name": "MNDE"
-          },
-          {
-            "name": "HBB"
-          },
-          {
-            "name": "JSOL"
-          },
-          {
-            "name": "USH"
-          },
-          {
-            "name": "DAI"
-          },
-          {
-            "name": "LDO"
-          },
-          {
-            "name": "SCNSOL"
-          },
-          {
-            "name": "UXD"
-          },
-          {
-            "name": "HDG"
-          },
-          {
-            "name": "DUST"
-          },
-          {
-            "name": "USDR"
-          },
-          {
-            "name": "RATIO"
-          },
-          {
-            "name": "UXP"
+            "name": "Absolute",
+            "fields": [
+              {
+                "name": "src_amount_to_swap",
+                "docs": ["Amount of src token expected by the user to perform the swap"],
+                "type": "u64"
+              },
+              {
+                "name": "dst_amount_to_vault",
+                "docs": ["Amount of dst token the user provides in exchange"],
+                "type": "u64"
+              },
+              {
+                "name": "a_to_b",
+                "type": "bool"
+              }
+            ]
           }
         ]
       }
@@ -3237,6 +3684,12 @@
           },
           {
             "name": "BlockEmergencySwap"
+          },
+          {
+            "name": "BlockLocalAdmin"
+          },
+          {
+            "name": "UpdateTokenInfos"
           },
           {
             "name": "ScopeProgramId"
@@ -3323,6 +3776,45 @@
           },
           {
             "name": "KaminoRewardIndex2RewardPerSecond"
+          },
+          {
+            "name": "UpdateDepositBlocked"
+          },
+          {
+            "name": "UpdateRaydiumProtocolPositionOrBaseVaultAuthority"
+          },
+          {
+            "name": "UpdateRaydiumPoolConfigOrBaseVaultAuthority"
+          },
+          {
+            "name": "UpdateInvestBlocked"
+          },
+          {
+            "name": "UpdateWithdrawBlocked"
+          },
+          {
+            "name": "UpdateLocalAdminBlocked"
+          },
+          {
+            "name": "UpdateCollateralIdA"
+          },
+          {
+            "name": "UpdateCollateralIdB"
+          },
+          {
+            "name": "UpdateFlashVaultSwap"
+          },
+          {
+            "name": "AllowDepositWithoutInvest"
+          },
+          {
+            "name": "UpdateSwapVaultMaxSlippageFromRef"
+          },
+          {
+            "name": "ResetReferencePrices"
+          },
+          {
+            "name": "UpdateStrategyCreationState"
           }
         ]
       }
@@ -3396,7 +3888,151 @@
       }
     },
     {
-      "name": "ScopePriceId",
+      "name": "UpdateCollateralInfoMode",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "CollateralId"
+          },
+          {
+            "name": "LowerHeuristic"
+          },
+          {
+            "name": "UpperHeuristic"
+          },
+          {
+            "name": "ExpHeuristic"
+          },
+          {
+            "name": "TwapDivergence"
+          },
+          {
+            "name": "UpdateScopeTwap"
+          },
+          {
+            "name": "UpdateScopeChain"
+          },
+          {
+            "name": "UpdateName"
+          },
+          {
+            "name": "UpdatePriceMaxAge"
+          },
+          {
+            "name": "UpdateTwapMaxAge"
+          }
+        ]
+      }
+    },
+    {
+      "name": "BalanceStatus",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Balanced"
+          },
+          {
+            "name": "Unbalanced"
+          }
+        ]
+      }
+    },
+    {
+      "name": "CollateralTestToken",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "USDC"
+          },
+          {
+            "name": "USDH"
+          },
+          {
+            "name": "SOL"
+          },
+          {
+            "name": "ETH"
+          },
+          {
+            "name": "BTC"
+          },
+          {
+            "name": "MSOL"
+          },
+          {
+            "name": "STSOL"
+          },
+          {
+            "name": "USDT"
+          },
+          {
+            "name": "ORCA"
+          },
+          {
+            "name": "MNDE"
+          },
+          {
+            "name": "HBB"
+          },
+          {
+            "name": "JSOL"
+          },
+          {
+            "name": "USH"
+          },
+          {
+            "name": "DAI"
+          },
+          {
+            "name": "LDO"
+          },
+          {
+            "name": "SCNSOL"
+          },
+          {
+            "name": "UXD"
+          },
+          {
+            "name": "HDG"
+          },
+          {
+            "name": "DUST"
+          },
+          {
+            "name": "USDR"
+          },
+          {
+            "name": "RATIO"
+          },
+          {
+            "name": "UXP"
+          },
+          {
+            "name": "JITOSOL"
+          },
+          {
+            "name": "RAY"
+          },
+          {
+            "name": "BONK"
+          },
+          {
+            "name": "SAMO"
+          },
+          {
+            "name": "LaineSOL"
+          },
+          {
+            "name": "BSOL"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ScopePriceIdTest",
       "type": {
         "kind": "enum",
         "variants": [
@@ -3537,6 +4173,78 @@
           },
           {
             "name": "UXP"
+          },
+          {
+            "name": "KUXDUSDCORCA"
+          },
+          {
+            "name": "JITOSOL_SOL"
+          },
+          {
+            "name": "SOL_EMA"
+          },
+          {
+            "name": "ETH_EMA"
+          },
+          {
+            "name": "BTC_EMA"
+          },
+          {
+            "name": "SRM_EMA"
+          },
+          {
+            "name": "RAY_EMA"
+          },
+          {
+            "name": "FTT_EMA"
+          },
+          {
+            "name": "MSOL_EMA"
+          },
+          {
+            "name": "BNB_EMA"
+          },
+          {
+            "name": "AVAX_EMA"
+          },
+          {
+            "name": "STSOL_EMA"
+          },
+          {
+            "name": "USDC_EMA"
+          },
+          {
+            "name": "USDT_EMA"
+          },
+          {
+            "name": "SLND_EMA"
+          },
+          {
+            "name": "DAI_EMA"
+          },
+          {
+            "name": "wstETH_TWAP"
+          },
+          {
+            "name": "DUST_TWAP"
+          },
+          {
+            "name": "BONK"
+          },
+          {
+            "name": "BONK_TWAP"
+          },
+          {
+            "name": "SAMO"
+          },
+          {
+            "name": "SAMO_TWAP"
+          },
+          {
+            "name": "BSOL"
+          },
+          {
+            "name": "LaineSOL"
           }
         ]
       }
@@ -3547,13 +4255,13 @@
         "kind": "enum",
         "variants": [
           {
-            "name": "Crema"
+            "name": "Orca"
           },
           {
             "name": "Raydium"
           },
           {
-            "name": "Orca"
+            "name": "Crema"
           }
         ]
       }
@@ -3607,18 +4315,18 @@
     },
     {
       "code": 6009,
-      "name": "DepositBlocked",
-      "msg": "Deposit is currently blocked"
+      "name": "GlobalDepositBlocked",
+      "msg": "Global deposit is currently blocked"
     },
     {
       "code": 6010,
-      "name": "WithdrawBlocked",
-      "msg": "Withdraw is currently blocked"
+      "name": "GlobalWithdrawBlocked",
+      "msg": "Global withdraw is currently blocked"
     },
     {
       "code": 6011,
-      "name": "InvestBlocked",
-      "msg": "Invest is currently blocked"
+      "name": "GlobalInvestBlocked",
+      "msg": "Global invest is currently blocked"
     },
     {
       "code": 6012,
@@ -3962,8 +4670,133 @@
     },
     {
       "code": 6080,
+      "name": "AccountNotBelongToDEX",
+      "msg": "Account doesn't belong to the DEX"
+    },
+    {
+      "code": 6081,
+      "name": "WrongDEXProgramID",
+      "msg": "Wrong DEX program ID"
+    },
+    {
+      "code": 6082,
       "name": "OrcaRewardUninitialized",
       "msg": "Cannot use uninitialized orca reward vault"
+    },
+    {
+      "code": 6083,
+      "name": "InvalidAdminAuthority",
+      "msg": "Invalid admin authority"
+    },
+    {
+      "code": 6084,
+      "name": "PriceIsBiggerThanHeuristic",
+      "msg": "Token price is bigger than heuristic"
+    },
+    {
+      "code": 6085,
+      "name": "PriceIsLowerThanHeuristic",
+      "msg": "Token price is lower than heuristic"
+    },
+    {
+      "code": 6086,
+      "name": "AccountDifferentThanExpected",
+      "msg": "Account different than expected"
+    },
+    {
+      "code": 6087,
+      "name": "SwapAmountsTooSmall",
+      "msg": "Swap amount below the minimum value"
+    },
+    {
+      "code": 6088,
+      "name": "InvalidDexProgramId",
+      "msg": "Invalid dex program id"
+    },
+    {
+      "code": 6089,
+      "name": "StrategyDepositBlocked",
+      "msg": "Strategy deposit is currently blocked"
+    },
+    {
+      "code": 6090,
+      "name": "StrategyInvestBlocked",
+      "msg": "Strategy invest is currently blocked"
+    },
+    {
+      "code": 6091,
+      "name": "StrategyWithdrawBlocked",
+      "msg": "Strategy withdraw is currently blocked"
+    },
+    {
+      "code": 6092,
+      "name": "WrongSwapVaultDirection",
+      "msg": "Vault swap can't be performed in the required direction"
+    },
+    {
+      "code": 6093,
+      "name": "SwapVaultsTooBig",
+      "msg": "Provided amount for vault swap is over the limit"
+    },
+    {
+      "code": 6094,
+      "name": "SwapVaultsCashOutputBelowMinimum",
+      "msg": "Token out for cash based vault swap is below minimum expected"
+    },
+    {
+      "code": 6095,
+      "name": "FlashIxsNotEnded",
+      "msg": "Flash ixs initiated without the closing ix in the transaction"
+    },
+    {
+      "code": 6096,
+      "name": "FlashTxWithUnexpectedIxs",
+      "msg": "Some unexpected instructions are present in the tx. Either before or after the flash ixs, or some ix target the same program between"
+    },
+    {
+      "code": 6097,
+      "name": "FlashIxsAccountMismatch",
+      "msg": "Some accounts differ between the two flash ixs"
+    },
+    {
+      "code": 6098,
+      "name": "FlashIxsIncludeScope",
+      "msg": "A scope ix is present in a flash tx"
+    },
+    {
+      "code": 6099,
+      "name": "FlashVaultSwapBlocked",
+      "msg": "Flash vault swap is blocked on this strategy"
+    },
+    {
+      "code": 6100,
+      "name": "FlashVaultSwapWrongAmountToLeave",
+      "msg": "Unexpected amount of tokens in ata prior flash vault swap (wrong amount_to_leave_to_user)"
+    },
+    {
+      "code": 6101,
+      "name": "DepositLessThanMinimum",
+      "msg": "Deposit amount less than minimal allowed"
+    },
+    {
+      "code": 6102,
+      "name": "DepositWithoutInvestDisallowed",
+      "msg": "Cannot deposit without invest"
+    },
+    {
+      "code": 6103,
+      "name": "InvalidScopeChain",
+      "msg": "Invalid Scope Chain"
+    },
+    {
+      "code": 6104,
+      "name": "InvalidTwapId",
+      "msg": "Invalid Twap Value"
+    },
+    {
+      "code": 6105,
+      "name": "PositionHasRemainingLiquidity",
+      "msg": "Existent position has liquidity, new position creation is forbidden"
     }
   ]
 }
