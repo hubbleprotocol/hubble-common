@@ -8,7 +8,6 @@ import {
   AccountInfo,
   Connection,
   GetProgramAccountsFilter,
-  MemcmpFilter,
   PublicKey,
   SystemProgram,
   SYSVAR_INSTRUCTIONS_PUBKEY,
@@ -38,6 +37,8 @@ import {
   ShareData,
   StrategyBalances,
   StrategyVaultBalances,
+  StrategyVaultTokens,
+  TotalStrategyVaultTokens,
   TreasuryFeeVault,
 } from './models';
 import { PROGRAM_ID_CLI as WHIRLPOOL_PROGRAM_ID, setWhirlpoolsProgramId } from './whirpools-client/programId';
@@ -91,17 +92,18 @@ import { Rebalance } from './kamino-client/types/ExecutiveWithdrawAction';
 import { PoolState, PersonalPositionState, AmmConfig } from './raydium_client';
 import { LiquidityMath, SqrtPriceMath, TickMath } from '@raydium-io/raydium-sdk/lib/ammV3/utils/math';
 import { PROGRAM_ID as RAYDIUM_PROGRAM_ID, setRaydiumProgramId } from './raydium_client/programId';
-import { i32ToBytes, str, TickUtils } from '@raydium-io/raydium-sdk';
+import { i32ToBytes, TickUtils } from '@raydium-io/raydium-sdk';
 
 import KaminoIdl from './kamino-client/kamino.json';
 import { getKaminoTokenName, KAMINO_TOKEN_MAP } from './constants';
 import { OrcaService } from './services';
-import { RaydiumService } from './services/RaydiumService';
+import { RaydiumService } from './services';
 import {
   getAddLiquidityQuote,
   InternalAddLiquidityQuoteParam,
   InternalAddLiquidityQuote,
 } from '@orca-so/whirlpool-sdk/dist/position/quotes/add-liquidity';
+import { FRONTEND_KAMINO_STRATEGY_URL } from './constants';
 export const KAMINO_IDL = KaminoIdl;
 
 export class Kamino {
@@ -190,7 +192,7 @@ export class Kamino {
     return await batchFetch(strategies, (chunk) => WhirlpoolStrategy.fetchMultiple(this._connection, chunk));
   }
 
-  async getAllStrategiesWithFilters(strategyFilters: StrategiesFilters): Promise<Array<StrategyWithAddress | null>> {
+  async getAllStrategiesWithFilters(strategyFilters: StrategiesFilters): Promise<Array<StrategyWithAddress>> {
     let filters: GetProgramAccountsFilter[] = [];
     filters.push({
       dataSize: 4064,
@@ -280,6 +282,50 @@ export class Kamino {
     } else {
       throw new Error(`Invalid dex ${strategy.strategyDex.toString()}`);
     }
+  }
+
+  /**
+   * Get amount of specified token in all Kamino live strategies
+   * @param tokenMint token mint pubkey
+   */
+  async getTotalTokensInStrategies(tokenMint: PublicKey | string): Promise<TotalStrategyVaultTokens> {
+    // TODO: update and use this method call to only fetch live strategies once strategy status on-chain data is ready
+    // const strategies = await this.getAllStrategiesWithFilters({
+    //   strategyType: undefined,
+    //   strategyCreationStatus: undefined,
+    // });
+    const strategies = await this.getStrategies(this._config.kamino.liveStrategies.map((x) => x.address));
+    let totalTokenAmount = new Decimal(0);
+    const vaults: StrategyVaultTokens[] = [];
+    for (const liveStrategy of this._config.kamino.liveStrategies) {
+      const strategy = strategies.find(
+        (x) =>
+          x?.sharesMint.toString() === liveStrategy.shareMint.toString() &&
+          (x.tokenAMint.toString() === tokenMint.toString() || x.tokenBMint.toString() === tokenMint.toString())
+      );
+      if (!strategy) {
+        continue;
+      }
+
+      const balances = await this.getStrategyBalances(strategy);
+      const aTotal = balances.computedHoldings.invested.a.plus(balances.computedHoldings.available.a);
+      const bTotal = balances.computedHoldings.invested.b.plus(balances.computedHoldings.available.b);
+      let amount = new Decimal(0);
+      if (strategy.tokenAMint.toString() === tokenMint.toString() && aTotal.greaterThan(0)) {
+        amount = aTotal;
+      } else if (strategy.tokenBMint.toString() === tokenMint.toString() && bTotal.greaterThan(0)) {
+        amount = bTotal;
+      }
+      if (amount.greaterThan(0)) {
+        totalTokenAmount = totalTokenAmount.plus(amount);
+        vaults.push({
+          address: liveStrategy.address,
+          frontendUrl: `${FRONTEND_KAMINO_STRATEGY_URL}/${liveStrategy.address}`,
+          amount,
+        });
+      }
+    }
+    return { totalTokenAmount, vaults, timestamp: new Date() };
   }
 
   private async getStrategyBalancesOrca(strategy: WhirlpoolStrategy) {
@@ -1547,7 +1593,7 @@ export class Kamino {
   /**
    * Get amounts of tokenA and tokenB to be deposited
    * @param strategy
-   * @param tokenA maximum A to be deposited
+   * @param amountA
    */
   async getDepositRatioFromTokenA(
     strategy: PublicKey | StrategyWithAddress,
@@ -1571,7 +1617,7 @@ export class Kamino {
   /**
    * Get amounts of tokenA and tokenB to be deposited
    * @param strategy
-   * @param tokenB maximum B to be deposited
+   * @param amountB
    */
   async getDepositRatioFromTokenB(
     strategy: PublicKey | StrategyWithAddress,
@@ -1597,7 +1643,6 @@ export class Kamino {
     amountA: BN
   ): Promise<{ amountSlippageA: BN; amountSlippageB: BN }> {
     const { strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
-    const dex = Number(strategyState.strategyDex);
 
     const whirlpool = await Whirlpool.fetch(this._connection, strategyState.pool);
     if (!whirlpool) {
@@ -1631,7 +1676,6 @@ export class Kamino {
     amountB: BN
   ): Promise<{ amountSlippageA: BN; amountSlippageB: BN }> {
     const { strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
-    const dex = Number(strategyState.strategyDex);
 
     const whirlpool = await Whirlpool.fetch(this._connection, strategyState.pool);
     if (!whirlpool) {
@@ -1665,7 +1709,6 @@ export class Kamino {
     amountA: BN
   ): Promise<{ amountSlippageA: BN; amountSlippageB: BN }> {
     const { strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
-    const dex = Number(strategyState.strategyDex);
 
     let poolState = await PoolState.fetch(this._connection, strategyState.pool);
     let positionState = await PersonalPositionState.fetch(this._connection, strategyState.position);
@@ -1699,7 +1742,6 @@ export class Kamino {
     amountB: BN
   ): Promise<{ amountSlippageA: BN; amountSlippageB: BN }> {
     const { strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
-    const dex = Number(strategyState.strategyDex);
 
     let poolState = await PoolState.fetch(this._connection, strategyState.pool);
     let positionState = await PersonalPositionState.fetch(this._connection, strategyState.position);
