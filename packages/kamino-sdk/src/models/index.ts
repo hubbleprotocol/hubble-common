@@ -11,3 +11,4 @@ export * from './StrategyWithAddress';
 export * from './KaminoPosition';
 export * from './StrategyHolder';
 export * from './StrategyProgramAddress';
+export * from './StrategyVaultTokens';
