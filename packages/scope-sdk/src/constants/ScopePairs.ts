@@ -1,7 +1,7 @@
 export const ScopePairs = [
   'SOL/USD',
   'ETH/USD',
-  'BTC/USD',
+  'wBTC/USD',
   'SRM/USD',
   'RAY/USD',
   'FTT/USD',
