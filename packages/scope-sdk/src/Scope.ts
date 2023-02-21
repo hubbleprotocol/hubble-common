@@ -15,7 +15,7 @@ export class Scope {
   private _tokens: ScopeToken[] = [
     { id: 0, pair: 'SOL/USD', name: 'SOL', price: new Decimal(0) },
     { id: 1, pair: 'ETH/USD', name: 'ETH', price: new Decimal(0) },
-    { id: 2, pair: 'wBTC/USD', name: 'BTC', price: new Decimal(0) },
+    { id: 2, pair: 'wBTC/USD', name: 'wBTC', price: new Decimal(0) },
     { id: 3, pair: 'SRM/USD', name: 'SRM', price: new Decimal(0) },
     { id: 4, pair: 'RAY/USD', name: 'RAY', price: new Decimal(0) },
     { id: 5, pair: 'FTT/USD', name: 'FTT', price: new Decimal(0) },
