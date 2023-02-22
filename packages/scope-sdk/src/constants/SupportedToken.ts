@@ -2,6 +2,7 @@ export const SupportedTokens = [
   'SOL',
   'ETH',
   'BTC',
+  'wBTC',
   'SRM',
   'RAY',
   'FTT',
