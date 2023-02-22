@@ -32,6 +32,8 @@ export const KAMINO_TOKEN_MAP: KaminoToken[] = [
   { name: 'LaineSOL', id: 26 },
   { name: 'bSOL', id: 27 },
   { name: 'HADES', id: 28 },
+  { name: 'wBTC', id: 29 },
+  { name: 'RLB', id: 30 },
 ];
 
 /**
