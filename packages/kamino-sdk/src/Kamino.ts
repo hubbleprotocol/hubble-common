@@ -90,9 +90,8 @@ import { METADATA_PROGRAM_ID, METADATA_UPDATE_AUTH } from './constants';
 import { ExecutiveWithdrawActionKind, StrategyStatusKind } from './kamino-client/types';
 import { Rebalance } from './kamino-client/types/ExecutiveWithdrawAction';
 import { PoolState, PersonalPositionState, AmmConfig } from './raydium_client';
-import { LiquidityMath, SqrtPriceMath, TickMath } from '@raydium-io/raydium-sdk/lib/ammV3/utils/math';
 import { PROGRAM_ID as RAYDIUM_PROGRAM_ID, setRaydiumProgramId } from './raydium_client/programId';
-import { i32ToBytes, TickUtils } from '@raydium-io/raydium-sdk';
+import { i32ToBytes, LiquidityMath, SqrtPriceMath, TickMath, TickUtils } from '@raydium-io/raydium-sdk';
 
 import KaminoIdl from './kamino-client/kamino.json';
 import { getKaminoTokenName, KAMINO_TOKEN_MAP } from './constants';
