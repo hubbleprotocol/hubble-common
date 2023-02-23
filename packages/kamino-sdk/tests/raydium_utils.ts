@@ -11,13 +11,13 @@ import {
 } from '../src';
 import { accountExist, DeployedPool, getTickArrayPubkeysFromRange } from './utils';
 import { getMintDecimals } from '@project-serum/serum/lib/market';
-import { SqrtPriceMath, TickMath } from '@raydium-io/raydium-sdk/lib/ammV3/utils/math';
+import { SqrtPriceMath, TickMath } from '@raydium-io/raydium-sdk';
 import Decimal from 'decimal.js';
 import { ExecutiveWithdrawAction, ExecutiveWithdrawActionKind } from '../src/kamino-client/types';
 import { WhirlpoolStrategy } from '../src/kamino-client/accounts';
-import { PoolState } from '../src/raydium_client/accounts';
+import { PoolState } from '../src/raydium_client';
 import { Rebalancing } from '../src/kamino-client/types/StrategyStatus';
-import { METADATA_PROGRAM_ID, METADATA_UPDATE_AUTH } from '../src/constants/metadata';
+import { METADATA_PROGRAM_ID, METADATA_UPDATE_AUTH } from '../src';
 import { OpenLiquidityPositionArgs } from '../src/kamino-client/instructions';
 import { i32ToBytes, TickUtils } from '@raydium-io/raydium-sdk';
 import * as Instructions from '../src/kamino-client/instructions';
