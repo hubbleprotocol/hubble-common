@@ -1,5 +1,6 @@
 import { ScopePair, SupportedToken } from './constants';
 import Decimal from 'decimal.js';
+import { PublicKey } from '@solana/web3.js';
 
 export interface ScopeToken {
   /**
@@ -24,4 +25,9 @@ export interface ScopeToken {
    * For example scnSOL/SOL will have this ID set to the SOL/USD pair.
    */
   nonUsdPairId?: number;
+
+  /**
+   * Collateral token mint pubkey
+   */
+  mint?: PublicKey;
 }

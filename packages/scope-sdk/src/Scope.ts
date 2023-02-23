@@ -1,10 +1,10 @@
 import { getConfigByCluster, HubbleConfig, SolanaCluster } from '@hubbleprotocol/hubble-config';
-import { Connection } from '@solana/web3.js';
+import { Connection, PublicKey } from '@solana/web3.js';
 import Decimal from 'decimal.js';
 import { OraclePrices } from './accounts';
 import { setProgramId } from './programId';
 import { Price } from './types';
-import { SupportedToken } from './constants';
+import { mintToScopeToken, scopeTokenToMint, SupportedToken } from './constants';
 import { ScopeToken } from './ScopeToken';
 
 export class Scope {
@@ -116,6 +116,9 @@ export class Scope {
       tokenInfo.price = tokenInfo.price.mul(pairPrice);
     }
 
+    const mint = scopeTokenToMint(token);
+    tokenInfo.mint = mint ? new PublicKey(mint) : undefined;
+
     return tokenInfo;
   }
 
@@ -145,6 +148,23 @@ export class Scope {
   }
 
   /**
+   * Get prices of the specified token mints
+   * @param mints list of token mints
+   */
+  async getPricesByMints(mints: (string | PublicKey)[]) {
+    const prices: ScopeToken[] = [];
+    const oraclePrices = await this.getOraclePrices();
+    for (const mint of mints) {
+      const token = mintToScopeToken(mint.toString());
+      if (!token) {
+        throw Error(`Could not map mint ${mint} to a Scope token. Is the mint mapping missing?`);
+      }
+      prices.push(await this.getSinglePrice(token, oraclePrices));
+    }
+    return prices;
+  }
+
+  /**
    * Get all prices of the supported tokens
    */
   async getAllPrices() {
@@ -159,12 +179,24 @@ export class Scope {
   }
 
   /**
-   * Get price of the specified token
+   * Get USD price of the specified token
    * @param token name of the token
    */
   async getPrice(token: SupportedToken) {
     const oraclePrices = await this.getOraclePrices();
     return this.getSinglePrice(token, oraclePrices);
+  }
+
+  /**
+   * Get USD price of the specified token mint
+   * @param mint token mint pubkey
+   */
+  async getPriceByMint(mint: PublicKey | string) {
+    const token = mintToScopeToken(mint.toString());
+    if (!token) {
+      throw Error(`Could not map mint ${mint} to a Scope token. Is the mint mapping missing?`);
+    }
+    return this.getPrice(token);
   }
 }
 
