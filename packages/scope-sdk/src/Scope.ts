@@ -89,6 +89,7 @@ export class Scope {
     { id: 77, pair: 'STSOLTwap/USD', name: 'STSOLTwap', price: new Decimal(0), nonUsdPairId: 52 },
     { id: 78, pair: 'RLB/USD', name: 'RLB', price: new Decimal(0) },
     { id: 79, pair: 'RLBTwap/USD', name: 'RLBTwap', price: new Decimal(0) },
+    { id: 80, pair: 'CGNTSOL/SOL', name: 'CGNTSOL', price: new Decimal(0), nonUsdPairId: 0 },
   ];
 
   /**

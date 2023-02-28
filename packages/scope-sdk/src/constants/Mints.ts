@@ -55,6 +55,7 @@ export const ScopeMints: { token: SupportedToken; mint: string }[] = [
   { token: 'LaineSOL', mint: 'LAinEtNLgpmCP9Rvsf5Hn8W6EhNiKLZQti1xfWMLy6X' },
   { token: 'HADES', mint: 'BWXrrYFhT7bMHmNBFoQFWdsSgA3yXoAnMhDK6Fn1eSEn' },
   { token: 'RLB', mint: 'RLBxxFkseAZ4RgJH3Sqn8jXxhmGoz9jWxDNJMh8pL7a' },
+  { token: 'CGNTSOL', mint: 'CgnTSoL3DgY9SFHxcLj6CgCgKKoTBr6tp4CPAEWy25DE' },
 ];
 
 export function scopeTokenToMint(token: SupportedToken) {
