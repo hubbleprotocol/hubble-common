@@ -1,11 +1,11 @@
 import { WhirlpoolStrategy } from '../kamino-client/accounts';
 
-export type StrategyType = 'NON_PEGGED' | 'PEGGED' | 'STABLE' | undefined;
-export type StrategyCreationStatus = 'IGNORED' | 'SHADOW' | 'LIVE' | 'DEPRECATED' | 'STAGING' | undefined;
+export type StrategyType = 'NON_PEGGED' | 'PEGGED' | 'STABLE';
+export type StrategyCreationStatus = 'IGNORED' | 'SHADOW' | 'LIVE' | 'DEPRECATED' | 'STAGING';
 
 export type StrategiesFilters = {
-  strategyType: StrategyType;
-  strategyCreationStatus: StrategyCreationStatus;
+  strategyType?: StrategyType;
+  strategyCreationStatus?: StrategyCreationStatus;
 };
 
 export function strategyTypeToBase58(strategyType: StrategyType): string {
