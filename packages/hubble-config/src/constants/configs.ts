@@ -806,13 +806,6 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
           mintB: new PublicKey('4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R'),
         },
         {
-          address: new PublicKey('Enfoa5Xdtirwa46xxa5LUVcQWe7EUb2pGzTjfvU7EBS1'),
-          collateralA: 'SOL',
-          collateralB: 'RAY',
-          mintA: new PublicKey('So11111111111111111111111111111111111111112'),
-          mintB: new PublicKey('4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R'),
-        },
-        {
           address: new PublicKey('Chbi4BsySNmnNB4i821eMH6TzWA9DiUx2J1oHVVTk9Dm'),
           collateralA: 'MSOL',
           collateralB: 'HBB',
