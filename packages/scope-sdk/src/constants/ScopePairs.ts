@@ -77,5 +77,7 @@ export const ScopePairs = [
   'RLB/USD',
   'RLBTwap/USD',
   'CGNTSOL/SOL',
+  'HXRO/USD',
+  'HXROTwap/USD',
 ] as const;
 export type ScopePair = (typeof ScopePairs)[number];
