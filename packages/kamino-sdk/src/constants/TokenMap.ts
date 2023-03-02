@@ -7,7 +7,6 @@ export const KAMINO_TOKEN_MAP: KaminoToken[] = [
   { name: 'USDH', id: 1 },
   { name: 'SOL', id: 2 },
   { name: 'ETH', id: 3 },
-  { name: 'BTC', id: 4 },
   { name: 'MSOL', id: 5 },
   { name: 'STSOL', id: 6 },
   { name: 'USDT', id: 7 },
@@ -32,8 +31,10 @@ export const KAMINO_TOKEN_MAP: KaminoToken[] = [
   { name: 'LaineSOL', id: 26 },
   { name: 'bSOL', id: 27 },
   { name: 'HADES', id: 28 },
-  { name: 'wBTC', id: 29 },
+  { name: 'BTC', id: 29 },
   { name: 'RLB', id: 30 },
+  { name: 'CGNTSOL', id: 30 },
+  { name: 'HXRO', id: 30 },
 ];
 
 /**
