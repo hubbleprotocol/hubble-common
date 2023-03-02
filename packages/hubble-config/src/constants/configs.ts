@@ -246,6 +246,8 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
         { address: new PublicKey('5BmZgW7dk1kximGfn7MPvDigp3yRmgT64jS9Skdq4nPY'), scopeToken: 'kUSDHUSDCOrca' },
         { address: new PublicKey('3NZ9JMVBmGAqocybic2c7LQCJScmgsAZ6vQqTDzcqmJh'), scopeToken: 'BTC' },
         { address: new PublicKey('RLBxxFkseAZ4RgJH3Sqn8jXxhmGoz9jWxDNJMh8pL7a'), scopeToken: 'RLB' },
+        { address: new PublicKey('CgnTSoL3DgY9SFHxcLj6CgCgKKoTBr6tp4CPAEWy25DE'), scopeToken: 'CGNTSOL' },
+        { address: new PublicKey('HxhWkVpk5NS4Ltg5nij2G671CKXFRKPK8vy271Ub4uEK'), scopeToken: 'HXRO' },
       ],
       whirlpoolsToSnapshot: [
         {
@@ -709,6 +711,34 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
           collateralB: 'USDC',
           mintA: new PublicKey('orcaEKTdK7LKz57vaAYr9QeNsVEPfiu6QeMU1kektZE'),
           mintB: new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'),
+        },
+        {
+          address: new PublicKey('H3bEHDH3ResiGgR8avFUEfU8rfyLzjEQbf4WR5mkXmJ9'),
+          collateralA: 'MSOL',
+          collateralB: 'CGNTSOL',
+          mintA: new PublicKey('mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So'),
+          mintB: new PublicKey('CgnTSoL3DgY9SFHxcLj6CgCgKKoTBr6tp4CPAEWy25DE'),
+        },
+        {
+          address: new PublicKey('Zko5YLwAZL1F2W13ohkG9DVAZCmYqcCqHrEgmaudmbe'),
+          collateralA: 'CGNTSOL',
+          collateralB: 'USDC',
+          mintA: new PublicKey('CgnTSoL3DgY9SFHxcLj6CgCgKKoTBr6tp4CPAEWy25DE'),
+          mintB: new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'),
+        },
+        {
+          address: new PublicKey('GrXkAvh5dohLd8Va432MxW2ckthWhfw9FEGSxJHEsKg'),
+          collateralA: 'USDC',
+          collateralB: 'HXRO',
+          mintA: new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'),
+          mintB: new PublicKey('HxhWkVpk5NS4Ltg5nij2G671CKXFRKPK8vy271Ub4uEK'),
+        },
+        {
+          address: new PublicKey('7A1R3L7AxcxuZHMJjFgskKGeBR5Rwst3Ai5bv5uAWZFG'),
+          collateralA: 'MSOL',
+          collateralB: 'USDT',
+          mintA: new PublicKey('mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So'),
+          mintB: new PublicKey('Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB'),
         },
       ],
       raydiumPoolsToSnapshot: [
