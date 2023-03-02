@@ -76,5 +76,7 @@ export const SupportedTokens = [
   'RLB',
   'RLBTwap',
   'CGNTSOL',
+  'HXRO',
+  'HXROTwap',
 ] as const;
 export type SupportedToken = (typeof SupportedTokens)[number];
