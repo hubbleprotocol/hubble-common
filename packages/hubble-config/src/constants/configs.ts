@@ -244,7 +244,7 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
         { address: new PublicKey('UXPhBoR3qG4UCiGNJfV7MqhHyFqKN68g45GoYvAeL2M'), scopeToken: 'UXP' },
         { address: new PublicKey('C7RpHABBJjfkmizgnR2MRbpfEF454Rb18XC6RmBC8cGg'), scopeToken: 'kSOLSTSOLOrca' },
         { address: new PublicKey('5BmZgW7dk1kximGfn7MPvDigp3yRmgT64jS9Skdq4nPY'), scopeToken: 'kUSDHUSDCOrca' },
-        { address: new PublicKey('3NZ9JMVBmGAqocybic2c7LQCJScmgsAZ6vQqTDzcqmJh'), scopeToken: 'BTC' },
+        { address: new PublicKey('3NZ9JMVBmGAqocybic2c7LQCJScmgsAZ6vQqTDzcqmJh'), scopeToken: 'wBTC' },
         { address: new PublicKey('RLBxxFkseAZ4RgJH3Sqn8jXxhmGoz9jWxDNJMh8pL7a'), scopeToken: 'RLB' },
         { address: new PublicKey('CgnTSoL3DgY9SFHxcLj6CgCgKKoTBr6tp4CPAEWy25DE'), scopeToken: 'CGNTSOL' },
         { address: new PublicKey('HxhWkVpk5NS4Ltg5nij2G671CKXFRKPK8vy271Ub4uEK'), scopeToken: 'HXRO' },
