@@ -24,6 +24,12 @@ export interface GlobalConfigFields {
   tokenInfos: PublicKey
   blockLocalAdmin: BN
   padding: Array<BN>
+  padding2: Array<BN>
+  padding3: Array<BN>
+  padding4: Array<BN>
+  padding5: Array<BN>
+  padding6: Array<BN>
+  padding7: Array<BN>
 }
 
 export interface GlobalConfigJSON {
@@ -46,6 +52,12 @@ export interface GlobalConfigJSON {
   tokenInfos: string
   blockLocalAdmin: string
   padding: Array<string>
+  padding2: Array<string>
+  padding3: Array<string>
+  padding4: Array<string>
+  padding5: Array<string>
+  padding6: Array<string>
+  padding7: Array<string>
 }
 
 export class GlobalConfig {
@@ -68,6 +80,12 @@ export class GlobalConfig {
   readonly tokenInfos: PublicKey
   readonly blockLocalAdmin: BN
   readonly padding: Array<BN>
+  readonly padding2: Array<BN>
+  readonly padding3: Array<BN>
+  readonly padding4: Array<BN>
+  readonly padding5: Array<BN>
+  readonly padding6: Array<BN>
+  readonly padding7: Array<BN>
 
   static readonly discriminator = Buffer.from([
     149, 8, 156, 202, 160, 252, 176, 217,
@@ -92,7 +110,13 @@ export class GlobalConfig {
     borsh.array(borsh.publicKey(), 256, "treasuryFeeVaults"),
     borsh.publicKey("tokenInfos"),
     borsh.u64("blockLocalAdmin"),
-    borsh.array(borsh.u64(), 2043, "padding"),
+    borsh.array(borsh.u64(), 1024, "padding"),
+    borsh.array(borsh.u64(), 512, "padding2"),
+    borsh.array(borsh.u64(), 256, "padding3"),
+    borsh.array(borsh.u64(), 128, "padding4"),
+    borsh.array(borsh.u64(), 64, "padding5"),
+    borsh.array(borsh.u64(), 30, "padding6"),
+    borsh.array(borsh.u64(), 29, "padding7"),
   ])
 
   constructor(fields: GlobalConfigFields) {
@@ -115,6 +139,12 @@ export class GlobalConfig {
     this.tokenInfos = fields.tokenInfos
     this.blockLocalAdmin = fields.blockLocalAdmin
     this.padding = fields.padding
+    this.padding2 = fields.padding2
+    this.padding3 = fields.padding3
+    this.padding4 = fields.padding4
+    this.padding5 = fields.padding5
+    this.padding6 = fields.padding6
+    this.padding7 = fields.padding7
   }
 
   static async fetch(
@@ -178,6 +208,12 @@ export class GlobalConfig {
       tokenInfos: dec.tokenInfos,
       blockLocalAdmin: dec.blockLocalAdmin,
       padding: dec.padding,
+      padding2: dec.padding2,
+      padding3: dec.padding3,
+      padding4: dec.padding4,
+      padding5: dec.padding5,
+      padding6: dec.padding6,
+      padding7: dec.padding7,
     })
   }
 
@@ -204,6 +240,12 @@ export class GlobalConfig {
       tokenInfos: this.tokenInfos.toString(),
       blockLocalAdmin: this.blockLocalAdmin.toString(),
       padding: this.padding.map((item) => item.toString()),
+      padding2: this.padding2.map((item) => item.toString()),
+      padding3: this.padding3.map((item) => item.toString()),
+      padding4: this.padding4.map((item) => item.toString()),
+      padding5: this.padding5.map((item) => item.toString()),
+      padding6: this.padding6.map((item) => item.toString()),
+      padding7: this.padding7.map((item) => item.toString()),
     }
   }
 
@@ -232,6 +274,12 @@ export class GlobalConfig {
       tokenInfos: new PublicKey(obj.tokenInfos),
       blockLocalAdmin: new BN(obj.blockLocalAdmin),
       padding: obj.padding.map((item) => new BN(item)),
+      padding2: obj.padding2.map((item) => new BN(item)),
+      padding3: obj.padding3.map((item) => new BN(item)),
+      padding4: obj.padding4.map((item) => new BN(item)),
+      padding5: obj.padding5.map((item) => new BN(item)),
+      padding6: obj.padding6.map((item) => new BN(item)),
+      padding7: obj.padding7.map((item) => new BN(item)),
     })
   }
 }

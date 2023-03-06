@@ -28,10 +28,8 @@ export interface WithdrawAccounts {
   tokenBMint: PublicKey
   userSharesAta: PublicKey
   sharesMint: PublicKey
-  sharesMintAuthority: PublicKey
   treasuryFeeTokenAVault: PublicKey
   treasuryFeeTokenBVault: PublicKey
-  treasuryFeeVaultAuthority: PublicKey
   tokenProgram: PublicKey
   positionTokenAccount: PublicKey
   poolProgram: PublicKey
@@ -66,11 +64,6 @@ export function withdraw(args: WithdrawArgs, accounts: WithdrawAccounts) {
     { pubkey: accounts.userSharesAta, isSigner: false, isWritable: true },
     { pubkey: accounts.sharesMint, isSigner: false, isWritable: true },
     {
-      pubkey: accounts.sharesMintAuthority,
-      isSigner: false,
-      isWritable: false,
-    },
-    {
       pubkey: accounts.treasuryFeeTokenAVault,
       isSigner: false,
       isWritable: true,
@@ -79,11 +72,6 @@ export function withdraw(args: WithdrawArgs, accounts: WithdrawAccounts) {
       pubkey: accounts.treasuryFeeTokenBVault,
       isSigner: false,
       isWritable: true,
-    },
-    {
-      pubkey: accounts.treasuryFeeVaultAuthority,
-      isSigner: false,
-      isWritable: false,
     },
     { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
     {

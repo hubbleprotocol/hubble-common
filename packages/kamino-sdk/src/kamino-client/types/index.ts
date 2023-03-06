@@ -7,6 +7,7 @@ import * as StrategyType from "./StrategyType"
 import * as ExecutiveWithdrawAction from "./ExecutiveWithdrawAction"
 import * as LiquidityCalculationMode from "./LiquidityCalculationMode"
 import * as UpdateCollateralInfoMode from "./UpdateCollateralInfoMode"
+import * as BalanceStatus from "./BalanceStatus"
 import * as CollateralTestToken from "./CollateralTestToken"
 import * as ScopePriceIdTest from "./ScopePriceIdTest"
 import * as DEX from "./DEX"
@@ -238,6 +239,15 @@ export type UpdateCollateralInfoModeJSON =
   | UpdateCollateralInfoMode.UpdateNameJSON
   | UpdateCollateralInfoMode.UpdatePriceMaxAgeJSON
   | UpdateCollateralInfoMode.UpdateTwapMaxAgeJSON
+
+export { BalanceStatus }
+
+export type BalanceStatusKind =
+  | BalanceStatus.Balanced
+  | BalanceStatus.Unbalanced
+export type BalanceStatusJSON =
+  | BalanceStatus.BalancedJSON
+  | BalanceStatus.UnbalancedJSON
 
 export { CollateralTestToken }
 
