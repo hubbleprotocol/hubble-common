@@ -99,5 +99,9 @@ export type {
   WithdrawFromTreasuryArgs,
   WithdrawFromTreasuryAccounts,
 } from "./withdrawFromTreasury"
+export { changePool } from "./changePool"
+export type { ChangePoolAccounts } from "./changePool"
+export { closeProgramAccount } from "./closeProgramAccount"
+export type { CloseProgramAccountAccounts } from "./closeProgramAccount"
 export { orcaSwap } from "./orcaSwap"
 export type { OrcaSwapArgs, OrcaSwapAccounts } from "./orcaSwap"

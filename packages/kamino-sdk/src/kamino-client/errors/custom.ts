@@ -105,6 +105,7 @@ export type CustomError =
   | InvalidScopeChain
   | InvalidTwapId
   | PositionHasRemainingLiquidity
+  | PoolRebalancing
 
 export class IntegerOverflow extends Error {
   static readonly code = 6000
@@ -1287,6 +1288,17 @@ export class PositionHasRemainingLiquidity extends Error {
   }
 }
 
+export class PoolRebalancing extends Error {
+  static readonly code = 6106
+  readonly code = 6106
+  readonly name = "PoolRebalancing"
+  readonly msg = "Deposit is not allowed as pool is rebalancing"
+
+  constructor(readonly logs?: string[]) {
+    super("6106: Deposit is not allowed as pool is rebalancing")
+  }
+}
+
 export function fromCode(code: number, logs?: string[]): CustomError | null {
   switch (code) {
     case 6000:
@@ -1501,6 +1513,8 @@ export function fromCode(code: number, logs?: string[]): CustomError | null {
       return new InvalidTwapId(logs)
     case 6105:
       return new PositionHasRemainingLiquidity(logs)
+    case 6106:
+      return new PoolRebalancing(logs)
   }
 
   return null
