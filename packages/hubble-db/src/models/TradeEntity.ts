@@ -6,6 +6,7 @@ export interface TradeEntity {
   destination_amount: string;
   raw_json: string;
   created_on: Date;
+  updated_on: Date;
   traded_on: Date;
   source_token_mint_id: number;
   destination_token_mint_id: number;
