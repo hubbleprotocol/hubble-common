@@ -667,8 +667,6 @@ export class Kamino {
       poolTokenVaultB: strategyState.strategy.poolTokenVaultB,
       tokenAAta: tokenAAta,
       tokenBAta: tokenBAta,
-      tokenAMint: strategyState.strategy.tokenAMint,
-      tokenBMint: strategyState.strategy.tokenBMint,
       userSharesAta: sharesAta,
       sharesMint: strategyState.strategy.sharesMint,
       treasuryFeeTokenAVault,
