@@ -787,20 +787,11 @@ describe('Kamino SDK Tests', () => {
 
     tx = await assignBlockInfoToTransaction(connection, tx, user.owner.publicKey);
 
-    try {
-      const txHash = await sendAndConfirmTransaction(connection, tx, [user.owner], {
-        commitment: 'processed',
-        skipPreflight: true,
-      });
-      console.log(txHash);
-    } catch (e) {
-      console.log(e);
-      await sleep(5000);
-      const sig = e.toString().split(' failed ')[0].split('Transaction ')[1];
-      //@ts-ignore
-      let res = await kamino._connection.getTransaction(sig, { commitment: 'confirmed' });
-      console.log('Txn', res.meta.logMessages);
-    }
+    const txHash = await sendAndConfirmTransaction(connection, tx, [user.owner], {
+      commitment: 'processed',
+      skipPreflight: true,
+    });
+    console.log(txHash);
   });
 
   it('should deposit tokens into a Raydium strategy with calculated amount', async () => {
