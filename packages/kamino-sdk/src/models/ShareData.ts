@@ -1,3 +1,4 @@
+import { PublicKey } from '@solana/web3.js';
 import Decimal from 'decimal.js';
 import { StrategyBalances } from './StrategyBalances';
 
@@ -6,4 +7,7 @@ export type ShareData = {
   price: Decimal;
 };
 
-export default ShareData;
+export type ShareDataWithAddress = {
+  shareData: ShareData;
+  address: PublicKey;
+};

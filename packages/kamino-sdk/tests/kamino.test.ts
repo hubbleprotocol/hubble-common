@@ -344,6 +344,21 @@ describe('Kamino SDK Tests', () => {
     console.log(price);
   });
 
+  it('should get strategy share price from all strat', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      fixtures.globalConfig,
+      fixtures.kaminoProgramId,
+      WHIRLPOOL_PROGRAM_ID,
+      LOCAL_RAYDIUM_PROGRAM_ID
+    );
+
+    let sharesPricesWithAddress = await kamino.getStrategyShareDataForStrategies({});
+    expect(sharesPricesWithAddress.length).to.be.eq(2);
+    console.log(sharesPricesWithAddress);
+  });
+
   it('should get all strategy holders', async () => {
     let kamino = new Kamino(
       cluster,
@@ -470,6 +485,10 @@ describe('Kamino SDK Tests', () => {
     const strategyWithAddress = { strategy, address: fixtures.newOrcaStrategy };
 
     let withdrawTx = createTransactionWithExtraBudget(signer.publicKey);
+
+    //@ts-ignore
+    let shares = await kamino.getTokenAccountBalance(sharesAta);
+    console.log('shares, ', shares);
 
     const withdrawIx = await kamino.withdrawShares(strategyWithAddress, new Decimal(0.2), signer.publicKey);
     withdrawTx.add(withdrawIx);
@@ -758,6 +777,7 @@ describe('Kamino SDK Tests', () => {
     const usdcAirdropAmount = new Decimal(1000000000);
     const usdhAirdropAmount = new Decimal(1000000000);
 
+    console.log('before user creation');
     let user = await createUser(
       connection,
       signer,
@@ -769,12 +789,13 @@ describe('Kamino SDK Tests', () => {
 
     let tx = createTransactionWithExtraBudget(user.owner.publicKey, 1000000);
 
-    let amounts = kamino.getDepositRatioFromTokenA(fixtures.newRaydiumStrategy, new BN(5493));
+    let amounts = await kamino.getDepositRatioFromTokenA(fixtures.newRaydiumStrategy, new BN(5493));
+    console.log('amounts', amounts);
 
     const depositIx = await kamino.deposit(
       strategyWithAddress,
-      new Decimal((await amounts).amountSlippageA.toString()),
-      new Decimal((await amounts).amountSlippageB.toString()),
+      new Decimal(amounts.amountSlippageA.toString()),
+      new Decimal(amounts.amountSlippageB.toString()),
       user.owner.publicKey
     );
     tx.add(depositIx);
