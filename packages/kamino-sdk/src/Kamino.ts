@@ -44,7 +44,7 @@ import {
 } from './models';
 import { PROGRAM_ID_CLI as WHIRLPOOL_PROGRAM_ID, setWhirlpoolsProgramId } from './whirpools-client/programId';
 import { StrategyHolder } from './models';
-import { Scope, SupportedToken } from '@hubbleprotocol/scope-sdk';
+import { Scope, ScopeToken, SupportedToken, SupportedTokens } from '@hubbleprotocol/scope-sdk';
 import { KaminoToken } from './models/KaminoToken';
 import { PriceData } from './models/PriceData';
 import {
@@ -238,11 +238,14 @@ export class Kamino {
    * Get the strategy share data (price + balances) of the specified Kamino whirlpool strategy
    * @param strategy
    */
-  async getStrategyShareData(strategy: PublicKey | StrategyWithAddress): Promise<ShareData> {
+  async getStrategyShareData(
+    strategy: PublicKey | StrategyWithAddress,
+    scopePrices?: ScopeToken[]
+  ): Promise<ShareData> {
     const strategyState = await this.getStrategyStateIfNotFetched(strategy);
     const sharesFactor = Decimal.pow(10, strategyState.strategy.sharesMintDecimals.toString());
     const sharesIssued = new Decimal(strategyState.strategy.sharesIssued.toString());
-    const balances = await this.getStrategyBalances(strategyState.strategy);
+    const balances = await this.getStrategyBalances(strategyState.strategy, scopePrices);
     if (sharesIssued.isZero()) {
       return { price: new Decimal(1), balance: balances };
     } else {
@@ -256,9 +259,11 @@ export class Kamino {
    */
   async getStrategyShareDataForStrategies(strategyFilters: StrategiesFilters): Promise<Array<ShareDataWithAddress>> {
     let result: Array<ShareDataWithAddress> = [];
+
+    let prices = await this.getAllPrices();
     let strategiesWithAddresses = await this.getAllStrategiesWithFilters(strategyFilters);
     for (let strategyState of strategiesWithAddresses) {
-      let shareData = await this.getStrategyShareData(strategyState);
+      let shareData = await this.getStrategyShareData(strategyState, prices);
       let shareDataWithAddress = { shareData, address: strategyState.address };
       result = result.concat(shareDataWithAddress);
     }
@@ -290,11 +295,11 @@ export class Kamino {
     return new Decimal(tokenAccountBalance.value.uiAmountString!);
   }
 
-  private async getStrategyBalances(strategy: WhirlpoolStrategy) {
+  private async getStrategyBalances(strategy: WhirlpoolStrategy, scopePrices?: ScopeToken[]) {
     if (strategy.strategyDex.toNumber() == dexToNumber('ORCA')) {
-      return this.getStrategyBalancesOrca(strategy);
+      return this.getStrategyBalancesOrca(strategy, scopePrices);
     } else if (strategy.strategyDex.toNumber() == dexToNumber('RAYDIUM')) {
-      return this.getStrategyBalancesRaydium(strategy);
+      return this.getStrategyBalancesRaydium(strategy, scopePrices);
     } else {
       throw new Error(`Invalid dex ${strategy.strategyDex.toString()}`);
     }
@@ -344,7 +349,7 @@ export class Kamino {
     return { totalTokenAmount, vaults, timestamp: new Date() };
   }
 
-  private async getStrategyBalancesOrca(strategy: WhirlpoolStrategy) {
+  private async getStrategyBalancesOrca(strategy: WhirlpoolStrategy, scopePrices?: ScopeToken[]) {
     const whirlpool = await Whirlpool.fetch(this._connection, strategy.pool);
     const position = await Position.fetch(this._connection, strategy.position);
 
@@ -376,7 +381,8 @@ export class Kamino {
       a: aVault,
       b: bVault,
     };
-    const prices = await this.getPrices(strategy);
+
+    const prices = await this.getPrices(strategy, scopePrices);
     const aAvailable = new Decimal(strategy.tokenAAmounts.toString());
     const bAvailable = new Decimal(strategy.tokenBAmounts.toString());
     const aInvested = new Decimal(removeLiquidityQuote.estTokenA.toString());
@@ -403,7 +409,7 @@ export class Kamino {
     return balances;
   }
 
-  private async getStrategyBalancesRaydium(strategy: WhirlpoolStrategy) {
+  private async getStrategyBalancesRaydium(strategy: WhirlpoolStrategy, scopePrices?: ScopeToken[]) {
     let poolState = await PoolState.fetch(this._connection, strategy.pool);
     let positionState = await PersonalPositionState.fetch(this._connection, strategy.position);
 
@@ -434,7 +440,8 @@ export class Kamino {
       a: aVault,
       b: bVault,
     };
-    const prices = await this.getPrices(strategy);
+
+    const prices = await this.getPrices(strategy, scopePrices);
     const aAvailable = new Decimal(strategy.tokenAAmounts.toString());
     const bAvailable = new Decimal(strategy.tokenBAmounts.toString());
     const aInvested = new Decimal(amountA.toString());
@@ -495,7 +502,11 @@ export class Kamino {
     };
   }
 
-  private async getPrices(strategy: WhirlpoolStrategy): Promise<PriceData> {
+  private async getAllPrices(): Promise<ScopeToken[]> {
+    return await this._scope.getPrices([...SupportedTokens]);
+  }
+
+  private async getPrices(strategy: WhirlpoolStrategy, scopeTokens?: ScopeToken[]): Promise<PriceData> {
     const collateralMintA = getCollateralMintByAddress(strategy.tokenAMint, this._config);
     const collateralMintB = getCollateralMintByAddress(strategy.tokenBMint, this._config);
     if (!collateralMintA) {
@@ -511,7 +522,12 @@ export class Kamino {
     tokens.push(collateralMintA.scopeToken as SupportedToken);
     tokens.push(collateralMintB.scopeToken as SupportedToken);
 
-    const prices = await this._scope.getPrices([...new Set(tokens)]);
+    let prices: ScopeToken[];
+    if (scopeTokens) {
+      prices = scopeTokens;
+    } else {
+      prices = await this._scope.getPrices([...new Set(tokens)]);
+    }
     const aPrice = prices.find((x) => x.name === collateralMintA.scopeToken);
     const bPrice = prices.find((x) => x.name === collateralMintB.scopeToken);
 
