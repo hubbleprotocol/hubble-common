@@ -11,4 +11,3 @@ export type ShareDataWithAddress = {
   shareData: ShareData;
   address: PublicKey;
 };
-
