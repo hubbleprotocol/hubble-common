@@ -35,6 +35,7 @@ import {
   Holdings,
   KaminoPosition,
   ShareData,
+  ShareDataWithAddress,
   StrategyBalances,
   StrategyVaultBalances,
   StrategyVaultTokens,
@@ -247,6 +248,36 @@ export class Kamino {
     } else {
       return { price: balances.computedHoldings.totalSum.div(sharesIssued).mul(sharesFactor), balance: balances };
     }
+  }
+
+  /**
+   * Get the strategies share data (price + balances) of the Kamino whirlpool strategies that match the filters
+   * @param strategy
+   */
+  async getStrategyShareDataForStrategies(strategyFilters: StrategiesFilters): Promise<Array<ShareDataWithAddress>> {
+    let result: Array<ShareDataWithAddress> = [];
+    let strategiesWithAddresses = await this.getAllStrategiesWithFilters(strategyFilters);
+    console.log('strategiesWithAddresses length', strategiesWithAddresses.length);
+    for (let strategyState of strategiesWithAddresses) {
+      console.log('strateguState.address', strategyState.address);
+      const sharesFactor = Decimal.pow(10, strategyState.strategy.sharesMintDecimals.toString());
+      const sharesIssued = new Decimal(strategyState.strategy.sharesIssued.toString());
+      const balances = await this.getStrategyBalances(strategyState.strategy);
+      if (sharesIssued.isZero()) {
+        let shareData = { price: new Decimal(1), balance: balances };
+        let shareDataWithAddress = { shareData, address: strategyState.address };
+        result = result.concat(shareDataWithAddress);
+      } else {
+        let shareData = {
+          price: balances.computedHoldings.totalSum.div(sharesIssued).mul(sharesFactor),
+          balance: balances,
+        };
+        let shareDataWithAddress = { shareData, address: strategyState.address };
+        result = result.concat(shareDataWithAddress);
+      }
+    }
+
+    return result;
   }
 
   /**
