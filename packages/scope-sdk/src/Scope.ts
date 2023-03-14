@@ -119,7 +119,7 @@ export class Scope {
       tokenInfo.price = tokenInfo.price.mul(pairPrice);
     }
 
-    const mint = scopeTokenToMint(token);
+    const mint = scopeTokenToMint(token, this._cluster);
     tokenInfo.mint = mint ? new PublicKey(mint) : undefined;
 
     return tokenInfo;
@@ -158,7 +158,7 @@ export class Scope {
     const prices: ScopeToken[] = [];
     const oraclePrices = await this.getOraclePrices();
     for (const mint of mints) {
-      const token = mintToScopeToken(mint.toString());
+      const token = mintToScopeToken(mint.toString(), this._cluster);
       if (!token) {
         throw Error(`Could not map mint ${mint} to a Scope token. Is the mint mapping missing?`);
       }
@@ -175,7 +175,7 @@ export class Scope {
   }
 
   /**
-   * Get all prices of the supported tokens
+   * Get all mappings of the supported tokens
    */
   getMappings(): ScopeToken[] {
     return this._tokens;
@@ -195,7 +195,7 @@ export class Scope {
    * @param mint token mint pubkey
    */
   async getPriceByMint(mint: PublicKey | string) {
-    const token = mintToScopeToken(mint.toString());
+    const token = mintToScopeToken(mint.toString(), this._cluster);
     if (!token) {
       throw Error(`Could not map mint ${mint} to a Scope token. Is the mint mapping missing?`);
     }
