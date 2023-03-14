@@ -258,21 +258,9 @@ export class Kamino {
     let result: Array<ShareDataWithAddress> = [];
     let strategiesWithAddresses = await this.getAllStrategiesWithFilters(strategyFilters);
     for (let strategyState of strategiesWithAddresses) {
-      const sharesFactor = Decimal.pow(10, strategyState.strategy.sharesMintDecimals.toString());
-      const sharesIssued = new Decimal(strategyState.strategy.sharesIssued.toString());
-      const balances = await this.getStrategyBalances(strategyState.strategy);
-      if (sharesIssued.isZero()) {
-        let shareData = { price: new Decimal(1), balance: balances };
-        let shareDataWithAddress = { shareData, address: strategyState.address };
-        result = result.concat(shareDataWithAddress);
-      } else {
-        let shareData = {
-          price: balances.computedHoldings.totalSum.div(sharesIssued).mul(sharesFactor),
-          balance: balances,
-        };
-        let shareDataWithAddress = { shareData, address: strategyState.address };
-        result = result.concat(shareDataWithAddress);
-      }
+      let shareData = await this.getStrategyShareData(strategyState);
+      let shareDataWithAddress = { shareData, address: strategyState.address };
+      result = result.concat(shareDataWithAddress);
     }
 
     return result;
