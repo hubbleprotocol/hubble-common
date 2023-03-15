@@ -78,5 +78,6 @@ export const SupportedTokens = [
   'CGNTSOL',
   'HXRO',
   'HXROTwap',
+  'MNDETwap',
 ] as const;
 export type SupportedToken = (typeof SupportedTokens)[number];

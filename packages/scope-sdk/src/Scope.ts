@@ -92,6 +92,7 @@ export class Scope {
     { id: 80, pair: 'CGNTSOL/SOL', name: 'CGNTSOL', price: new Decimal(0), nonUsdPairId: 0 },
     { id: 81, pair: 'HXRO/USD', name: 'HXRO', price: new Decimal(0) },
     { id: 82, pair: 'HXROTwap/USD', name: 'HXROTwap', price: new Decimal(0) },
+    { id: 83, pair: 'MNDETwap/USD', name: 'MNDETwap', price: new Decimal(0) },
   ];
 
   /**
