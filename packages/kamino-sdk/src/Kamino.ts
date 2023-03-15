@@ -20,6 +20,8 @@ import Decimal from 'decimal.js';
 import { Position, Whirlpool } from './whirpools-client';
 import { getMintDecimals } from '@project-serum/serum/lib/market';
 import {
+  AddLiquidityQuote,
+  AddLiquidityQuoteParam,
   defaultSlippagePercentage,
   getNearestValidTickIndexFromTickIndex,
   getStartTickIndex,
@@ -92,7 +94,7 @@ import { ExecutiveWithdrawActionKind, StrategyStatusKind } from './kamino-client
 import { Rebalance } from './kamino-client/types/ExecutiveWithdrawAction';
 import { PoolState, PersonalPositionState, AmmConfig } from './raydium_client';
 import { PROGRAM_ID as RAYDIUM_PROGRAM_ID, setRaydiumProgramId } from './raydium_client/programId';
-import { i32ToBytes, LiquidityMath, SqrtPriceMath, TickMath, TickUtils } from '@raydium-io/raydium-sdk';
+import { i32ToBytes, LiquidityMath, SqrtPriceMath, str, TickMath, TickUtils } from '@raydium-io/raydium-sdk';
 
 import KaminoIdl from './kamino-client/kamino.json';
 import { getKaminoTokenName, KAMINO_TOKEN_MAP } from './constants';
@@ -1616,6 +1618,150 @@ export class Kamino {
       return this._raydiumService.getStrategyWhirlpoolPoolAprApy(strategyState);
     }
     throw Error(`Strategy dex ${dex} not supported`);
+  }
+
+  async calculateAmounts(
+    strategy: PublicKey | StrategyWithAddress,
+    tokenAAmount?: Decimal,
+    tokenBAmount?: Decimal
+  ): Promise<[Decimal, Decimal]> {
+    const { strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
+    const dex = Number(strategyState.strategyDex);
+    const isOrca = dexToNumber('ORCA') === dex;
+    const isRaydium = dexToNumber('RAYDIUM') === dex;
+    if (isOrca) {
+      const whirlpool = await Whirlpool.fetch(this._connection, strategyState.pool);
+      if (!whirlpool) {
+        throw new Error(`Unable to get Orca whirlpool for pubkey ${strategyState.pool}`);
+      }
+
+      return this.calculateAmountsOrca({
+        whirlpoolConfig: whirlpool.whirlpoolsConfig,
+        tokenAMint: strategyState.tokenAMint,
+        tokenBMint: strategyState.tokenBMint,
+        positionAddress: strategyState.position,
+        tokenAAmount,
+        tokenBAmount,
+      });
+    } else if (isRaydium) {
+      let strategyAddress: PublicKey;
+      if (strategy instanceof PublicKey) {
+        strategyAddress = strategy;
+      } else {
+        strategyAddress = strategy.address;
+      }
+
+      return this.calculateAmountsRaydium({ strategyAddress, tokenAAmount, tokenBAmount });
+    } else {
+      throw new Error(`The strategy ${strategy.toString()} is not Orca or Raydium`);
+    }
+  }
+
+  async calculateAmountsOrca({
+    whirlpoolConfig,
+    tokenAMint,
+    tokenBMint,
+    positionAddress,
+    tokenAAmount,
+    tokenBAmount,
+  }: {
+    whirlpoolConfig: PublicKey;
+    tokenAMint: PublicKey;
+    tokenBMint: PublicKey;
+    positionAddress: PublicKey;
+    tokenAAmount?: Decimal;
+    tokenBAmount?: Decimal;
+  }): Promise<[Decimal, Decimal]> {
+    if (!tokenAAmount && !tokenBAmount) {
+      console.error('At least one token amount is required');
+      return [new Decimal(0), new Decimal(0)];
+    }
+    // Given A in ATA, calc how much A and B
+    const accessor = new OrcaDAL(whirlpoolConfig, WHIRLPOOL_PROGRAM_ID, this._connection);
+    const orcaPosition = new OrcaPosition(accessor);
+    const defaultSlippagePercentage = Percentage.fromFraction(1, 1000); // 0.1%
+
+    const primaryTokenAmount = tokenAAmount || tokenBAmount;
+    const primaryTokenMint = tokenAAmount ? tokenAMint : tokenBMint;
+    const secondaryTokenAmount = tokenAAmount ? tokenBAmount : tokenAAmount;
+    const secondaryTokenMint = tokenAAmount ? tokenBMint : tokenAMint;
+
+    let params: AddLiquidityQuoteParam = {
+      positionAddress,
+      tokenMint: primaryTokenMint,
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      tokenAmount: new BN(primaryTokenAmount!.toString()), // safe to use ! here because we check in the beginning that at least one of the amounts are not undefined;
+      refresh: true,
+      slippageTolerance: defaultSlippagePercentage,
+    };
+    const estimatedGivenPrimary: AddLiquidityQuote = await orcaPosition.getAddLiquidityQuote(params);
+
+    if (secondaryTokenAmount && estimatedGivenPrimary.estTokenB.toNumber() > secondaryTokenAmount.toNumber()) {
+      params = {
+        positionAddress,
+        tokenMint: secondaryTokenMint,
+        tokenAmount: new BN(secondaryTokenAmount.toString()),
+        refresh: true,
+        slippageTolerance: defaultSlippagePercentage,
+      };
+      const estimatedGivenSecondary: AddLiquidityQuote = await orcaPosition.getAddLiquidityQuote(params);
+      return [
+        new Decimal(estimatedGivenSecondary.estTokenA.toString()),
+        new Decimal(estimatedGivenSecondary.estTokenB.toString()),
+      ];
+    }
+    return [
+      new Decimal(estimatedGivenPrimary.estTokenA.toString()),
+      new Decimal(estimatedGivenPrimary.estTokenB.toString()),
+    ];
+  }
+
+  async calculateAmountsRaydium({
+    strategyAddress,
+    tokenAAmount,
+    tokenBAmount,
+  }: {
+    strategyAddress: PublicKey;
+    tokenAAmount?: Decimal;
+    tokenBAmount?: Decimal;
+  }): Promise<[Decimal, Decimal]> {
+    if (!tokenAAmount && !tokenBAmount) {
+      console.error('At least one token amount is required');
+      return [new Decimal(0), new Decimal(0)];
+    }
+
+    const strategyState = await WhirlpoolStrategy.fetch(this._connection, strategyAddress);
+
+    if (!strategyState) {
+      throw new Error(`strategy ${strategyAddress.toString()} is not found`);
+    }
+
+    const poolState = await PoolState.fetch(this._connection, strategyState.pool);
+    const position = await PersonalPositionState.fetch(this._connection, strategyState.position);
+
+    if (!position) {
+      throw new Error(`position ${strategyState.position.toString()} is not found`);
+    }
+
+    if (!poolState) {
+      throw new Error(`poolState ${strategyState.pool.toString()} is not found`);
+    }
+    const primaryTokenAmount = tokenAAmount || tokenBAmount;
+    const secondaryTokenAmount = tokenAAmount ? tokenBAmount : tokenAAmount;
+
+    const decimalsA = await getMintDecimals(this._connection, poolState.tokenMint0);
+    const decimalsB = await getMintDecimals(this._connection, poolState.tokenMint1);
+
+    const { amountA, amountB } = LiquidityMath.getAmountsFromLiquidity(
+      poolState.sqrtPriceX64,
+      SqrtPriceMath.getSqrtPriceX64FromTick(position.tickLowerIndex),
+      SqrtPriceMath.getSqrtPriceX64FromTick(position.tickUpperIndex),
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      new BN(primaryTokenAmount!.plus(secondaryTokenAmount || 0)!.toString()), // safe to use ! here because we check in the beginning that at least one of the amounts are not undefined;
+      true
+    );
+
+    return [new Decimal(amountA.toString()), new Decimal(amountB.toString())];
   }
 
   /**
