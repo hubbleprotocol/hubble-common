@@ -789,15 +789,10 @@ describe('Kamino SDK Tests', () => {
 
     let tx = createTransactionWithExtraBudget(user.owner.publicKey, 1000000);
 
-    let amounts = await kamino.getDepositRatioFromTokenA(fixtures.newRaydiumStrategy, new BN(5493));
+    let amounts = await kamino.calculateAmounts(fixtures.newOrcaStrategy, new Decimal(5493));
     console.log('amounts', amounts);
 
-    const depositIx = await kamino.deposit(
-      strategyWithAddress,
-      new Decimal(amounts.amountSlippageA.toString()),
-      new Decimal(amounts.amountSlippageB.toString()),
-      user.owner.publicKey
-    );
+    const depositIx = await kamino.deposit(strategyWithAddress, amounts[0], amounts[1], user.owner.publicKey);
     tx.add(depositIx);
 
     tx = await assignBlockInfoToTransaction(connection, tx, user.owner.publicKey);
@@ -837,14 +832,10 @@ describe('Kamino SDK Tests', () => {
 
     let tx = createTransactionWithExtraBudget(user.owner.publicKey, 1000000);
 
-    let amounts = kamino.getDepositRatioFromTokenA(fixtures.newRaydiumStrategy, new BN(13));
+    let amounts = await kamino.calculateAmounts(fixtures.newRaydiumStrategy, new Decimal(54));
+    console.log('amounts', amounts);
 
-    const depositIx = await kamino.deposit(
-      strategyWithAddress,
-      new Decimal((await amounts).amountSlippageA.toString()),
-      new Decimal((await amounts).amountSlippageB.toString()),
-      user.owner.publicKey
-    );
+    const depositIx = await kamino.deposit(strategyWithAddress, amounts[0], amounts[1], user.owner.publicKey);
     tx.add(depositIx);
 
     tx = await assignBlockInfoToTransaction(connection, tx, user.owner.publicKey);
