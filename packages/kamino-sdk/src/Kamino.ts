@@ -1644,14 +1644,7 @@ export class Kamino {
         tokenBAmount,
       });
     } else if (isRaydium) {
-      let strategyAddress: PublicKey;
-      if (strategy instanceof PublicKey) {
-        strategyAddress = strategy;
-      } else {
-        strategyAddress = strategy.address;
-      }
-
-      return this.calculateAmountsRaydium({ strategyAddress, tokenAAmount, tokenBAmount });
+      return this.calculateAmountsRaydium({ strategyState, tokenAAmount, tokenBAmount });
     } else {
       throw new Error(`The strategy ${strategy.toString()} is not Orca or Raydium`);
     }
@@ -1673,7 +1666,6 @@ export class Kamino {
     tokenBAmount?: Decimal;
   }): Promise<[Decimal, Decimal]> {
     if (!tokenAAmount && !tokenBAmount) {
-      console.error('At least one token amount is required');
       return [new Decimal(0), new Decimal(0)];
     }
     // Given A in ATA, calc how much A and B
@@ -1696,7 +1688,10 @@ export class Kamino {
     };
     const estimatedGivenPrimary: AddLiquidityQuote = await orcaPosition.getAddLiquidityQuote(params);
 
-    if (secondaryTokenAmount && estimatedGivenPrimary.estTokenB.toNumber() > secondaryTokenAmount.toNumber()) {
+    if (
+      secondaryTokenAmount &&
+      new Decimal(estimatedGivenPrimary.estTokenB.toString()) > new Decimal(secondaryTokenAmount.toString())
+    ) {
       params = {
         positionAddress,
         tokenMint: secondaryTokenMint,
@@ -1717,23 +1712,16 @@ export class Kamino {
   }
 
   async calculateAmountsRaydium({
-    strategyAddress,
+    strategyState,
     tokenAAmount,
     tokenBAmount,
   }: {
-    strategyAddress: PublicKey;
+    strategyState: WhirlpoolStrategy;
     tokenAAmount?: Decimal;
     tokenBAmount?: Decimal;
   }): Promise<[Decimal, Decimal]> {
     if (!tokenAAmount && !tokenBAmount) {
-      console.error('At least one token amount is required');
       return [new Decimal(0), new Decimal(0)];
-    }
-
-    const strategyState = await WhirlpoolStrategy.fetch(this._connection, strategyAddress);
-
-    if (!strategyState) {
-      throw new Error(`strategy ${strategyAddress.toString()} is not found`);
     }
 
     const poolState = await PoolState.fetch(this._connection, strategyState.pool);
@@ -1748,9 +1736,6 @@ export class Kamino {
     }
     const primaryTokenAmount = tokenAAmount || tokenBAmount;
     const secondaryTokenAmount = tokenAAmount ? tokenBAmount : tokenAAmount;
-
-    const decimalsA = await getMintDecimals(this._connection, poolState.tokenMint0);
-    const decimalsB = await getMintDecimals(this._connection, poolState.tokenMint1);
 
     const { amountA, amountB } = LiquidityMath.getAmountsFromLiquidity(
       poolState.sqrtPriceX64,
