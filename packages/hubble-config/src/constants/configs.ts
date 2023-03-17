@@ -764,6 +764,13 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
           mintB: new PublicKey('HxhWkVpk5NS4Ltg5nij2G671CKXFRKPK8vy271Ub4uEK'),
         },
         {
+          address: new PublicKey('AFCKH5AnW2inQdV3RgcLyk9PgLUhbN6Xy64pceJSwrfs'),
+          collateralA: 'USDC',
+          collateralB: 'HXRO',
+          mintA: new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'),
+          mintB: new PublicKey('HxhWkVpk5NS4Ltg5nij2G671CKXFRKPK8vy271Ub4uEK'),
+        },
+        {
           address: new PublicKey('7A1R3L7AxcxuZHMJjFgskKGeBR5Rwst3Ai5bv5uAWZFG'),
           collateralA: 'MSOL',
           collateralB: 'USDT',
@@ -1135,6 +1142,9 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
         new PublicKey('AepjvYK4QfGhV3UjSRkZviR2AJAkLGtqdyKJFCf9kpz9'),
         new PublicKey('5BAAVFfKb7xNF4Kscgtc7kqLtEjjZ2hM8NkE43J2nte8'),
         new PublicKey('GfpUVgQqk9SNcjP11XUVM8hvtAAD5mMwhY7fRWSZD8H2'),
+        new PublicKey('9xXg8XD9NQvpK2XzK1ARSJSaFEpUNx2L63FrnYFVieQN'),
+        new PublicKey('3xUYbqcgTm4t5cbs7va6441evoCoqZq3HofdgUFNfTMS'),
+        new PublicKey('DTzvmLytpKEwJCKocWZeFYJiKCiCWB7vHTJo5PJDZGR5'),
       ],
       programId: new PublicKey('6LtLpnUFNByNXLyCoK9wA2MykKAmQNZKBdY8s47dehDc'),
       globalConfig: new PublicKey('GKnHiWh3RRrE1zsNzWxRkomymHc374TvJPSTv2wPeYdB'),
