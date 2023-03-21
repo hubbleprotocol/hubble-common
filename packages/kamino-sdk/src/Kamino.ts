@@ -15,7 +15,7 @@ import {
   TransactionInstruction,
 } from '@solana/web3.js';
 import { setKaminoProgramId } from './kamino-client/programId';
-import { GlobalConfig, WhirlpoolStrategy } from './kamino-client/accounts';
+import { CollateralInfos, GlobalConfig, WhirlpoolStrategy } from './kamino-client/accounts';
 import Decimal from 'decimal.js';
 import { Position, Whirlpool } from './whirpools-client';
 import { getMintDecimals } from '@project-serum/serum/lib/market';
@@ -90,7 +90,7 @@ import { StrategyProgramAddress } from './models';
 import { Idl, Program, Provider } from '@project-serum/anchor';
 import { Rebalancing, Uninitialized } from './kamino-client/types/StrategyStatus';
 import { METADATA_PROGRAM_ID, METADATA_UPDATE_AUTH } from './constants';
-import { ExecutiveWithdrawActionKind, StrategyStatusKind } from './kamino-client/types';
+import { CollateralInfo, ExecutiveWithdrawActionKind, StrategyStatusKind } from './kamino-client/types';
 import { Rebalance } from './kamino-client/types/ExecutiveWithdrawAction';
 import { PoolState, PersonalPositionState, AmmConfig } from './raydium_client';
 import { PROGRAM_ID as RAYDIUM_PROGRAM_ID, setRaydiumProgramId } from './raydium_client/programId';
@@ -1927,6 +1927,14 @@ export class Kamino {
     );
 
     return amountsSlippage;
+  }
+
+  async getCollateralInfo(): Promise<CollateralInfo[]> {
+    const collateralInfos = await CollateralInfos.fetch(this._connection, this._config.kamino.collateralInfos);
+    if (!collateralInfos) {
+      throw Error('Could not fetch collateral infos');
+    }
+    return collateralInfos.infos;
   }
 }
 
