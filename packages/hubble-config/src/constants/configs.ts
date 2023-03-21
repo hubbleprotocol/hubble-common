@@ -1351,8 +1351,8 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
         },
       ],
       programId: new PublicKey('E6qbhrt4pFmCotNUSSEh6E5cRQCEJpMcd79Z56EG9KY'),
-      globalConfig: new PublicKey('GKnHiWh3RRrE1zsNzWxRkomymHc374TvJPSTv2wPeYdB'),
-      collateralInfos: new PublicKey('3v6ootgJJZbSWEDfZMA1scfh7wcsVVfeocExRxPqCyWH'),
+      globalConfig: new PublicKey('7of1j58my7FrQrPce81xUcfHARchvVFuSKEoyuB8WWZj'),
+      collateralInfos: new PublicKey('EZTVhq1x8PzBVj7kRSJqL2aVG115mfyAf8wDZdMESyeR'),
       mints: [
         { address: new PublicKey('AcU8CfJiLEBn1x7Cgx8atX6DdebmdQtNSsJBkQyf6Q4L'), scopeToken: 'USDT' },
         { address: new PublicKey('kfZGSThBdZbZY6cDSHP7NmCWa6D2hFc5kjBuGHREzZ3'), scopeToken: 'USDH' },
