@@ -1138,6 +1138,7 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
       ],
       programId: new PublicKey('6LtLpnUFNByNXLyCoK9wA2MykKAmQNZKBdY8s47dehDc'),
       globalConfig: new PublicKey('GKnHiWh3RRrE1zsNzWxRkomymHc374TvJPSTv2wPeYdB'),
+      collateralInfos: new PublicKey('3v6ootgJJZbSWEDfZMA1scfh7wcsVVfeocExRxPqCyWH'),
     },
     scope: {
       oracleMappings: new PublicKey('Chpu5ZgfWX5ZzVpUx9Xvv4WPM75Xd7zPJNDPsFnCpLpk'),
@@ -1351,6 +1352,7 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
       ],
       programId: new PublicKey('E6qbhrt4pFmCotNUSSEh6E5cRQCEJpMcd79Z56EG9KY'),
       globalConfig: new PublicKey('GKnHiWh3RRrE1zsNzWxRkomymHc374TvJPSTv2wPeYdB'),
+      collateralInfos: new PublicKey('3v6ootgJJZbSWEDfZMA1scfh7wcsVVfeocExRxPqCyWH'),
       mints: [
         { address: new PublicKey('AcU8CfJiLEBn1x7Cgx8atX6DdebmdQtNSsJBkQyf6Q4L'), scopeToken: 'USDT' },
         { address: new PublicKey('kfZGSThBdZbZY6cDSHP7NmCWa6D2hFc5kjBuGHREzZ3'), scopeToken: 'USDH' },
@@ -1643,6 +1645,7 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
       liveStrategies: [],
       programId: new PublicKey('E6qbhrt4pFmCotNUSSEh6E5cRQCEJpMcd79Z56EG9KY'),
       globalConfig: new PublicKey('GKnHiWh3RRrE1zsNzWxRkomymHc374TvJPSTv2wPeYdB'),
+      collateralInfos: new PublicKey('3v6ootgJJZbSWEDfZMA1scfh7wcsVVfeocExRxPqCyWH'),
       mints: [
         { address: new PublicKey('AcU8CfJiLEBn1x7Cgx8atX6DdebmdQtNSsJBkQyf6Q4L'), scopeToken: 'USDT' },
         { address: new PublicKey('USDH1SM1ojwWUga67PGrgFWUHibbjqMvuMaDkRJTgkX'), scopeToken: 'USDH' },

@@ -12,6 +12,7 @@ export type KaminoConfig = {
   liveStrategies: StrategyInfo[];
   programId: PublicKey;
   globalConfig: PublicKey;
+  collateralInfos: PublicKey;
 };
 
 export type KaminoLendingConfig = Array<KaminoMarketConfig>;
