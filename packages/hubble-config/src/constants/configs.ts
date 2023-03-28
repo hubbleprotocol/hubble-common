@@ -278,6 +278,7 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
         { address: new PublicKey('RLBxxFkseAZ4RgJH3Sqn8jXxhmGoz9jWxDNJMh8pL7a'), scopeToken: 'RLB' },
         { address: new PublicKey('CgnTSoL3DgY9SFHxcLj6CgCgKKoTBr6tp4CPAEWy25DE'), scopeToken: 'CGNTSOL' },
         { address: new PublicKey('HxhWkVpk5NS4Ltg5nij2G671CKXFRKPK8vy271Ub4uEK'), scopeToken: 'HXRO' },
+        { address: new PublicKey('A9mUU4qviSctJVPJdBJWkb28deg915LYJKrzQ19ji3FM'), scopeToken: 'USDCet' },
       ],
       whirlpoolsToSnapshot: [
         {
