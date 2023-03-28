@@ -778,6 +778,13 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
           mintA: new PublicKey('mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So'),
           mintB: new PublicKey('Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB'),
         },
+        {
+          address: new PublicKey('7A1R3L7AxcxuZHMJjFgskKGeBR5Rwst3Ai5bv5uAWZFG'),
+          collateralA: 'USDCet',
+          collateralB: 'USDC',
+          mintA: new PublicKey('A9mUU4qviSctJVPJdBJWkb28deg915LYJKrzQ19ji3FM'),
+          mintB: new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'),
+        },
       ],
       raydiumPoolsToSnapshot: [
         {
@@ -1146,6 +1153,9 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
         new PublicKey('9xXg8XD9NQvpK2XzK1ARSJSaFEpUNx2L63FrnYFVieQN'),
         new PublicKey('3xUYbqcgTm4t5cbs7va6441evoCoqZq3HofdgUFNfTMS'),
         new PublicKey('DTzvmLytpKEwJCKocWZeFYJiKCiCWB7vHTJo5PJDZGR5'),
+        new PublicKey('EoXt4R1gyuPY8PZmXL95rgecszERmCqVfnxue6QpwpyX'),
+        new PublicKey('CVt8bRum8gdXRLAnuxt66e2vtC9PdDexuhKKyDk87eno'),
+        new PublicKey('BDFQqTfLVpSxrQYgZiesrEg8WxrTjcm3W8SA9MtABujh'),
       ],
       programId: new PublicKey('6LtLpnUFNByNXLyCoK9wA2MykKAmQNZKBdY8s47dehDc'),
       globalConfig: new PublicKey('GKnHiWh3RRrE1zsNzWxRkomymHc374TvJPSTv2wPeYdB'),
