@@ -61,7 +61,7 @@ export const ScopeMints: { cluster: SolanaCluster; mints: { token: SupportedToke
       { token: 'RLB', mint: 'RLBxxFkseAZ4RgJH3Sqn8jXxhmGoz9jWxDNJMh8pL7a' },
       { token: 'CGNTSOL', mint: 'CgnTSoL3DgY9SFHxcLj6CgCgKKoTBr6tp4CPAEWy25DE' },
       { token: 'HXRO', mint: 'HxhWkVpk5NS4Ltg5nij2G671CKXFRKPK8vy271Ub4uEK' },
-      { token: 'USDC', mint: 'A9mUU4qviSctJVPJdBJWkb28deg915LYJKrzQ19ji3FM' },
+      { token: 'USDCet', mint: 'A9mUU4qviSctJVPJdBJWkb28deg915LYJKrzQ19ji3FM' },
     ],
   },
   {
