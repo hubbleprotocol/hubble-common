@@ -93,7 +93,7 @@ export class Scope {
     { id: 81, pair: 'HXRO/USD', name: 'HXRO', price: new Decimal(0) },
     { id: 82, pair: 'HXROTwap/USD', name: 'HXROTwap', price: new Decimal(0) },
     { id: 83, pair: 'MNDETwap/USD', name: 'MNDETwap', price: new Decimal(0) },
-    { id: 84, pair: 'USDCet/USD', name: 'USDCet', price: new Decimal(0) },
+    { id: 20, pair: 'USDC/USD', name: 'USDCet', price: new Decimal(0) },
   ];
 
   /**
