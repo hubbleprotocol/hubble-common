@@ -1,6 +1,6 @@
 import { Connection } from '@solana/web3.js';
 import { SolanaCluster } from '@hubbleprotocol/hubble-config';
-import { RaydiumPoolsResponse } from './RaydiumPoolsResponse';
+import { Pool, RaydiumPoolsResponse } from './RaydiumPoolsResponse';
 import { PersonalPositionState, PoolState } from '../raydium_client';
 import Decimal from 'decimal.js';
 import { AmmV3, AmmV3PoolInfo } from '@raydium-io/raydium-sdk';
@@ -18,11 +18,11 @@ export class RaydiumService {
     this._cluster = cluster;
   }
 
-  private async getRaydiumWhirlpools() {
+  async getRaydiumWhirlpools(): Promise<RaydiumPoolsResponse> {
     return (await axios.get<RaydiumPoolsResponse>(`https://api.raydium.io/v2/ammV3/ammPools`)).data;
   }
 
-  getStrategyWhirlpoolPoolAprApy = async (strategy: WhirlpoolStrategy): Promise<WhirlpoolAprApy> => {
+  getStrategyWhirlpoolPoolAprApy = async (strategy: WhirlpoolStrategy, pools?: Pool[]): Promise<WhirlpoolAprApy> => {
     const position = await PersonalPositionState.fetch(this._connection, strategy.position);
     if (!position) {
       throw Error(`Position ${strategy.position} does not exist`);
@@ -32,12 +32,15 @@ export class RaydiumService {
       throw Error(`Raydium pool state ${strategy.pool} does not exist`);
     }
 
-    const pools = await this.getRaydiumWhirlpools();
-    if (!pools || pools.data.length === 0) {
+    if (!pools) {
+      ({ data: pools } = await this.getRaydiumWhirlpools());
+    }
+
+    if (!pools || pools.length === 0) {
       throw Error(`Could not get Raydium amm pools from Raydium API`);
     }
 
-    const raydiumPool = pools.data.filter((d) => d.id === position.poolId.toString()).shift();
+    const raydiumPool = pools.filter((d) => d.id === position.poolId.toString()).shift();
     if (!raydiumPool) {
       throw Error(`Could not get find Raydium amm pool ${strategy.pool} from Raydium API`);
     }
