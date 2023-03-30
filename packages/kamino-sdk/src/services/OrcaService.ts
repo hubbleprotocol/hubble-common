@@ -26,7 +26,7 @@ export class OrcaService {
     this._orcaApiUrl = `https://api.${cluster === 'mainnet-beta' ? 'mainnet' : 'devnet'}.orca.so`;
   }
 
-  private async getOrcaWhirlpools() {
+  async getOrcaWhirlpools() {
     return (await axios.get<OrcaWhirlpoolsResponse>(`${this._orcaApiUrl}/v1/whirlpool/list`)).data;
   }
 
