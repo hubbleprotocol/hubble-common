@@ -98,7 +98,7 @@ import { i32ToBytes, LiquidityMath, SqrtPriceMath, str, TickMath, TickUtils } fr
 
 import KaminoIdl from './kamino-client/kamino.json';
 import { getKaminoTokenName, KAMINO_TOKEN_MAP } from './constants';
-import { OrcaService } from './services';
+import { OrcaService, Whirlpool as OrcaPool } from './services';
 import { RaydiumService } from './services';
 import {
   getAddLiquidityQuote,
@@ -106,6 +106,7 @@ import {
   InternalAddLiquidityQuote,
 } from '@orca-so/whirlpool-sdk/dist/position/quotes/add-liquidity';
 import { FRONTEND_KAMINO_STRATEGY_URL } from './constants';
+import { Pool } from './services/RaydiumPoolsResponse';
 export const KAMINO_IDL = KaminoIdl;
 
 export class Kamino {
@@ -1604,18 +1605,20 @@ export class Kamino {
 
   /**
    * Get Kamino strategy vault APY/APR
-   * @param strategy
+   * @param strategy strategy pubkey or onchain state
+   * @param orcaPools not required, but you can add orca whirlpools if you're caching them, and we don't refetch every time
+   * @param raydiumPools not required, but you can add raydium pools if you're caching them, and we don't refetch every time
    */
-  async getStrategyAprApy(strategy: PublicKey | StrategyWithAddress) {
+  async getStrategyAprApy(strategy: PublicKey | StrategyWithAddress, orcaPools?: OrcaPool[], raydiumPools?: Pool[]) {
     const { strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
     const dex = Number(strategyState.strategyDex);
     const isOrca = dexToNumber('ORCA') === dex;
     const isRaydium = dexToNumber('RAYDIUM') === dex;
     if (isOrca) {
-      return this._orcaService.getStrategyWhirlpoolPoolAprApy(strategyState);
+      return this._orcaService.getStrategyWhirlpoolPoolAprApy(strategyState, orcaPools);
     }
     if (isRaydium) {
-      return this._raydiumService.getStrategyWhirlpoolPoolAprApy(strategyState);
+      return this._raydiumService.getStrategyWhirlpoolPoolAprApy(strategyState, raydiumPools);
     }
     throw Error(`Strategy dex ${dex} not supported`);
   }
