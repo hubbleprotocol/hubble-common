@@ -75,8 +75,6 @@ export const ScopeMints: { cluster: SolanaCluster; mints: { token: SupportedToke
       { token: 'MSOL', mint: '2wMQTELEgEcK7V3gwZBH58WvGcRZsyaWNpebqyFugGKe' },
       { token: 'STSOL', mint: 'ESba8sT1R7WPiE3weBU1u6UqEmXRuM8Rs1LLvXayEizf' },
       { token: 'USDT', mint: 'AcU8CfJiLEBn1x7Cgx8atX6DdebmdQtNSsJBkQyf6Q4L' },
-      { token: 'USH', mint: '4BzxVoBQzwKoqm1dQc78r42Yby3EzAeZmMiYFdCjeu5Z' },
-      { token: 'DAI', mint: '6DNkUoMa6vNo3CsxAw5XMJhjmdPbPBENHJ6w35eMXESo' },
     ],
   },
 ];
