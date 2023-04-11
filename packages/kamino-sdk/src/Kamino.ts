@@ -15,7 +15,7 @@ import {
   TransactionInstruction,
 } from '@solana/web3.js';
 import { setKaminoProgramId } from './kamino-client/programId';
-import { CollateralInfos, GlobalConfig, WhirlpoolStrategy } from './kamino-client/accounts';
+import { CollateralInfos, GlobalConfig, WhirlpoolStrategy, WhirlpoolStrategyFields } from './kamino-client/accounts';
 import Decimal from 'decimal.js';
 import { Position, Whirlpool } from './whirpools-client';
 import {
@@ -233,8 +233,8 @@ export class Kamino {
     }
 
     return (await this._kaminoProgram.account.whirlpoolStrategy.all(filters)).map((x) => {
-      let res: StrategyWithAddress = {
-        strategy: x.account as WhirlpoolStrategy,
+      const res: StrategyWithAddress = {
+        strategy: new WhirlpoolStrategy(x.account as WhirlpoolStrategyFields),
         address: x.publicKey,
       };
       return res;
