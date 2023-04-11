@@ -17,7 +17,7 @@ export type ShareDataWithAddress = {
 
 export function getEmptyShareData(prices: PriceData): ShareData {
   return {
-    price: new Decimal(1),
+    price: new Decimal(0),
     balance: {
       prices,
       tokenAAmounts: new Decimal(0),

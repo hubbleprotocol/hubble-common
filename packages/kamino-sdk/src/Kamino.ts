@@ -535,8 +535,12 @@ export class Kamino {
   };
 
   private getStrategyBalancesOrca = async (strategy: WhirlpoolStrategy, scopePrices?: ScopeToken[]) => {
-    const whirlpool = await Whirlpool.fetch(this._connection, strategy.pool);
-    const position = await Position.fetch(this._connection, strategy.position);
+    const states = await Promise.all([
+      Whirlpool.fetch(this._connection, strategy.pool),
+      Position.fetch(this._connection, strategy.position),
+    ]);
+    const whirlpool = states[0];
+    const position = states[1];
 
     if (!position) {
       throw new Error(`Position ${strategy.position.toString()} could not be found.`);
@@ -549,8 +553,12 @@ export class Kamino {
   };
 
   private getStrategyBalancesRaydium = async (strategy: WhirlpoolStrategy, scopePrices?: ScopeToken[]) => {
-    let poolState = await PoolState.fetch(this._connection, strategy.pool);
-    let positionState = await PersonalPositionState.fetch(this._connection, strategy.position);
+    const states = await Promise.all([
+      PoolState.fetch(this._connection, strategy.pool),
+      PersonalPositionState.fetch(this._connection, strategy.position),
+    ]);
+    const poolState = states[0];
+    const positionState = states[1];
 
     if (!positionState) {
       throw new Error(`Raydium position ${strategy.position.toString()} could not be found.`);
@@ -2043,8 +2051,12 @@ export class Kamino {
 
   getStrategyVaultBalances = async (strategy: PublicKey | StrategyWithAddress) => {
     const { strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
-    const aVault = await this.getTokenAccountBalance(strategyState.tokenAVault);
-    const bVault = await this.getTokenAccountBalance(strategyState.tokenBVault);
+    const vaults = await Promise.all([
+      this.getTokenAccountBalance(strategyState.tokenAVault),
+      this.getTokenAccountBalance(strategyState.tokenBVault),
+    ]);
+    const aVault = vaults[0];
+    const bVault = vaults[1];
     return { aVault, bVault };
   };
 }
