@@ -28,3 +28,5 @@ export type {
   ScopeChainAccountFields,
   ScopeChainAccountJSON,
 } from "./ScopeChainAccount"
+export { TermsSignature } from "./TermsSignature"
+export type { TermsSignatureFields, TermsSignatureJSON } from "./TermsSignature"
