@@ -15,7 +15,7 @@ import {
   TransactionInstruction,
 } from '@solana/web3.js';
 import { setKaminoProgramId } from './kamino-client/programId';
-import { GlobalConfig, WhirlpoolStrategy } from './kamino-client/accounts';
+import { GlobalConfig, TermsSignature, WhirlpoolStrategy } from './kamino-client/accounts';
 import Decimal from 'decimal.js';
 import { Position, Whirlpool } from './whirpools-client';
 import { getMintDecimals } from '@project-serum/serum/lib/market';
@@ -103,6 +103,7 @@ import {
   InternalAddLiquidityQuote,
 } from '@orca-so/whirlpool-sdk/dist/position/quotes/add-liquidity';
 import { FRONTEND_KAMINO_STRATEGY_URL } from './constants';
+import { signTerms, SignTermsAccounts, SignTermsArgs } from './kamino-client/instructions/signTerms';
 export const KAMINO_IDL = KaminoIdl;
 
 export class Kamino {
@@ -1633,6 +1634,50 @@ export class Kamino {
       return this.getDepositRatioFromBRaydium(strategy, amountB);
     }
     throw Error(`Strategy dex ${dex} not supported`);
+  }
+
+  /**
+   * Get the on-chain state of the terms&conditions signature for the owner
+   * @param owner
+   */
+  async getUserTermsSignatureState(owner: PublicKey): Promise<TermsSignature | null> {
+    const pdaSeed = [
+      Buffer.from("signature"),
+      owner.toBuffer(),
+    ];
+    const [signatureStateKey, _signatureStateBump] =
+      PublicKey.findProgramAddressSync(pdaSeed, this._kaminoProgramId);
+
+    const signatureState = await TermsSignature.fetch(this._connection, signatureStateKey);
+
+    return signatureState;
+  }
+
+  /**
+   * Get the instruction to store the on chain owner signature of terms&conditions
+   * @param owner
+   * @param signature
+   */
+  async getUserTermsSignatureIx(owner: PublicKey, signature: Uint8Array): Promise<TransactionInstruction> {
+    const pdaSeed = [
+      Buffer.from("signature"),
+      owner.toBuffer(),
+    ];
+    const [signatureStateKey, _signatureStateBump] = 
+      PublicKey.findProgramAddressSync(pdaSeed, this._kaminoProgramId);
+
+    const args: SignTermsArgs = {
+      signature: Array.from(signature)
+    };
+
+    const accounts: SignTermsAccounts = {
+      owner: owner,
+      ownerSignatureState: signatureStateKey,
+      systemProgram: SystemProgram.programId,
+      rent: SYSVAR_RENT_PUBKEY
+    };
+
+    return signTerms(args, accounts);
   }
 
   private async getDepositRatioFromAOrca(
