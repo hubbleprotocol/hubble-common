@@ -62,6 +62,7 @@ export const ScopeMints: { cluster: SolanaCluster; mints: { token: SupportedToke
       { token: 'CGNTSOL', mint: 'CgnTSoL3DgY9SFHxcLj6CgCgKKoTBr6tp4CPAEWy25DE' },
       { token: 'HXRO', mint: 'HxhWkVpk5NS4Ltg5nij2G671CKXFRKPK8vy271Ub4uEK' },
       { token: 'USDCet', mint: 'A9mUU4qviSctJVPJdBJWkb28deg915LYJKrzQ19ji3FM' },
+      { token: 'HNT', mint: 'hntyVP6YFm1Hg25TN9WGLqM12b8TQmcknKrdu1oxWux' },
     ],
   },
   {
