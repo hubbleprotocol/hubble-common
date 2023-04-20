@@ -26,6 +26,7 @@
   },
   "homepage": "https://github.com/hubbleprotocol/hubble-common/blob/master/packages/hubble-sdk",
   "devDependencies": {
+    "@solana/buffer-layout": "^4.0.1",
     "@types/bn.js": "^5.1.0",
     "tweetnacl-ts": "^1.0.3"
   },

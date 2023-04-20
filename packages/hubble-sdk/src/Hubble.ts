@@ -129,7 +129,7 @@ export class Hubble {
    * @return list of on-chain {@link BorrowingMarketState} from the borrowing program with numbers as lamports
    */
   async getBorrowingMarketStates(): Promise<BorrowingMarketState[]> {
-    const states = [];
+    const states: BorrowingMarketState[] = [];
     for (const pubkey of this._config.borrowing.accounts.borrowingMarketStates) {
       const state = (await this._borrowingProgram.account.borrowingMarketState.fetch(pubkey)) as BorrowingMarketState;
       states.push(this.borrowingMarketStateToDecimals(state, pubkey));
