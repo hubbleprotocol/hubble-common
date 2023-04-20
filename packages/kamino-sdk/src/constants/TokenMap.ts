@@ -36,6 +36,8 @@ export const KAMINO_TOKEN_MAP: KaminoToken[] = [
   { name: 'RLB', id: 30 },
   { name: 'CGNTSOL', id: 31 },
   { name: 'HXRO', id: 32 },
+  { name: 'USDCet', id: 33 },
+  { name: 'HNT', id: 34 },
 ];
 
 /**

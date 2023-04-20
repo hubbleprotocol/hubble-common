@@ -2,7 +2,7 @@ import { Connection } from '@solana/web3.js';
 import Decimal from 'decimal.js';
 import { estimateAprsForPriceRange, OrcaNetwork, OrcaWhirlpoolClient } from '@orca-so/whirlpool-sdk';
 import axios from 'axios';
-import { OrcaWhirlpoolsResponse } from './OrcaWhirlpoolsResponse';
+import { OrcaWhirlpoolsResponse, Whirlpool } from './OrcaWhirlpoolsResponse';
 import { HubbleConfig, SolanaCluster } from '@hubbleprotocol/hubble-config';
 import { WhirlpoolStrategy } from '../kamino-client/accounts';
 import { Scope, ScopeToken } from '@hubbleprotocol/scope-sdk';
@@ -26,7 +26,7 @@ export class OrcaService {
     this._orcaApiUrl = `https://api.${cluster === 'mainnet-beta' ? 'mainnet' : 'devnet'}.orca.so`;
   }
 
-  private async getOrcaWhirlpools() {
+  async getOrcaWhirlpools() {
     return (await axios.get<OrcaWhirlpoolsResponse>(`${this._orcaApiUrl}/v1/whirlpool/list`)).data;
   }
 
@@ -49,7 +49,10 @@ export class OrcaService {
     return tokensPrices;
   }
 
-  async getStrategyWhirlpoolPoolAprApy(strategy: WhirlpoolStrategy): Promise<WhirlpoolAprApy> {
+  async getStrategyWhirlpoolPoolAprApy(
+    strategy: WhirlpoolStrategy,
+    whirlpools?: Whirlpool[]
+  ): Promise<WhirlpoolAprApy> {
     const orca = new OrcaWhirlpoolClient({
       connection: this._connection,
       network: this._orcaNetwork,
@@ -62,7 +65,10 @@ export class OrcaService {
     }
 
     const pool = await orca.getPool(strategy.pool);
-    const { whirlpools } = await this.getOrcaWhirlpools();
+    if (!whirlpools) {
+      ({ whirlpools } = await this.getOrcaWhirlpools());
+    }
+
     const whirlpool = whirlpools?.find((x) => x.address === strategy.pool.toString());
 
     if (!pool || !whirlpool) {

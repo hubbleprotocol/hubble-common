@@ -8,10 +8,9 @@ export type KaminoConfig = {
   whirlpoolsToSnapshot: WhirlpoolToSnapshot[];
   // raydium pools that we snapshot
   raydiumPoolsToSnapshot: WhirlpoolToSnapshot[];
-  // live kamino strategies that are enabled on the frontend
-  liveStrategies: StrategyInfo[];
   programId: PublicKey;
   globalConfig: PublicKey;
+  collateralInfos: PublicKey;
 };
 
 export type KaminoLendingConfig = Array<KaminoMarketConfig>;

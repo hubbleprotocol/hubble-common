@@ -24,8 +24,6 @@ export interface WithdrawAccounts {
   poolTokenVaultB: PublicKey
   tokenAAta: PublicKey
   tokenBAta: PublicKey
-  tokenAMint: PublicKey
-  tokenBMint: PublicKey
   userSharesAta: PublicKey
   sharesMint: PublicKey
   treasuryFeeTokenAVault: PublicKey
@@ -59,8 +57,6 @@ export function withdraw(args: WithdrawArgs, accounts: WithdrawAccounts) {
     { pubkey: accounts.poolTokenVaultB, isSigner: false, isWritable: true },
     { pubkey: accounts.tokenAAta, isSigner: false, isWritable: true },
     { pubkey: accounts.tokenBAta, isSigner: false, isWritable: true },
-    { pubkey: accounts.tokenAMint, isSigner: false, isWritable: false },
-    { pubkey: accounts.tokenBMint, isSigner: false, isWritable: false },
     { pubkey: accounts.userSharesAta, isSigner: false, isWritable: true },
     { pubkey: accounts.sharesMint, isSigner: false, isWritable: true },
     {
