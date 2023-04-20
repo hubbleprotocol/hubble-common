@@ -886,7 +886,7 @@ export const HUBBLE_CONFIGS: HubbleConfig[] = [
           mintB: new PublicKey('So11111111111111111111111111111111111111112'),
         },
         {
-          address: new PublicKey('EhJGjF8FSqAoJPGyR3ixzFjcUM1y64fbMZEZLEUc56XN'),
+          address: new PublicKey('55vEQ9LEwo6s98q4MRWPpgYwiBtkhDz2ppEAkNbjWT1L'),
           collateralA: 'SOL',
           collateralB: 'HNT',
           mintA: new PublicKey('So11111111111111111111111111111111111111112'),
