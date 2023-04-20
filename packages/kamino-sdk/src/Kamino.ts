@@ -108,7 +108,6 @@ import {
   InternalAddLiquidityQuote,
   InternalAddLiquidityQuoteParam,
 } from '@orca-so/whirlpool-sdk/dist/position/quotes/add-liquidity';
-import { FRONTEND_KAMINO_STRATEGY_URL } from './constants';
 import { signTerms, SignTermsAccounts, SignTermsArgs } from './kamino-client/instructions/signTerms';
 import { Pool } from './services/RaydiumPoolsResponse';
 export const KAMINO_IDL = KaminoIdl;
