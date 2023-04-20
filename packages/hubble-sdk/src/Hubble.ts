@@ -47,7 +47,7 @@ export class Hubble {
     this._connection = connection;
     this._config = getConfigByCluster(cluster);
     // for localnet integration tests
-    if(borrowingProgramId) {
+    if (borrowingProgramId) {
       this._config.borrowing.programId = new PublicKey(borrowingProgramId);
     }
     this._provider = new Provider(connection, getReadOnlyWallet(), {
@@ -665,47 +665,43 @@ export class Hubble {
   }
 
   /**
-  * Get the instruction to store the on chain owner signature of terms&conditions
-  * @param owner
-  * @param signature
-  */
+   * Get the instruction to store the on chain owner signature of terms&conditions
+   * @param owner
+   * @param signature
+   */
   async getUserTermsSignatureIx(owner: PublicKey, signature: Uint8Array): Promise<TransactionInstruction> {
-    const pdaSeed = [
-      Buffer.from("signature"),
-      owner.toBuffer(),
-    ];
-    const [signatureStateKey, _signatureStateBump] = 
-      PublicKey.findProgramAddressSync(pdaSeed, this._config.borrowing.programId);
+    const pdaSeed = [Buffer.from('signature'), owner.toBuffer()];
+    const [signatureStateKey, _signatureStateBump] = PublicKey.findProgramAddressSync(
+      pdaSeed,
+      this._config.borrowing.programId
+    );
 
     const args: SignTermsArgs = {
-      signature: Array.from(signature)
+      signature: Array.from(signature),
     };
 
     const accounts: SignTermsAccounts = {
       owner: owner,
       ownerSignatureState: signatureStateKey,
       systemProgram: SystemProgram.programId,
-      rent: SYSVAR_RENT_PUBKEY
+      rent: SYSVAR_RENT_PUBKEY,
     };
 
     return signTerms(args, accounts, this._config.borrowing.programId);
   }
 
   /**
-  * Get the on-chain state of the terms&conditions signature for the owner
-  * @param owner
-  */
+   * Get the on-chain state of the terms&conditions signature for the owner
+   * @param owner
+   */
   async getUserTermsSignatureState(owner: PublicKey): Promise<TermsSignature | null> {
-    const pdaSeed = [
-      Buffer.from("signature"),
-      owner.toBuffer(),
-    ];
-    const [signatureStateKey, _signatureStateBump] =
-      PublicKey.findProgramAddressSync(pdaSeed, this._config.borrowing.programId);
+    const pdaSeed = [Buffer.from('signature'), owner.toBuffer()];
+    const [signatureStateKey, _signatureStateBump] = PublicKey.findProgramAddressSync(
+      pdaSeed,
+      this._config.borrowing.programId
+    );
 
-    const signatureState = await TermsSignature.fetch(this._connection, signatureStateKey, this._config.borrowing.programId);
-
-    return signatureState;
+    return await TermsSignature.fetch(this._connection, signatureStateKey, this._config.borrowing.programId);
   }
 }
 

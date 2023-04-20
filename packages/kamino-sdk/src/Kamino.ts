@@ -15,7 +15,13 @@ import {
   TransactionInstruction,
 } from '@solana/web3.js';
 import { setKaminoProgramId } from './kamino-client/programId';
-import { GlobalConfig, TermsSignature, WhirlpoolStrategy, WhirlpoolStrategyFields, CollateralInfos } from './kamino-client/accounts';
+import {
+  GlobalConfig,
+  TermsSignature,
+  WhirlpoolStrategy,
+  WhirlpoolStrategyFields,
+  CollateralInfos,
+} from './kamino-client/accounts';
 import Decimal from 'decimal.js';
 import { Position, Whirlpool } from './whirpools-client';
 import {
@@ -1914,16 +1920,10 @@ export class Kamino {
    * @param owner
    */
   async getUserTermsSignatureState(owner: PublicKey): Promise<TermsSignature | null> {
-    const pdaSeed = [
-      Buffer.from("signature"),
-      owner.toBuffer(),
-    ];
-    const [signatureStateKey, _signatureStateBump] =
-      PublicKey.findProgramAddressSync(pdaSeed, this._kaminoProgramId);
+    const pdaSeed = [Buffer.from('signature'), owner.toBuffer()];
+    const [signatureStateKey, _signatureStateBump] = PublicKey.findProgramAddressSync(pdaSeed, this._kaminoProgramId);
 
-    const signatureState = await TermsSignature.fetch(this._connection, signatureStateKey);
-
-    return signatureState;
+    return await TermsSignature.fetch(this._connection, signatureStateKey);
   }
 
   /**
@@ -1932,22 +1932,18 @@ export class Kamino {
    * @param signature
    */
   async getUserTermsSignatureIx(owner: PublicKey, signature: Uint8Array): Promise<TransactionInstruction> {
-    const pdaSeed = [
-      Buffer.from("signature"),
-      owner.toBuffer(),
-    ];
-    const [signatureStateKey, _signatureStateBump] = 
-      PublicKey.findProgramAddressSync(pdaSeed, this._kaminoProgramId);
+    const pdaSeed = [Buffer.from('signature'), owner.toBuffer()];
+    const [signatureStateKey, _signatureStateBump] = PublicKey.findProgramAddressSync(pdaSeed, this._kaminoProgramId);
 
     const args: SignTermsArgs = {
-      signature: Array.from(signature)
+      signature: Array.from(signature),
     };
 
     const accounts: SignTermsAccounts = {
       owner: owner,
       ownerSignatureState: signatureStateKey,
       systemProgram: SystemProgram.programId,
-      rent: SYSVAR_RENT_PUBKEY
+      rent: SYSVAR_RENT_PUBKEY,
     };
 
     return signTerms(args, accounts);

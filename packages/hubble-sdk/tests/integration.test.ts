@@ -17,26 +17,34 @@ describe('Hubble SDK Tests', () => {
   });
 
   // create a termsSignature for a new ownere and get state (localnet only)
-  it('create_terms_signature_and_read_state', async () => { 
-    const hubble = new Hubble(cluster, connection, "GrdZUhDBGvNDNwope4KmHGNc1bY8dQU78TZCZVBLQqGu");
+  it('create_terms_signature_and_read_state', async () => {
+    const hubble = new Hubble(cluster, connection, 'GrdZUhDBGvNDNwope4KmHGNc1bY8dQU78TZCZVBLQqGu');
     const owner = Keypair.generate();
 
-    await solAirdrop(connection, new Provider(connection, getReadOnlyWallet(), {
-      commitment: connection.commitment,
-    }), owner.publicKey, new Decimal(100));
+    await solAirdrop(
+      connection,
+      new Provider(connection, getReadOnlyWallet(), {
+        commitment: connection.commitment,
+      }),
+      owner.publicKey,
+      new Decimal(100)
+    );
 
     // generate signature for a basic message
     const message = Uint8Array.from([0xab, 0xbc, 0xcd, 0xde]);
     const signature = ed25519.sign(message, owner.secretKey);
-  
+
     // initialize signature
     const signTermsIx = await hubble.getUserTermsSignatureIx(owner.publicKey, signature);
     const tx = new Transaction();
     tx.add(signTermsIx);
     const sig = await sendTransactionWithLogs(connection, tx, owner.publicKey, [owner]);
-  
-    // assert there is one strat that is STABLE
+
     const termsSignatureState = await hubble.getUserTermsSignatureState(owner.publicKey);
     console.log(termsSignatureState);
+
+    if (termsSignatureState === null) {
+      throw 'termsSignatureState is null';
+    }
   });
 });
