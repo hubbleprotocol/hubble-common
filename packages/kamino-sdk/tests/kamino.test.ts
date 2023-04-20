@@ -1075,11 +1075,12 @@ describe('Kamino SDK Tests', () => {
     expect(strats.length).to.be.eq(1);
   });
 
-  it('create_terms_signature_and_read_state', async () => {
+  it('create_terms_signature_and_read_state', async () => { 
+    const owner = Keypair.generate();
 
     await solAirdrop(connection, new Provider(connection, getReadOnlyWallet(), {
       commitment: connection.commitment,
-    }), signer.publicKey, new Decimal(100)); 
+    }), owner.publicKey, new Decimal(100));
 
     const kamino = new Kamino(
       cluster,
@@ -1092,17 +1093,18 @@ describe('Kamino SDK Tests', () => {
 
     // generate signature for a basic message
     const message = Uint8Array.from([0xab, 0xbc, 0xcd, 0xde]);
-    const signature = ed25519.sign(message, signer.secretKey);
+    const signature = ed25519.sign(message, owner.secretKey);
   
     // initialize signature
-    const signTermsIx = await kamino.getUserTermsSignatureIx(signer.publicKey, signature);
+    const signTermsIx = await kamino.getUserTermsSignatureIx(owner.publicKey, signature);
     const tx = new Transaction();
     tx.add(signTermsIx);
-    const sig = await sendTransactionWithLogs(connection, tx, signer.publicKey, [signer]);
+    const sig = await sendTransactionWithLogs(connection, tx, owner.publicKey, [owner]);
   
     // assert there is one strat that is STABLE
-    const termsSignatureState = await kamino.getUserTermsSignatureState(signer.publicKey);
+    const termsSignatureState = await kamino.getUserTermsSignatureState(owner.publicKey);
     console.log(termsSignatureState);
+    expect(termsSignatureState).to.not.be.null;
   });
 });
 
