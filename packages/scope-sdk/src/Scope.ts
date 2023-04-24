@@ -96,6 +96,10 @@ export class Scope {
     { id: 20, pair: 'USDC/USD', name: 'USDCet', price: new Decimal(0) },
     { id: 84, pair: 'HNT/USD', name: 'HNT', price: new Decimal(0) },
     { id: 85, pair: 'HNTEma/USD', name: 'HNTEma', price: new Decimal(0) },
+    { id: 86, pair: 'MOBILE/HNT', name: 'MOBILE', price: new Decimal(0), nonUsdPairId: 84 },
+    { id: 87, pair: 'MOBILETwap/HNT', name: 'MOBILETwap', price: new Decimal(0), nonUsdPairId: 85 },
+    { id: 88, pair: 'IOT/HNT', name: 'IOT', price: new Decimal(0), nonUsdPairId: 84 },
+    { id: 89, pair: 'IOTTwap/HNT', name: 'IOTTwap', price: new Decimal(0), nonUsdPairId: 85 },
   ];
 
   /**
