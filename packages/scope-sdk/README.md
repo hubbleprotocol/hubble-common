@@ -30,6 +30,7 @@ console.log(token.price);
 
 // get multiple tokens prices 
 let tokens = await scope.getPrices(['SOL', 'BTC', 'ETH']);
+
 // get multiple token prices by mint
 tokens = await scope.getPricesByMints(
   ['So11111111111111111111111111111111111111112',
