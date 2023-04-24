@@ -88,4 +88,4 @@ export const ScopePairs = [
   'IOT/HNT',
   'IOTTwap/HNT',
 ] as const;
-export type ScopePair = typeof ScopePairs[number];
+export type ScopePair = (typeof ScopePairs)[number];

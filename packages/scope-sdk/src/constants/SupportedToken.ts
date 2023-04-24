@@ -87,4 +87,4 @@ export const SupportedTokens = [
   'IOT',
   'IOTTwap',
 ] as const;
-export type SupportedToken = typeof SupportedTokens[number];
+export type SupportedToken = (typeof SupportedTokens)[number];
