@@ -1,5 +1,5 @@
 import { Connection, Keypair, PublicKey, sendAndConfirmTransaction, SystemProgram, Transaction } from '@solana/web3.js';
-import { Dex, Kamino, sendTransactionWithLogs, sleep, StrategiesFilters } from '../src';
+import { Dex, getReadOnlyWallet, Kamino, sendTransactionWithLogs, sleep, StrategiesFilters } from '../src';
 import Decimal from 'decimal.js';
 import {
   assignBlockInfoToTransaction,
@@ -20,6 +20,7 @@ import {
   updateCollateralInfo,
   updateStrategyConfig,
   updateTreasuryFeeVault,
+  solAirdrop,
 } from './utils';
 import {
   AllowDepositWithoutInvest,
@@ -32,6 +33,8 @@ import {
 import { expect } from 'chai';
 import { WHIRLPOOL_PROGRAM_ID } from '../src/whirpools-client/programId';
 import { assert } from 'console';
+import * as ed25519 from 'tweetnacl-ts';
+import { Provider } from '@project-serum/anchor';
 
 export const LOCAL_RAYDIUM_PROGRAM_ID = new PublicKey('devi51mZmdwUJGU9hjN27vEz64Gps7uUefqxg27EAtH');
 export const USDH_SCOPE_CHAIN_ID = BigInt(12);
@@ -1082,6 +1085,42 @@ describe('Kamino SDK Tests', () => {
     filters.strategyType = 'STABLE';
     strats = await kamino.getAllStrategiesWithFilters(filters);
     expect(strats.length).to.be.eq(1);
+  });
+
+  it('create_terms_signature_and_read_state', async () => {
+    const owner = Keypair.generate();
+
+    await solAirdrop(
+      connection,
+      new Provider(connection, getReadOnlyWallet(), {
+        commitment: connection.commitment,
+      }),
+      owner.publicKey,
+      new Decimal(100)
+    );
+
+    const kamino = new Kamino(
+      cluster,
+      connection,
+      fixtures.globalConfig,
+      fixtures.kaminoProgramId,
+      WHIRLPOOL_PROGRAM_ID,
+      LOCAL_RAYDIUM_PROGRAM_ID
+    );
+
+    // generate signature for a basic message
+    const message = Uint8Array.from([0xab, 0xbc, 0xcd, 0xde]);
+    const signature = ed25519.sign(message, owner.secretKey);
+
+    // initialize signature
+    const signTermsIx = await kamino.getUserTermsSignatureIx(owner.publicKey, signature);
+    const tx = new Transaction();
+    tx.add(signTermsIx);
+    const sig = await sendTransactionWithLogs(connection, tx, owner.publicKey, [owner]);
+
+    const termsSignatureState = await kamino.getUserTermsSignatureState(owner.publicKey);
+    console.log(termsSignatureState);
+    expect(termsSignatureState).to.not.be.null;
   });
 });
 

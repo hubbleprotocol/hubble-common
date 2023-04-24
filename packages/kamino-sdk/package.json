@@ -30,7 +30,8 @@
     "@types/bn.js": "^5.1.0",
     "@types/chai-as-promised": "^7.1.4",
     "bs58": "^5.0.0",
-    "chai": "^4.3.6"
+    "chai": "^4.3.6",
+    "tweetnacl-ts": "^1.0.3"
   },
   "dependencies": {
     "@hubbleprotocol/hubble-config": "^1.0.271",

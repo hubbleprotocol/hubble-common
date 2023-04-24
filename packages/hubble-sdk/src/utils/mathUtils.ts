@@ -315,11 +315,11 @@ export type TokenMapBig = {
 export type EpochToScaleToSum = TokenMapBig[][];
 
 function deserializeEpoch(data: Decimal[]): TokenMapBig[][] {
-  const hmap = [];
+  const hmap: TokenMapBig[][] = [];
   const numEpochs = data[1].toNumber();
   let currentCursor = 1;
   for (let i = 0; i < numEpochs; i++) {
-    const scale = [];
+    const scale: TokenMapBig[] = [];
     currentCursor += 1;
     const scaleLength = data[currentCursor].toNumber();
     for (let j = 0; j < scaleLength; j++) {

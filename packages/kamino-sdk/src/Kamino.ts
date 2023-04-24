@@ -15,7 +15,13 @@ import {
   TransactionInstruction,
 } from '@solana/web3.js';
 import { setKaminoProgramId } from './kamino-client/programId';
-import { CollateralInfos, GlobalConfig, WhirlpoolStrategy, WhirlpoolStrategyFields } from './kamino-client/accounts';
+import {
+  GlobalConfig,
+  TermsSignature,
+  WhirlpoolStrategy,
+  WhirlpoolStrategyFields,
+  CollateralInfos,
+} from './kamino-client/accounts';
 import Decimal from 'decimal.js';
 import { Position, Whirlpool } from './whirpools-client';
 import {
@@ -108,8 +114,8 @@ import {
   InternalAddLiquidityQuote,
   InternalAddLiquidityQuoteParam,
 } from '@orca-so/whirlpool-sdk/dist/position/quotes/add-liquidity';
+import { signTerms, SignTermsAccounts, SignTermsArgs } from './kamino-client/instructions/signTerms';
 import { Pool } from './services/RaydiumPoolsResponse';
-
 export const KAMINO_IDL = KaminoIdl;
 
 export class Kamino {
@@ -1908,6 +1914,40 @@ export class Kamino {
     }
     throw Error(`Strategy dex ${dex} not supported`);
   };
+
+  /**
+   * Get the on-chain state of the terms&conditions signature for the owner
+   * @param owner
+   */
+  async getUserTermsSignatureState(owner: PublicKey): Promise<TermsSignature | null> {
+    const pdaSeed = [Buffer.from('signature'), owner.toBuffer()];
+    const [signatureStateKey, _signatureStateBump] = PublicKey.findProgramAddressSync(pdaSeed, this._kaminoProgramId);
+
+    return await TermsSignature.fetch(this._connection, signatureStateKey);
+  }
+
+  /**
+   * Get the instruction to store the on chain owner signature of terms&conditions
+   * @param owner
+   * @param signature
+   */
+  async getUserTermsSignatureIx(owner: PublicKey, signature: Uint8Array): Promise<TransactionInstruction> {
+    const pdaSeed = [Buffer.from('signature'), owner.toBuffer()];
+    const [signatureStateKey, _signatureStateBump] = PublicKey.findProgramAddressSync(pdaSeed, this._kaminoProgramId);
+
+    const args: SignTermsArgs = {
+      signature: Array.from(signature),
+    };
+
+    const accounts: SignTermsAccounts = {
+      owner: owner,
+      ownerSignatureState: signatureStateKey,
+      systemProgram: SystemProgram.programId,
+      rent: SYSVAR_RENT_PUBKEY,
+    };
+
+    return signTerms(args, accounts);
+  }
 
   private async getDepositRatioFromAOrca(
     strategy: PublicKey | StrategyWithAddress,
