@@ -1724,7 +1724,8 @@ export class Kamino {
     const isOrca = dexToNumber('ORCA') === dex;
     const isRaydium = dexToNumber('RAYDIUM') === dex;
     if (isOrca) {
-      return this._orcaService.getStrategyWhirlpoolPoolAprApy(strategyState, orcaPools);
+      const prices = await this.getAllPrices();
+      return this._orcaService.getStrategyWhirlpoolPoolAprApy(strategyState, orcaPools, prices);
     }
     if (isRaydium) {
       return this._raydiumService.getStrategyWhirlpoolPoolAprApy(strategyState, raydiumPools);

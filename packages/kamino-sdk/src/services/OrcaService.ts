@@ -51,14 +51,18 @@ export class OrcaService {
 
   async getStrategyWhirlpoolPoolAprApy(
     strategy: WhirlpoolStrategy,
-    whirlpools?: Whirlpool[]
+    whirlpools?: Whirlpool[],
+    prices?: ScopeToken[]
   ): Promise<WhirlpoolAprApy> {
     const orca = new OrcaWhirlpoolClient({
       connection: this._connection,
       network: this._orcaNetwork,
     });
     const scope = new Scope(this._cluster, this._connection);
-    const prices = await scope.getAllPrices();
+    if (!prices) {
+      prices = await scope.getAllPrices();
+    }
+
     const position = await Position.fetch(this._connection, strategy.position);
     if (!position) {
       throw new Error(`Position ${strategy.position} does not exist`);
