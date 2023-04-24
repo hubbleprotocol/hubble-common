@@ -82,5 +82,9 @@ export const SupportedTokens = [
   'USDCet',
   'HNT',
   'HNTEma',
+  'MOBILE',
+  'MOBILETwap',
+  'IOT',
+  'IOTTwap',
 ] as const;
-export type SupportedToken = (typeof SupportedTokens)[number];
+export type SupportedToken = typeof SupportedTokens[number];
