@@ -1,5 +1,5 @@
 {
-  "version": "0.1.0",
+  "version": "0.1.23",
   "name": "borrowing",
   "instructions": [
     {
@@ -1863,421 +1863,6 @@
       ]
     },
     {
-      "name": "serumInitAccount",
-      "accounts": [
-        {
-          "name": "dexProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "openOrders",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "orderPayerAuthority",
-          "isMut": false,
-          "isSigner": true
-        },
-        {
-          "name": "market",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "rent",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": []
-    },
-    {
-      "name": "serumSwapWithdrawCollateral",
-      "accounts": [
-        {
-          "name": "owner",
-          "isMut": true,
-          "isSigner": true,
-          "docs": [
-            "The account that initialized the open orders"
-          ]
-        },
-        {
-          "name": "borrowingMarketState",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "globalConfig",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "borrowingVaults",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "userMetadata",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "collateralFrom",
-          "isMut": true,
-          "isSigner": false,
-          "docs": [
-            "The collateral vault to send the tokens from or to receive the tokens back if the order isn't executed",
-            "Must be an ATA for market base or quote mint, depending on the side of the market being traded on"
-          ]
-        },
-        {
-          "name": "collateralFromAuthority",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "collateralTo",
-          "isMut": true,
-          "isSigner": false,
-          "docs": [
-            "The ATA which I expect to receive the tokens when the order is executed successfully",
-            "Must be an ATA for market base or quote mint, depending on the side of the market being traded on"
-          ]
-        },
-        {
-          "name": "scopePrices",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "market",
-          "isMut": true,
-          "isSigner": false,
-          "docs": [
-            "BEGIN SERUM ACCOUNTS",
-            "The market pair address (A-Token/B-Token)"
-          ]
-        },
-        {
-          "name": "vaultSigner",
-          "isMut": false,
-          "isSigner": false,
-          "docs": [
-            "DEX owner"
-          ]
-        },
-        {
-          "name": "openOrders",
-          "isMut": true,
-          "isSigner": false,
-          "docs": [
-            "The user's open orders account"
-          ]
-        },
-        {
-          "name": "requestQueue",
-          "isMut": true,
-          "isSigner": false,
-          "docs": [
-            "The queue with the events that are being processed"
-          ]
-        },
-        {
-          "name": "eventQueue",
-          "isMut": true,
-          "isSigner": false,
-          "docs": [
-            "The queue with the consumed events on the market"
-          ]
-        },
-        {
-          "name": "bids",
-          "isMut": true,
-          "isSigner": false,
-          "docs": [
-            "The address of bids on the orderbook"
-          ]
-        },
-        {
-          "name": "asks",
-          "isMut": true,
-          "isSigner": false,
-          "docs": [
-            "The address of asks on the orderbook"
-          ]
-        },
-        {
-          "name": "coinVault",
-          "isMut": true,
-          "isSigner": false,
-          "docs": [
-            "The DEX vault for the \"base\" currency (WSOL/BTC/ETH, etc)"
-          ]
-        },
-        {
-          "name": "pcVault",
-          "isMut": true,
-          "isSigner": false,
-          "docs": [
-            "The DEX vault for the \"quote\" currency (USDC, etc.)"
-          ]
-        },
-        {
-          "name": "dexSwapAccount",
-          "isMut": true,
-          "isSigner": false,
-          "docs": [
-            "An intermed account that will pay for the new order tx (we fund this account through the coll vault)"
-          ]
-        },
-        {
-          "name": "dexProgram",
-          "isMut": false,
-          "isSigner": false,
-          "docs": [
-            "END SERUM ACCOUNTS",
-            "The DEX program"
-          ]
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "rent",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "amount",
-          "type": "u64"
-        },
-        {
-          "name": "collateral",
-          "type": "u8"
-        }
-      ]
-    },
-    {
-      "name": "serumCloseAccount",
-      "accounts": [
-        {
-          "name": "openOrders",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "authority",
-          "isMut": false,
-          "isSigner": true
-        },
-        {
-          "name": "destination",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "market",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "dexProgram",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": []
-    },
-    {
-      "name": "delegateMarinadeDeposit",
-      "accounts": [
-        {
-          "name": "owner",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "intermedAta",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "mintTo",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "userMetadata",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "marinadeProgramId",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "marinadeState",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "stSolMint",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "liqPoolSolLegPda",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "liqPoolStSolLeg",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "liqPoolStSolLegAuth",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "reservePda",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "stSolMintAuth",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "borrowingMarketState",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "borrowingVaults",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "collateralVault",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "collateralFromAuthority",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "globalConfig",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "nativeMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "amount",
-          "type": "u64"
-        }
-      ]
-    },
-    {
-      "name": "delegateMarinadeEmergencyWithdraw",
-      "accounts": [
-        {
-          "name": "adminAuthority",
-          "isMut": false,
-          "isSigner": true
-        },
-        {
-          "name": "marinadeProgramId",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "marinadeState",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "stSolMint",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "liqPoolSolLegPda",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "liqPoolStSolLeg",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "treasuryMsolAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "getMsolFrom",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "getMsolFromAuthority",
-          "isMut": false,
-          "isSigner": true
-        },
-        {
-          "name": "transferSolTo",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "amount",
-          "type": "u64"
-        }
-      ]
-    },
-    {
       "name": "airdropHbb",
       "accounts": [
         {
@@ -2918,6 +2503,73 @@
         {
           "name": "minSwapTokenToReceive",
           "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "closeProgramAccount",
+      "accounts": [
+        {
+          "name": "adminAuthority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "program",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "programData",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "closingAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "signTerms",
+      "accounts": [
+        {
+          "name": "owner",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "ownerSignatureState",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "signature",
+          "type": {
+            "array": [
+              "u8",
+              64
+            ]
+          }
         }
       ]
     }
@@ -3921,6 +3573,23 @@
           }
         ]
       }
+    },
+    {
+      "name": "TermsSignature",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "signature",
+            "type": {
+              "array": [
+                "u8",
+                64
+              ]
+            }
+          }
+        ]
+      }
     }
   ],
   "types": [
@@ -3972,7 +3641,19 @@
             }
           },
           {
+            "name": "msol",
+            "type": {
+              "option": "f64"
+            }
+          },
+          {
             "name": "stsol",
+            "type": {
+              "option": "f64"
+            }
+          },
+          {
+            "name": "ftt",
             "type": {
               "option": "f64"
             }
@@ -4070,6 +3751,40 @@
                 "defined": "Tokens"
               }
             }
+          }
+        ]
+      }
+    },
+    {
+      "name": "TryLiquidateEventCashWithTimestamp",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "user",
+            "type": "u64"
+          },
+          {
+            "name": "amount",
+            "type": "f64"
+          },
+          {
+            "name": "expectedResult",
+            "type": {
+              "defined": "TryLiquidateResult"
+            }
+          },
+          {
+            "name": "expectedCollSurplus",
+            "type": {
+              "option": {
+                "defined": "Tokens"
+              }
+            }
+          },
+          {
+            "name": "timestamp",
+            "type": "u64"
           }
         ]
       }
@@ -4431,27 +4146,6 @@
       }
     },
     {
-      "name": "TokenPrices",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "prices",
-            "type": {
-              "array": [
-                {
-                  "option": {
-                    "defined": "Price"
-                  }
-                },
-                128
-              ]
-            }
-          }
-        ]
-      }
-    },
-    {
       "name": "ExtraCollateralAmount",
       "type": {
         "kind": "struct",
@@ -4644,126 +4338,6 @@
       }
     },
     {
-      "name": "Event",
-      "type": {
-        "kind": "enum",
-        "variants": [
-          {
-            "name": "AddBorrowers",
-            "fields": [
-              {
-                "vec": {
-                  "defined": "Borrower"
-                }
-              }
-            ]
-          },
-          {
-            "name": "AddStabilityProviders",
-            "fields": [
-              {
-                "vec": {
-                  "defined": "StabilityProvider"
-                }
-              }
-            ]
-          },
-          {
-            "name": "SetPrices",
-            "fields": [
-              {
-                "defined": "Tokens"
-              }
-            ]
-          },
-          {
-            "name": "TryLiquidate",
-            "fields": [
-              {
-                "defined": "TryLiquidateEvent"
-              }
-            ]
-          },
-          {
-            "name": "TryLiquidateCash",
-            "fields": [
-              {
-                "defined": "TryLiquidateEventCash"
-              }
-            ]
-          },
-          {
-            "name": "UpdateMarketMinLTV",
-            "fields": [
-              "f64"
-            ]
-          },
-          {
-            "name": "ClearLiquidationGains",
-            "fields": [
-              {
-                "defined": "ExpectedClearGains"
-              }
-            ]
-          },
-          {
-            "name": "AssertUserBalance",
-            "fields": [
-              {
-                "defined": "AssertUserBalance"
-              }
-            ]
-          },
-          {
-            "name": "SetLiquidationPenalty",
-            "fields": [
-              "u64"
-            ]
-          },
-          {
-            "name": "SetBtcCashBasedLiquidation",
-            "fields": [
-              "bool"
-            ]
-          },
-          {
-            "name": "BlockUndercollLiquidations",
-            "fields": [
-              "bool"
-            ]
-          }
-        ]
-      }
-    },
-    {
-      "name": "WithdrawalCapAction",
-      "type": {
-        "kind": "enum",
-        "variants": [
-          {
-            "name": "Add"
-          },
-          {
-            "name": "Remove"
-          }
-        ]
-      }
-    },
-    {
-      "name": "WithdrawalCapOverflowAction",
-      "type": {
-        "kind": "enum",
-        "variants": [
-          {
-            "name": "SaturatingOverflow"
-          },
-          {
-            "name": "ErrorOnOverflow"
-          }
-        ]
-      }
-    },
-    {
       "name": "WithdrawalCapAccumulatorAction",
       "type": {
         "kind": "enum",
@@ -4773,26 +4347,6 @@
           },
           {
             "name": "ResetAccumulator"
-          }
-        ]
-      }
-    },
-    {
-      "name": "PsmAction",
-      "type": {
-        "kind": "enum",
-        "variants": [
-          {
-            "name": "Mint",
-            "fields": [
-              "u64"
-            ]
-          },
-          {
-            "name": "Burn",
-            "fields": [
-              "u64"
-            ]
           }
         ]
       }
@@ -5072,6 +4626,12 @@
           },
           {
             "name": "JSOL"
+          },
+          {
+            "name": "KUXDUSDCORCA"
+          },
+          {
+            "name": "JITOSOL"
           },
           {
             "name": "OTHER"
@@ -5465,7 +5025,70 @@
             "name": "KUSHUSDCORCA"
           },
           {
-            "name": "PRICE_FACTOR"
+            "name": "USDR"
+          },
+          {
+            "name": "USDR_TWAP"
+          },
+          {
+            "name": "RATIO"
+          },
+          {
+            "name": "UXP"
+          },
+          {
+            "name": "KUXDUSDCORCA"
+          },
+          {
+            "name": "JITOSOL_SOL"
+          },
+          {
+            "name": "SOL_EMA"
+          },
+          {
+            "name": "ETH_EMA"
+          },
+          {
+            "name": "BTC_EMA"
+          },
+          {
+            "name": "SRM_EMA"
+          },
+          {
+            "name": "RAY_EMA"
+          },
+          {
+            "name": "FTT_EMA"
+          },
+          {
+            "name": "MSOL_TWAP"
+          },
+          {
+            "name": "BNB_EMA"
+          },
+          {
+            "name": "AVAX_EMA"
+          },
+          {
+            "name": "STSOL_TWAP"
+          },
+          {
+            "name": "USDC_EMA"
+          },
+          {
+            "name": "USDT_EMA"
+          },
+          {
+            "name": "SLND_EMA"
+          },
+          {
+            "name": "DAI_EMA"
+          },
+          {
+            "name": "wstETH_TWAP"
+          },
+          {
+            "name": "DUST_TWAP"
           }
         ]
       }
@@ -6016,6 +5639,11 @@
       "code": 6108,
       "name": "UndercollLiquidationBlocked",
       "msg": "Undercollateralized liquidations are blocked"
+    },
+    {
+      "code": 6109,
+      "name": "PriceTooDivergentFromTwap",
+      "msg": "Price too divergent from twap"
     }
   ]
 }
