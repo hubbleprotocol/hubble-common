@@ -67,6 +67,7 @@ import {
   StrategiesFilters,
   strategyCreationStatusToBase58,
   strategyTypeToBase58,
+  ZERO,
 } from './utils';
 import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import {
@@ -108,13 +109,13 @@ import { PROGRAM_ID as RAYDIUM_PROGRAM_ID, setRaydiumProgramId } from './raydium
 import { i32ToBytes, LiquidityMath, SqrtPriceMath, TickMath, TickUtils } from '@raydium-io/raydium-sdk';
 
 import KaminoIdl from './kamino-client/kamino.json';
-import { OrcaService, RaydiumService, Whirlpool as OrcaPool } from './services';
+import { OrcaService, RaydiumService, Whirlpool as OrcaPool, WhirlpoolAprApy } from './services';
 import {
   getAddLiquidityQuote,
   InternalAddLiquidityQuote,
   InternalAddLiquidityQuoteParam,
 } from '@orca-so/whirlpool-sdk/dist/position/quotes/add-liquidity';
-import { signTerms, SignTermsAccounts, SignTermsArgs } from './kamino-client/instructions/signTerms';
+import { signTerms, SignTermsAccounts, SignTermsArgs } from './kamino-client/instructions';
 import { Pool } from './services/RaydiumPoolsResponse';
 export const KAMINO_IDL = KaminoIdl;
 
@@ -1724,11 +1725,25 @@ export class Kamino {
     strategy: PublicKey | StrategyWithAddress,
     orcaPools?: OrcaPool[],
     raydiumPools?: Pool[]
-  ) => {
+  ): Promise<WhirlpoolAprApy> => {
     const { strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
     const dex = Number(strategyState.strategyDex);
     const isOrca = dexToNumber('ORCA') === dex;
     const isRaydium = dexToNumber('RAYDIUM') === dex;
+    if (strategyState.position.toString() === PublicKey.default.toString()) {
+      return {
+        totalApr: ZERO,
+        feeApr: ZERO,
+        totalApy: ZERO,
+        feeApy: ZERO,
+        priceUpper: ZERO,
+        priceLower: ZERO,
+        rewardsApr: [],
+        rewardsApy: [],
+        poolPrice: ZERO,
+        strategyOutOfRange: false,
+      };
+    }
     if (isOrca) {
       const prices = await this.getAllPrices();
       return this._orcaService.getStrategyWhirlpoolPoolAprApy(strategyState, orcaPools, prices);
