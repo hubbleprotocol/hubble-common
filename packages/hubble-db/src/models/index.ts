@@ -28,7 +28,7 @@ export * from './TokenMintEntity';
 export * from './TradeAggregatorEntity';
 export * from './TradeEntity';
 export * from './TradeSourceEntity';
-export * from './StrategyYieldEntity';
+export * from './StrategyMetricsEntity';
 
 export const CLUSTER_TABLE: string = 'cluster';
 export const COLLATERAL_TABLE: string = 'collateral';
@@ -61,5 +61,5 @@ export const TOKEN_MINT_TABLE = 'token_mint';
 export const PROGRAM_ACCOUNT_TABLE = 'program_account';
 export const TRADE_AGGREGATOR_TABLE = 'trade_aggregator';
 export const TRADE_SOURCE_TABLE = 'trade_source';
-export const STRATEGY_YIELD_TABLE = 'strategy_yield';
+export const STRATEGY_METRICS_TABLE = 'strategy_metrics';
 export const API_SCHEMA: string = 'api';
