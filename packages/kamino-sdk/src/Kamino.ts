@@ -185,6 +185,13 @@ export class Kamino {
 
   getTokenMap = () => this._tokenMap;
 
+  getDepositableToken = async () => {
+    const collateralInfos = await CollateralInfos.fetch(this._connection, this._config.kamino.collateralInfos);
+    if (!collateralInfos) {
+      throw Error('Could not fetch collateral infos');
+    }
+  };
+
   /**
    * Return a list of all Kamino whirlpool strategies
    * @param strategies Limit results to these strategy addresses

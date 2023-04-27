@@ -12,6 +12,7 @@ import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
   Dex,
   getAssociatedTokenAddress,
+  getStrategyConfigValue,
   sendTransactionWithLogs,
   sleep,
   TOKEN_PROGRAM_ID,
@@ -20,7 +21,6 @@ import { getTickArrayPubkeysFromRangeRaydium } from './raydium_utils';
 import { getTickArrayPubkeysFromRangeOrca } from './orca_utils';
 import { TokenInstructions } from '@project-serum/serum';
 import { collateralTokenToNumber, CollateralToken } from './token_utils';
-import { ScopeToken } from '@hubbleprotocol/scope-sdk';
 
 // Seconds
 export const DEFAULT_MAX_PRICE_AGE = 60 * 3;
@@ -67,7 +67,7 @@ export async function updateStrategyConfig(
 ) {
   let args: Instructions.UpdateStrategyConfigArgs = {
     mode: mode.discriminator,
-    value: new anchor.BN(amount.toString()),
+    value: getStrategyConfigValue(amount),
   };
 
   let strategyState = await WhirlpoolStrategy.fetch(connection, strategy);

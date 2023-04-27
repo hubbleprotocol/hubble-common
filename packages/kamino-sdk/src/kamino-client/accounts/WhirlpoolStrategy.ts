@@ -87,7 +87,11 @@ export interface WhirlpoolStrategyFields {
   flashVaultSwapAllowed: number
   referenceSwapPriceA: types.PriceFields
   referenceSwapPriceB: types.PriceFields
-  padding1: Array<BN>
+  isCommunity: number
+  rebalanceType: number
+  padding0: Array<number>
+  rebalanceRaw: types.RebalanceRawFields
+  padding1: Array<number>
   padding2: Array<BN>
   padding3: Array<BN>
   padding4: Array<BN>
@@ -177,7 +181,11 @@ export interface WhirlpoolStrategyJSON {
   flashVaultSwapAllowed: number
   referenceSwapPriceA: types.PriceJSON
   referenceSwapPriceB: types.PriceJSON
-  padding1: Array<string>
+  isCommunity: number
+  rebalanceType: number
+  padding0: Array<number>
+  rebalanceRaw: types.RebalanceRawJSON
+  padding1: Array<number>
   padding2: Array<string>
   padding3: Array<string>
   padding4: Array<string>
@@ -267,7 +275,11 @@ export class WhirlpoolStrategy {
   readonly flashVaultSwapAllowed: number
   readonly referenceSwapPriceA: types.Price
   readonly referenceSwapPriceB: types.Price
-  readonly padding1: Array<BN>
+  readonly isCommunity: number
+  readonly rebalanceType: number
+  readonly padding0: Array<number>
+  readonly rebalanceRaw: types.RebalanceRaw
+  readonly padding1: Array<number>
   readonly padding2: Array<BN>
   readonly padding3: Array<BN>
   readonly padding4: Array<BN>
@@ -360,8 +372,12 @@ export class WhirlpoolStrategy {
     borsh.u8("flashVaultSwapAllowed"),
     types.Price.layout("referenceSwapPriceA"),
     types.Price.layout("referenceSwapPriceB"),
-    borsh.array(borsh.u128(), 22, "padding1"),
-    borsh.array(borsh.u128(), 32, "padding2"),
+    borsh.u8("isCommunity"),
+    borsh.u8("rebalanceType"),
+    borsh.array(borsh.u8(), 6, "padding0"),
+    types.RebalanceRaw.layout("rebalanceRaw"),
+    borsh.array(borsh.u8(), 8, "padding1"),
+    borsh.array(borsh.u128(), 29, "padding2"),
     borsh.array(borsh.u128(), 32, "padding3"),
     borsh.array(borsh.u128(), 32, "padding4"),
     borsh.array(borsh.u128(), 32, "padding5"),
@@ -459,6 +475,10 @@ export class WhirlpoolStrategy {
     this.referenceSwapPriceB = new types.Price({
       ...fields.referenceSwapPriceB,
     })
+    this.isCommunity = fields.isCommunity
+    this.rebalanceType = fields.rebalanceType
+    this.padding0 = fields.padding0
+    this.rebalanceRaw = new types.RebalanceRaw({ ...fields.rebalanceRaw })
     this.padding1 = fields.padding1
     this.padding2 = fields.padding2
     this.padding3 = fields.padding3
@@ -597,6 +617,10 @@ export class WhirlpoolStrategy {
       flashVaultSwapAllowed: dec.flashVaultSwapAllowed,
       referenceSwapPriceA: types.Price.fromDecoded(dec.referenceSwapPriceA),
       referenceSwapPriceB: types.Price.fromDecoded(dec.referenceSwapPriceB),
+      isCommunity: dec.isCommunity,
+      rebalanceType: dec.rebalanceType,
+      padding0: dec.padding0,
+      rebalanceRaw: types.RebalanceRaw.fromDecoded(dec.rebalanceRaw),
       padding1: dec.padding1,
       padding2: dec.padding2,
       padding3: dec.padding3,
@@ -692,7 +716,11 @@ export class WhirlpoolStrategy {
       flashVaultSwapAllowed: this.flashVaultSwapAllowed,
       referenceSwapPriceA: this.referenceSwapPriceA.toJSON(),
       referenceSwapPriceB: this.referenceSwapPriceB.toJSON(),
-      padding1: this.padding1.map((item) => item.toString()),
+      isCommunity: this.isCommunity,
+      rebalanceType: this.rebalanceType,
+      padding0: this.padding0,
+      rebalanceRaw: this.rebalanceRaw.toJSON(),
+      padding1: this.padding1,
       padding2: this.padding2.map((item) => item.toString()),
       padding3: this.padding3.map((item) => item.toString()),
       padding4: this.padding4.map((item) => item.toString()),
@@ -791,7 +819,11 @@ export class WhirlpoolStrategy {
       flashVaultSwapAllowed: obj.flashVaultSwapAllowed,
       referenceSwapPriceA: types.Price.fromJSON(obj.referenceSwapPriceA),
       referenceSwapPriceB: types.Price.fromJSON(obj.referenceSwapPriceB),
-      padding1: obj.padding1.map((item) => new BN(item)),
+      isCommunity: obj.isCommunity,
+      rebalanceType: obj.rebalanceType,
+      padding0: obj.padding0,
+      rebalanceRaw: types.RebalanceRaw.fromJSON(obj.rebalanceRaw),
+      padding1: obj.padding1,
       padding2: obj.padding2.map((item) => new BN(item)),
       padding3: obj.padding3.map((item) => new BN(item)),
       padding4: obj.padding4.map((item) => new BN(item)),

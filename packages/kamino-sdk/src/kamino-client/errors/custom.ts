@@ -106,6 +106,15 @@ export type CustomError =
   | InvalidTwapId
   | PositionHasRemainingLiquidity
   | PoolRebalancing
+  | PermissionlessRebalancingDisabled
+  | ManualRebalanceInvalidOwner
+  | InvalidRebalanceType
+  | NoRebalanceNecessary
+  | TickArraysDoNotMatchRebalance
+  | StrategyPositionNotValid
+  | CouldNotDeserializeRebalanceState
+  | CouldNotSerializeRebalanceState
+  | CouldNotDeserializeRebalanceParams
 
 export class IntegerOverflow extends Error {
   static readonly code = 6000
@@ -1299,6 +1308,108 @@ export class PoolRebalancing extends Error {
   }
 }
 
+export class PermissionlessRebalancingDisabled extends Error {
+  static readonly code = 6107
+  readonly code = 6107
+  readonly name = "PermissionlessRebalancingDisabled"
+  readonly msg = "Permissionless rebalancing is disabled"
+
+  constructor(readonly logs?: string[]) {
+    super("6107: Permissionless rebalancing is disabled")
+  }
+}
+
+export class ManualRebalanceInvalidOwner extends Error {
+  static readonly code = 6108
+  readonly code = 6108
+  readonly name = "ManualRebalanceInvalidOwner"
+  readonly msg = "Only the owner of the strategy can manually rebalance it"
+
+  constructor(readonly logs?: string[]) {
+    super("6108: Only the owner of the strategy can manually rebalance it")
+  }
+}
+
+export class InvalidRebalanceType extends Error {
+  static readonly code = 6109
+  readonly code = 6109
+  readonly name = "InvalidRebalanceType"
+  readonly msg = "Invalid rebalance type for the strategy"
+
+  constructor(readonly logs?: string[]) {
+    super("6109: Invalid rebalance type for the strategy")
+  }
+}
+
+export class NoRebalanceNecessary extends Error {
+  static readonly code = 6110
+  readonly code = 6110
+  readonly name = "NoRebalanceNecessary"
+  readonly msg =
+    "No rebalance necessary based on current rebalance type/parameters"
+
+  constructor(readonly logs?: string[]) {
+    super(
+      "6110: No rebalance necessary based on current rebalance type/parameters"
+    )
+  }
+}
+
+export class TickArraysDoNotMatchRebalance extends Error {
+  static readonly code = 6111
+  readonly code = 6111
+  readonly name = "TickArraysDoNotMatchRebalance"
+  readonly msg = "The given tick arrays do not match the rebalance result"
+
+  constructor(readonly logs?: string[]) {
+    super("6111: The given tick arrays do not match the rebalance result")
+  }
+}
+
+export class StrategyPositionNotValid extends Error {
+  static readonly code = 6112
+  readonly code = 6112
+  readonly name = "StrategyPositionNotValid"
+  readonly msg = "Expected strategy position to be initialized"
+
+  constructor(readonly logs?: string[]) {
+    super("6112: Expected strategy position to be initialized")
+  }
+}
+
+export class CouldNotDeserializeRebalanceState extends Error {
+  static readonly code = 6113
+  readonly code = 6113
+  readonly name = "CouldNotDeserializeRebalanceState"
+  readonly msg = "Rebalance state could not be deserialized"
+
+  constructor(readonly logs?: string[]) {
+    super("6113: Rebalance state could not be deserialized")
+  }
+}
+
+export class CouldNotSerializeRebalanceState extends Error {
+  static readonly code = 6114
+  readonly code = 6114
+  readonly name = "CouldNotSerializeRebalanceState"
+  readonly msg = "Rebalance state could not be serialized"
+
+  constructor(readonly logs?: string[]) {
+    super("6114: Rebalance state could not be serialized")
+  }
+}
+
+export class CouldNotDeserializeRebalanceParams extends Error {
+  static readonly code = 6115
+  readonly code = 6115
+  readonly name = "CouldNotDeserializeRebalanceParams"
+  readonly msg = "Rebalance params could not be deserialized"
+
+  constructor(readonly logs?: string[]) {
+    super("6115: Rebalance params could not be deserialized")
+  }
+}
+
 export function fromCode(code: number, logs?: string[]): CustomError | null {
   switch (code) {
     case 6000:
@@ -1515,6 +1626,24 @@ export function fromCode(code: number, logs?: string[]): CustomError | null {
       return new PositionHasRemainingLiquidity(logs)
     case 6106:
       return new PoolRebalancing(logs)
+    case 6107:
+      return new PermissionlessRebalancingDisabled(logs)
+    case 6108:
+      return new ManualRebalanceInvalidOwner(logs)
+    case 6109:
+      return new InvalidRebalanceType(logs)
+    case 6110:
+      return new NoRebalanceNecessary(logs)
+    case 6111:
+      return new TickArraysDoNotMatchRebalance(logs)
+    case 6112:
+      return new StrategyPositionNotValid(logs)
+    case 6113:
+      return new CouldNotDeserializeRebalanceState(logs)
+    case 6114:
+      return new CouldNotSerializeRebalanceState(logs)
+    case 6115:
+      return new CouldNotDeserializeRebalanceParams(logs)
   }
 
   return null

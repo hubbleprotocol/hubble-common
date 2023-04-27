@@ -1122,6 +1122,19 @@ describe('Kamino SDK Tests', () => {
     console.log(termsSignatureState);
     expect(termsSignatureState).to.not.be.null;
   });
+
+  it('create_terms_signature_and_read_state', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      fixtures.globalConfig,
+      fixtures.kaminoProgramId,
+      WHIRLPOOL_PROGRAM_ID,
+      LOCAL_RAYDIUM_PROGRAM_ID
+    );
+
+    await kamino.getDepositableToken();
+  });
 });
 
 export async function createStrategy(kamino: Kamino, owner: Keypair, pool: PublicKey, dex: Dex): Promise<PublicKey> {

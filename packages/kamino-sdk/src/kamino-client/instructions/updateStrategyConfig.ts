@@ -6,7 +6,7 @@ import { PROGRAM_ID } from "../programId"
 
 export interface UpdateStrategyConfigArgs {
   mode: number
-  value: BN
+  value: Array<number>
 }
 
 export interface UpdateStrategyConfigAccounts {
@@ -17,7 +17,10 @@ export interface UpdateStrategyConfigAccounts {
   systemProgram: PublicKey
 }
 
-export const layout = borsh.struct([borsh.u16("mode"), borsh.u64("value")])
+export const layout = borsh.struct([
+  borsh.u16("mode"),
+  borsh.array(borsh.u8(), 128, "value"),
+])
 
 export function updateStrategyConfig(
   args: UpdateStrategyConfigArgs,
