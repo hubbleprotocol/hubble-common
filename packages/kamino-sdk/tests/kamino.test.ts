@@ -98,6 +98,7 @@ describe('Kamino SDK Tests', () => {
     let globalConfig = await setUpGlobalConfig(kamino, signer, fixtures.scopeProgram, fixtures.scopePrices);
     console.log('globalConfig initialized ', globalConfig.toString());
     kamino.setGlobalConfig(globalConfig);
+    fixtures.globalConfig = globalConfig;
 
     let collateralInfo = await setUpCollateralInfo(kamino, signer);
     await sleep(1000);
@@ -1135,8 +1136,9 @@ describe('Kamino SDK Tests', () => {
 
     let depositableTokens = await kamino.getDepositableTokens();
     expect(depositableTokens.length).to.be.eq(2);
-    expect(depositableTokens[0].mint).to.be.eq(fixtures.newTokenMintA);
-    expect(depositableTokens[1].mint).to.be.eq(fixtures.newTokenMintB);
+
+    expect(depositableTokens[1].mint.toString()).to.be.eq(fixtures.newTokenMintA.toString());
+    expect(depositableTokens[0].mint.toString()).to.be.eq(fixtures.newTokenMintB.toString());
   });
 });
 

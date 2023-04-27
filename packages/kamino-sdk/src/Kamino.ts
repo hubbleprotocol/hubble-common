@@ -117,6 +117,7 @@ import {
 } from '@orca-so/whirlpool-sdk/dist/position/quotes/add-liquidity';
 import { signTerms, SignTermsAccounts, SignTermsArgs } from './kamino-client/instructions';
 import { Pool } from './services/RaydiumPoolsResponse';
+import { Orca, Raydium } from './kamino-client/types/DEX';
 export const KAMINO_IDL = KaminoIdl;
 
 export class Kamino {
@@ -193,14 +194,21 @@ export class Kamino {
     const collateralInfos = await this.getCollateralInfo(config.tokenInfos);
 
     let depositableTokens: CollateralInfo[] = [];
+    console.log('system program id ', SystemProgram.programId.toString());
     collateralInfos.forEach((element) => {
-      if (element.mint != PublicKey.default) {
+      if (element.mint.toString() != SystemProgram.programId.toString()) {
+        console.log('element mint ', element.mint.toString());
+
         depositableTokens.push(element);
       }
     });
 
     return depositableTokens;
   };
+
+  getSupportedDexes = (): Dex[] => ['ORCA', 'RAYDIUM'];
+
+  // getFeeTiersForDex = 
 
   /**
    * Return a list of all Kamino whirlpool strategies
