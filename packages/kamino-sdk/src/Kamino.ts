@@ -159,6 +159,7 @@ export class Kamino {
     });
     this._kaminoProgramId = programId ? programId : this._config.kamino.programId;
     this._kaminoProgram = new Program(KAMINO_IDL as Idl, this._kaminoProgramId, this._provider);
+
     this._scope = new Scope(cluster, connection);
     setKaminoProgramId(this._kaminoProgramId);
 
@@ -194,11 +195,8 @@ export class Kamino {
     const collateralInfos = await this.getCollateralInfo(config.tokenInfos);
 
     let depositableTokens: CollateralInfo[] = [];
-    console.log('system program id ', SystemProgram.programId.toString());
     collateralInfos.forEach((element) => {
       if (element.mint.toString() != SystemProgram.programId.toString()) {
-        console.log('element mint ', element.mint.toString());
-
         depositableTokens.push(element);
       }
     });
@@ -208,7 +206,86 @@ export class Kamino {
 
   getSupportedDexes = (): Dex[] => ['ORCA', 'RAYDIUM'];
 
-  // getFeeTiersForDex = 
+  // const whirlpoolConfig: PublicKey = new PublicKey("2LecshUwdy9xi7meFgHtFJQNSKk4KdTrcpvaB56dP2NQ");
+
+  // todo: see if we can read this dinamically
+  getFeeTiersForDex = (dex: Dex): Decimal[] => {
+    if (dex == 'ORCA') {
+      return [new Decimal(0.0001), new Decimal(0.0005), new Decimal(0.003), new Decimal(0.01)];
+    } else if (dex == 'RAYDIUM') {
+      return [new Decimal(0.0001), new Decimal(0.0005), new Decimal(0.0025), new Decimal(0.01)];
+    } else {
+      throw new Error(`Dex ${dex} is not supported`);
+    }
+  };
+
+  isPoolInitializedForDexPairTier = async (
+    dex: Dex,
+    poolTokenA: PublicKey,
+    poolTokenB: PublicKey,
+    fee: Decimal
+  ): Promise<boolean> => {
+    if (dex == 'ORCA') {
+      let orcaPools = await this.getOrcaPoolsForTokens(poolTokenA, poolTokenB);
+      orcaPools.forEach((element) => {
+        if (element.lpFeeRate == fee.toNumber()) {
+          return true;
+        }
+      });
+      return false;
+    } else if (dex == 'RAYDIUM') {
+      let raydiumPools = await this.getRaydiumPoolsForTokens(poolTokenA, poolTokenB);
+      raydiumPools.forEach((element) => {
+        if (element.ammConfig.tradeFeeRate == fee.toNumber()) {
+          return true;
+        }
+      });
+      return false;
+    } else {
+      throw new Error(`Dex ${dex} is not supported`);
+    }
+  };
+
+  getExistentPoolsForPair(dex: Dex, poolTokenA: PublicKey, poolTokenB: PublicKey) {
+    if (dex == 'ORCA') {
+      return this.getOrcaPoolsForTokens(poolTokenA, poolTokenB);
+    } else if (dex == 'RAYDIUM') {
+      return this.getRaydiumPoolsForTokens(poolTokenA, poolTokenB);
+    } else {
+      throw new Error(`Dex ${dex} is not supported`);
+    }
+  }
+
+  getOrcaPoolsForTokens = async (poolTokenA: PublicKey, poolTokenB: PublicKey): Promise<OrcaPool[]> => {
+    let pools: OrcaPool[] = [];
+    let whirlpools = await this._orcaService.getOrcaWhirlpools();
+    whirlpools.whirlpools.forEach((element) => {
+      if (
+        (element.tokenA.mint.toString() == poolTokenA.toString() &&
+          element.tokenB.mint.toString() == poolTokenB.toString()) ||
+        (element.tokenA.mint.toString() == poolTokenB.toString() &&
+          element.tokenB.mint.toString() == poolTokenA.toString())
+      )
+        pools.push(element);
+    });
+
+    return pools;
+  };
+
+  getRaydiumPoolsForTokens = async (poolTokenA: PublicKey, poolTokenB: PublicKey): Promise<Pool[]> => {
+    let pools: Pool[] = [];
+    let raydiumPools = await this._raydiumService.getRaydiumWhirlpools();
+    raydiumPools.data.forEach((element) => {
+      if (
+        (element.mintA.toString() == poolTokenA.toString() && element.mintB.toString() == poolTokenB.toString()) ||
+        (element.mintA.toString() == poolTokenB.toString() && element.mintB.toString() == poolTokenA.toString())
+      ) {
+        pools.push(element);
+      }
+    });
+
+    return pools;
+  };
 
   /**
    * Return a list of all Kamino whirlpool strategies
@@ -272,6 +349,8 @@ export class Kamino {
       return res;
     });
   };
+
+  getAllWhirlpoolsWithFilters = async (): Promise<void> => {};
 
   /**
    * Get a Kamino whirlpool strategy by its public key address
