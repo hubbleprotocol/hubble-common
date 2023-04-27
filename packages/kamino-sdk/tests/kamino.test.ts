@@ -1123,7 +1123,7 @@ describe('Kamino SDK Tests', () => {
     expect(termsSignatureState).to.not.be.null;
   });
 
-  it('create_terms_signature_and_read_state', async () => {
+  it('read depositable tokens', async () => {
     let kamino = new Kamino(
       cluster,
       connection,
@@ -1133,7 +1133,10 @@ describe('Kamino SDK Tests', () => {
       LOCAL_RAYDIUM_PROGRAM_ID
     );
 
-    await kamino.getDepositableToken();
+    let depositableTokens = await kamino.getDepositableTokens();
+    expect(depositableTokens.length).to.be.eq(2);
+    expect(depositableTokens[0].mint).to.be.eq(fixtures.newTokenMintA);
+    expect(depositableTokens[1].mint).to.be.eq(fixtures.newTokenMintB);
   });
 });
 

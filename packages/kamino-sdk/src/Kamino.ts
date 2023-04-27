@@ -185,11 +185,21 @@ export class Kamino {
 
   getTokenMap = () => this._tokenMap;
 
-  getDepositableToken = async () => {
-    const collateralInfos = await CollateralInfos.fetch(this._connection, this._config.kamino.collateralInfos);
-    if (!collateralInfos) {
-      throw Error('Could not fetch collateral infos');
+  getDepositableTokens = async (): Promise<CollateralInfo[]> => {
+    let config = await GlobalConfig.fetch(this._connection, this._globalConfig);
+    if (!config) {
+      throw Error(`Could not fetch globalConfig  with pubkey ${this.getGlobalConfig().toString()}`);
     }
+    const collateralInfos = await this.getCollateralInfo(config.tokenInfos);
+
+    let depositableTokens: CollateralInfo[] = [];
+    collateralInfos.forEach((element) => {
+      if (element.mint != PublicKey.default) {
+        depositableTokens.push(element);
+      }
+    });
+
+    return depositableTokens;
   };
 
   /**
@@ -2104,8 +2114,8 @@ export class Kamino {
     return amountsSlippage;
   };
 
-  getCollateralInfo = async (): Promise<CollateralInfo[]> => {
-    const collateralInfos = await CollateralInfos.fetch(this._connection, this._config.kamino.collateralInfos);
+  getCollateralInfo = async (collateralInfo: PublicKey): Promise<CollateralInfo[]> => {
+    const collateralInfos = await CollateralInfos.fetch(this._connection, collateralInfo);
     if (!collateralInfos) {
       throw Error('Could not fetch collateral infos');
     }
