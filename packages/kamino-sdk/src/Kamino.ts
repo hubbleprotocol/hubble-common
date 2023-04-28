@@ -64,6 +64,8 @@ import {
   getAssociatedTokenAddressAndData,
   getDexProgramId,
   getReadOnlyWallet,
+  getStrategyRebalanceParams,
+  numberToRebalanceType,
   StrategiesFilters,
   strategyCreationStatusToBase58,
   strategyTypeToBase58,
@@ -87,6 +89,9 @@ import {
   openLiquidityPosition,
   OpenLiquidityPositionAccounts,
   OpenLiquidityPositionArgs,
+  updateStrategyConfig,
+  UpdateStrategyConfigAccounts,
+  UpdateStrategyConfigArgs,
   withdraw,
   WithdrawAccounts,
   WithdrawArgs,
@@ -102,7 +107,12 @@ import {
   METADATA_PROGRAM_ID,
   METADATA_UPDATE_AUTH,
 } from './constants';
-import { CollateralInfo, ExecutiveWithdrawActionKind, StrategyStatusKind } from './kamino-client/types';
+import {
+  CollateralInfo,
+  ExecutiveWithdrawActionKind,
+  StrategyConfigOption,
+  StrategyStatusKind,
+} from './kamino-client/types';
 import { Rebalance } from './kamino-client/types/ExecutiveWithdrawAction';
 import { AmmConfig, PersonalPositionState, PoolState } from './raydium_client';
 import { PROGRAM_ID as RAYDIUM_PROGRAM_ID, setRaydiumProgramId } from './raydium_client/programId';
@@ -1771,6 +1781,29 @@ export class Kamino {
     };
 
     return invest(accounts);
+  };
+
+  getUpdateRebalancingParmsIxns = async (
+    strategyAdmin: PublicKey,
+    strategy: PublicKey,
+    params: Decimal[]
+  ): Promise<TransactionInstruction> => {
+    const { strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
+    let rebalanceType = numberToRebalanceType(strategyState.rebalanceType);
+    const value = getStrategyRebalanceParams(params, rebalanceType);
+    let args: UpdateStrategyConfigArgs = {
+      mode: StrategyConfigOption.UpdateRebalanceParams.discriminator,
+      value,
+    };
+
+    let accounts: UpdateStrategyConfigAccounts = {
+      adminAuthority: strategyAdmin,
+      newAccount: new PublicKey(0), // not used
+      globalConfig: strategyState.globalConfig,
+      strategy,
+      systemProgram: SystemProgram.programId,
+    };
+    return updateStrategyConfig(args, accounts);
   };
 
   /**

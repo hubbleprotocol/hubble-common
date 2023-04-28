@@ -50,3 +50,13 @@ export function getStrategyRebalanceParams(params: Array<Decimal>, rebalance_typ
   }
   return [...buffer];
 }
+
+export function numberToRebalanceType(rebalance_type: number): RebalanceTypeKind {
+  if (rebalance_type == 0) {
+    return new RebalanceType.Manual();
+  } else if (rebalance_type == 1) {
+    return new RebalanceType.PricePercentage();
+  } else {
+    throw new Error(`Invalid rebalance type ${rebalance_type.toString()}`);
+  }
+}
