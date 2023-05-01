@@ -204,14 +204,7 @@ export class Kamino {
     }
     const collateralInfos = await this.getCollateralInfo(config.tokenInfos);
 
-    let depositableTokens: CollateralInfo[] = [];
-    collateralInfos.forEach((element) => {
-      if (element.mint.toString() != SystemProgram.programId.toString()) {
-        depositableTokens.push(element);
-      }
-    });
-
-    return depositableTokens;
+    return collateralInfos.filter((x) => x.mint.toString() != SystemProgram.programId.toString());
   };
 
   getSupportedDexes = (): Dex[] => ['ORCA', 'RAYDIUM'];
@@ -1786,11 +1779,11 @@ export class Kamino {
   getUpdateRebalancingParmsIxns = async (
     strategyAdmin: PublicKey,
     strategy: PublicKey,
-    params: Decimal[]
+    rebalanceParams: Decimal[]
   ): Promise<TransactionInstruction> => {
     const { strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
     let rebalanceType = numberToRebalanceType(strategyState.rebalanceType);
-    const value = getStrategyRebalanceParams(params, rebalanceType);
+    const value = getStrategyRebalanceParams(rebalanceParams, rebalanceType);
     let args: UpdateStrategyConfigArgs = {
       mode: StrategyConfigOption.UpdateRebalanceParams.discriminator,
       value,
@@ -1804,6 +1797,61 @@ export class Kamino {
       systemProgram: SystemProgram.programId,
     };
     return updateStrategyConfig(args, accounts);
+  };
+
+  // Create pool if necessary
+  // Setup tick arrays if necessary
+  // Initialize Strategy
+  // Set params for strategy (rebalancing) + other general params
+  getBuildStrategyIxns = async (
+    dex: Dex,
+    feeTier: Decimal,
+    strategyAdmin: PublicKey,
+    rebalanceParams: Decimal[],
+    tokenAMint: PublicKey,
+    tokenBMint: PublicKey
+  ) => {
+    // check both tokens exist in collateralInfo
+    let config = await GlobalConfig.fetch(this._connection, this._globalConfig);
+    if (!config) {
+      throw Error(`Could not fetch globalConfig  with pubkey ${this.getGlobalConfig().toString()}`);
+    }
+    const collateralInfos = await this.getCollateralInfo(config.tokenInfos);
+    if (!this.mintIsSupported(collateralInfos, tokenAMint) || !this.mintIsSupported(collateralInfos, tokenBMint)) {
+      throw Error(`Token mint ${tokenAMint.toString()} is not supported`);
+    }
+
+    // verify that the fee tier is valid
+    let feeTiers = this.getFeeTiersForDex(dex);
+    if (!feeTiers.includes(feeTier)) {
+      throw Error(`Fee tier ${feeTier} is not supported`);
+    }
+
+    let poolExistsForUserInput = await this.isPoolInitializedForDexPairTier(dex, tokenAMint, tokenBMint, feeTier);
+    
+    if (dex == 'ORCA') {
+      let orcaPools = await this.getOrcaPoolsForTokens(tokenAMint, tokenBMint);
+      if (orcaPools.length == 0) {
+        throw Error(`No ORCA pool found for ${tokenAMint.toString()} and ${tokenBMint.toString()}`);
+      }
+
+
+    } else if (dex == 'RAYDIUM') {
+      let raydiumPools = await this.getRaydiumPoolsForTokens(tokenAMint, tokenBMint);
+      if (raydiumPools.length == 0) {
+        throw Error(`No Raydium pool found for ${tokenAMint.toString()} and ${tokenBMint.toString()}`);
+      }
+    }
+    this.getExistentPoolsForPair(dex, tokenAMint, tokenBMint);
+  };
+
+  mintIsSupported = (collateralInfos: CollateralInfo[], tokenMint: PublicKey): boolean => {
+    collateralInfos.forEach((element) => {
+      if (element.mint.toString() != SystemProgram.programId.toString()) {
+        return true;
+      }
+    });
+    return false;
   };
 
   /**
