@@ -1791,7 +1791,7 @@ export class Kamino {
 
     let accounts: UpdateStrategyConfigAccounts = {
       adminAuthority: strategyAdmin,
-      newAccount: new PublicKey(0), // not used
+      newAccount: PublicKey.default, // not used
       globalConfig: strategyState.globalConfig,
       strategy,
       systemProgram: SystemProgram.programId,
