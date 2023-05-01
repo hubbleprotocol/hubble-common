@@ -1828,14 +1828,12 @@ export class Kamino {
     }
 
     let poolExistsForUserInput = await this.isPoolInitializedForDexPairTier(dex, tokenAMint, tokenBMint, feeTier);
-    
+
     if (dex == 'ORCA') {
       let orcaPools = await this.getOrcaPoolsForTokens(tokenAMint, tokenBMint);
       if (orcaPools.length == 0) {
         throw Error(`No ORCA pool found for ${tokenAMint.toString()} and ${tokenBMint.toString()}`);
       }
-
-
     } else if (dex == 'RAYDIUM') {
       let raydiumPools = await this.getRaydiumPoolsForTokens(tokenAMint, tokenBMint);
       if (raydiumPools.length == 0) {
