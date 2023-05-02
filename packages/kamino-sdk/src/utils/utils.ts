@@ -1,9 +1,14 @@
-import { PublicKey } from '@solana/web3.js';
+import { PublicKey, SystemProgram, TransactionInstruction } from '@solana/web3.js';
 import { WhirlpoolStrategy } from '../kamino-client/accounts';
 import { WHIRLPOOL_PROGRAM_ID } from '../whirpools-client/programId';
 import { PROGRAM_ID as RAYDIUM_PROGRAM_ID } from '../raydium_client/programId';
 import Decimal from 'decimal.js';
-import { RebalanceType, RebalanceTypeKind } from '../kamino-client/types';
+import { RebalanceType, RebalanceTypeKind, StrategyConfigOptionKind } from '../kamino-client/types';
+import {
+  UpdateStrategyConfigAccounts,
+  UpdateStrategyConfigArgs,
+  updateStrategyConfig,
+} from '../kamino-client/instructions';
 
 export function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -59,4 +64,28 @@ export function numberToRebalanceType(rebalance_type: number): RebalanceTypeKind
   } else {
     throw new Error(`Invalid rebalance type ${rebalance_type.toString()}`);
   }
+}
+
+export async function getUpdateStrategyConfigIx(
+  signer: PublicKey,
+  globalConfig: PublicKey,
+  strategy: PublicKey,
+  mode: StrategyConfigOptionKind,
+  amount: Decimal,
+  newAccount: PublicKey = PublicKey.default
+): Promise<TransactionInstruction> {
+  let args: UpdateStrategyConfigArgs = {
+    mode: mode.discriminator,
+    value: getStrategyConfigValue(amount),
+  };
+
+  let accounts: UpdateStrategyConfigAccounts = {
+    adminAuthority: signer,
+    newAccount,
+    globalConfig,
+    strategy,
+    systemProgram: SystemProgram.programId,
+  };
+
+  return updateStrategyConfig(args, accounts);
 }

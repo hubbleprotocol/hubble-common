@@ -13,6 +13,7 @@ import {
   Dex,
   getAssociatedTokenAddress,
   getStrategyConfigValue,
+  getUpdateStrategyConfigIx,
   sendTransactionWithLogs,
   sleep,
   TOKEN_PROGRAM_ID,

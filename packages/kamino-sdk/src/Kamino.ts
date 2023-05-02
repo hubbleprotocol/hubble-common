@@ -66,6 +66,7 @@ import {
   getReadOnlyWallet,
   getStrategyConfigValue,
   getStrategyRebalanceParams,
+  getUpdateStrategyConfigIx,
   numberToRebalanceType,
   StrategiesFilters,
   strategyCreationStatusToBase58,
@@ -2346,30 +2347,6 @@ export class Kamino {
     return { aVault, bVault };
   };
 
-  getUpdateStrategyConfigIx = async (
-    signer: PublicKey,
-    globalConfig: PublicKey,
-    strategy: PublicKey,
-    mode: StrategyConfigOptionKind,
-    amount: Decimal,
-    newAccount: PublicKey = PublicKey.default
-  ): Promise<TransactionInstruction> => {
-    let args: UpdateStrategyConfigArgs = {
-      mode: mode.discriminator,
-      value: getStrategyConfigValue(amount),
-    };
-
-    let accounts: UpdateStrategyConfigAccounts = {
-      adminAuthority: signer,
-      newAccount,
-      globalConfig,
-      strategy,
-      systemProgram: SystemProgram.programId,
-    };
-
-    return updateStrategyConfig(args, accounts);
-  };
-
   getUpdateStrategyParamsIxs = async (
     strategyAdmin: PublicKey,
     globalConfig: PublicKey,
@@ -2380,56 +2357,56 @@ export class Kamino {
     withdrawFee: Decimal,
     performanceFee: Decimal
   ): Promise<TransactionInstruction[]> => {
-    let updateDepositCapIx = await this.getUpdateStrategyConfigIx(
+    let updateDepositCapIx = await getUpdateStrategyConfigIx(
       strategyAdmin,
       this._globalConfig,
       strategy,
       new UpdateDepositCap(),
       depositCap
     );
-    let updateDepositCapPerIxnIx = await this.getUpdateStrategyConfigIx(
+    let updateDepositCapPerIxnIx = await getUpdateStrategyConfigIx(
       strategyAdmin,
       this._globalConfig,
       strategy,
       new UpdateDepositCapIxn(),
       depositCapPerIx
     );
-    let updateDepositFeeIx = await this.getUpdateStrategyConfigIx(
+    let updateDepositFeeIx = await getUpdateStrategyConfigIx(
       strategyAdmin,
       this._globalConfig,
       strategy,
       new UpdateDepositFee(),
       depositFee
     );
-    let updateWithdrawalFeeIx = await this.getUpdateStrategyConfigIx(
+    let updateWithdrawalFeeIx = await getUpdateStrategyConfigIx(
       strategyAdmin,
       this._globalConfig,
       strategy,
       new UpdateWithdrawFee(),
       withdrawFee
     );
-    let updateFeesFeeIx = await this.getUpdateStrategyConfigIx(
+    let updateFeesFeeIx = await getUpdateStrategyConfigIx(
       strategyAdmin,
       this._globalConfig,
       strategy,
       new UpdateCollectFeesFee(),
       performanceFee
     );
-    let updateRewards0FeeIx = await this.getUpdateStrategyConfigIx(
+    let updateRewards0FeeIx = await getUpdateStrategyConfigIx(
       strategyAdmin,
       this._globalConfig,
       strategy,
       new UpdateReward0Fee(),
       performanceFee
     );
-    let updateRewards1FeeIx = await this.getUpdateStrategyConfigIx(
+    let updateRewards1FeeIx = await getUpdateStrategyConfigIx(
       strategyAdmin,
       this._globalConfig,
       strategy,
       new UpdateReward1Fee(),
       performanceFee
     );
-    let updateRewards2FeeIx = await this.getUpdateStrategyConfigIx(
+    let updateRewards2FeeIx = await getUpdateStrategyConfigIx(
       strategyAdmin,
       this._globalConfig,
       strategy,
