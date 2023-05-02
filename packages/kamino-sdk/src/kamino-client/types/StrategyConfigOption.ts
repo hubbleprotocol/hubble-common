@@ -854,6 +854,75 @@ export class UpdateStrategyCreationState {
   }
 }
 
+export interface UpdateIsCommunityJSON {
+  kind: "UpdateIsCommunity"
+}
+
+export class UpdateIsCommunity {
+  static readonly discriminator = 37
+  static readonly kind = "UpdateIsCommunity"
+  readonly discriminator = 37
+  readonly kind = "UpdateIsCommunity"
+
+  toJSON(): UpdateIsCommunityJSON {
+    return {
+      kind: "UpdateIsCommunity",
+    }
+  }
+
+  toEncodable() {
+    return {
+      UpdateIsCommunity: {},
+    }
+  }
+}
+
+export interface UpdateRebalanceTypeJSON {
+  kind: "UpdateRebalanceType"
+}
+
+export class UpdateRebalanceType {
+  static readonly discriminator = 38
+  static readonly kind = "UpdateRebalanceType"
+  readonly discriminator = 38
+  readonly kind = "UpdateRebalanceType"
+
+  toJSON(): UpdateRebalanceTypeJSON {
+    return {
+      kind: "UpdateRebalanceType",
+    }
+  }
+
+  toEncodable() {
+    return {
+      UpdateRebalanceType: {},
+    }
+  }
+}
+
+export interface UpdateRebalanceParamsJSON {
+  kind: "UpdateRebalanceParams"
+}
+
+export class UpdateRebalanceParams {
+  static readonly discriminator = 39
+  static readonly kind = "UpdateRebalanceParams"
+  readonly discriminator = 39
+  readonly kind = "UpdateRebalanceParams"
+
+  toJSON(): UpdateRebalanceParamsJSON {
+    return {
+      kind: "UpdateRebalanceParams",
+    }
+  }
+
+  toEncodable() {
+    return {
+      UpdateRebalanceParams: {},
+    }
+  }
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function fromDecoded(obj: any): types.StrategyConfigOptionKind {
   if (typeof obj !== "object") {
@@ -970,6 +1039,15 @@ export function fromDecoded(obj: any): types.StrategyConfigOptionKind {
   }
   if ("UpdateStrategyCreationState" in obj) {
     return new UpdateStrategyCreationState()
+  }
+  if ("UpdateIsCommunity" in obj) {
+    return new UpdateIsCommunity()
+  }
+  if ("UpdateRebalanceType" in obj) {
+    return new UpdateRebalanceType()
+  }
+  if ("UpdateRebalanceParams" in obj) {
+    return new UpdateRebalanceParams()
   }
 
   throw new Error("Invalid enum object")
@@ -1090,6 +1168,15 @@ export function fromJSON(
     case "UpdateStrategyCreationState": {
       return new UpdateStrategyCreationState()
     }
+    case "UpdateIsCommunity": {
+      return new UpdateIsCommunity()
+    }
+    case "UpdateRebalanceType": {
+      return new UpdateRebalanceType()
+    }
+    case "UpdateRebalanceParams": {
+      return new UpdateRebalanceParams()
+    }
   }
 }
 
@@ -1132,6 +1219,9 @@ export function layout(property?: string) {
     borsh.struct([], "UpdateSwapVaultMaxSlippageFromRef"),
     borsh.struct([], "ResetReferencePrices"),
     borsh.struct([], "UpdateStrategyCreationState"),
+    borsh.struct([], "UpdateIsCommunity"),
+    borsh.struct([], "UpdateRebalanceType"),
+    borsh.struct([], "UpdateRebalanceParams"),
   ])
   if (property !== undefined) {
     return ret.replicate(property)

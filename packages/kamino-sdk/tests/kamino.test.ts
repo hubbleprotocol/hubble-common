@@ -32,7 +32,6 @@ import {
 } from '../src/kamino-client/types/StrategyConfigOption';
 import { expect } from 'chai';
 import { WHIRLPOOL_PROGRAM_ID } from '../src/whirpools-client/programId';
-import { assert } from 'console';
 import * as ed25519 from 'tweetnacl-ts';
 import { Provider } from '@project-serum/anchor';
 
@@ -42,7 +41,6 @@ export const USDC_SCOPE_CHAIN_ID = BigInt(20);
 
 describe('Kamino SDK Tests', () => {
   let connection: Connection;
-  // const cluster: Cluster = 'localnet';
   const cluster = 'localnet';
   const clusterUrl: string = 'http://127.0.0.1:8899';
   connection = new Connection(clusterUrl, 'processed');
@@ -98,6 +96,7 @@ describe('Kamino SDK Tests', () => {
     let globalConfig = await setUpGlobalConfig(kamino, signer, fixtures.scopeProgram, fixtures.scopePrices);
     console.log('globalConfig initialized ', globalConfig.toString());
     kamino.setGlobalConfig(globalConfig);
+    fixtures.globalConfig = globalConfig;
 
     let collateralInfo = await setUpCollateralInfo(kamino, signer);
     await sleep(1000);
@@ -1121,6 +1120,23 @@ describe('Kamino SDK Tests', () => {
     const termsSignatureState = await kamino.getUserTermsSignatureState(owner.publicKey);
     console.log(termsSignatureState);
     expect(termsSignatureState).to.not.be.null;
+  });
+
+  it('read depositable tokens', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      fixtures.globalConfig,
+      fixtures.kaminoProgramId,
+      WHIRLPOOL_PROGRAM_ID,
+      LOCAL_RAYDIUM_PROGRAM_ID
+    );
+
+    let depositableTokens = await kamino.getDepositableTokens();
+    expect(depositableTokens.length).to.be.eq(2);
+
+    expect(depositableTokens[1].mint.toString()).to.be.eq(fixtures.newTokenMintA.toString());
+    expect(depositableTokens[0].mint.toString()).to.be.eq(fixtures.newTokenMintB.toString());
   });
 });
 

@@ -13,6 +13,10 @@ import {
   SYSVAR_INSTRUCTIONS_PUBKEY,
   SYSVAR_RENT_PUBKEY,
   TransactionInstruction,
+  AddressLookupTableProgram,
+  AddressLookupTableAccount,
+  MessageV0,
+  TransactionMessage,
 } from '@solana/web3.js';
 import { setKaminoProgramId } from './kamino-client/programId';
 import {
@@ -64,6 +68,10 @@ import {
   getAssociatedTokenAddressAndData,
   getDexProgramId,
   getReadOnlyWallet,
+  getStrategyConfigValue,
+  getStrategyRebalanceParams,
+  getUpdateStrategyConfigIx,
+  numberToRebalanceType,
   StrategiesFilters,
   strategyCreationStatusToBase58,
   strategyTypeToBase58,
@@ -87,6 +95,9 @@ import {
   openLiquidityPosition,
   OpenLiquidityPositionAccounts,
   OpenLiquidityPositionArgs,
+  updateStrategyConfig,
+  UpdateStrategyConfigAccounts,
+  UpdateStrategyConfigArgs,
   withdraw,
   WithdrawAccounts,
   WithdrawArgs,
@@ -102,7 +113,15 @@ import {
   METADATA_PROGRAM_ID,
   METADATA_UPDATE_AUTH,
 } from './constants';
-import { CollateralInfo, ExecutiveWithdrawActionKind, StrategyStatusKind } from './kamino-client/types';
+import {
+  CollateralInfo,
+  ExecutiveWithdrawActionKind,
+  RebalanceType,
+  RebalanceTypeKind,
+  StrategyConfigOption,
+  StrategyConfigOptionKind,
+  StrategyStatusKind,
+} from './kamino-client/types';
 import { Rebalance } from './kamino-client/types/ExecutiveWithdrawAction';
 import { AmmConfig, PersonalPositionState, PoolState } from './raydium_client';
 import { PROGRAM_ID as RAYDIUM_PROGRAM_ID, setRaydiumProgramId } from './raydium_client/programId';
@@ -117,6 +136,26 @@ import {
 } from '@orca-so/whirlpool-sdk/dist/position/quotes/add-liquidity';
 import { signTerms, SignTermsAccounts, SignTermsArgs } from './kamino-client/instructions';
 import { Pool } from './services/RaydiumPoolsResponse';
+import { Orca, Raydium } from './kamino-client/types/DEX';
+import {
+  UpdateDepositCap,
+  UpdateDepositCapIxn,
+  UpdateWithdrawFee,
+  UpdateDepositFee,
+  UpdateReward0Fee,
+  UpdateReward1Fee,
+  UpdateReward2Fee,
+  UpdateCollectFeesFee,
+  UpdateRebalanceType,
+} from './kamino-client/types/StrategyConfigOption';
+import {
+  DefaultDepositCap,
+  DefaultDepositCapPerIx,
+  DefaultDepositFeeBps,
+  DefaultPerformanceFeeBps,
+  DefaultWithdrawFeeBps,
+} from './constants/DefaultStrategyConfig';
+import { DEVNET_GLOBAL_LOOKUP_TABLE, MAINNET_GLOBAL_LOOKUP_TABLE } from './constants/pubkeys';
 export const KAMINO_IDL = KaminoIdl;
 
 export class Kamino {
@@ -158,6 +197,7 @@ export class Kamino {
     });
     this._kaminoProgramId = programId ? programId : this._config.kamino.programId;
     this._kaminoProgram = new Program(KAMINO_IDL as Idl, this._kaminoProgramId, this._provider);
+
     this._scope = new Scope(cluster, connection);
     setKaminoProgramId(this._kaminoProgramId);
 
@@ -184,6 +224,101 @@ export class Kamino {
   getGlobalConfig = () => this._globalConfig;
 
   getTokenMap = () => this._tokenMap;
+
+  getDepositableTokens = async (): Promise<CollateralInfo[]> => {
+    let config = await GlobalConfig.fetch(this._connection, this._globalConfig);
+    if (!config) {
+      throw Error(`Could not fetch globalConfig  with pubkey ${this.getGlobalConfig().toString()}`);
+    }
+    const collateralInfos = await this.getCollateralInfo(config.tokenInfos);
+
+    return collateralInfos.filter((x) => x.mint.toString() != SystemProgram.programId.toString());
+  };
+
+  getSupportedDexes = (): Dex[] => ['ORCA', 'RAYDIUM'];
+
+  // const whirlpoolConfig: PublicKey = new PublicKey("2LecshUwdy9xi7meFgHtFJQNSKk4KdTrcpvaB56dP2NQ");
+
+  // todo: see if we can read this dinamically
+  getFeeTiersForDex = (dex: Dex): Decimal[] => {
+    if (dex == 'ORCA') {
+      return [new Decimal(0.0001), new Decimal(0.0005), new Decimal(0.003), new Decimal(0.01)];
+    } else if (dex == 'RAYDIUM') {
+      return [new Decimal(0.0001), new Decimal(0.0005), new Decimal(0.0025), new Decimal(0.01)];
+    } else {
+      throw new Error(`Dex ${dex} is not supported`);
+    }
+  };
+
+  getPoolInitializedForDexPairTier = async (
+    dex: Dex,
+    poolTokenA: PublicKey,
+    poolTokenB: PublicKey,
+    fee: Decimal
+  ): Promise<PublicKey> => {
+    if (dex == 'ORCA') {
+      let pool = PublicKey.default;
+      let orcaPools = await this.getOrcaPoolsForTokens(poolTokenA, poolTokenB);
+      orcaPools.forEach((element) => {
+        if (element.lpFeeRate == fee.toNumber()) {
+          pool = new PublicKey(element.address);
+        }
+      });
+      return pool;
+    } else if (dex == 'RAYDIUM') {
+      let pool = PublicKey.default;
+      let raydiumPools = await this.getRaydiumPoolsForTokens(poolTokenA, poolTokenB);
+      raydiumPools.forEach((element) => {
+        if (element.ammConfig.tradeFeeRate == fee.toNumber()) {
+          pool = new PublicKey(element.id);
+        }
+      });
+      return pool;
+    } else {
+      throw new Error(`Dex ${dex} is not supported`);
+    }
+  };
+
+  getExistentPoolsForPair(dex: Dex, poolTokenA: PublicKey, poolTokenB: PublicKey) {
+    if (dex == 'ORCA') {
+      return this.getOrcaPoolsForTokens(poolTokenA, poolTokenB);
+    } else if (dex == 'RAYDIUM') {
+      return this.getRaydiumPoolsForTokens(poolTokenA, poolTokenB);
+    } else {
+      throw new Error(`Dex ${dex} is not supported`);
+    }
+  }
+
+  getOrcaPoolsForTokens = async (poolTokenA: PublicKey, poolTokenB: PublicKey): Promise<OrcaPool[]> => {
+    let pools: OrcaPool[] = [];
+    let whirlpools = await this._orcaService.getOrcaWhirlpools();
+    whirlpools.whirlpools.forEach((element) => {
+      if (
+        (element.tokenA.mint.toString() == poolTokenA.toString() &&
+          element.tokenB.mint.toString() == poolTokenB.toString()) ||
+        (element.tokenA.mint.toString() == poolTokenB.toString() &&
+          element.tokenB.mint.toString() == poolTokenA.toString())
+      )
+        pools.push(element);
+    });
+
+    return pools;
+  };
+
+  getRaydiumPoolsForTokens = async (poolTokenA: PublicKey, poolTokenB: PublicKey): Promise<Pool[]> => {
+    let pools: Pool[] = [];
+    let raydiumPools = await this._raydiumService.getRaydiumWhirlpools();
+    raydiumPools.data.forEach((element) => {
+      if (
+        (element.mintA.toString() == poolTokenA.toString() && element.mintB.toString() == poolTokenB.toString()) ||
+        (element.mintA.toString() == poolTokenB.toString() && element.mintB.toString() == poolTokenA.toString())
+      ) {
+        pools.push(element);
+      }
+    });
+
+    return pools;
+  };
 
   /**
    * Return a list of all Kamino whirlpool strategies
@@ -247,6 +382,8 @@ export class Kamino {
       return res;
     });
   };
+
+  getAllWhirlpoolsWithFilters = async (): Promise<void> => {};
 
   /**
    * Get a Kamino whirlpool strategy by its public key address
@@ -1669,6 +1806,165 @@ export class Kamino {
     return invest(accounts);
   };
 
+  getUpdateRebalancingParmsIxns = async (
+    strategyAdmin: PublicKey,
+    strategy: PublicKey,
+    rebalanceParams: Decimal[],
+    rebalanceType?: RebalanceTypeKind
+  ): Promise<TransactionInstruction> => {
+    if (!rebalanceType) {
+      const { strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
+      rebalanceType = numberToRebalanceType(strategyState.rebalanceType);
+    }
+    const value = getStrategyRebalanceParams(rebalanceParams, rebalanceType);
+    let args: UpdateStrategyConfigArgs = {
+      mode: StrategyConfigOption.UpdateRebalanceParams.discriminator,
+      value,
+    };
+
+    let accounts: UpdateStrategyConfigAccounts = {
+      adminAuthority: strategyAdmin,
+      newAccount: PublicKey.default, // not used
+      globalConfig: this._globalConfig,
+      strategy,
+      systemProgram: SystemProgram.programId,
+    };
+    return updateStrategyConfig(args, accounts);
+  };
+
+  /**
+   * Get a list of instructions to initialize and set up a strategy
+   * @param dex the dex to use (Orca or Raydium)
+   * @param feeTier which fee tier for that specific pair should be used
+   * @param tokenAMint the mint of TokenA in the pool
+   * @param tokenBMint the mint of TokenB in the pool
+   * @param depositCap the maximum amount in USD in lamports (6 decimals) that can be deposited into the strategy
+   * @param depositCapPerIx the maximum amount in USD in lamports (6 decimals) that can be deposited into the strategy per instruction
+   */
+  getBuildStrategyIxns = async (
+    dex: Dex,
+    feeTier: Decimal,
+    strategy: PublicKey,
+    strategyAdmin: PublicKey,
+    rebalanceType: Decimal,
+    rebalanceParams: Decimal[],
+    tokenAMint: PublicKey,
+    tokenBMint: PublicKey,
+    depositCap?: Decimal,
+    depositCapPerIx?: Decimal,
+    withdrawFeeBps?: Decimal,
+    depositFeeBps?: Decimal,
+    performanceFeeBps?: Decimal
+  ): Promise<[TransactionInstruction, TransactionInstruction[], TransactionInstruction]> => {
+    // check both tokens exist in collateralInfo
+    let config = await GlobalConfig.fetch(this._connection, this._globalConfig);
+    if (!config) {
+      throw Error(`Could not fetch globalConfig  with pubkey ${this.getGlobalConfig().toString()}`);
+    }
+    const collateralInfos = await this.getCollateralInfo(config.tokenInfos);
+    if (!this.mintIsSupported(collateralInfos, tokenAMint) || !this.mintIsSupported(collateralInfos, tokenBMint)) {
+      throw Error(`Token mint ${tokenAMint.toString()} is not supported`);
+    }
+
+    let pool = await this.getPoolInitializedForDexPairTier(dex, tokenAMint, tokenBMint, feeTier);
+    if (pool == PublicKey.default) {
+      throw Error(
+        `Pool for tokens ${tokenAMint.toString()} and ${tokenBMint.toString()} for feeTier ${feeTier.toString()} does not exist`
+      );
+    }
+
+    let tokenACollateral = getCollateralMintByAddress(tokenAMint, this._config);
+    if (!tokenACollateral) {
+      throw Error(`Token mint ${tokenAMint.toString()} is not supported`);
+    }
+    let tokenBCollateral = getCollateralMintByAddress(tokenBMint, this._config);
+    if (!tokenBCollateral) {
+      throw Error(`Token mint ${tokenBMint.toString()} is not supported`);
+    }
+    let initStrategyIx = await this.createStrategy(
+      strategy,
+      pool,
+      strategyAdmin,
+      tokenACollateral.scopeToken as SupportedToken,
+      tokenBCollateral.scopeToken as SupportedToken,
+      dex
+    );
+
+    let rebalanceKind = numberToRebalanceType(rebalanceType.toNumber());
+    let updateRebalanceParamsIx = await this.getUpdateRebalancingParmsIxns(
+      strategyAdmin,
+      strategy,
+      rebalanceParams,
+      rebalanceKind
+    );
+
+    let updateStrategyParamsIx = await this.getUpdateStrategyParamsIxs(
+      strategyAdmin,
+      strategy,
+      rebalanceType,
+      depositCap,
+      depositCapPerIx,
+      depositFeeBps,
+      withdrawFeeBps,
+      performanceFeeBps
+    );
+
+    let ixs: TransactionInstruction[] = [];
+    ixs = ixs.concat(updateStrategyParamsIx);
+    return [initStrategyIx, ixs, updateRebalanceParamsIx];
+  };
+
+  mintIsSupported = (collateralInfos: CollateralInfo[], tokenMint: PublicKey): boolean => {
+    let found = false;
+    collateralInfos.forEach((element) => {
+      if (element.mint.toString() === tokenMint.toString()) {
+        console.log('cretaker');
+        found = true;
+      }
+    });
+    return found;
+  };
+
+  getLookupTable = async (): Promise<AddressLookupTableAccount> => {
+    if (this._cluster == 'mainnet-beta') {
+      const lookupTableAccount = await this._connection
+        .getAddressLookupTable(MAINNET_GLOBAL_LOOKUP_TABLE)
+        .then((res) => res.value);
+      if (!lookupTableAccount) {
+        throw new Error(`Could not get lookup table ${MAINNET_GLOBAL_LOOKUP_TABLE}`);
+      }
+      return lookupTableAccount;
+    } else if (this._cluster == 'devnet') {
+      const lookupTableAccount = await this._connection
+        .getAddressLookupTable(DEVNET_GLOBAL_LOOKUP_TABLE)
+        .then((res) => res.value);
+      if (!lookupTableAccount) {
+        throw new Error(`Could not get lookup table ${DEVNET_GLOBAL_LOOKUP_TABLE}`);
+      }
+      return lookupTableAccount;
+    } else {
+      throw Error('There is no lookup table for localnet yet');
+    }
+  };
+
+  getTransactionV2Message = async (
+    payer: PublicKey,
+    instructions: Array<TransactionInstruction>
+  ): Promise<MessageV0> => {
+    if (this._cluster == 'mainnet-beta' || this._cluster == 'devnet') {
+      let lookupTable = await this.getLookupTable();
+      let blockhash = await this._connection.getLatestBlockhash();
+      const v2Tx = new TransactionMessage({
+        payerKey: payer,
+        recentBlockhash: blockhash.blockhash,
+        instructions: instructions,
+      }).compileToV0Message([lookupTable]);
+      return v2Tx;
+    } else {
+      throw Error('No TransactionV2 on localnet as no lookup table was created');
+    }
+  };
+
   /**
    * Get a list of transactions to rebalance a Kamino strategy.
    * @param strategy strategy pubkey or object
@@ -2097,8 +2393,8 @@ export class Kamino {
     return amountsSlippage;
   };
 
-  getCollateralInfo = async (): Promise<CollateralInfo[]> => {
-    const collateralInfos = await CollateralInfos.fetch(this._connection, this._config.kamino.collateralInfos);
+  getCollateralInfo = async (collateralInfo: PublicKey): Promise<CollateralInfo[]> => {
+    const collateralInfos = await CollateralInfos.fetch(this._connection, collateralInfo);
     if (!collateralInfos) {
       throw Error('Could not fetch collateral infos');
     }
@@ -2114,6 +2410,113 @@ export class Kamino {
     const aVault = vaults[0];
     const bVault = vaults[1];
     return { aVault, bVault };
+  };
+
+  getUpdateStrategyParamsIxs = async (
+    strategyAdmin: PublicKey,
+    strategy: PublicKey,
+    rebalanceType: Decimal,
+    depositCap?: Decimal,
+    depositCapPerIx?: Decimal,
+    depositFeeBps?: Decimal,
+    withdrawFeeBps?: Decimal,
+    performanceFeeBps?: Decimal
+  ): Promise<TransactionInstruction[]> => {
+    let updateRebalanceTypeIx = await getUpdateStrategyConfigIx(
+      strategyAdmin,
+      this._globalConfig,
+      strategy,
+      new UpdateRebalanceType(),
+      rebalanceType
+    );
+
+    if (!depositCap) {
+      depositCap = DefaultDepositCap;
+    }
+    let updateDepositCapIx = await getUpdateStrategyConfigIx(
+      strategyAdmin,
+      this._globalConfig,
+      strategy,
+      new UpdateDepositCap(),
+      depositCap
+    );
+
+    if (!depositCapPerIx) {
+      depositCapPerIx = DefaultDepositCapPerIx;
+    }
+    let updateDepositCapPerIxnIx = await getUpdateStrategyConfigIx(
+      strategyAdmin,
+      this._globalConfig,
+      strategy,
+      new UpdateDepositCapIxn(),
+      depositCapPerIx
+    );
+
+    if (!depositFeeBps) {
+      depositFeeBps = DefaultDepositFeeBps;
+    }
+    let updateDepositFeeIx = await getUpdateStrategyConfigIx(
+      strategyAdmin,
+      this._globalConfig,
+      strategy,
+      new UpdateDepositFee(),
+      depositFeeBps
+    );
+
+    if (!withdrawFeeBps) {
+      withdrawFeeBps = DefaultWithdrawFeeBps;
+    }
+    let updateWithdrawalFeeIx = await getUpdateStrategyConfigIx(
+      strategyAdmin,
+      this._globalConfig,
+      strategy,
+      new UpdateWithdrawFee(),
+      withdrawFeeBps
+    );
+
+    if (!performanceFeeBps) {
+      performanceFeeBps = DefaultPerformanceFeeBps;
+    }
+    let updateFeesFeeIx = await getUpdateStrategyConfigIx(
+      strategyAdmin,
+      this._globalConfig,
+      strategy,
+      new UpdateCollectFeesFee(),
+      performanceFeeBps
+    );
+    let updateRewards0FeeIx = await getUpdateStrategyConfigIx(
+      strategyAdmin,
+      this._globalConfig,
+      strategy,
+      new UpdateReward0Fee(),
+      performanceFeeBps
+    );
+    let updateRewards1FeeIx = await getUpdateStrategyConfigIx(
+      strategyAdmin,
+      this._globalConfig,
+      strategy,
+      new UpdateReward1Fee(),
+      performanceFeeBps
+    );
+    let updateRewards2FeeIx = await getUpdateStrategyConfigIx(
+      strategyAdmin,
+      this._globalConfig,
+      strategy,
+      new UpdateReward2Fee(),
+      performanceFeeBps
+    );
+
+    return [
+      updateRebalanceTypeIx,
+      updateDepositCapIx,
+      updateDepositCapPerIxnIx,
+      updateDepositFeeIx,
+      updateWithdrawalFeeIx,
+      updateFeesFeeIx,
+      updateRewards0FeeIx,
+      updateRewards1FeeIx,
+      updateRewards2FeeIx,
+    ];
   };
 }
 

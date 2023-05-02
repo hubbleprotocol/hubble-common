@@ -8,6 +8,7 @@ import * as ExecutiveWithdrawAction from "./ExecutiveWithdrawAction"
 import * as LiquidityCalculationMode from "./LiquidityCalculationMode"
 import * as UpdateCollateralInfoMode from "./UpdateCollateralInfoMode"
 import * as BalanceStatus from "./BalanceStatus"
+import * as RebalanceType from "./RebalanceType"
 import * as CollateralTestToken from "./CollateralTestToken"
 import * as ScopePriceIdTest from "./ScopePriceIdTest"
 import * as DEX from "./DEX"
@@ -26,6 +27,8 @@ export { Tick } from "./Tick"
 export type { TickFields, TickJSON } from "./Tick"
 export { RewardInfo } from "./RewardInfo"
 export type { RewardInfoFields, RewardInfoJSON } from "./RewardInfo"
+export { RebalanceRaw } from "./RebalanceRaw"
+export type { RebalanceRawFields, RebalanceRawJSON } from "./RebalanceRaw"
 export { CollateralInfo } from "./CollateralInfo"
 export type { CollateralInfoFields, CollateralInfoJSON } from "./CollateralInfo"
 export { KaminoRewardInfo } from "./KaminoRewardInfo"
@@ -132,6 +135,9 @@ export type StrategyConfigOptionKind =
   | StrategyConfigOption.UpdateSwapVaultMaxSlippageFromRef
   | StrategyConfigOption.ResetReferencePrices
   | StrategyConfigOption.UpdateStrategyCreationState
+  | StrategyConfigOption.UpdateIsCommunity
+  | StrategyConfigOption.UpdateRebalanceType
+  | StrategyConfigOption.UpdateRebalanceParams
 export type StrategyConfigOptionJSON =
   | StrategyConfigOption.UpdateDepositCapJSON
   | StrategyConfigOption.UpdateDepositCapIxnJSON
@@ -170,6 +176,9 @@ export type StrategyConfigOptionJSON =
   | StrategyConfigOption.UpdateSwapVaultMaxSlippageFromRefJSON
   | StrategyConfigOption.ResetReferencePricesJSON
   | StrategyConfigOption.UpdateStrategyCreationStateJSON
+  | StrategyConfigOption.UpdateIsCommunityJSON
+  | StrategyConfigOption.UpdateRebalanceTypeJSON
+  | StrategyConfigOption.UpdateRebalanceParamsJSON
 
 export { StrategyStatus }
 
@@ -248,6 +257,15 @@ export type BalanceStatusKind =
 export type BalanceStatusJSON =
   | BalanceStatus.BalancedJSON
   | BalanceStatus.UnbalancedJSON
+
+export { RebalanceType }
+
+export type RebalanceTypeKind =
+  | RebalanceType.Manual
+  | RebalanceType.PricePercentage
+export type RebalanceTypeJSON =
+  | RebalanceType.ManualJSON
+  | RebalanceType.PricePercentageJSON
 
 export { CollateralTestToken }
 
