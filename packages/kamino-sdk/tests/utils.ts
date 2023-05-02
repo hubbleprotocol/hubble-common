@@ -65,26 +65,21 @@ export async function updateStrategyConfig(
   amount: Decimal,
   newAccount: PublicKey = PublicKey.default
 ) {
-  let args: Instructions.UpdateStrategyConfigArgs = {
-    mode: mode.discriminator,
-    value: getStrategyConfigValue(amount),
-  };
-
   let strategyState = await WhirlpoolStrategy.fetch(connection, strategy);
   if (strategyState == null) {
     throw new Error(`strategy ${strategy} doesn't exist`);
   }
 
-  let accounts: Instructions.UpdateStrategyConfigAccounts = {
-    adminAuthority: signer.publicKey,
-    newAccount,
-    globalConfig: strategyState.globalConfig,
+  let updateCapIx = await getUpdateStrategyConfigIx(
+    signer.publicKey,
+    strategyState.globalConfig,
     strategy,
-    systemProgram: anchor.web3.SystemProgram.programId,
-  };
+    mode,
+    amount,
+    newAccount
+  );
 
   const tx = new Transaction();
-  let updateCapIx = Instructions.updateStrategyConfig(args, accounts);
   tx.add(updateCapIx);
 
   let sig = await sendTransactionWithLogs(connection, tx, signer.publicKey, [signer]);
