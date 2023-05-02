@@ -69,124 +69,122 @@ describe('Kamino strategy creation SDK Tests', () => {
   connection = new Connection(clusterUrl, 'processed');
 
   // use your private key here
-  const signerPrivateKey = [
-   
-  ];
+  const signerPrivateKey = [];
   const signer = Keypair.fromSecretKey(Uint8Array.from(signerPrivateKey));
 
-    it.skip('create new manual strategy on existing whirlpool', async () => {
-      let kamino = new Kamino(
-        cluster,
-        connection,
-        GlobalConfigMainnet,
-        KaminoProgramIdMainnet,
-        WHIRLPOOL_PROGRAM_ID,
-        RAYDIUM_PROGRAM_ID
-      );
+  it.skip('create new manual strategy on existing whirlpool', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      GlobalConfigMainnet,
+      KaminoProgramIdMainnet,
+      WHIRLPOOL_PROGRAM_ID,
+      RAYDIUM_PROGRAM_ID
+    );
 
-      const newStrategy = Keypair.generate();
-      const createRaydiumStrategyAccountIx = await kamino.createStrategyAccount(signer.publicKey, newStrategy.publicKey);
-      console.log('newStrategy.publicKey', newStrategy.publicKey.toString());
+    const newStrategy = Keypair.generate();
+    const createRaydiumStrategyAccountIx = await kamino.createStrategyAccount(signer.publicKey, newStrategy.publicKey);
+    console.log('newStrategy.publicKey', newStrategy.publicKey.toString());
 
-      let buildNewStrategyIxs = await kamino.getBuildStrategyIxns(
-        'ORCA',
-        new Decimal(0.0005),
-        newStrategy.publicKey,
-        signer.publicKey,
-        new Decimal(Manual.discriminator),
-        [], // not needed used for manual
-        SOLMintMainnet,
-        USDCMintMainnet
-      );
+    let buildNewStrategyIxs = await kamino.getBuildStrategyIxns(
+      'ORCA',
+      new Decimal(0.0005),
+      newStrategy.publicKey,
+      signer.publicKey,
+      new Decimal(Manual.discriminator),
+      [], // not needed used for manual
+      SOLMintMainnet,
+      USDCMintMainnet
+    );
 
-      let ixs: TransactionInstruction[] = [];
-      ixs.push(createRaydiumStrategyAccountIx);
-      ixs.push(buildNewStrategyIxs[0]);
-      const createStratTx = await kamino.getTransactionV2Message(signer.publicKey, ixs);
-      const createStratTransactionV0 = new VersionedTransaction(createStratTx);
-      createStratTransactionV0.sign([newStrategy, signer]);
-      //@ts-ignore
-      let txHash = await sendAndConfirmTransaction(kamino._connection, createStratTransactionV0);
-      console.log('create strategy tx hash', txHash);
+    let ixs: TransactionInstruction[] = [];
+    ixs.push(createRaydiumStrategyAccountIx);
+    ixs.push(buildNewStrategyIxs[0]);
+    const createStratTx = await kamino.getTransactionV2Message(signer.publicKey, ixs);
+    const createStratTransactionV0 = new VersionedTransaction(createStratTx);
+    createStratTransactionV0.sign([newStrategy, signer]);
+    //@ts-ignore
+    let txHash = await sendAndConfirmTransaction(kamino._connection, createStratTransactionV0);
+    console.log('create strategy tx hash', txHash);
 
-      let strategySetupIxs: TransactionInstruction[] = [];
+    let strategySetupIxs: TransactionInstruction[] = [];
 
-      buildNewStrategyIxs[1].slice(0, 4).map((ix) => strategySetupIxs.push(ix));
-      const setupStratTx = await kamino.getTransactionV2Message(signer.publicKey, strategySetupIxs);
-      const setupStratTransactionV0 = new VersionedTransaction(setupStratTx);
-      setupStratTransactionV0.sign([signer]);
+    buildNewStrategyIxs[1].slice(0, 4).map((ix) => strategySetupIxs.push(ix));
+    const setupStratTx = await kamino.getTransactionV2Message(signer.publicKey, strategySetupIxs);
+    const setupStratTransactionV0 = new VersionedTransaction(setupStratTx);
+    setupStratTransactionV0.sign([signer]);
 
-      //@ts-ignore
-      txHash = await sendAndConfirmTransaction(kamino._connection, setupStratTransactionV0);
-      console.log('setup strategy tx hash', txHash);
+    //@ts-ignore
+    txHash = await sendAndConfirmTransaction(kamino._connection, setupStratTransactionV0);
+    console.log('setup strategy tx hash', txHash);
 
-      let strategySetupFeesIxs: TransactionInstruction[] = [];
-      console.log(' buildNewStrategyIxs[1].length()', buildNewStrategyIxs[1].length);
-      buildNewStrategyIxs[1].slice(4).map((ix) => strategySetupFeesIxs.push(ix));
-      strategySetupFeesIxs.push(buildNewStrategyIxs[2]);
-      const setupStratFeesTx = await kamino.getTransactionV2Message(signer.publicKey, strategySetupFeesIxs);
-      const setupStratFeesTransactionV0 = new VersionedTransaction(setupStratFeesTx);
-      setupStratFeesTransactionV0.sign([signer]);
-      //@ts-ignore
-      txHash = await sendAndConfirmTransaction(kamino._connection, setupStratFeesTransactionV0);
-      console.log('setup strategy fees tx hash', txHash);
-    });
+    let strategySetupFeesIxs: TransactionInstruction[] = [];
+    console.log(' buildNewStrategyIxs[1].length()', buildNewStrategyIxs[1].length);
+    buildNewStrategyIxs[1].slice(4).map((ix) => strategySetupFeesIxs.push(ix));
+    strategySetupFeesIxs.push(buildNewStrategyIxs[2]);
+    const setupStratFeesTx = await kamino.getTransactionV2Message(signer.publicKey, strategySetupFeesIxs);
+    const setupStratFeesTransactionV0 = new VersionedTransaction(setupStratFeesTx);
+    setupStratFeesTransactionV0.sign([signer]);
+    //@ts-ignore
+    txHash = await sendAndConfirmTransaction(kamino._connection, setupStratFeesTransactionV0);
+    console.log('setup strategy fees tx hash', txHash);
+  });
 
-    it.skip('create new percentage strategy on existing whirlpool', async () => {
-      let kamino = new Kamino(
-        cluster,
-        connection,
-        GlobalConfigMainnet,
-        KaminoProgramIdMainnet,
-        WHIRLPOOL_PROGRAM_ID,
-        RAYDIUM_PROGRAM_ID
-      );
+  it.skip('create new percentage strategy on existing whirlpool', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      GlobalConfigMainnet,
+      KaminoProgramIdMainnet,
+      WHIRLPOOL_PROGRAM_ID,
+      RAYDIUM_PROGRAM_ID
+    );
 
-      const newStrategy = Keypair.generate();
-      const createRaydiumStrategyAccountIx = await kamino.createStrategyAccount(signer.publicKey, newStrategy.publicKey);
-      console.log('newStrategy.publicKey', newStrategy.publicKey.toString());
+    const newStrategy = Keypair.generate();
+    const createRaydiumStrategyAccountIx = await kamino.createStrategyAccount(signer.publicKey, newStrategy.publicKey);
+    console.log('newStrategy.publicKey', newStrategy.publicKey.toString());
 
-      let buildNewStrategyIxs = await kamino.getBuildStrategyIxns(
-        'ORCA',
-        new Decimal(0.0005),
-        newStrategy.publicKey,
-        signer.publicKey,
-        new Decimal(PricePercentage.discriminator),
-        [new Decimal(100.0), new Decimal(100.0)],
-        SOLMintMainnet,
-        USDCMintMainnet
-      );
+    let buildNewStrategyIxs = await kamino.getBuildStrategyIxns(
+      'ORCA',
+      new Decimal(0.0005),
+      newStrategy.publicKey,
+      signer.publicKey,
+      new Decimal(PricePercentage.discriminator),
+      [new Decimal(100.0), new Decimal(100.0)],
+      SOLMintMainnet,
+      USDCMintMainnet
+    );
 
-      let ixs: TransactionInstruction[] = [];
-      ixs.push(createRaydiumStrategyAccountIx);
-      ixs.push(buildNewStrategyIxs[0]);
-      const createStratTx = await kamino.getTransactionV2Message(signer.publicKey, ixs);
-      const createStratTransactionV0 = new VersionedTransaction(createStratTx);
-      createStratTransactionV0.sign([newStrategy, signer]);
-      //@ts-ignore
-      let txHash = await sendAndConfirmTransaction(kamino._connection, createStratTransactionV0);
-      console.log('create strategy tx hash', txHash);
+    let ixs: TransactionInstruction[] = [];
+    ixs.push(createRaydiumStrategyAccountIx);
+    ixs.push(buildNewStrategyIxs[0]);
+    const createStratTx = await kamino.getTransactionV2Message(signer.publicKey, ixs);
+    const createStratTransactionV0 = new VersionedTransaction(createStratTx);
+    createStratTransactionV0.sign([newStrategy, signer]);
+    //@ts-ignore
+    let txHash = await sendAndConfirmTransaction(kamino._connection, createStratTransactionV0);
+    console.log('create strategy tx hash', txHash);
 
-      let strategySetupIxs: TransactionInstruction[] = [];
-      buildNewStrategyIxs[1].slice(0, 4).map((ix) => strategySetupIxs.push(ix));
-      const setupStratTx = await kamino.getTransactionV2Message(signer.publicKey, strategySetupIxs);
-      const setupStratTransactionV0 = new VersionedTransaction(setupStratTx);
-      setupStratTransactionV0.sign([signer]);
+    let strategySetupIxs: TransactionInstruction[] = [];
+    buildNewStrategyIxs[1].slice(0, 4).map((ix) => strategySetupIxs.push(ix));
+    const setupStratTx = await kamino.getTransactionV2Message(signer.publicKey, strategySetupIxs);
+    const setupStratTransactionV0 = new VersionedTransaction(setupStratTx);
+    setupStratTransactionV0.sign([signer]);
 
-      //@ts-ignore
-      txHash = await sendAndConfirmTransaction(kamino._connection, setupStratTransactionV0);
-      console.log('setup strategy tx hash', txHash);
+    //@ts-ignore
+    txHash = await sendAndConfirmTransaction(kamino._connection, setupStratTransactionV0);
+    console.log('setup strategy tx hash', txHash);
 
-      let strategySetupFeesIxs: TransactionInstruction[] = [];
-      buildNewStrategyIxs[1].slice(4).map((ix) => strategySetupFeesIxs.push(ix));
-      strategySetupFeesIxs.push(buildNewStrategyIxs[2]);
-      const setupStratFeesTx = await kamino.getTransactionV2Message(signer.publicKey, strategySetupFeesIxs);
-      const setupStratFeesTransactionV0 = new VersionedTransaction(setupStratFeesTx);
-      setupStratFeesTransactionV0.sign([signer]);
-      //@ts-ignore
-      txHash = await sendAndConfirmTransaction(kamino._connection, setupStratFeesTransactionV0);
-      console.log('setup strategy fees tx hash', txHash);
-    });
+    let strategySetupFeesIxs: TransactionInstruction[] = [];
+    buildNewStrategyIxs[1].slice(4).map((ix) => strategySetupFeesIxs.push(ix));
+    strategySetupFeesIxs.push(buildNewStrategyIxs[2]);
+    const setupStratFeesTx = await kamino.getTransactionV2Message(signer.publicKey, strategySetupFeesIxs);
+    const setupStratFeesTransactionV0 = new VersionedTransaction(setupStratFeesTx);
+    setupStratFeesTransactionV0.sign([signer]);
+    //@ts-ignore
+    txHash = await sendAndConfirmTransaction(kamino._connection, setupStratFeesTransactionV0);
+    console.log('setup strategy fees tx hash', txHash);
+  });
 
   it.skip('create new percentage strategy on existing whirlpool', async () => {
     let kamino = new Kamino(
