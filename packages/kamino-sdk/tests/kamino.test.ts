@@ -32,7 +32,6 @@ import {
 } from '../src/kamino-client/types/StrategyConfigOption';
 import { expect } from 'chai';
 import { WHIRLPOOL_PROGRAM_ID } from '../src/whirpools-client/programId';
-import { assert } from 'console';
 import * as ed25519 from 'tweetnacl-ts';
 import { Provider } from '@project-serum/anchor';
 
@@ -42,7 +41,6 @@ export const USDC_SCOPE_CHAIN_ID = BigInt(20);
 
 describe('Kamino SDK Tests', () => {
   let connection: Connection;
-  // const cluster: Cluster = 'localnet';
   const cluster = 'localnet';
   const clusterUrl: string = 'http://127.0.0.1:8899';
   connection = new Connection(clusterUrl, 'processed');

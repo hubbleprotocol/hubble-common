@@ -13,6 +13,10 @@ import {
   SYSVAR_INSTRUCTIONS_PUBKEY,
   SYSVAR_RENT_PUBKEY,
   TransactionInstruction,
+  AddressLookupTableProgram,
+  AddressLookupTableAccount,
+  MessageV0,
+  TransactionMessage,
 } from '@solana/web3.js';
 import { setKaminoProgramId } from './kamino-client/programId';
 import {
@@ -112,6 +116,8 @@ import {
 import {
   CollateralInfo,
   ExecutiveWithdrawActionKind,
+  RebalanceType,
+  RebalanceTypeKind,
   StrategyConfigOption,
   StrategyConfigOptionKind,
   StrategyStatusKind,
@@ -140,7 +146,16 @@ import {
   UpdateReward1Fee,
   UpdateReward2Fee,
   UpdateCollectFeesFee,
+  UpdateRebalanceType,
 } from './kamino-client/types/StrategyConfigOption';
+import {
+  DefaultDepositCap,
+  DefaultDepositCapPerIx,
+  DefaultDepositFeeBps,
+  DefaultPerformanceFeeBps,
+  DefaultWithdrawFeeBps,
+} from './constants/DefaultStrategyConfig';
+import { DEVNET_GLOBAL_LOOKUP_TABLE, MAINNET_GLOBAL_LOOKUP_TABLE } from './constants/pubkeys';
 export const KAMINO_IDL = KaminoIdl;
 
 export class Kamino {
@@ -242,21 +257,23 @@ export class Kamino {
     fee: Decimal
   ): Promise<PublicKey> => {
     if (dex == 'ORCA') {
+      let pool = PublicKey.default;
       let orcaPools = await this.getOrcaPoolsForTokens(poolTokenA, poolTokenB);
       orcaPools.forEach((element) => {
         if (element.lpFeeRate == fee.toNumber()) {
-          return element.address;
+          pool = new PublicKey(element.address);
         }
       });
-      return PublicKey.default;
+      return pool;
     } else if (dex == 'RAYDIUM') {
+      let pool = PublicKey.default;
       let raydiumPools = await this.getRaydiumPoolsForTokens(poolTokenA, poolTokenB);
       raydiumPools.forEach((element) => {
         if (element.ammConfig.tradeFeeRate == fee.toNumber()) {
-          return element.id;
+          pool = new PublicKey(element.id);
         }
       });
-      return PublicKey.default;
+      return pool;
     } else {
       throw new Error(`Dex ${dex} is not supported`);
     }
@@ -1792,10 +1809,13 @@ export class Kamino {
   getUpdateRebalancingParmsIxns = async (
     strategyAdmin: PublicKey,
     strategy: PublicKey,
-    rebalanceParams: Decimal[]
+    rebalanceParams: Decimal[],
+    rebalanceType?: RebalanceTypeKind
   ): Promise<TransactionInstruction> => {
-    const { strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
-    let rebalanceType = numberToRebalanceType(strategyState.rebalanceType);
+    if (!rebalanceType) {
+      const { strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
+      rebalanceType = numberToRebalanceType(strategyState.rebalanceType);
+    }
     const value = getStrategyRebalanceParams(rebalanceParams, rebalanceType);
     let args: UpdateStrategyConfigArgs = {
       mode: StrategyConfigOption.UpdateRebalanceParams.discriminator,
@@ -1805,7 +1825,7 @@ export class Kamino {
     let accounts: UpdateStrategyConfigAccounts = {
       adminAuthority: strategyAdmin,
       newAccount: PublicKey.default, // not used
-      globalConfig: strategyState.globalConfig,
+      globalConfig: this._globalConfig,
       strategy,
       systemProgram: SystemProgram.programId,
     };
@@ -1826,15 +1846,16 @@ export class Kamino {
     feeTier: Decimal,
     strategy: PublicKey,
     strategyAdmin: PublicKey,
+    rebalanceType: Decimal,
     rebalanceParams: Decimal[],
     tokenAMint: PublicKey,
     tokenBMint: PublicKey,
-    depositCap: Decimal,
-    depositCapPerIx: Decimal,
-    withdrawFeeBps: Decimal,
-    depositFeeBps: Decimal,
-    performanceFeeBps: Decimal
-  ) => {
+    depositCap?: Decimal,
+    depositCapPerIx?: Decimal,
+    withdrawFeeBps?: Decimal,
+    depositFeeBps?: Decimal,
+    performanceFeeBps?: Decimal
+  ): Promise<[TransactionInstruction, TransactionInstruction[], TransactionInstruction]> => {
     // check both tokens exist in collateralInfo
     let config = await GlobalConfig.fetch(this._connection, this._globalConfig);
     if (!config) {
@@ -1843,12 +1864,6 @@ export class Kamino {
     const collateralInfos = await this.getCollateralInfo(config.tokenInfos);
     if (!this.mintIsSupported(collateralInfos, tokenAMint) || !this.mintIsSupported(collateralInfos, tokenBMint)) {
       throw Error(`Token mint ${tokenAMint.toString()} is not supported`);
-    }
-
-    // verify that the fee tier is valid
-    let feeTiers = this.getFeeTiersForDex(dex);
-    if (!feeTiers.includes(feeTier)) {
-      throw Error(`Fee tier ${feeTier} is not supported`);
     }
 
     let pool = await this.getPoolInitializedForDexPairTier(dex, tokenAMint, tokenBMint, feeTier);
@@ -1875,12 +1890,18 @@ export class Kamino {
       dex
     );
 
-    let updateRebalanceParamsIx = await this.getUpdateRebalancingParmsIxns(strategyAdmin, strategy, rebalanceParams);
+    let rebalanceKind = numberToRebalanceType(rebalanceType.toNumber());
+    let updateRebalanceParamsIx = await this.getUpdateRebalancingParmsIxns(
+      strategyAdmin,
+      strategy,
+      rebalanceParams,
+      rebalanceKind
+    );
 
     let updateStrategyParamsIx = await this.getUpdateStrategyParamsIxs(
       strategyAdmin,
-      this._globalConfig,
       strategy,
+      rebalanceType,
       depositCap,
       depositCapPerIx,
       depositFeeBps,
@@ -1888,16 +1909,60 @@ export class Kamino {
       performanceFeeBps
     );
 
-    return [initStrategyIx, updateRebalanceParamsIx, updateStrategyParamsIx];
+    let ixs: TransactionInstruction[] = [];
+    ixs = ixs.concat(updateStrategyParamsIx);
+    return [initStrategyIx, ixs, updateRebalanceParamsIx];
   };
 
   mintIsSupported = (collateralInfos: CollateralInfo[], tokenMint: PublicKey): boolean => {
+    let found = false;
     collateralInfos.forEach((element) => {
-      if (element.mint.toString() != SystemProgram.programId.toString()) {
-        return true;
+      if (element.mint.toString() === tokenMint.toString()) {
+        console.log('cretaker');
+        found = true;
       }
     });
-    return false;
+    return found;
+  };
+
+  getLookupTable = async (): Promise<AddressLookupTableAccount> => {
+    if (this._cluster == 'mainnet-beta') {
+      const lookupTableAccount = await this._connection
+        .getAddressLookupTable(MAINNET_GLOBAL_LOOKUP_TABLE)
+        .then((res) => res.value);
+      if (!lookupTableAccount) {
+        throw new Error(`Could not get lookup table ${MAINNET_GLOBAL_LOOKUP_TABLE}`);
+      }
+      return lookupTableAccount;
+    } else if (this._cluster == 'devnet') {
+      const lookupTableAccount = await this._connection
+        .getAddressLookupTable(DEVNET_GLOBAL_LOOKUP_TABLE)
+        .then((res) => res.value);
+      if (!lookupTableAccount) {
+        throw new Error(`Could not get lookup table ${DEVNET_GLOBAL_LOOKUP_TABLE}`);
+      }
+      return lookupTableAccount;
+    } else {
+      throw Error('There is no lookup table for localnet yet');
+    }
+  };
+
+  getTransactionV2Message = async (
+    payer: PublicKey,
+    instructions: Array<TransactionInstruction>
+  ): Promise<MessageV0> => {
+    if (this._cluster == 'mainnet-beta' || this._cluster == 'devnet') {
+      let lookupTable = await this.getLookupTable();
+      let blockhash = await this._connection.getLatestBlockhash();
+      const v2Tx = new TransactionMessage({
+        payerKey: payer,
+        recentBlockhash: blockhash.blockhash,
+        instructions: instructions,
+      }).compileToV0Message([lookupTable]);
+      return v2Tx;
+    } else {
+      throw Error('No TransactionV2 on localnet as no lookup table was created');
+    }
   };
 
   /**
@@ -2349,14 +2414,25 @@ export class Kamino {
 
   getUpdateStrategyParamsIxs = async (
     strategyAdmin: PublicKey,
-    globalConfig: PublicKey,
     strategy: PublicKey,
-    depositCap: Decimal,
-    depositCapPerIx: Decimal,
-    depositFee: Decimal,
-    withdrawFee: Decimal,
-    performanceFee: Decimal
+    rebalanceType: Decimal,
+    depositCap?: Decimal,
+    depositCapPerIx?: Decimal,
+    depositFeeBps?: Decimal,
+    withdrawFeeBps?: Decimal,
+    performanceFeeBps?: Decimal
   ): Promise<TransactionInstruction[]> => {
+    let updateRebalanceTypeIx = await getUpdateStrategyConfigIx(
+      strategyAdmin,
+      this._globalConfig,
+      strategy,
+      new UpdateRebalanceType(),
+      rebalanceType
+    );
+
+    if (!depositCap) {
+      depositCap = DefaultDepositCap;
+    }
     let updateDepositCapIx = await getUpdateStrategyConfigIx(
       strategyAdmin,
       this._globalConfig,
@@ -2364,6 +2440,10 @@ export class Kamino {
       new UpdateDepositCap(),
       depositCap
     );
+
+    if (!depositCapPerIx) {
+      depositCapPerIx = DefaultDepositCapPerIx;
+    }
     let updateDepositCapPerIxnIx = await getUpdateStrategyConfigIx(
       strategyAdmin,
       this._globalConfig,
@@ -2371,50 +2451,63 @@ export class Kamino {
       new UpdateDepositCapIxn(),
       depositCapPerIx
     );
+
+    if (!depositFeeBps) {
+      depositFeeBps = DefaultDepositFeeBps;
+    }
     let updateDepositFeeIx = await getUpdateStrategyConfigIx(
       strategyAdmin,
       this._globalConfig,
       strategy,
       new UpdateDepositFee(),
-      depositFee
+      depositFeeBps
     );
+
+    if (!withdrawFeeBps) {
+      withdrawFeeBps = DefaultWithdrawFeeBps;
+    }
     let updateWithdrawalFeeIx = await getUpdateStrategyConfigIx(
       strategyAdmin,
       this._globalConfig,
       strategy,
       new UpdateWithdrawFee(),
-      withdrawFee
+      withdrawFeeBps
     );
+
+    if (!performanceFeeBps) {
+      performanceFeeBps = DefaultPerformanceFeeBps;
+    }
     let updateFeesFeeIx = await getUpdateStrategyConfigIx(
       strategyAdmin,
       this._globalConfig,
       strategy,
       new UpdateCollectFeesFee(),
-      performanceFee
+      performanceFeeBps
     );
     let updateRewards0FeeIx = await getUpdateStrategyConfigIx(
       strategyAdmin,
       this._globalConfig,
       strategy,
       new UpdateReward0Fee(),
-      performanceFee
+      performanceFeeBps
     );
     let updateRewards1FeeIx = await getUpdateStrategyConfigIx(
       strategyAdmin,
       this._globalConfig,
       strategy,
       new UpdateReward1Fee(),
-      performanceFee
+      performanceFeeBps
     );
     let updateRewards2FeeIx = await getUpdateStrategyConfigIx(
       strategyAdmin,
       this._globalConfig,
       strategy,
       new UpdateReward2Fee(),
-      performanceFee
+      performanceFeeBps
     );
 
     return [
+      updateRebalanceTypeIx,
       updateDepositCapIx,
       updateDepositCapPerIxnIx,
       updateDepositFeeIx,
