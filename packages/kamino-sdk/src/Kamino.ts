@@ -1918,7 +1918,6 @@ export class Kamino {
     let found = false;
     collateralInfos.forEach((element) => {
       if (element.mint.toString() === tokenMint.toString()) {
-        console.log('cretaker');
         found = true;
       }
     });

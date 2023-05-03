@@ -69,7 +69,11 @@ describe('Kamino strategy creation SDK Tests', () => {
   connection = new Connection(clusterUrl, 'processed');
 
   // use your private key here
-  const signerPrivateKey = [];
+  const signerPrivateKey = [
+    105, 175, 111, 130, 196, 146, 233, 22, 67, 171, 95, 66, 253, 18, 164, 83, 155, 188, 149, 68, 123, 139, 9, 169, 231,
+    234, 175, 144, 89, 24, 18, 164, 218, 90, 26, 64, 136, 68, 19, 218, 70, 185, 82, 53, 146, 96, 249, 208, 73, 189, 168,
+    160, 145, 189, 143, 223, 129, 99, 254, 106, 241, 111, 188, 173,
+  ];
   const signer = Keypair.fromSecretKey(Uint8Array.from(signerPrivateKey));
 
   it.skip('create new manual strategy on existing whirlpool', async () => {
