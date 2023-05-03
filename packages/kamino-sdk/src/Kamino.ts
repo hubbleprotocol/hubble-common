@@ -159,6 +159,11 @@ import {
   DefaultWithdrawFeeBps,
 } from './constants/DefaultStrategyConfig';
 import { DEVNET_GLOBAL_LOOKUP_TABLE, MAINNET_GLOBAL_LOOKUP_TABLE } from './constants/pubkeys';
+import {
+  ManualRebalanceMethod,
+  PricePercentageRebalanceMethod,
+  RebalanceMethod,
+} from './whirpools-client/types/CreationParameters';
 export const KAMINO_IDL = KaminoIdl;
 
 export class Kamino {
@@ -252,6 +257,12 @@ export class Kamino {
       throw new Error(`Dex ${dex} is not supported`);
     }
   };
+
+  getRebalanceMethods = (): RebalanceMethod[] => {
+    return [ManualRebalanceMethod, PricePercentageRebalanceMethod];
+  };
+
+  getDefaultRebalanceMethod = (): RebalanceMethod => ManualRebalanceMethod;
 
   getPoolInitializedForDexPairTier = async (
     dex: Dex,
