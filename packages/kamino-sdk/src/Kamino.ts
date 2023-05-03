@@ -95,6 +95,9 @@ import {
   openLiquidityPosition,
   OpenLiquidityPositionAccounts,
   OpenLiquidityPositionArgs,
+  updateRewardMapping,
+  UpdateRewardMappingAccounts,
+  UpdateRewardMappingArgs,
   updateStrategyConfig,
   UpdateStrategyConfigAccounts,
   UpdateStrategyConfigArgs,
@@ -1924,6 +1927,16 @@ export class Kamino {
     return found;
   };
 
+  getCollateralIdFromMint = (mint: PublicKey, collateralInfos: CollateralInfo[]): number => {
+    for (let i = 0; i < collateralInfos.length; i++) {
+      if (collateralInfos[i].mint.toString() === mint.toString()) {
+        return i;
+      }
+    }
+
+    return -1;
+  };
+
   getLookupTable = async (): Promise<AddressLookupTableAccount> => {
     if (this._cluster == 'mainnet-beta') {
       const lookupTableAccount = await this._connection
@@ -2516,6 +2529,94 @@ export class Kamino {
       updateRewards1FeeIx,
       updateRewards2FeeIx,
     ];
+  };
+
+  getUpdateRewardsIxs = async (
+    strategyOwner: PublicKey,
+    strategy: PublicKey,
+    dex: Dex,
+    pool: PublicKey,
+    collateralInfosPk: PublicKey,
+    collateralInfos: CollateralInfo[]
+  ) => {
+    let strategyState = await WhirlpoolStrategy.fetch(this._connection, strategy);
+    if (!strategyState) {
+      throw Error(`Could not fetch strategy state with pubkey ${strategy.toString()}`);
+    }
+    let ixs: TransactionInstruction[] = [];
+    if (dex == 'ORCA') {
+      const whirlpool = await Whirlpool.fetch(this._connection, pool);
+      if (!whirlpool) {
+        throw Error(`Could not fetch whirlpool state with pubkey ${pool.toString()}`);
+      }
+      for (let i = 0; i < 3; i++) {
+        if (whirlpool.rewardInfos[i].mint.toString() != PublicKey.default.toString()) {
+          let collateralId = this.getCollateralIdFromMint(whirlpool.rewardInfos[i].mint, collateralInfos);
+          if (collateralId == -1) {
+            throw Error(`Could not find collateral id for mint ${whirlpool.rewardInfos[i].mint.toString()}`);
+          }
+
+          let args: UpdateRewardMappingArgs = {
+            rewardIndex: 0,
+            collateralToken: collateralId,
+          };
+
+          let accounts: UpdateRewardMappingAccounts = {
+            adminAuthority: strategyOwner,
+            globalConfig: strategyState.globalConfig,
+            strategy: strategy,
+            pool: pool,
+            rewardMint: whirlpool.rewardInfos[i].mint,
+            rewardVault: whirlpool.rewardInfos[i].vault,
+            baseVaultAuthority: strategyState.baseVaultAuthority,
+            systemProgram: SystemProgram.programId,
+            rent: SYSVAR_RENT_PUBKEY,
+            tokenProgram: TOKEN_PROGRAM_ID,
+            tokenInfos: collateralInfosPk,
+          };
+
+          let ix = updateRewardMapping(args, accounts);
+          ixs.push(ix);
+        }
+      }
+    } else if (dex == 'RAYDIUM') {
+      const poolState = await PoolState.fetch(this._connection, pool);
+      if (!poolState) {
+        throw new Error(`Could not fetch whirlpool state with pubkey ${pool.toString()}`);
+      }
+      for (let i = 0; i < 3; i++) {
+        if (poolState.rewardInfos[i].tokenMint.toString() != PublicKey.default.toString()) {
+          let collateralId = this.getCollateralIdFromMint(poolState.rewardInfos[i].tokenMint, collateralInfos);
+          if (collateralId == -1) {
+            throw Error(`Could not find collateral id for mint ${poolState.rewardInfos[i].tokenMint.toString()}`);
+          }
+
+          let args: UpdateRewardMappingArgs = {
+            rewardIndex: 0,
+            collateralToken: collateralId,
+          };
+
+          let accounts: UpdateRewardMappingAccounts = {
+            adminAuthority: strategyOwner,
+            globalConfig: strategyState.globalConfig,
+            strategy: strategy,
+            pool: pool,
+            rewardMint: poolState.rewardInfos[i].tokenMint,
+            rewardVault: poolState.rewardInfos[i].tokenVault,
+            baseVaultAuthority: strategyState.baseVaultAuthority,
+            systemProgram: SystemProgram.programId,
+            rent: SYSVAR_RENT_PUBKEY,
+            tokenProgram: TOKEN_PROGRAM_ID,
+            tokenInfos: collateralInfosPk,
+          };
+
+          let ix = updateRewardMapping(args, accounts);
+          ixs.push(ix);
+        }
+      }
+    } else {
+      throw new Error(`Dex ${dex} not supported`);
+    }
   };
 }
 
