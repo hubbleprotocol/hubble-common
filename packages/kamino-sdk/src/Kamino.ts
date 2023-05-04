@@ -160,6 +160,10 @@ import {
 } from './constants/DefaultStrategyConfig';
 import { DEVNET_GLOBAL_LOOKUP_TABLE, MAINNET_GLOBAL_LOOKUP_TABLE } from './constants/pubkeys';
 import {
+  DefaultLowerPercentageBPS,
+  DefaultUpperPercentageBPS,
+  getManualRebalanceFieldInfos,
+  getPricePercentageRebalanceFieldInfos,
   ManualRebalanceMethod,
   PricePercentageRebalanceMethod,
   RebalanceFieldInfo,
@@ -289,49 +293,17 @@ export class Kamino {
         let lowerPrice = 0.95 * price;
         let upperPrice = 1.05 * price;
 
-        let lowerRangeRebalanceFieldInfo: RebalanceFieldInfo = {
-          label: 'priceLower',
-          type: 'number',
-          value: lowerPrice,
-        };
-        let upperRangeRebalanceFieldInfo: RebalanceFieldInfo = {
-          label: 'priceUpper',
-          type: 'number',
-          value: upperPrice,
-        };
+        let fieldInfos = getPricePercentageRebalanceFieldInfos(
+          DefaultLowerPercentageBPS,
+          DefaultUpperPercentageBPS
+        ).concat(getManualRebalanceFieldInfos(lowerPrice, upperPrice));
 
-        let lowerBpsRebalanceFieldInfo: RebalanceFieldInfo = {
-          label: 'lowerThresholdBps',
-          type: 'number',
-          value: 1000,
-        };
-        let upperBpsRebalanceFieldInfo: RebalanceFieldInfo = {
-          label: 'upperThresholdBps',
-          type: 'number',
-          value: 1000,
-        };
-
-        return [
-          lowerRangeRebalanceFieldInfo,
-          upperRangeRebalanceFieldInfo,
-          lowerBpsRebalanceFieldInfo,
-          upperBpsRebalanceFieldInfo,
-        ];
+        return fieldInfos;
       } else if (rebalanceMethod == ManualRebalanceMethod.label) {
         let lowerPrice = 0.9 * price;
         let upperPrice = 1.1 * price;
 
-        let lowerRangeRebalanceFieldInfo: RebalanceFieldInfo = {
-          label: 'priceLower',
-          type: 'number',
-          value: lowerPrice,
-        };
-        let upperRangeRebalanceFieldInfo: RebalanceFieldInfo = {
-          label: 'priceUpper',
-          type: 'number',
-          value: upperPrice,
-        };
-        return [lowerRangeRebalanceFieldInfo, upperRangeRebalanceFieldInfo];
+        return getManualRebalanceFieldInfos(lowerPrice, upperPrice);
       } else {
         throw new Error(`Rebalance method ${rebalanceMethod} is not supported`);
       }
@@ -346,49 +318,17 @@ export class Kamino {
         let lowerPrice = 0.95 * price;
         let upperPrice = 1.05 * price;
 
-        let lowerRangeRebalanceFieldInfo: RebalanceFieldInfo = {
-          label: 'priceLower',
-          type: 'number',
-          value: lowerPrice,
-        };
-        let upperRangeRebalanceFieldInfo: RebalanceFieldInfo = {
-          label: 'priceUpper',
-          type: 'number',
-          value: upperPrice,
-        };
+        let fieldInfos = getPricePercentageRebalanceFieldInfos(
+          DefaultLowerPercentageBPS,
+          DefaultUpperPercentageBPS
+        ).concat(getManualRebalanceFieldInfos(lowerPrice, upperPrice));
 
-        let lowerBpsRebalanceFieldInfo: RebalanceFieldInfo = {
-          label: 'lowerThresholdBps',
-          type: 'number',
-          value: 1000,
-        };
-        let upperBpsRebalanceFieldInfo: RebalanceFieldInfo = {
-          label: 'upperThresholdBps',
-          type: 'number',
-          value: 1000,
-        };
-
-        return [
-          lowerRangeRebalanceFieldInfo,
-          upperRangeRebalanceFieldInfo,
-          lowerBpsRebalanceFieldInfo,
-          upperBpsRebalanceFieldInfo,
-        ];
+        return fieldInfos;
       } else if (rebalanceMethod == ManualRebalanceMethod.label) {
         let lowerPrice = 0.9 * price;
         let upperPrice = 1.1 * price;
 
-        let lowerRangeRebalanceFieldInfo: RebalanceFieldInfo = {
-          label: 'priceLower',
-          type: 'number',
-          value: lowerPrice,
-        };
-        let upperRangeRebalanceFieldInfo: RebalanceFieldInfo = {
-          label: 'priceUpper',
-          type: 'number',
-          value: upperPrice,
-        };
-        return [lowerRangeRebalanceFieldInfo, upperRangeRebalanceFieldInfo];
+        return getManualRebalanceFieldInfos(lowerPrice, upperPrice);
       } else {
         throw new Error(`Rebalance method ${rebalanceMethod} is not supported`);
       }
