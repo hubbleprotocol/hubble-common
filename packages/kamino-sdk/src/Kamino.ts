@@ -162,8 +162,10 @@ import { DEVNET_GLOBAL_LOOKUP_TABLE, MAINNET_GLOBAL_LOOKUP_TABLE } from './const
 import {
   ManualRebalanceMethod,
   PricePercentageRebalanceMethod,
+  RebalanceFieldInfo,
   RebalanceMethod,
 } from './whirpools-client/types/CreationParameters';
+import { GenericPoolInfo } from './whirpools-client/types/GenericPoolInfo';
 export const KAMINO_IDL = KaminoIdl;
 
 export class Kamino {
@@ -264,6 +266,137 @@ export class Kamino {
 
   getDefaultRebalanceMethod = (): RebalanceMethod => ManualRebalanceMethod;
 
+  getFieldsForMethod = (rebalanceMethod: RebalanceMethod) => {
+    if (rebalanceMethod.label == ManualRebalanceMethod.label) {
+      return [];
+    }
+  };
+
+  getDefaultRebalanceFields = async (
+    dex: Dex,
+    poolTokenA: PublicKey,
+    poolTokenB: PublicKey,
+    rebalanceMethod: string
+  ): Promise<RebalanceFieldInfo[]> => {
+    if (dex == 'ORCA') {
+      let pools = await this.getOrcaPoolsForTokens(poolTokenA, poolTokenB);
+      if (pools.length == 0) {
+        throw new Error(`No pool found for ${poolTokenA.toString()} and ${poolTokenB.toString()}`);
+      }
+
+      let price = pools[0].price;
+      if (rebalanceMethod == PricePercentageRebalanceMethod.label) {
+        let lowerPrice = 0.95 * price;
+        let upperPrice = 1.05 * price;
+
+        let lowerRangeRebalanceFieldInfo: RebalanceFieldInfo = {
+          label: 'priceLower',
+          type: 'number',
+          value: lowerPrice,
+        };
+        let upperRangeRebalanceFieldInfo: RebalanceFieldInfo = {
+          label: 'priceUpper',
+          type: 'number',
+          value: upperPrice,
+        };
+
+        let lowerBpsRebalanceFieldInfo: RebalanceFieldInfo = {
+          label: 'lowerThresholdBps',
+          type: 'number',
+          value: 1000,
+        };
+        let upperBpsRebalanceFieldInfo: RebalanceFieldInfo = {
+          label: 'upperThresholdBps',
+          type: 'number',
+          value: 1000,
+        };
+
+        return [
+          lowerRangeRebalanceFieldInfo,
+          upperRangeRebalanceFieldInfo,
+          lowerBpsRebalanceFieldInfo,
+          upperBpsRebalanceFieldInfo,
+        ];
+      } else if (rebalanceMethod == ManualRebalanceMethod.label) {
+        let lowerPrice = 0.9 * price;
+        let upperPrice = 1.1 * price;
+
+        let lowerRangeRebalanceFieldInfo: RebalanceFieldInfo = {
+          label: 'priceLower',
+          type: 'number',
+          value: lowerPrice,
+        };
+        let upperRangeRebalanceFieldInfo: RebalanceFieldInfo = {
+          label: 'priceUpper',
+          type: 'number',
+          value: upperPrice,
+        };
+        return [lowerRangeRebalanceFieldInfo, upperRangeRebalanceFieldInfo];
+      } else {
+        throw new Error(`Rebalance method ${rebalanceMethod} is not supported`);
+      }
+    } else if (dex == 'RAYDIUM') {
+      let pools = await this.getRaydiumPoolsForTokens(poolTokenA, poolTokenB);
+      if (pools.length == 0) {
+        throw new Error(`No pool found for ${poolTokenA.toString()} and ${poolTokenB.toString()}`);
+      }
+      let price = pools[0].price;
+
+      if (rebalanceMethod == PricePercentageRebalanceMethod.label) {
+        let lowerPrice = 0.95 * price;
+        let upperPrice = 1.05 * price;
+
+        let lowerRangeRebalanceFieldInfo: RebalanceFieldInfo = {
+          label: 'priceLower',
+          type: 'number',
+          value: lowerPrice,
+        };
+        let upperRangeRebalanceFieldInfo: RebalanceFieldInfo = {
+          label: 'priceUpper',
+          type: 'number',
+          value: upperPrice,
+        };
+
+        let lowerBpsRebalanceFieldInfo: RebalanceFieldInfo = {
+          label: 'lowerThresholdBps',
+          type: 'number',
+          value: 1000,
+        };
+        let upperBpsRebalanceFieldInfo: RebalanceFieldInfo = {
+          label: 'upperThresholdBps',
+          type: 'number',
+          value: 1000,
+        };
+
+        return [
+          lowerRangeRebalanceFieldInfo,
+          upperRangeRebalanceFieldInfo,
+          lowerBpsRebalanceFieldInfo,
+          upperBpsRebalanceFieldInfo,
+        ];
+      } else if (rebalanceMethod == ManualRebalanceMethod.label) {
+        let lowerPrice = 0.9 * price;
+        let upperPrice = 1.1 * price;
+
+        let lowerRangeRebalanceFieldInfo: RebalanceFieldInfo = {
+          label: 'priceLower',
+          type: 'number',
+          value: lowerPrice,
+        };
+        let upperRangeRebalanceFieldInfo: RebalanceFieldInfo = {
+          label: 'priceUpper',
+          type: 'number',
+          value: upperPrice,
+        };
+        return [lowerRangeRebalanceFieldInfo, upperRangeRebalanceFieldInfo];
+      } else {
+        throw new Error(`Rebalance method ${rebalanceMethod} is not supported`);
+      }
+    } else {
+      throw new Error(`Dex ${dex} is not supported`);
+    }
+  };
+
   getPoolInitializedForDexPairTier = async (
     dex: Dex,
     poolTokenA: PublicKey,
@@ -293,11 +426,40 @@ export class Kamino {
     }
   };
 
-  getExistentPoolsForPair(dex: Dex, poolTokenA: PublicKey, poolTokenB: PublicKey) {
+  async getExistentPoolsForPair(dex: Dex, poolTokenA: PublicKey, poolTokenB: PublicKey): Promise<GenericPoolInfo[]> {
     if (dex == 'ORCA') {
-      return this.getOrcaPoolsForTokens(poolTokenA, poolTokenB);
+      let pools = await this.getOrcaPoolsForTokens(poolTokenA, poolTokenB);
+      let genericPoolInfos: GenericPoolInfo[] = pools.map((x: OrcaPool) => {
+        let poolInfo: GenericPoolInfo = {
+          dex,
+          address: new PublicKey(x.address),
+          price: x.price,
+          poolTokenA,
+          poolTokenB,
+          tvl: x.tvl,
+          feeRate: x.lpFeeRate,
+          volumeOnLast7d: x.volume?.week,
+        };
+        return poolInfo;
+      });
+      return genericPoolInfos;
     } else if (dex == 'RAYDIUM') {
-      return this.getRaydiumPoolsForTokens(poolTokenA, poolTokenB);
+      let pools = await this.getRaydiumPoolsForTokens(poolTokenA, poolTokenB);
+      let genericPoolInfos: GenericPoolInfo[] = pools.map((x: Pool) => {
+        let poolInfo: GenericPoolInfo = {
+          dex,
+          address: new PublicKey(x.id),
+          price: x.price,
+          poolTokenA,
+          poolTokenB,
+          tvl: x.tvl,
+          feeRate: x.ammConfig.tradeFeeRate,
+          volumeOnLast7d: x.week.volume,
+        };
+        return poolInfo;
+      });
+
+      return genericPoolInfos;
     } else {
       throw new Error(`Dex ${dex} is not supported`);
     }

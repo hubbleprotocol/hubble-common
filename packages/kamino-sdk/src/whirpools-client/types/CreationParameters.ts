@@ -15,3 +15,9 @@ export const PricePercentageRebalanceMethod: RebalanceMethod = {
     value: PricePercentage.discriminator
 };
 
+
+export interface RebalanceFieldInfo {
+    label: string,
+    type: string,
+    value: number, 
+}

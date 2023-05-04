@@ -139,7 +139,7 @@ export function getStrategyPriceRangeOrca(
     tickLowerIndex,
     tickUpperIndex,
     Number(strategy.tokenAMintDecimals.toString()),
-    Number(strategy.tokenBMintDecimals.toString()),
+    Number(strategy.tokenBMintDecimals.toString())
   );
   const strategyOutOfRange = poolPrice.lt(priceLower) || poolPrice.gt(priceUpper);
   return { priceLower, poolPrice, priceUpper, strategyOutOfRange };
