@@ -270,12 +270,6 @@ export class Kamino {
 
   getDefaultRebalanceMethod = (): RebalanceMethod => ManualRebalanceMethod;
 
-  getFieldsForMethod = (rebalanceMethod: RebalanceMethod) => {
-    if (rebalanceMethod.label == ManualRebalanceMethod.label) {
-      return [];
-    }
-  };
-
   getDefaultRebalanceFields = async (
     dex: Dex,
     poolTokenA: PublicKey,
