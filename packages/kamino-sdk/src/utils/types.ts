@@ -1,4 +1,7 @@
+import { PublicKey } from '@solana/web3.js';
 import { WhirlpoolStrategy } from '../kamino-client/accounts';
+import { Dex } from './utils';
+import Decimal from 'decimal.js';
 
 export type StrategyType = 'NON_PEGGED' | 'PEGGED' | 'STABLE';
 export type StrategyCreationStatus = 'IGNORED' | 'SHADOW' | 'LIVE' | 'DEPRECATED' | 'STAGING';
@@ -96,4 +99,67 @@ export function getStrategyCreationStatusFromStrategy(strategy: WhirlpoolStrateg
     default:
       throw new Error(`Invalid strategyCreationStatus ${strategy.creationStatus}`);
   }
+}
+
+export interface RebalanceFieldInfo {
+  label: string;
+  type: string;
+  value: number;
+  enabled: boolean;
+}
+
+export function getManualRebalanceFieldInfos(lowerPrice: number, upperPrice: number, enabled: boolean = true) {
+  let lowerRangeRebalanceFieldInfo: RebalanceFieldInfo = {
+    label: 'priceLower',
+    type: 'number',
+    value: lowerPrice,
+    enabled,
+  };
+  let upperRangeRebalanceFieldInfo: RebalanceFieldInfo = {
+    label: 'priceUpper',
+    type: 'number',
+    value: upperPrice,
+    enabled,
+  };
+  return [lowerRangeRebalanceFieldInfo, upperRangeRebalanceFieldInfo];
+}
+
+export function getPricePercentageRebalanceFieldInfos(
+  lowerPercentageBPS: number,
+  upperPercentageBPS: number,
+  enabled: boolean = true
+) {
+  let lowerBpsRebalanceFieldInfo: RebalanceFieldInfo = {
+    label: 'lowerThresholdBps',
+    type: 'number',
+    value: lowerPercentageBPS,
+    enabled,
+  };
+  let upperBpsRebalanceFieldInfo: RebalanceFieldInfo = {
+    label: 'upperThresholdBps',
+    type: 'number',
+    value: upperPercentageBPS,
+    enabled,
+  };
+
+  return [lowerBpsRebalanceFieldInfo, upperBpsRebalanceFieldInfo];
+}
+
+export interface GenericPoolInfo {
+  dex: Dex;
+  address: PublicKey;
+  tokenMintA: PublicKey;
+  tokenMintB: PublicKey;
+  price: number;
+  feeRate: number;
+  volumeOnLast7d: number | undefined;
+  tvl: number | undefined;
+}
+
+export interface VaultParameters {
+  tokenMintA: PublicKey;
+  tokenMintB: PublicKey;
+  dex: Dex;
+  feeTier: Decimal;
+  rebalancingParameters: RebalanceFieldInfo[];
 }

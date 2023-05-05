@@ -64,17 +64,22 @@ import {
   createAssociatedTokenAccountInstruction,
   Dex,
   dexToNumber,
+  GenericPoolInfo,
   getAssociatedTokenAddress,
   getAssociatedTokenAddressAndData,
   getDexProgramId,
+  getManualRebalanceFieldInfos,
+  getPricePercentageRebalanceFieldInfos,
   getReadOnlyWallet,
   getStrategyConfigValue,
   getStrategyRebalanceParams,
   getUpdateStrategyConfigIx,
   numberToRebalanceType,
+  RebalanceFieldInfo,
   StrategiesFilters,
   strategyCreationStatusToBase58,
   strategyTypeToBase58,
+  VaultParameters,
   ZERO,
 } from './utils';
 import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID } from '@solana/spl-token';
@@ -160,16 +165,19 @@ import {
 } from './constants/DefaultStrategyConfig';
 import { DEVNET_GLOBAL_LOOKUP_TABLE, MAINNET_GLOBAL_LOOKUP_TABLE } from './constants/pubkeys';
 import {
+  DefaultDex,
+  DefaultFeeTierOrca,
   DefaultLowerPercentageBPS,
+  DefaultLowerPriceDifferenceBPS,
+  DefaultMintTokenA,
+  DefaultMintTokenB,
   DefaultUpperPercentageBPS,
-  getManualRebalanceFieldInfos,
-  getPricePercentageRebalanceFieldInfos,
+  DefaultUpperPriceDifferenceBPS,
+  FullBPS,
   ManualRebalanceMethod,
   PricePercentageRebalanceMethod,
-  RebalanceFieldInfo,
   RebalanceMethod,
-} from './whirpools-client/types/CreationParameters';
-import { GenericPoolInfo } from './whirpools-client/types/GenericPoolInfo';
+} from './utils/CreationParameters';
 export const KAMINO_IDL = KaminoIdl;
 
 export class Kamino {
@@ -268,66 +276,144 @@ export class Kamino {
     return [ManualRebalanceMethod, PricePercentageRebalanceMethod];
   };
 
-  getDefaultRebalanceMethod = (): RebalanceMethod => ManualRebalanceMethod;
+  getDefaultRebalanceMethod = (): RebalanceMethod => PricePercentageRebalanceMethod;
 
-  getDefaultRebalanceFields = async (
+  getDefaultParametersForNewVault = async () => {
+    const dex = DefaultDex;
+    const tokenMintA = DefaultMintTokenA;
+    const tokenMintB = DefaultMintTokenB;
+    const rebalanceMethod = this.getDefaultRebalanceMethod();
+    const feeTier = DefaultFeeTierOrca;
+    let rebalancingParameters = await this.getDefaultRebalanceFields(dex, tokenMintA, tokenMintB, rebalanceMethod);
+    let defaultParameters: VaultParameters = {
+      dex,
+      tokenMintA,
+      tokenMintB,
+      feeTier,
+      rebalancingParameters,
+    };
+    return defaultParameters;
+  };
+
+  getFieldsForRebalanceMethod = (
+    rebalanceMethod: RebalanceMethod,
     dex: Dex,
-    poolTokenA: PublicKey,
-    poolTokenB: PublicKey,
-    rebalanceMethod: string
+    fieldOverrides: RebalanceFieldInfo[],
+    tokenAMint: PublicKey,
+    tokenBMint: PublicKey
+  ) => {
+    if (rebalanceMethod == ManualRebalanceMethod) {
+      return this.getFieldsForManualRebalanceMethod(dex, fieldOverrides, tokenAMint, tokenBMint);
+    } else if (rebalanceMethod == PricePercentageRebalanceMethod) {
+      return this.getFieldsForPricePercentageMethod(dex, fieldOverrides, tokenAMint, tokenBMint);
+    } else {
+      throw new Error(`Rebalance method ${rebalanceMethod} is not supported`);
+    }
+  };
+
+  getFieldsForManualRebalanceMethod = async (
+    dex: Dex,
+    fieldOverrides: RebalanceFieldInfo[],
+    tokenAMint: PublicKey,
+    tokenBMint: PublicKey
   ): Promise<RebalanceFieldInfo[]> => {
+    let price = await this.getPriceForPair(dex, tokenAMint, tokenBMint);
+
+    let lowerPrice: number;
+    let lowerPriceInput = fieldOverrides.find((x) => x.label == 'lowerPrice');
+    if (lowerPriceInput) {
+      lowerPrice = lowerPriceInput.value;
+    } else {
+      lowerPrice = (price * (FullBPS - DefaultLowerPriceDifferenceBPS)) / FullBPS;
+    }
+
+    let upperPrice: number;
+    let upperPriceInput = fieldOverrides.find((x) => x.label == 'upperPrice');
+    if (upperPriceInput) {
+      upperPrice = upperPriceInput.value;
+    } else {
+      upperPrice = (price * (FullBPS + DefaultUpperPriceDifferenceBPS)) / FullBPS;
+    }
+
+    return getManualRebalanceFieldInfos(lowerPrice, upperPrice);
+  };
+
+  getFieldsForPricePercentageMethod = async (
+    dex: Dex,
+    fieldOverrides: RebalanceFieldInfo[],
+    tokenAMint: PublicKey,
+    tokenBMint: PublicKey
+  ) => {
+    let price = await this.getPriceForPair(dex, tokenAMint, tokenBMint);
+
+    let lowerPriceDifferenceBPS: number;
+    let lowerPriceDifferenceBPSInput = fieldOverrides.find((x) => x.label == 'lowerThresholdBps');
+    if (lowerPriceDifferenceBPSInput) {
+      lowerPriceDifferenceBPS = lowerPriceDifferenceBPSInput.value;
+    } else {
+      lowerPriceDifferenceBPS = DefaultLowerPriceDifferenceBPS;
+    }
+
+    let upperPriceDifferenceBPS: number;
+    let upperPriceDifferenceBPSInput = fieldOverrides.find((x) => x.label == 'upperThresholdBps');
+    if (upperPriceDifferenceBPSInput) {
+      upperPriceDifferenceBPS = upperPriceDifferenceBPSInput.value;
+    } else {
+      upperPriceDifferenceBPS = DefaultUpperPriceDifferenceBPS;
+    }
+
+    let lowerPrice = (price * (FullBPS - lowerPriceDifferenceBPS)) / FullBPS;
+    let upperPrice = (price * (FullBPS + upperPriceDifferenceBPS)) / FullBPS;
+    let fieldInfos = getPricePercentageRebalanceFieldInfos(lowerPriceDifferenceBPS, upperPriceDifferenceBPS).concat(
+      getManualRebalanceFieldInfos(lowerPrice, upperPrice, false)
+    );
+
+    return fieldInfos;
+  };
+
+  getPriceForPair = async (dex: Dex, poolTokenA: PublicKey, poolTokenB: PublicKey): Promise<number> => {
     if (dex == 'ORCA') {
       let pools = await this.getOrcaPoolsForTokens(poolTokenA, poolTokenB);
       if (pools.length == 0) {
         throw new Error(`No pool found for ${poolTokenA.toString()} and ${poolTokenB.toString()}`);
       }
-
-      let price = pools[0].price;
-      if (rebalanceMethod == PricePercentageRebalanceMethod.label) {
-        let lowerPrice = 0.95 * price;
-        let upperPrice = 1.05 * price;
-
-        let fieldInfos = getPricePercentageRebalanceFieldInfos(
-          DefaultLowerPercentageBPS,
-          DefaultUpperPercentageBPS
-        ).concat(getManualRebalanceFieldInfos(lowerPrice, upperPrice));
-
-        return fieldInfos;
-      } else if (rebalanceMethod == ManualRebalanceMethod.label) {
-        let lowerPrice = 0.9 * price;
-        let upperPrice = 1.1 * price;
-
-        return getManualRebalanceFieldInfos(lowerPrice, upperPrice);
-      } else {
-        throw new Error(`Rebalance method ${rebalanceMethod} is not supported`);
-      }
+      return pools[0].price;
     } else if (dex == 'RAYDIUM') {
       let pools = await this.getRaydiumPoolsForTokens(poolTokenA, poolTokenB);
       if (pools.length == 0) {
         throw new Error(`No pool found for ${poolTokenA.toString()} and ${poolTokenB.toString()}`);
       }
-      let price = pools[0].price;
-
-      if (rebalanceMethod == PricePercentageRebalanceMethod.label) {
-        let lowerPrice = 0.95 * price;
-        let upperPrice = 1.05 * price;
-
-        let fieldInfos = getPricePercentageRebalanceFieldInfos(
-          DefaultLowerPercentageBPS,
-          DefaultUpperPercentageBPS
-        ).concat(getManualRebalanceFieldInfos(lowerPrice, upperPrice));
-
-        return fieldInfos;
-      } else if (rebalanceMethod == ManualRebalanceMethod.label) {
-        let lowerPrice = 0.9 * price;
-        let upperPrice = 1.1 * price;
-
-        return getManualRebalanceFieldInfos(lowerPrice, upperPrice);
-      } else {
-        throw new Error(`Rebalance method ${rebalanceMethod} is not supported`);
-      }
+      return pools[0].price;
     } else {
       throw new Error(`Dex ${dex} is not supported`);
+    }
+  };
+
+  getDefaultRebalanceFields = async (
+    dex: Dex,
+    poolTokenA: PublicKey,
+    poolTokenB: PublicKey,
+    rebalanceMethod: RebalanceMethod
+  ): Promise<RebalanceFieldInfo[]> => {
+    let price = await this.getPriceForPair(dex, poolTokenA, poolTokenB);
+
+    if (rebalanceMethod == PricePercentageRebalanceMethod) {
+      let lowerPrice = (price * (FullBPS - DefaultLowerPriceDifferenceBPS)) / FullBPS;
+      let upperPrice = (price * (FullBPS + DefaultUpperPriceDifferenceBPS)) / FullBPS;
+
+      let fieldInfos = getPricePercentageRebalanceFieldInfos(
+        DefaultLowerPercentageBPS,
+        DefaultUpperPercentageBPS
+      ).concat(getManualRebalanceFieldInfos(lowerPrice, upperPrice, false));
+
+      return fieldInfos;
+    } else if (rebalanceMethod == ManualRebalanceMethod) {
+      let lowerPrice = (price * (FullBPS - DefaultLowerPercentageBPS)) / FullBPS;
+      let upperPrice = (price * (FullBPS + DefaultUpperPercentageBPS)) / FullBPS;
+
+      return getManualRebalanceFieldInfos(lowerPrice, upperPrice);
+    } else {
+      throw new Error(`Rebalance method ${rebalanceMethod} is not supported`);
     }
   };
 
@@ -360,16 +446,16 @@ export class Kamino {
     }
   };
 
-  async getExistentPoolsForPair(dex: Dex, poolTokenA: PublicKey, poolTokenB: PublicKey): Promise<GenericPoolInfo[]> {
+  async getExistentPoolsForPair(dex: Dex, tokenMintA: PublicKey, tokenMintB: PublicKey): Promise<GenericPoolInfo[]> {
     if (dex == 'ORCA') {
-      let pools = await this.getOrcaPoolsForTokens(poolTokenA, poolTokenB);
+      let pools = await this.getOrcaPoolsForTokens(tokenMintA, tokenMintB);
       let genericPoolInfos: GenericPoolInfo[] = pools.map((x: OrcaPool) => {
         let poolInfo: GenericPoolInfo = {
           dex,
           address: new PublicKey(x.address),
           price: x.price,
-          poolTokenA,
-          poolTokenB,
+          tokenMintA,
+          tokenMintB,
           tvl: x.tvl,
           feeRate: x.lpFeeRate,
           volumeOnLast7d: x.volume?.week,
@@ -378,14 +464,14 @@ export class Kamino {
       });
       return genericPoolInfos;
     } else if (dex == 'RAYDIUM') {
-      let pools = await this.getRaydiumPoolsForTokens(poolTokenA, poolTokenB);
+      let pools = await this.getRaydiumPoolsForTokens(tokenMintA, tokenMintB);
       let genericPoolInfos: GenericPoolInfo[] = pools.map((x: Pool) => {
         let poolInfo: GenericPoolInfo = {
           dex,
           address: new PublicKey(x.id),
           price: x.price,
-          poolTokenA,
-          poolTokenB,
+          tokenMintA,
+          tokenMintB,
           tvl: x.tvl,
           feeRate: x.ammConfig.tradeFeeRate,
           volumeOnLast7d: x.week.volume,
@@ -492,8 +578,6 @@ export class Kamino {
       return res;
     });
   };
-
-  getAllWhirlpoolsWithFilters = async (): Promise<void> => {};
 
   /**
    * Get a Kamino whirlpool strategy by its public key address
@@ -2032,6 +2116,14 @@ export class Kamino {
       }
     });
     return found;
+  };
+
+  getCollateralInfoFromMint = (mint: PublicKey, collateralInfos: CollateralInfo[]): CollateralInfo | undefined => {
+    let collInfosForMint = collateralInfos.filter((x) => x.mint.toString() != mint.toString());
+    if (collInfosForMint.length == 0) {
+      return undefined;
+    }
+    return collInfosForMint[0];
   };
 
   getCollateralIdFromMint = (mint: PublicKey, collateralInfos: CollateralInfo[]): number => {
