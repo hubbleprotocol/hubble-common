@@ -15,6 +15,7 @@ import { sleep } from './utils';
 import { WhirlpoolStrategy } from '../kamino-client/accounts';
 import { tickIndexToPrice } from '@orca-so/whirlpool-sdk';
 import Decimal from 'decimal.js';
+import BN from 'bn.js';
 
 export const ASSOCIATED_TOKEN_PROGRAM_ID = new PublicKey('ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL');
 export const TOKEN_PROGRAM_ID = new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA');
@@ -134,7 +135,12 @@ export function getStrategyPriceRangeOrca(
   strategy: WhirlpoolStrategy,
   poolPrice: Decimal
 ) {
-  const { priceLower, priceUpper } = getPriceLowerUpper(tickLowerIndex, tickUpperIndex, strategy);
+  const { priceLower, priceUpper } = getPriceLowerUpper(
+    tickLowerIndex,
+    tickUpperIndex,
+    Number(strategy.tokenAMintDecimals.toString()),
+    Number(strategy.tokenBMintDecimals.toString())
+  );
   const strategyOutOfRange = poolPrice.lt(priceLower) || poolPrice.gt(priceUpper);
   return { priceLower, poolPrice, priceUpper, strategyOutOfRange };
 }
@@ -143,28 +149,30 @@ export function getStrategyPriceRangeRaydium(
   tickLowerIndex: number,
   tickUpperIndex: number,
   tickCurrent: number,
-  strategy: WhirlpoolStrategy
+  tokenADecimals: number,
+  tokenBDecimals: number
 ) {
-  const { priceLower, priceUpper } = getPriceLowerUpper(tickLowerIndex, tickUpperIndex, strategy);
-  const poolPrice = tickIndexToPrice(
-    tickCurrent,
-    Number(strategy.tokenAMintDecimals.toString()),
-    Number(strategy.tokenBMintDecimals.toString())
-  );
+  const { priceLower, priceUpper } = getPriceLowerUpper(tickLowerIndex, tickUpperIndex, tokenADecimals, tokenBDecimals);
+  const poolPrice = tickIndexToPrice(tickCurrent, tokenADecimals, tokenBDecimals);
   const strategyOutOfRange = poolPrice.lt(priceLower) || poolPrice.gt(priceUpper);
   return { priceLower, poolPrice, priceUpper, strategyOutOfRange };
 }
 
-export function getPriceLowerUpper(tickLowerIndex: number, tickUpperIndex: number, strategy: WhirlpoolStrategy) {
+export function getPriceLowerUpper(
+  tickLowerIndex: number,
+  tickUpperIndex: number,
+  tokenAMintDecimals: number,
+  tokenBMintDecimals: number
+) {
   const priceLower = tickIndexToPrice(
     tickLowerIndex,
-    Number(strategy.tokenAMintDecimals.toString()),
-    Number(strategy.tokenBMintDecimals.toString())
+    Number(tokenAMintDecimals.toString()),
+    Number(tokenBMintDecimals.toString())
   );
   const priceUpper = tickIndexToPrice(
     tickUpperIndex,
-    Number(strategy.tokenAMintDecimals.toString()),
-    Number(strategy.tokenBMintDecimals.toString())
+    Number(tokenAMintDecimals.toString()),
+    Number(tokenBMintDecimals.toString())
   );
   return { priceLower, priceUpper };
 }

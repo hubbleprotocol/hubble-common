@@ -128,6 +128,9 @@ describe('Kamino strategy creation SDK Tests', () => {
     //@ts-ignore
     txHash = await sendAndConfirmTransaction(kamino._connection, setupStratFeesTransactionV0);
     console.log('setup strategy fees tx hash', txHash);
+
+    // after strategy creation we have to set the reward mappings so it autocompounds
+    let updateRewardMappingIxs = kamino.getUpdateRewardsIxs(signer.publicKey, newStrategy.publicKey);
   });
 
   it.skip('create new percentage strategy on existing whirlpool', async () => {

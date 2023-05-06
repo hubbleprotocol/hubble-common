@@ -18,6 +18,7 @@ export interface Pool {
   week: Week;
   month: Month;
   lookupTableAccount: string;
+  price: number;
 }
 
 export interface AmmConfig {

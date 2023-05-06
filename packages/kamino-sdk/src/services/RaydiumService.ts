@@ -1,9 +1,9 @@
-import { Connection } from '@solana/web3.js';
+import { Connection, PublicKey } from '@solana/web3.js';
 import { SolanaCluster } from '@hubbleprotocol/hubble-config';
 import { Pool, RaydiumPoolsResponse } from './RaydiumPoolsResponse';
 import { PersonalPositionState, PoolState } from '../raydium_client';
 import Decimal from 'decimal.js';
-import { AmmV3, AmmV3PoolInfo } from '@raydium-io/raydium-sdk';
+import { AmmV3, AmmV3PoolInfo, TickMath, TickUtils } from '@raydium-io/raydium-sdk';
 import { WhirlpoolAprApy } from './WhirlpoolAprApy';
 import { WhirlpoolStrategy } from '../kamino-client/accounts';
 import { aprToApy, getStrategyPriceRangeRaydium, ZERO } from '../utils';
@@ -59,7 +59,8 @@ export class RaydiumService {
       position.tickLowerIndex,
       position.tickUpperIndex,
       Number(poolState.tickCurrent.toString()),
-      strategy
+      Number(strategy.tokenAMintDecimals.toString()),
+      Number(strategy.tokenBMintDecimals.toString())
     );
     if (priceRange.strategyOutOfRange) {
       return {
@@ -83,6 +84,101 @@ export class RaydiumService {
       aprType: 'day',
       positionTickLowerIndex: position.tickLowerIndex,
       positionTickUpperIndex: position.tickUpperIndex,
+    };
+
+    const { apr, feeApr, rewardsApr } = AmmV3.estimateAprsForPriceRangeMultiplier(params);
+    const totalApr = new Decimal(apr).div(100);
+    const fee = new Decimal(feeApr).div(100);
+    const rewards = rewardsApr.map((reward) => new Decimal(reward).div(100));
+
+    return {
+      totalApr,
+      totalApy: aprToApy(totalApr, 365),
+      feeApr: fee,
+      feeApy: aprToApy(fee, 365),
+      rewardsApr: rewards,
+      rewardsApy: rewards.map((x) => aprToApy(x, 365)),
+      ...priceRange,
+    };
+  };
+
+  getRaydiumPositionAprApy = async (
+    poolPubkey: PublicKey,
+    priceLower: Decimal,
+    priceUpper: Decimal,
+    pools?: Pool[]
+  ): Promise<WhirlpoolAprApy> => {
+    const poolState = await PoolState.fetch(this._connection, poolPubkey);
+    if (!poolState) {
+      throw Error(`Raydium pool state ${poolPubkey} does not exist`);
+    }
+
+    if (!pools) {
+      ({ data: pools } = await this.getRaydiumWhirlpools());
+    }
+
+    if (!pools || pools.length === 0) {
+      throw Error(`Could not get Raydium amm pools from Raydium API`);
+    }
+
+    const raydiumPool = pools.filter((d) => d.id === poolPubkey.toString()).shift();
+    if (!raydiumPool) {
+      throw Error(`Could not get find Raydium amm pool ${poolPubkey.toString()} from Raydium API`);
+    }
+
+    const poolInfo = (
+      await AmmV3.fetchMultiplePoolInfos({
+        connection: this._connection,
+        // @ts-ignore
+        poolKeys: [raydiumPool],
+        batchRequest: true,
+        chainTime: new Date().getTime() / 1000,
+      })
+    )[poolPubkey.toString()].state;
+
+    let tickLowerIndex = TickMath.getTickWithPriceAndTickspacing(
+      priceLower,
+      poolState.tickSpacing,
+      poolState.mintDecimals0,
+      poolState.mintDecimals1
+    );
+
+    let tickUpperIndex = TickMath.getTickWithPriceAndTickspacing(
+      priceUpper,
+      poolState.tickSpacing,
+      poolState.mintDecimals0,
+      poolState.mintDecimals1
+    );
+
+    const priceRange = getStrategyPriceRangeRaydium(
+      tickLowerIndex,
+      tickUpperIndex,
+      Number(poolState.tickCurrent.toString()),
+      raydiumPool.mintDecimalsA,
+      raydiumPool.mintDecimalsB
+    );
+    if (priceRange.strategyOutOfRange) {
+      return {
+        ...priceRange,
+        rewardsApy: [],
+        rewardsApr: [],
+        feeApy: ZERO,
+        feeApr: ZERO,
+        totalApy: ZERO,
+        totalApr: ZERO,
+      };
+    }
+
+    const params: {
+      poolInfo: AmmV3PoolInfo;
+      aprType: 'day' | 'week' | 'month';
+      positionTickLowerIndex: number;
+      positionTickUpperIndex: number;
+    } = {
+      poolInfo,
+      aprType: 'day',
+      positionTickLowerIndex: tickLowerIndex,
+      positionTickUpperIndex: tickUpperIndex,
     };
 
     const { apr, feeApr, rewardsApr } = AmmV3.estimateAprsForPriceRangeMultiplier(params);

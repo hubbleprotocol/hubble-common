@@ -64,17 +64,22 @@ import {
   createAssociatedTokenAccountInstruction,
   Dex,
   dexToNumber,
+  GenericPoolInfo,
   getAssociatedTokenAddress,
   getAssociatedTokenAddressAndData,
   getDexProgramId,
+  getManualRebalanceFieldInfos,
+  getPricePercentageRebalanceFieldInfos,
   getReadOnlyWallet,
   getStrategyConfigValue,
   getStrategyRebalanceParams,
   getUpdateStrategyConfigIx,
   numberToRebalanceType,
+  RebalanceFieldInfo,
   StrategiesFilters,
   strategyCreationStatusToBase58,
   strategyTypeToBase58,
+  VaultParameters,
   ZERO,
 } from './utils';
 import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID } from '@solana/spl-token';
@@ -95,6 +100,9 @@ import {
   openLiquidityPosition,
   OpenLiquidityPositionAccounts,
   OpenLiquidityPositionArgs,
+  updateRewardMapping,
+  UpdateRewardMappingAccounts,
+  UpdateRewardMappingArgs,
   updateStrategyConfig,
   UpdateStrategyConfigAccounts,
   UpdateStrategyConfigArgs,
@@ -156,6 +164,20 @@ import {
   DefaultWithdrawFeeBps,
 } from './constants/DefaultStrategyConfig';
 import { DEVNET_GLOBAL_LOOKUP_TABLE, MAINNET_GLOBAL_LOOKUP_TABLE } from './constants/pubkeys';
+import {
+  DefaultDex,
+  DefaultFeeTierOrca,
+  DefaultLowerPercentageBPS,
+  DefaultLowerPriceDifferenceBPS,
+  DefaultMintTokenA,
+  DefaultMintTokenB,
+  DefaultUpperPercentageBPS,
+  DefaultUpperPriceDifferenceBPS,
+  FullBPS,
+  ManualRebalanceMethod,
+  PricePercentageRebalanceMethod,
+  RebalanceMethod,
+} from './utils/CreationParameters';
 export const KAMINO_IDL = KaminoIdl;
 
 export class Kamino {
@@ -250,6 +272,151 @@ export class Kamino {
     }
   };
 
+  getRebalanceMethods = (): RebalanceMethod[] => {
+    return [ManualRebalanceMethod, PricePercentageRebalanceMethod];
+  };
+
+  getDefaultRebalanceMethod = (): RebalanceMethod => PricePercentageRebalanceMethod;
+
+  getDefaultParametersForNewVault = async () => {
+    const dex = DefaultDex;
+    const tokenMintA = DefaultMintTokenA;
+    const tokenMintB = DefaultMintTokenB;
+    const rebalanceMethod = this.getDefaultRebalanceMethod();
+    const feeTier = DefaultFeeTierOrca;
+    let rebalancingParameters = await this.getDefaultRebalanceFields(dex, tokenMintA, tokenMintB, rebalanceMethod);
+    let defaultParameters: VaultParameters = {
+      dex,
+      tokenMintA,
+      tokenMintB,
+      feeTier,
+      rebalancingParameters,
+    };
+    return defaultParameters;
+  };
+
+  getFieldsForRebalanceMethod = (
+    rebalanceMethod: RebalanceMethod,
+    dex: Dex,
+    fieldOverrides: RebalanceFieldInfo[],
+    tokenAMint: PublicKey,
+    tokenBMint: PublicKey
+  ) => {
+    if (rebalanceMethod == ManualRebalanceMethod) {
+      return this.getFieldsForManualRebalanceMethod(dex, fieldOverrides, tokenAMint, tokenBMint);
+    } else if (rebalanceMethod == PricePercentageRebalanceMethod) {
+      return this.getFieldsForPricePercentageMethod(dex, fieldOverrides, tokenAMint, tokenBMint);
+    } else {
+      throw new Error(`Rebalance method ${rebalanceMethod} is not supported`);
+    }
+  };
+
+  getFieldsForManualRebalanceMethod = async (
+    dex: Dex,
+    fieldOverrides: RebalanceFieldInfo[],
+    tokenAMint: PublicKey,
+    tokenBMint: PublicKey
+  ): Promise<RebalanceFieldInfo[]> => {
+    let price = await this.getPriceForPair(dex, tokenAMint, tokenBMint);
+
+    let lowerPrice: number;
+    let lowerPriceInput = fieldOverrides.find((x) => x.label == 'lowerPrice');
+    if (lowerPriceInput) {
+      lowerPrice = lowerPriceInput.value;
+    } else {
+      lowerPrice = (price * (FullBPS - DefaultLowerPriceDifferenceBPS)) / FullBPS;
+    }
+
+    let upperPrice: number;
+    let upperPriceInput = fieldOverrides.find((x) => x.label == 'upperPrice');
+    if (upperPriceInput) {
+      upperPrice = upperPriceInput.value;
+    } else {
+      upperPrice = (price * (FullBPS + DefaultUpperPriceDifferenceBPS)) / FullBPS;
+    }
+
+    return getManualRebalanceFieldInfos(lowerPrice, upperPrice);
+  };
+
+  getFieldsForPricePercentageMethod = async (
+    dex: Dex,
+    fieldOverrides: RebalanceFieldInfo[],
+    tokenAMint: PublicKey,
+    tokenBMint: PublicKey
+  ) => {
+    let price = await this.getPriceForPair(dex, tokenAMint, tokenBMint);
+
+    let lowerPriceDifferenceBPS: number;
+    let lowerPriceDifferenceBPSInput = fieldOverrides.find((x) => x.label == 'lowerThresholdBps');
+    if (lowerPriceDifferenceBPSInput) {
+      lowerPriceDifferenceBPS = lowerPriceDifferenceBPSInput.value;
+    } else {
+      lowerPriceDifferenceBPS = DefaultLowerPriceDifferenceBPS;
+    }
+
+    let upperPriceDifferenceBPS: number;
+    let upperPriceDifferenceBPSInput = fieldOverrides.find((x) => x.label == 'upperThresholdBps');
+    if (upperPriceDifferenceBPSInput) {
+      upperPriceDifferenceBPS = upperPriceDifferenceBPSInput.value;
+    } else {
+      upperPriceDifferenceBPS = DefaultUpperPriceDifferenceBPS;
+    }
+
+    let lowerPrice = (price * (FullBPS - lowerPriceDifferenceBPS)) / FullBPS;
+    let upperPrice = (price * (FullBPS + upperPriceDifferenceBPS)) / FullBPS;
+    let fieldInfos = getPricePercentageRebalanceFieldInfos(lowerPriceDifferenceBPS, upperPriceDifferenceBPS).concat(
+      getManualRebalanceFieldInfos(lowerPrice, upperPrice, false)
+    );
+
+    return fieldInfos;
+  };
+
+  getPriceForPair = async (dex: Dex, poolTokenA: PublicKey, poolTokenB: PublicKey): Promise<number> => {
+    if (dex == 'ORCA') {
+      let pools = await this.getOrcaPoolsForTokens(poolTokenA, poolTokenB);
+      if (pools.length == 0) {
+        throw new Error(`No pool found for ${poolTokenA.toString()} and ${poolTokenB.toString()}`);
+      }
+      return pools[0].price;
+    } else if (dex == 'RAYDIUM') {
+      let pools = await this.getRaydiumPoolsForTokens(poolTokenA, poolTokenB);
+      if (pools.length == 0) {
+        throw new Error(`No pool found for ${poolTokenA.toString()} and ${poolTokenB.toString()}`);
+      }
+      return pools[0].price;
+    } else {
+      throw new Error(`Dex ${dex} is not supported`);
+    }
+  };
+
+  getDefaultRebalanceFields = async (
+    dex: Dex,
+    poolTokenA: PublicKey,
+    poolTokenB: PublicKey,
+    rebalanceMethod: RebalanceMethod
+  ): Promise<RebalanceFieldInfo[]> => {
+    let price = await this.getPriceForPair(dex, poolTokenA, poolTokenB);
+
+    if (rebalanceMethod == PricePercentageRebalanceMethod) {
+      let lowerPrice = (price * (FullBPS - DefaultLowerPriceDifferenceBPS)) / FullBPS;
+      let upperPrice = (price * (FullBPS + DefaultUpperPriceDifferenceBPS)) / FullBPS;
+
+      let fieldInfos = getPricePercentageRebalanceFieldInfos(
+        DefaultLowerPercentageBPS,
+        DefaultUpperPercentageBPS
+      ).concat(getManualRebalanceFieldInfos(lowerPrice, upperPrice, false));
+
+      return fieldInfos;
+    } else if (rebalanceMethod == ManualRebalanceMethod) {
+      let lowerPrice = (price * (FullBPS - DefaultLowerPercentageBPS)) / FullBPS;
+      let upperPrice = (price * (FullBPS + DefaultUpperPercentageBPS)) / FullBPS;
+
+      return getManualRebalanceFieldInfos(lowerPrice, upperPrice);
+    } else {
+      throw new Error(`Rebalance method ${rebalanceMethod} is not supported`);
+    }
+  };
+
   getPoolInitializedForDexPairTier = async (
     dex: Dex,
     poolTokenA: PublicKey,
@@ -279,11 +446,40 @@ export class Kamino {
     }
   };
 
-  getExistentPoolsForPair(dex: Dex, poolTokenA: PublicKey, poolTokenB: PublicKey) {
+  async getExistentPoolsForPair(dex: Dex, tokenMintA: PublicKey, tokenMintB: PublicKey): Promise<GenericPoolInfo[]> {
     if (dex == 'ORCA') {
-      return this.getOrcaPoolsForTokens(poolTokenA, poolTokenB);
+      let pools = await this.getOrcaPoolsForTokens(tokenMintA, tokenMintB);
+      let genericPoolInfos: GenericPoolInfo[] = pools.map((x: OrcaPool) => {
+        let poolInfo: GenericPoolInfo = {
+          dex,
+          address: new PublicKey(x.address),
+          price: x.price,
+          tokenMintA,
+          tokenMintB,
+          tvl: x.tvl,
+          feeRate: x.lpFeeRate,
+          volumeOnLast7d: x.volume?.week,
+        };
+        return poolInfo;
+      });
+      return genericPoolInfos;
     } else if (dex == 'RAYDIUM') {
-      return this.getRaydiumPoolsForTokens(poolTokenA, poolTokenB);
+      let pools = await this.getRaydiumPoolsForTokens(tokenMintA, tokenMintB);
+      let genericPoolInfos: GenericPoolInfo[] = pools.map((x: Pool) => {
+        let poolInfo: GenericPoolInfo = {
+          dex,
+          address: new PublicKey(x.id),
+          price: x.price,
+          tokenMintA,
+          tokenMintB,
+          tvl: x.tvl,
+          feeRate: x.ammConfig.tradeFeeRate,
+          volumeOnLast7d: x.week.volume,
+        };
+        return poolInfo;
+      });
+
+      return genericPoolInfos;
     } else {
       throw new Error(`Dex ${dex} is not supported`);
     }
@@ -382,8 +578,6 @@ export class Kamino {
       return res;
     });
   };
-
-  getAllWhirlpoolsWithFilters = async (): Promise<void> => {};
 
   /**
    * Get a Kamino whirlpool strategy by its public key address
@@ -1098,7 +1292,7 @@ export class Kamino {
       throw Error(`Could not fetch global config with pubkey ${strategyState.strategy.globalConfig.toString()}`);
     }
 
-    const { treasuryFeeTokenAVault, treasuryFeeTokenBVault } = await this.getTreasuryFeeVaultPDAs(
+    const { treasuryFeeTokenAVault, treasuryFeeTokenBVault } = this.getTreasuryFeeVaultPDAs(
       strategyState.strategy.tokenAMint,
       strategyState.strategy.tokenBMint
     );
@@ -1918,11 +2112,28 @@ export class Kamino {
     let found = false;
     collateralInfos.forEach((element) => {
       if (element.mint.toString() === tokenMint.toString()) {
-        console.log('cretaker');
         found = true;
       }
     });
     return found;
+  };
+
+  getCollateralInfoFromMint = (mint: PublicKey, collateralInfos: CollateralInfo[]): CollateralInfo | undefined => {
+    let collInfosForMint = collateralInfos.filter((x) => x.mint.toString() != mint.toString());
+    if (collInfosForMint.length == 0) {
+      return undefined;
+    }
+    return collInfosForMint[0];
+  };
+
+  getCollateralIdFromMint = (mint: PublicKey, collateralInfos: CollateralInfo[]): number => {
+    for (let i = 0; i < collateralInfos.length; i++) {
+      if (collateralInfos[i].mint.toString() === mint.toString()) {
+        return i;
+      }
+    }
+
+    return -1;
   };
 
   getLookupTable = async (): Promise<AddressLookupTableAccount> => {
@@ -2517,6 +2728,92 @@ export class Kamino {
       updateRewards1FeeIx,
       updateRewards2FeeIx,
     ];
+  };
+
+  getUpdateRewardsIxs = async (strategyOwner: PublicKey, strategy: PublicKey) => {
+    let strategyState = await WhirlpoolStrategy.fetch(this._connection, strategy);
+    if (!strategyState) {
+      throw Error(`Could not fetch strategy state with pubkey ${strategy.toString()}`);
+    }
+    let globalConfig = await GlobalConfig.fetch(this._connection, strategyState.globalConfig);
+    if (!globalConfig) {
+      throw Error(`Could not fetch global config with pubkey ${strategyState.globalConfig.toString()}`);
+    }
+    let collateralInfos = await this.getCollateralInfo(globalConfig.tokenInfos);
+    let ixs: TransactionInstruction[] = [];
+    if (strategyState.strategyDex.toNumber() == dexToNumber('ORCA')) {
+      const whirlpool = await Whirlpool.fetch(this._connection, strategyState.pool);
+      if (!whirlpool) {
+        throw Error(`Could not fetch whirlpool state with pubkey ${strategyState.pool.toString()}`);
+      }
+      for (let i = 0; i < 3; i++) {
+        if (whirlpool.rewardInfos[i].mint.toString() != PublicKey.default.toString()) {
+          let collateralId = this.getCollateralIdFromMint(whirlpool.rewardInfos[i].mint, collateralInfos);
+          if (collateralId == -1) {
+            throw Error(`Could not find collateral id for mint ${whirlpool.rewardInfos[i].mint.toString()}`);
+          }
+
+          let args: UpdateRewardMappingArgs = {
+            rewardIndex: 0,
+            collateralToken: collateralId,
+          };
+
+          let accounts: UpdateRewardMappingAccounts = {
+            adminAuthority: strategyOwner,
+            globalConfig: strategyState.globalConfig,
+            strategy: strategy,
+            pool: strategyState.pool,
+            rewardMint: whirlpool.rewardInfos[i].mint,
+            rewardVault: whirlpool.rewardInfos[i].vault,
+            baseVaultAuthority: strategyState.baseVaultAuthority,
+            systemProgram: SystemProgram.programId,
+            rent: SYSVAR_RENT_PUBKEY,
+            tokenProgram: TOKEN_PROGRAM_ID,
+            tokenInfos: globalConfig.tokenInfos,
+          };
+
+          let ix = updateRewardMapping(args, accounts);
+          ixs.push(ix);
+        }
+      }
+    } else if (strategyState.strategyDex.toNumber() == dexToNumber('RAYDIUM')) {
+      const poolState = await PoolState.fetch(this._connection, strategyState.pool);
+      if (!poolState) {
+        throw new Error(`Could not fetch whirlpool state with pubkey ${strategyState.pool.toString()}`);
+      }
+      for (let i = 0; i < 3; i++) {
+        if (poolState.rewardInfos[i].tokenMint.toString() != PublicKey.default.toString()) {
+          let collateralId = this.getCollateralIdFromMint(poolState.rewardInfos[i].tokenMint, collateralInfos);
+          if (collateralId == -1) {
+            throw Error(`Could not find collateral id for mint ${poolState.rewardInfos[i].tokenMint.toString()}`);
+          }
+
+          let args: UpdateRewardMappingArgs = {
+            rewardIndex: 0,
+            collateralToken: collateralId,
+          };
+
+          let accounts: UpdateRewardMappingAccounts = {
+            adminAuthority: strategyOwner,
+            globalConfig: strategyState.globalConfig,
+            strategy: strategy,
+            pool: strategyState.pool,
+            rewardMint: poolState.rewardInfos[i].tokenMint,
+            rewardVault: poolState.rewardInfos[i].tokenVault,
+            baseVaultAuthority: strategyState.baseVaultAuthority,
+            systemProgram: SystemProgram.programId,
+            rent: SYSVAR_RENT_PUBKEY,
+            tokenProgram: TOKEN_PROGRAM_ID,
+            tokenInfos: globalConfig.tokenInfos,
+          };
+
+          let ix = updateRewardMapping(args, accounts);
+          ixs.push(ix);
+        }
+      }
+    } else {
+      throw new Error(`Dex ${strategyState.strategyDex} not supported`);
+    }
   };
 }
 
