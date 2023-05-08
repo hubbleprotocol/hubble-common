@@ -15,6 +15,7 @@ import {
   getReadOnlyWallet,
   Kamino,
   numberToRebalanceType,
+  RaydiumService,
   sendTransactionWithLogs,
   sleep,
   StrategiesFilters,
@@ -57,6 +58,8 @@ import * as ed25519 from 'tweetnacl-ts';
 import { Provider } from '@project-serum/anchor';
 import { PROGRAM_ID as RAYDIUM_PROGRAM_ID } from '../src/raydium_client/programId';
 import { Manual, PricePercentage } from '../src/kamino-client/types/RebalanceType';
+import axios from 'axios';
+
 const GlobalConfigMainnet = new PublicKey('GKnHiWh3RRrE1zsNzWxRkomymHc374TvJPSTv2wPeYdB');
 const KaminoProgramIdMainnet = new PublicKey('6LtLpnUFNByNXLyCoK9wA2MykKAmQNZKBdY8s47dehDc');
 const SOLMintMainnet = new PublicKey('So11111111111111111111111111111111111111112');
@@ -130,7 +133,13 @@ describe('Kamino strategy creation SDK Tests', () => {
     console.log('setup strategy fees tx hash', txHash);
 
     // after strategy creation we have to set the reward mappings so it autocompounds
-    let updateRewardMappingIxs = kamino.getUpdateRewardsIxs(signer.publicKey, newStrategy.publicKey);
+    let updateRewardMappingIxs = await kamino.getUpdateRewardsIxs(signer.publicKey, newStrategy.publicKey);
+    const updateRewardMappingTx = await kamino.getTransactionV2Message(signer.publicKey, updateRewardMappingIxs);
+    const updateRewardMappingsTransactionV0 = new VersionedTransaction(updateRewardMappingTx);
+    updateRewardMappingsTransactionV0.sign([signer]);
+    //@ts-ignore
+    txHash = await sendAndConfirmTransaction(kamino._connection, updateRewardMappingsTransactionV0);
+    console.log('update reward mappings tx hash', txHash);
   });
 
   it.skip('create new percentage strategy on existing whirlpool', async () => {
@@ -187,6 +196,15 @@ describe('Kamino strategy creation SDK Tests', () => {
     //@ts-ignore
     txHash = await sendAndConfirmTransaction(kamino._connection, setupStratFeesTransactionV0);
     console.log('setup strategy fees tx hash', txHash);
+
+    // after strategy creation we have to set the reward mappings so it autocompounds
+    let updateRewardMappingIxs = await kamino.getUpdateRewardsIxs(signer.publicKey, newStrategy.publicKey);
+    const updateRewardMappingTx = await kamino.getTransactionV2Message(signer.publicKey, updateRewardMappingIxs);
+    const updateRewardMappingsTransactionV0 = new VersionedTransaction(updateRewardMappingTx);
+    updateRewardMappingsTransactionV0.sign([signer]);
+    //@ts-ignore
+    txHash = await sendAndConfirmTransaction(kamino._connection, updateRewardMappingsTransactionV0);
+    console.log('update reward mappings tx hash', txHash);
   });
 
   it.skip('create new percentage strategy on existing whirlpool', async () => {
@@ -243,6 +261,15 @@ describe('Kamino strategy creation SDK Tests', () => {
     //@ts-ignore
     txHash = await sendAndConfirmTransaction(kamino._connection, setupStratFeesTransactionV0);
     console.log('setup strategy fees tx hash', txHash);
+
+    // after strategy creation we have to set the reward mappings so it autocompounds
+    let updateRewardMappingIxs = await kamino.getUpdateRewardsIxs(signer.publicKey, newStrategy.publicKey);
+    const updateRewardMappingTx = await kamino.getTransactionV2Message(signer.publicKey, updateRewardMappingIxs);
+    const updateRewardMappingsTransactionV0 = new VersionedTransaction(updateRewardMappingTx);
+    updateRewardMappingsTransactionV0.sign([signer]);
+    //@ts-ignore
+    txHash = await sendAndConfirmTransaction(kamino._connection, updateRewardMappingsTransactionV0);
+    console.log('update reward mappings tx hash', txHash);
 
     // update rebalance params
     let updateRebalanceParamsIx = await kamino.getUpdateRebalancingParmsIxns(signer.publicKey, newStrategy.publicKey, [
@@ -269,5 +296,14 @@ describe('Kamino strategy creation SDK Tests', () => {
 
     strategyData = await kamino.getStrategies([newStrategy.publicKey]);
     expect(strategyData[0]?.rebalanceType == Manual.discriminator);
+  });
+
+  it.skip('get raydium pool liquidity distribution', async () => {
+    let raydiumService = new RaydiumService(connection, cluster);
+    let liquidityDistribution = await raydiumService.getRaydiumPoolLiquidityDistribution(
+      new PublicKey('2QdhepnKRTLjjSqPL1PtKNwqrUkoLee5Gqs8bvZhRdMv')
+    );
+
+    console.log('liquidityDistribution', liquidityDistribution);
   });
 });

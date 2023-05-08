@@ -1,6 +1,6 @@
 import { Connection, PublicKey } from '@solana/web3.js';
 import { SolanaCluster } from '@hubbleprotocol/hubble-config';
-import { Pool, RaydiumPoolsResponse } from './RaydiumPoolsResponse';
+import { LiquidityDistribution, Pool, RaydiumPoolsResponse } from './RaydiumPoolsResponse';
 import { PersonalPositionState, PoolState } from '../raydium_client';
 import Decimal from 'decimal.js';
 import { AmmV3, AmmV3PoolInfo, TickMath, TickUtils } from '@raydium-io/raydium-sdk';
@@ -20,6 +20,11 @@ export class RaydiumService {
 
   async getRaydiumWhirlpools(): Promise<RaydiumPoolsResponse> {
     return (await axios.get<RaydiumPoolsResponse>(`https://api.raydium.io/v2/ammV3/ammPools`)).data;
+  }
+
+  async getRaydiumPoolLiquidityDistribution(pool: PublicKey): Promise<LiquidityDistribution> {
+    return (await axios.get<LiquidityDistribution>(`https://api.raydium.io/v2/ammV3/positionLine/${pool.toString()}`))
+      .data;
   }
 
   getStrategyWhirlpoolPoolAprApy = async (strategy: WhirlpoolStrategy, pools?: Pool[]): Promise<WhirlpoolAprApy> => {

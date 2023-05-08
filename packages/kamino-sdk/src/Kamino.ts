@@ -143,7 +143,7 @@ import {
   InternalAddLiquidityQuoteParam,
 } from '@orca-so/whirlpool-sdk/dist/position/quotes/add-liquidity';
 import { signTerms, SignTermsAccounts, SignTermsArgs } from './kamino-client/instructions';
-import { Pool } from './services/RaydiumPoolsResponse';
+import { LiquidityDistribution, Pool } from './services/RaydiumPoolsResponse';
 import { Orca, Raydium } from './kamino-client/types/DEX';
 import {
   UpdateDepositCap,
@@ -2261,6 +2261,14 @@ export class Kamino {
     throw Error(`Strategy dex ${dex} not supported`);
   };
 
+  getLiquidityDistributionRaydiumPool = (strategy: PublicKey): Promise<LiquidityDistribution> => {
+    return this._raydiumService.getRaydiumPoolLiquidityDistribution(strategy);
+  };
+
+  getLiquidityDistributionOrcaPool = (strategy: PublicKey): Promise<LiquidityDistribution> => {
+    
+  };
+
   calculateAmounts = async (
     strategy: PublicKey | StrategyWithAddress,
     tokenAAmount?: Decimal,
@@ -2730,7 +2738,7 @@ export class Kamino {
     ];
   };
 
-  getUpdateRewardsIxs = async (strategyOwner: PublicKey, strategy: PublicKey) => {
+  getUpdateRewardsIxs = async (strategyOwner: PublicKey, strategy: PublicKey): Promise<TransactionInstruction[]> => {
     let strategyState = await WhirlpoolStrategy.fetch(this._connection, strategy);
     if (!strategyState) {
       throw Error(`Could not fetch strategy state with pubkey ${strategy.toString()}`);
@@ -2776,6 +2784,7 @@ export class Kamino {
           ixs.push(ix);
         }
       }
+      return ixs;
     } else if (strategyState.strategyDex.toNumber() == dexToNumber('RAYDIUM')) {
       const poolState = await PoolState.fetch(this._connection, strategyState.pool);
       if (!poolState) {
@@ -2811,6 +2820,7 @@ export class Kamino {
           ixs.push(ix);
         }
       }
+      return ixs;
     } else {
       throw new Error(`Dex ${strategyState.strategyDex} not supported`);
     }
