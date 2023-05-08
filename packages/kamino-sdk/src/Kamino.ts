@@ -473,7 +473,7 @@ export class Kamino {
           tokenMintA,
           tokenMintB,
           tvl: x.tvl,
-          feeRate: x.ammConfig.tradeFeeRate,
+          feeRate: x.ammConfig.tradeFeeRate / FullBPS,
           volumeOnLast7d: x.week.volume,
         };
         return poolInfo;
