@@ -14,6 +14,7 @@ import {
   decimalToNumSupportedCollateral,
   decimalToNumWithdrawalCap,
   getReadOnlyWallet,
+  isZero,
   replaceBigNumberWithDecimal,
 } from './utils';
 import UserStakingState from './models/UserStakingState';
@@ -387,11 +388,12 @@ export class Hubble {
         borrowingMarketState = await this.getBorrowingMarketStateByPubkey(userVault.borrowingMarketState);
         borrowingMarketStates.push(borrowingMarketState);
       }
-      if (userVault.borrowedStablecoin.greaterThan(0)) {
-        loans.push({
-          usdhDebt: calculateTotalDebt(userVault, borrowingMarketState),
-          collateral: calculateTotalCollateral(userVault, borrowingMarketState),
-        });
+      const loan: Loan = {
+        usdhDebt: calculateTotalDebt(userVault, borrowingMarketState),
+        collateral: calculateTotalCollateral(userVault, borrowingMarketState),
+      };
+      if (loan.usdhDebt.greaterThan(0) || !isZero(loan.collateral)) {
+        loans.push(loan);
       }
     }
     return loans;

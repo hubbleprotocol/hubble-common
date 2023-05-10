@@ -248,8 +248,8 @@ export function isZero(coll: CollateralAmounts): boolean {
     coll.ftt.isZero() &&
     coll.ray.isZero() &&
     coll.srm.isZero() &&
-    coll.msol.isZero()
-    // coll.extraCollaterals.every((x) => x.amount.isZero())
+    coll.msol.isZero() &&
+    coll.extraCollaterals.every((x) => x.amount.isZero())
   );
 }
 
