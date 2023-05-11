@@ -155,6 +155,7 @@ export interface GenericPoolInfo {
   volumeOnLast7d: number | undefined;
   tvl: number | undefined;
   tickSpacing: number;
+  positions: number;
 }
 
 export interface VaultParameters {

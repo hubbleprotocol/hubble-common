@@ -459,6 +459,8 @@ export class Kamino {
           feeRate: pool.lpFeeRate,
           volumeOnLast7d: pool.volume?.week,
           tickSpacing: pool.tickSpacing,
+          // TODO: get real amount of positions
+          positions: 0,
         };
         return poolInfo;
       });
@@ -476,6 +478,8 @@ export class Kamino {
           feeRate: pool.ammConfig.tradeFeeRate / FullBPS,
           volumeOnLast7d: pool.week.volume,
           tickSpacing: pool.ammConfig.tickSpacing,
+          // TODO: get real amount of positions
+          positions: 0,
         };
         return poolInfo;
       });
