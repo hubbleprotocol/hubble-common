@@ -448,32 +448,34 @@ export class Kamino {
   async getExistentPoolsForPair(dex: Dex, tokenMintA: PublicKey, tokenMintB: PublicKey): Promise<GenericPoolInfo[]> {
     if (dex == 'ORCA') {
       let pools = await this.getOrcaPoolsForTokens(tokenMintA, tokenMintB);
-      let genericPoolInfos: GenericPoolInfo[] = pools.map((x: OrcaPool) => {
+      let genericPoolInfos: GenericPoolInfo[] = pools.map((pool: OrcaPool) => {
         let poolInfo: GenericPoolInfo = {
           dex,
-          address: new PublicKey(x.address),
-          price: x.price,
+          address: new PublicKey(pool.address),
+          price: pool.price,
           tokenMintA,
           tokenMintB,
-          tvl: x.tvl,
-          feeRate: x.lpFeeRate,
-          volumeOnLast7d: x.volume?.week,
+          tvl: pool.tvl,
+          feeRate: pool.lpFeeRate,
+          volumeOnLast7d: pool.volume?.week,
+          tickSpacing: pool.tickSpacing,
         };
         return poolInfo;
       });
       return genericPoolInfos;
     } else if (dex == 'RAYDIUM') {
       let pools = await this.getRaydiumPoolsForTokens(tokenMintA, tokenMintB);
-      let genericPoolInfos: GenericPoolInfo[] = pools.map((x: Pool) => {
+      let genericPoolInfos: GenericPoolInfo[] = pools.map((pool: Pool) => {
         let poolInfo: GenericPoolInfo = {
           dex,
-          address: new PublicKey(x.id),
-          price: x.price,
+          address: new PublicKey(pool.id),
+          price: pool.price,
           tokenMintA,
           tokenMintB,
-          tvl: x.tvl,
-          feeRate: x.ammConfig.tradeFeeRate / FullBPS,
-          volumeOnLast7d: x.week.volume,
+          tvl: pool.tvl,
+          feeRate: pool.ammConfig.tradeFeeRate / FullBPS,
+          volumeOnLast7d: pool.week.volume,
+          tickSpacing: pool.ammConfig.tickSpacing,
         };
         return poolInfo;
       });
