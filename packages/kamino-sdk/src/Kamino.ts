@@ -71,7 +71,6 @@ import {
   getManualRebalanceFieldInfos,
   getPricePercentageRebalanceFieldInfos,
   getReadOnlyWallet,
-  getStrategyConfigValue,
   getStrategyRebalanceParams,
   getUpdateStrategyConfigIx,
   numberToRebalanceType,
@@ -449,32 +448,38 @@ export class Kamino {
   async getExistentPoolsForPair(dex: Dex, tokenMintA: PublicKey, tokenMintB: PublicKey): Promise<GenericPoolInfo[]> {
     if (dex == 'ORCA') {
       let pools = await this.getOrcaPoolsForTokens(tokenMintA, tokenMintB);
-      let genericPoolInfos: GenericPoolInfo[] = pools.map((x: OrcaPool) => {
+      let genericPoolInfos: GenericPoolInfo[] = pools.map((pool: OrcaPool) => {
         let poolInfo: GenericPoolInfo = {
           dex,
-          address: new PublicKey(x.address),
-          price: x.price,
-          tokenMintA,
-          tokenMintB,
-          tvl: x.tvl,
-          feeRate: x.lpFeeRate,
-          volumeOnLast7d: x.volume?.week,
+          address: new PublicKey(pool.address),
+          price: pool.price,
+          tokenMintA: new PublicKey(pool.tokenA.mint),
+          tokenMintB: new PublicKey(pool.tokenB.mint),
+          tvl: pool.tvl,
+          feeRate: pool.lpFeeRate,
+          volumeOnLast7d: pool.volume?.week,
+          tickSpacing: pool.tickSpacing,
+          // TODO: get real amount of positions
+          positions: 0,
         };
         return poolInfo;
       });
       return genericPoolInfos;
     } else if (dex == 'RAYDIUM') {
       let pools = await this.getRaydiumPoolsForTokens(tokenMintA, tokenMintB);
-      let genericPoolInfos: GenericPoolInfo[] = pools.map((x: Pool) => {
+      let genericPoolInfos: GenericPoolInfo[] = pools.map((pool: Pool) => {
         let poolInfo: GenericPoolInfo = {
           dex,
-          address: new PublicKey(x.id),
-          price: x.price,
-          tokenMintA,
-          tokenMintB,
-          tvl: x.tvl,
-          feeRate: x.ammConfig.tradeFeeRate,
-          volumeOnLast7d: x.week.volume,
+          address: new PublicKey(pool.id),
+          price: pool.price,
+          tokenMintA: new PublicKey(pool.mintA),
+          tokenMintB: new PublicKey(pool.mintB),
+          tvl: pool.tvl,
+          feeRate: pool.ammConfig.tradeFeeRate / FullBPS,
+          volumeOnLast7d: pool.week.volume,
+          tickSpacing: pool.ammConfig.tickSpacing,
+          // TODO: get real amount of positions
+          positions: 0,
         };
         return poolInfo;
       });
@@ -2067,6 +2072,27 @@ export class Kamino {
       );
     }
 
+    let keepMintsOrder = true;
+    if (dex == 'ORCA') {
+      const whirlpoolState = await Whirlpool.fetch(this._connection, pool);
+      if (!whirlpoolState) {
+        throw Error(`Could not fetch whirlpool state with pubkey ${pool.toString()}`);
+      }
+      if (whirlpoolState.tokenMintA.toString() == tokenBMint.toString()) {
+        keepMintsOrder = false;
+      }
+    } else if (dex == 'RAYDIUM') {
+      const raydiumPoolState = await PoolState.fetch(this._connection, pool);
+      if (!raydiumPoolState) {
+        throw Error(`Could not fetch Raydium pool state with pubkey ${pool.toString()}`);
+      }
+      if (raydiumPoolState.tokenMint0.toString() == tokenBMint.toString()) {
+        keepMintsOrder = false;
+      }
+    } else {
+      throw new Error(`Dex ${dex} is not supported`);
+    }
+
     let tokenACollateral = getCollateralMintByAddress(tokenAMint, this._config);
     if (!tokenACollateral) {
       throw Error(`Token mint ${tokenAMint.toString()} is not supported`);
@@ -2075,14 +2101,28 @@ export class Kamino {
     if (!tokenBCollateral) {
       throw Error(`Token mint ${tokenBMint.toString()} is not supported`);
     }
-    let initStrategyIx = await this.createStrategy(
-      strategy,
-      pool,
-      strategyAdmin,
-      tokenACollateral.scopeToken as SupportedToken,
-      tokenBCollateral.scopeToken as SupportedToken,
-      dex
-    );
+
+    let initStrategyIx: TransactionInstruction;
+
+    if (keepMintsOrder) {
+      initStrategyIx = await this.createStrategy(
+        strategy,
+        pool,
+        strategyAdmin,
+        tokenACollateral.scopeToken as SupportedToken,
+        tokenBCollateral.scopeToken as SupportedToken,
+        dex
+      );
+    } else {
+      initStrategyIx = await this.createStrategy(
+        strategy,
+        pool,
+        strategyAdmin,
+        tokenBCollateral.scopeToken as SupportedToken,
+        tokenACollateral.scopeToken as SupportedToken,
+        dex
+      );
+    }
 
     let rebalanceKind = numberToRebalanceType(rebalanceType.toNumber());
     let updateRebalanceParamsIx = await this.getUpdateRebalancingParmsIxns(

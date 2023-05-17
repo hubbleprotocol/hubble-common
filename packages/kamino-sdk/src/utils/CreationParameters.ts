@@ -12,8 +12,8 @@ export const DefaultUpperPercentageBPS: number = 1000;
 export const DefaultLowerPriceDifferenceBPS: number = 500;
 export const DefaultUpperPriceDifferenceBPS: number = 500;
 
-export const DefaultMintTokenA: PublicKey = new PublicKey('USDH1SM1ojwWUga67PGrgFWUHibbjqMvuMaDkRJTgkX');
-export const DefaultMintTokenB: PublicKey = new PublicKey('HBB111SCo9jkCejsZfz8Ec8nH7T6THF8KEKSnvwT6XK6');
+export const DefaultMintTokenA: PublicKey = new PublicKey('So11111111111111111111111111111111111111112');
+export const DefaultMintTokenB: PublicKey = new PublicKey('USDH1SM1ojwWUga67PGrgFWUHibbjqMvuMaDkRJTgkX');
 export const DefaultFeeTierOrca: Decimal = new Decimal(0.003);
 export const DefaultDex: Dex = 'ORCA';
 

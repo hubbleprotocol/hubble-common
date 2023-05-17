@@ -12,7 +12,6 @@ import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
   Dex,
   getAssociatedTokenAddress,
-  getStrategyConfigValue,
   getUpdateStrategyConfigIx,
   sendTransactionWithLogs,
   sleep,
