@@ -6,11 +6,7 @@ import {
   OrcaWhirlpoolClient,
   getNearestValidTickIndexFromTickIndex,
   priceToTickIndex,
-  PDAUtil,
   PoolData,
-  TickUtil,
-  TICK_ARRAY_SIZE,
-  WhirlpoolContext,
 } from '@orca-so/whirlpool-sdk';
 import axios from 'axios';
 import { OrcaWhirlpoolsResponse, Whirlpool } from './OrcaWhirlpoolsResponse';
@@ -40,62 +36,6 @@ export class OrcaService {
 
   async getOrcaWhirlpools() {
     return (await axios.get<OrcaWhirlpoolsResponse>(`${this._orcaApiUrl}/v1/whirlpool/list`)).data;
-  }
-
-  async getWhirlpoolLiquidityDistribution(poolPk: PublicKey): Promise<LiquidityDistribution> {
-    const orca = new OrcaWhirlpoolClient({
-      connection: this._connection,
-      network: this._orcaNetwork,
-    });
-
-    const poolData = await orca.getPool(poolPk);
-    if (!poolData) {
-      throw new Error(`Could not get Orca Whirlpool ${poolPk.toString()}`);
-    }
-
-    const tickarray_start_indexes: number[] = [];
-    const tickarray_pubkeys: PublicKey[] = [];
-
-    const TICKARRAY_LOWER_OFFSET = -3;
-    const TICKARRAY_UPPER_OFFSET = +3;
-    for (let offset = TICKARRAY_LOWER_OFFSET; offset <= TICKARRAY_UPPER_OFFSET; offset++) {
-      const start_tick_index = TickUtil.getStartTickIndex(poolData.tickCurrentIndex, poolData.tick_spacing, offset);
-      const pda = PDAUtil.getTickArrayFromTickIndex(
-        start_tick_index,
-        poolData.tick_spacing,
-        poolPk,
-        WHIRLPOOL_PROGRAM_ID
-      );
-      tickarray_start_indexes.push(start_tick_index);
-      tickarray_pubkeys.push(pda.publicKey);
-    }
-
-    // get tickarrays
-    const tickarrays = await ctx.fetcher.listTickArrays(tickarray_pubkeys, true);
-
-    // sweep liquidity
-    const current_initializable_tick_index = Math.floor(poolData.tickCurrentIndex / tick_spacing) * tick_spacing;
-    const current_pool_liquidity = whirlpool_data.liquidity;
-    const liquidity_distribution = [];
-    let liquidity = new BN(0);
-    let liquidity_difference;
-    for (let ta = 0; ta < tickarrays.length; ta++) {
-      const tickarray = tickarrays[ta];
-
-      for (let i = 0; i < TICK_ARRAY_SIZE; i++) {
-        const tick_index = tickarray_start_indexes[ta] + i * tick_spacing;
-
-        // move right (add liquidityNet)
-        liquidity = tickarray == null ? liquidity : liquidity.add(tickarray.ticks[i].liquidityNet);
-
-        liquidity_distribution.push({ tick_index, liquidity });
-
-        // liquidity in TickArray not read
-        if (tick_index === current_initializable_tick_index) {
-          liquidity_difference = current_pool_liquidity.sub(liquidity);
-        }
-      }
-    }
   }
 
   private getTokenPrices(strategy: WhirlpoolStrategy, prices: ScopeToken[]) {
