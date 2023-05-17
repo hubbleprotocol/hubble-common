@@ -2265,10 +2265,6 @@ export class Kamino {
     return this._raydiumService.getRaydiumPoolLiquidityDistribution(strategy);
   };
 
-  getLiquidityDistributionOrcaPool = (strategy: PublicKey): Promise<LiquidityDistribution> => {
-    
-  };
-
   calculateAmounts = async (
     strategy: PublicKey | StrategyWithAddress,
     tokenAAmount?: Decimal,
