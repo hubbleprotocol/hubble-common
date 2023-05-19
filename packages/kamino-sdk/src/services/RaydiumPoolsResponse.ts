@@ -85,3 +85,12 @@ export interface RewardApr3 {
   B: number;
   C: number;
 }
+
+export interface LiquidityDistribution {
+  data: LiquidityForPrice[];
+}
+
+export interface LiquidityForPrice {
+  price: number;
+  liquidity: number;
+}

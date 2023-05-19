@@ -17,6 +17,7 @@ import { Position } from '../whirpools-client';
 import { getKaminoTokenName, getScopeTokenFromKaminoMints } from '../constants';
 import { WhirlpoolAprApy } from './WhirlpoolAprApy';
 import { aprToApy, getStrategyPriceRangeOrca, ZERO } from '../utils';
+import { WHIRLPOOL_PROGRAM_ID } from '../whirpools-client/programId';
 
 export class OrcaService {
   private readonly _connection: Connection;
