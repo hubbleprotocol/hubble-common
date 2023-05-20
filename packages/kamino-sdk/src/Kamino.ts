@@ -17,6 +17,7 @@ import {
   AddressLookupTableAccount,
   MessageV0,
   TransactionMessage,
+  Keypair,
 } from '@solana/web3.js';
 import { setKaminoProgramId } from './kamino-client/programId';
 import {
@@ -35,8 +36,11 @@ import {
   getNearestValidTickIndexFromTickIndex,
   getRemoveLiquidityQuote,
   getStartTickIndex,
+  OrcaNetwork,
+  OrcaWhirlpoolClient,
   Percentage,
   priceToTickIndex,
+  tickIndexToPrice,
 } from '@orca-so/whirlpool-sdk';
 import { OrcaDAL } from '@orca-so/whirlpool-sdk/dist/dal/orca-dal';
 import { OrcaPosition } from '@orca-so/whirlpool-sdk/dist/position/orca-position';
@@ -132,7 +136,7 @@ import {
 import { Rebalance } from './kamino-client/types/ExecutiveWithdrawAction';
 import { AmmConfig, PersonalPositionState, PoolState } from './raydium_client';
 import { PROGRAM_ID as RAYDIUM_PROGRAM_ID, setRaydiumProgramId } from './raydium_client/programId';
-import { i32ToBytes, LiquidityMath, SqrtPriceMath, TickMath, TickUtils } from '@raydium-io/raydium-sdk';
+import { AmmV3, i32ToBytes, LiquidityMath, SqrtPriceMath, TickMath, TickUtils } from '@raydium-io/raydium-sdk';
 
 import KaminoIdl from './kamino-client/kamino.json';
 import { OrcaService, RaydiumService, Whirlpool as OrcaPool, WhirlpoolAprApy } from './services';
@@ -2143,10 +2147,64 @@ export class Kamino {
       performanceFeeBps
     );
 
+    const newPosition = Keypair.generate();
+    let manualMinPrice = pool
+
     let ixs: TransactionInstruction[] = [];
     ixs = ixs.concat(updateStrategyParamsIx);
     return [initStrategyIx, ixs, updateRebalanceParamsIx];
   };
+
+  async getPriceRangePercentageBased(strategy: PublicKey, lowerPriceBpsDifference: Decimal, upperPriceBpsDifference: Decimal): Promise<[Decimal, Decimal]> {
+    const strategyState = await this.getStrategyByAddress(strategy);
+    if (!strategyState) {
+      throw Error(`Could not fetch strategy state with pubkey ${strategy.toString()}`);
+    }
+
+    const pool = strategyState.pool;
+    let poolPrice: Decimal;
+    if (strategyState.strategyDex.toNumber() == dexToNumber('ORCA')) {
+      poolPrice = await this.getOrcaPoolPrice(pool);
+    } else if (strategyState.strategyDex.toNumber() == dexToNumber('RAYDIUM')) {
+      poolPrice = await this.getRaydiumPoolPrice(pool);
+    } else {
+      throw new Error(`Invalid dex ${strategyState.strategyDex.toString()}`);
+    }
+
+    let fullBPSDecimal = new Decimal(FullBPS);
+    const lowerPrice = poolPrice.mul(fullBPSDecimal.sub(lowerPriceBpsDifference)).div(fullBPSDecimal);
+    const upperPrice = poolPrice.mul(fullBPSDecimal.add(upperPriceBpsDifference)).div(fullBPSDecimal);
+
+    return [lowerPrice, upperPrice];
+  }
+
+  async getOrcaPoolPrice(pool: PublicKey): Promise<Decimal> {
+    const orca = new OrcaWhirlpoolClient({
+      connection: this._connection,
+      network: this._cluster === 'mainnet-beta' ? OrcaNetwork.MAINNET : OrcaNetwork.DEVNET,
+    });
+    
+    const poolData = await orca.getPool(pool);
+    if (!poolData) {
+      throw Error(`Could not fetch Whirlpool data for ${pool.toString()}`);
+    }
+
+    return poolData.price;
+  }
+
+  async getRaydiumPoolPrice(pool: PublicKey): Promise<Decimal> {
+    const poolInfo = (
+      await AmmV3.fetchMultiplePoolInfos({
+        connection: this._connection,
+        // @ts-ignore
+        poolKeys: [pool],
+        batchRequest: true,
+        chainTime: new Date().getTime() / 1000,
+      })
+    )[pool.toString()].state;
+
+    return poolInfo.currentPrice;
+  }
 
   mintIsSupported = (collateralInfos: CollateralInfo[], tokenMint: PublicKey): boolean => {
     let found = false;

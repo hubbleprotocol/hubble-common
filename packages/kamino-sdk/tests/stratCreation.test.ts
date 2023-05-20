@@ -506,4 +506,109 @@ describe('Kamino strategy creation SDK Tests', () => {
     strategyData = await kamino.getStrategies([newStrategy.publicKey]);
     expect(strategyData[0]?.rebalanceType == Manual.discriminator);
   });
+
+  it('create new custom USDC-USDH percentage strategy on existing whirlpool and open position', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      GlobalConfigMainnet,
+      KaminoProgramIdMainnet,
+      WHIRLPOOL_PROGRAM_ID,
+      RAYDIUM_PROGRAM_ID
+    );
+
+    const newStrategy = Keypair.generate();
+    const createRaydiumStrategyAccountIx = await kamino.createStrategyAccount(signer.publicKey, newStrategy.publicKey);
+    console.log('newStrategy.publicKey', newStrategy.publicKey.toString());
+
+    let buildNewStrategyIxs = await kamino.getBuildStrategyIxns(
+      'ORCA',
+      new Decimal(0.0001),
+      newStrategy.publicKey,
+      signer.publicKey,
+      new Decimal(Manual.discriminator),
+      [], // not needed used for manual
+      new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'),
+      new PublicKey('USDH1SM1ojwWUga67PGrgFWUHibbjqMvuMaDkRJTgkX')
+    );
+
+    let ixs: TransactionInstruction[] = [];
+    ixs.push(createRaydiumStrategyAccountIx);
+    ixs.push(buildNewStrategyIxs[0]);
+    const createStratTx = await kamino.getTransactionV2Message(signer.publicKey, ixs);
+    const createStratTransactionV0 = new VersionedTransaction(createStratTx);
+    createStratTransactionV0.sign([newStrategy, signer]);
+    //@ts-ignore
+    let txHash = await sendAndConfirmTransaction(kamino._connection, createStratTransactionV0);
+    console.log('create strategy tx hash', txHash);
+
+    let strategySetupIxs: TransactionInstruction[] = [];
+    buildNewStrategyIxs[1].slice(0, 4).map((ix) => strategySetupIxs.push(ix));
+    const setupStratTx = await kamino.getTransactionV2Message(signer.publicKey, strategySetupIxs);
+    const setupStratTransactionV0 = new VersionedTransaction(setupStratTx);
+    setupStratTransactionV0.sign([signer]);
+
+    //@ts-ignore
+    txHash = await sendAndConfirmTransaction(kamino._connection, setupStratTransactionV0);
+    console.log('setup strategy tx hash', txHash);
+
+    let strategySetupFeesIxs: TransactionInstruction[] = [];
+    buildNewStrategyIxs[1].slice(4).map((ix) => strategySetupFeesIxs.push(ix));
+    strategySetupFeesIxs.push(buildNewStrategyIxs[2]);
+    const setupStratFeesTx = await kamino.getTransactionV2Message(signer.publicKey, strategySetupFeesIxs);
+    const setupStratFeesTransactionV0 = new VersionedTransaction(setupStratFeesTx);
+    setupStratFeesTransactionV0.sign([signer]);
+    //@ts-ignore
+    txHash = await sendAndConfirmTransaction(kamino._connection, setupStratFeesTransactionV0);
+    console.log('setup strategy fees tx hash', txHash);
+
+    let lowerPriceBpsDifference = new Decimal(10.0);
+    let upperPriceBpsDifference = new Decimal(11.0);
+
+    // update rebalance params
+    let updateRebalanceParamsIx = await kamino.getUpdateRebalancingParmsIxns(
+      signer.publicKey,
+      newStrategy.publicKey,
+      [lowerPriceBpsDifference, upperPriceBpsDifference],
+      new RebalanceType.PricePercentage()
+    );
+    let tx = createTransactionWithExtraBudget(signer.publicKey);
+    tx.add(updateRebalanceParamsIx);
+    let updateRebalanceParamsTxHash = await sendTransactionWithLogs(connection, tx, signer.publicKey, [signer]);
+    console.log('update Rebalance Params Tx Hash ', updateRebalanceParamsTxHash);
+
+    let strategyData = await kamino.getStrategies([newStrategy.publicKey]);
+    expect(strategyData[0]?.rebalanceRaw[0] == lowerPriceBpsDifference);
+    expect(strategyData[0]?.rebalanceRaw[2] == upperPriceBpsDifference);
+
+    // open position
+    let pool = strategyData[0]?.pool;
+    if (!pool) {
+      throw new Error(`Whirlpool ${pool} cannot be found in strategy`);
+    }
+
+    let poolData = await kamino.getWhirlpoolByAddress(pool);
+    if (!poolData) {
+      throw new Error(`Unable to fetch Whirlpool ${pool}`);
+    }
+
+    const newPosition = Keypair.generate();
+    const increaseBudget = createTransactionWithExtraBudget(signer.publicKey);
+    let positionPrices = await kamino.getPriceRangePercentageBased(newStrategy.publicKey, lowerPriceBpsDifference, upperPriceBpsDifference);
+    const openPositionIxns = await kamino.openPosition(
+      newStrategy.publicKey,
+      newPosition.publicKey,
+      new Decimal(positionPrices[0]),
+      new Decimal(positionPrices[1])
+    );
+    const openPositionMessage = await kamino.getTransactionV2Message(signer.publicKey, [
+      openPositionIxns,
+    ]);
+    const openPositionTx = new VersionedTransaction(openPositionMessage);
+    openPositionTx.sign([signer, newPosition]);
+
+    //@ts-ignore
+    const openPositionTxId = await sendAndConfirmTransaction(kamino._connection, openPositionTx);
+    console.log('openPositionTxId', openPositionTxId);
+  });
 });
