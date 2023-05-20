@@ -594,16 +594,18 @@ describe('Kamino strategy creation SDK Tests', () => {
 
     const newPosition = Keypair.generate();
     const increaseBudget = createTransactionWithExtraBudget(signer.publicKey);
-    let positionPrices = await kamino.getPriceRangePercentageBased(newStrategy.publicKey, lowerPriceBpsDifference, upperPriceBpsDifference);
+    let positionPrices = await kamino.getPriceRangePercentageBased(
+      newStrategy.publicKey,
+      lowerPriceBpsDifference,
+      upperPriceBpsDifference
+    );
     const openPositionIxns = await kamino.openPosition(
       newStrategy.publicKey,
       newPosition.publicKey,
       new Decimal(positionPrices[0]),
       new Decimal(positionPrices[1])
     );
-    const openPositionMessage = await kamino.getTransactionV2Message(signer.publicKey, [
-      openPositionIxns,
-    ]);
+    const openPositionMessage = await kamino.getTransactionV2Message(signer.publicKey, [openPositionIxns]);
     const openPositionTx = new VersionedTransaction(openPositionMessage);
     openPositionTx.sign([signer, newPosition]);
 

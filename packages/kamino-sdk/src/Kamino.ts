@@ -2148,14 +2148,18 @@ export class Kamino {
     );
 
     const newPosition = Keypair.generate();
-    let manualMinPrice = pool
+    let manualMinPrice = pool;
 
     let ixs: TransactionInstruction[] = [];
     ixs = ixs.concat(updateStrategyParamsIx);
     return [initStrategyIx, ixs, updateRebalanceParamsIx];
   };
 
-  async getPriceRangePercentageBased(strategy: PublicKey, lowerPriceBpsDifference: Decimal, upperPriceBpsDifference: Decimal): Promise<[Decimal, Decimal]> {
+  async getPriceRangePercentageBased(
+    strategy: PublicKey,
+    lowerPriceBpsDifference: Decimal,
+    upperPriceBpsDifference: Decimal
+  ): Promise<[Decimal, Decimal]> {
     const strategyState = await this.getStrategyByAddress(strategy);
     if (!strategyState) {
       throw Error(`Could not fetch strategy state with pubkey ${strategy.toString()}`);
@@ -2183,7 +2187,7 @@ export class Kamino {
       connection: this._connection,
       network: this._cluster === 'mainnet-beta' ? OrcaNetwork.MAINNET : OrcaNetwork.DEVNET,
     });
-    
+
     const poolData = await orca.getPool(pool);
     if (!poolData) {
       throw Error(`Could not fetch Whirlpool data for ${pool.toString()}`);
