@@ -1694,38 +1694,6 @@ export class Kamino {
   };
 
   /**
-   * Get an instruction to open liquidity position for a Kamino strategy based on onchain params
-   * @param strategy strategy you want to open liquidity position for
-   * @param positionMint position mint pubkey
-   * @param status strategy status
-   */
-  // openPositionFromPercentageRebalanceParameters = async (
-  //   strategy: PublicKey,
-  //   positionMint: PublicKey,
-  //   status: StrategyStatusKind = new Uninitialized()
-  // ): Promise<TransactionInstruction> => {
-  //   const strategyState: WhirlpoolStrategy | null = await this.getStrategyByAddress(strategy);
-  //   if (!strategyState) {
-  //     throw Error(`Could not fetch strategy state with pubkey ${strategy.toString()}`);
-  //   }
-
-  //   let rebalanceKind = numberToRebalanceType(strategyState.rebalanceType);
-  //   let rebalanceParams = strategyState.rebalanceRaw.params.map((param) => new Decimal(param));
-
-  //   let openPositionIx: TransactionInstruction;
-  //   if (rebalanceKind.kind == RebalanceType.Manual.kind) {
-  //     throw new Error(`Rebalance type manual is not supported`);
-  //   } else if (rebalanceKind.kind == RebalanceType.PricePercentage.kind) {
-  //     let positionPrices = await this.getPriceRangePercentageBased(dex, pool, rebalanceParams[0], rebalanceParams[2]);
-  //     openPositionIx = await this.openPosition(strategy, positionMint, positionPrices[0], positionPrices[1], status);
-  //   } else {
-  //     throw new Error(`Rebalance type ${rebalanceKind} is not supported`);
-  //   }
-
-  //   return openPositionIx;
-  // };
-
-  /**
    * Get a transaction to open liquidity position for a Kamino strategy
    * @param strategy strategy you want to open liquidity position for
    * @param positionMint position mint pubkey
