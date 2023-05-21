@@ -59,11 +59,7 @@ describe('Kamino strategy creation SDK Tests', () => {
   connection = new Connection(clusterUrl, 'processed');
 
   // use your private key here
-  const signerPrivateKey = [
-    200, 76, 161, 51, 143, 180, 53, 7, 185, 200, 29, 22, 242, 77, 0, 29, 114, 210, 9, 98, 84, 2, 236, 213, 101, 195,
-    248, 40, 176, 238, 32, 215, 107, 145, 12, 26, 34, 67, 150, 93, 210, 227, 52, 216, 83, 86, 204, 237, 2, 102, 42, 148,
-    69, 112, 68, 40, 21, 57, 188, 40, 55, 66, 123, 12,
-  ];
+  const signerPrivateKey = [];
   const signer = Keypair.fromSecretKey(Uint8Array.from(signerPrivateKey));
 
   it.skip('create custom USDC-USDH new manual strategy on existing whirlpool', async () => {
@@ -513,7 +509,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     expect(strategyData[0]?.rebalanceType == Manual.discriminator);
   });
 
-  it('create new custom USDC-USDH percentage strategy on existing whirlpool and open position', async () => {
+  it.skip('create new custom USDC-USDH percentage strategy on existing whirlpool and open position', async () => {
     let kamino = new Kamino(
       cluster,
       connection,
