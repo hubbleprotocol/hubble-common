@@ -9,39 +9,15 @@ import {
   TransactionInstruction,
   VersionedTransaction,
 } from '@solana/web3.js';
-import {
-  createAddExtraComputeUnitsTransaction,
-  Dex,
-  getReadOnlyWallet,
-  Kamino,
-  numberToRebalanceType,
-  RaydiumService,
-  sendTransactionWithLogs,
-  sleep,
-  StrategiesFilters,
-} from '../src';
+import { Kamino, numberToRebalanceType, RaydiumService, sendTransactionWithLogs } from '../src';
 import Decimal from 'decimal.js';
 import {
   assignBlockInfoToTransaction,
   createTransactionWithExtraBudget,
   getAssociatedTokenAddressAndData,
 } from '../src';
-import * as Instructions from '../src/kamino-client/instructions';
-import {
-  GlobalConfigOption,
-  GlobalConfigOptionKind,
-  RebalanceType,
-  UpdateCollateralInfoMode,
-} from '../src/kamino-client/types';
-import BN from 'bn.js';
-import { initializeRaydiumPool, orderMints } from './raydium_utils';
-import { initializeWhirlpool } from './orca_utils';
 import { updateStrategyConfig, updateTreasuryFeeVault, solAirdrop } from './utils';
-import {
-  UpdateRebalanceType,
-  UpdateStrategyCreationState,
-  UpdateStrategyType,
-} from '../src/kamino-client/types/StrategyConfigOption';
+import { UpdateRebalanceType } from '../src/kamino-client/types/StrategyConfigOption';
 import { expect } from 'chai';
 import { WHIRLPOOL_PROGRAM_ID } from '../src/whirpools-client/programId';
 import { PROGRAM_ID as RAYDIUM_PROGRAM_ID } from '../src/raydium_client/programId';
@@ -59,7 +35,11 @@ describe('Kamino strategy creation SDK Tests', () => {
   connection = new Connection(clusterUrl, 'processed');
 
   // use your private key here
-  const signerPrivateKey = [];
+  const signerPrivateKey = [
+    178, 65, 98, 152, 172, 223, 56, 136, 242, 32, 177, 181, 183, 67, 173, 24, 65, 117, 155, 205, 15, 234, 161, 244, 50,
+    68, 101, 44, 121, 17, 172, 226, 252, 121, 151, 204, 91, 236, 195, 244, 71, 187, 116, 212, 30, 169, 243, 124, 216,
+    184, 28, 167, 65, 210, 113, 11, 177, 219, 79, 127, 243, 194, 2, 2,
+  ];
   const signer = Keypair.fromSecretKey(Uint8Array.from(signerPrivateKey));
 
   it.skip('create custom USDC-USDH new manual strategy on existing whirlpool', async () => {
@@ -73,6 +53,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     );
 
     const newStrategy = Keypair.generate();
+    const newPosition = Keypair.generate();
     const createRaydiumStrategyAccountIx = await kamino.createStrategyAccount(signer.publicKey, newStrategy.publicKey);
     console.log('newStrategy.publicKey', newStrategy.publicKey.toString());
 
@@ -80,6 +61,7 @@ describe('Kamino strategy creation SDK Tests', () => {
       'ORCA',
       new Decimal(0.0001),
       newStrategy.publicKey,
+      newPosition.publicKey,
       signer.publicKey,
       new Decimal(Manual.discriminator),
       [], // not needed used for manual
@@ -141,6 +123,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     );
 
     const newStrategy = Keypair.generate();
+    const newPosition = Keypair.generate();
     const createRaydiumStrategyAccountIx = await kamino.createStrategyAccount(signer.publicKey, newStrategy.publicKey);
     console.log('newStrategy.publicKey', newStrategy.publicKey.toString());
 
@@ -148,6 +131,7 @@ describe('Kamino strategy creation SDK Tests', () => {
       'ORCA',
       new Decimal(0.0005),
       newStrategy.publicKey,
+      newPosition.publicKey,
       signer.publicKey,
       new Decimal(Manual.discriminator),
       [], // not needed used for manual
@@ -208,6 +192,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     );
 
     const newStrategy = Keypair.generate();
+    const newPosition = Keypair.generate();
     const createRaydiumStrategyAccountIx = await kamino.createStrategyAccount(signer.publicKey, newStrategy.publicKey);
     console.log('newStrategy.publicKey', newStrategy.publicKey.toString());
 
@@ -215,6 +200,7 @@ describe('Kamino strategy creation SDK Tests', () => {
       'ORCA',
       new Decimal(0.0005),
       newStrategy.publicKey,
+      newPosition.publicKey,
       signer.publicKey,
       new Decimal(PricePercentage.discriminator),
       [new Decimal(100.0), new Decimal(100.0)],
@@ -273,6 +259,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     );
 
     const newStrategy = Keypair.generate();
+    const newPosition = Keypair.generate();
     const createRaydiumStrategyAccountIx = await kamino.createStrategyAccount(signer.publicKey, newStrategy.publicKey);
     console.log('newStrategy.publicKey', newStrategy.publicKey.toString());
 
@@ -280,6 +267,7 @@ describe('Kamino strategy creation SDK Tests', () => {
       'ORCA',
       new Decimal(0.0001),
       newStrategy.publicKey,
+      newPosition.publicKey,
       signer.publicKey,
       new Decimal(Manual.discriminator),
       [], // not needed used for manual
@@ -338,6 +326,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     );
 
     const newStrategy = Keypair.generate();
+    const newPosition = Keypair.generate();
     const createRaydiumStrategyAccountIx = await kamino.createStrategyAccount(signer.publicKey, newStrategy.publicKey);
     console.log('newStrategy.publicKey', newStrategy.publicKey.toString());
 
@@ -345,6 +334,7 @@ describe('Kamino strategy creation SDK Tests', () => {
       'ORCA',
       new Decimal(0.0005),
       newStrategy.publicKey,
+      newPosition.publicKey,
       signer.publicKey,
       new Decimal(PricePercentage.discriminator),
       [new Decimal(100.0), new Decimal(100.0)],
@@ -438,6 +428,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     );
 
     const newStrategy = Keypair.generate();
+    const newPosition = Keypair.generate();
     const createRaydiumStrategyAccountIx = await kamino.createStrategyAccount(signer.publicKey, newStrategy.publicKey);
     console.log('newStrategy.publicKey', newStrategy.publicKey.toString());
 
@@ -445,6 +436,7 @@ describe('Kamino strategy creation SDK Tests', () => {
       'ORCA',
       new Decimal(0.0001),
       newStrategy.publicKey,
+      newPosition.publicKey,
       signer.publicKey,
       new Decimal(Manual.discriminator),
       [], // not needed used for manual
@@ -509,7 +501,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     expect(strategyData[0]?.rebalanceType == Manual.discriminator);
   });
 
-  it.skip('create new custom USDC-USDH percentage strategy on existing whirlpool and open position', async () => {
+  it('create new custom USDC-USDH percentage strategy on existing whirlpool and open position', async () => {
     let kamino = new Kamino(
       cluster,
       connection,
@@ -531,6 +523,7 @@ describe('Kamino strategy creation SDK Tests', () => {
       'ORCA',
       new Decimal(0.0001),
       newStrategy.publicKey,
+      newPosition.publicKey,
       signer.publicKey,
       new Decimal(PricePercentage.discriminator),
       [lowerPriceBpsDifference, upperPriceBpsDifference],
@@ -574,10 +567,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     expect(strategyData[0]?.rebalanceRaw[2] == upperPriceBpsDifference);
 
     // open position
-    const openPositionIxn = await kamino.openPositionFromPercentageRebalanceParameters(
-      newStrategy.publicKey,
-      newPosition.publicKey
-    );
+    const openPositionIxn = buildNewStrategyIxs[3];
     const openPositionMessage = await kamino.getTransactionV2Message(signer.publicKey, [openPositionIxn]);
     const openPositionTx = new VersionedTransaction(openPositionMessage);
     openPositionTx.sign([signer, newPosition]);
