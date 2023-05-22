@@ -17,6 +17,7 @@ import {
   AddressLookupTableAccount,
   MessageV0,
   TransactionMessage,
+  Keypair,
 } from '@solana/web3.js';
 import { setKaminoProgramId } from './kamino-client/programId';
 import {
@@ -35,8 +36,11 @@ import {
   getNearestValidTickIndexFromTickIndex,
   getRemoveLiquidityQuote,
   getStartTickIndex,
+  OrcaNetwork,
+  OrcaWhirlpoolClient,
   Percentage,
   priceToTickIndex,
+  tickIndexToPrice,
 } from '@orca-so/whirlpool-sdk';
 import { OrcaDAL } from '@orca-so/whirlpool-sdk/dist/dal/orca-dal';
 import { OrcaPosition } from '@orca-so/whirlpool-sdk/dist/position/orca-position';
@@ -132,7 +136,7 @@ import {
 import { Rebalance } from './kamino-client/types/ExecutiveWithdrawAction';
 import { AmmConfig, PersonalPositionState, PoolState } from './raydium_client';
 import { PROGRAM_ID as RAYDIUM_PROGRAM_ID, setRaydiumProgramId } from './raydium_client/programId';
-import { i32ToBytes, LiquidityMath, SqrtPriceMath, TickMath, TickUtils } from '@raydium-io/raydium-sdk';
+import { AmmV3, i32ToBytes, LiquidityMath, SqrtPriceMath, TickMath, TickUtils } from '@raydium-io/raydium-sdk';
 
 import KaminoIdl from './kamino-client/kamino.json';
 import { OrcaService, RaydiumService, Whirlpool as OrcaPool, WhirlpoolAprApy } from './services';
@@ -177,6 +181,7 @@ import {
   PricePercentageRebalanceMethod,
   RebalanceMethod,
 } from './utils/CreationParameters';
+import { getMintDecimals } from '@project-serum/serum/lib/market';
 export const KAMINO_IDL = KaminoIdl;
 
 export class Kamino {
@@ -1709,9 +1714,29 @@ export class Kamino {
     }
 
     if (strategyState.strategyDex.toNumber() == dexToNumber('ORCA')) {
-      return this.openPositionOrca(strategy, positionMint, priceLower, priceUpper, status);
+      return this.openPositionOrca(
+        strategyState.adminAuthority,
+        strategy,
+        strategyState.baseVaultAuthority,
+        strategyState.pool,
+        positionMint,
+        priceLower,
+        priceUpper,
+        status
+      );
     } else if (strategyState.strategyDex.toNumber() == dexToNumber('RAYDIUM')) {
-      return this.openPositionRaydium(strategy, positionMint, priceLower, priceUpper, status);
+      return this.openPositionRaydium(
+        strategyState.adminAuthority,
+        strategy,
+        strategyState.baseVaultAuthority,
+        strategyState.pool,
+        positionMint,
+        priceLower,
+        priceUpper,
+        strategyState.tokenAVault,
+        strategyState.tokenBVault,
+        status
+      );
     } else {
       throw new Error(`Invalid dex ${strategyState.strategyDex.toString()}`);
     }
@@ -1726,44 +1751,39 @@ export class Kamino {
    * @param status strategy status
    */
   openPositionOrca = async (
+    adminAuthority: PublicKey,
     strategy: PublicKey,
+    baseVaultAuthority: PublicKey,
+    pool: PublicKey,
     positionMint: PublicKey,
     priceLower: Decimal,
     priceUpper: Decimal,
-    status: StrategyStatusKind = new Uninitialized()
+    status: StrategyStatusKind = new Uninitialized(),
+    oldPosition?: PublicKey,
+    oldPositionMint?: PublicKey,
+    oldPositionTokenAccount?: PublicKey
   ): Promise<TransactionInstruction> => {
-    const strategyState: WhirlpoolStrategy | null = await this.getStrategyByAddress(strategy);
-    if (!strategyState) {
-      throw Error(`Could not fetch strategy state with pubkey ${strategy.toString()}`);
-    }
-
-    const whirlpool = await Whirlpool.fetch(this._connection, strategyState.pool);
+    const whirlpool = await Whirlpool.fetch(this._connection, pool);
     if (!whirlpool) {
-      throw Error(`Could not fetch whirlpool state with pubkey ${strategyState.pool.toString()}`);
+      throw Error(`Could not fetch whirlpool state with pubkey ${pool.toString()}`);
     }
 
     const isRebalancing = status.discriminator === Rebalancing.discriminator;
+    let decimalsA = await getMintDecimals(this._connection, whirlpool.tokenMintA);
+    let decimalsB = await getMintDecimals(this._connection, whirlpool.tokenMintB);
 
     const tickLowerIndex = getNearestValidTickIndexFromTickIndex(
-      priceToTickIndex(
-        priceLower,
-        strategyState.tokenAMintDecimals.toNumber(),
-        strategyState.tokenBMintDecimals.toNumber()
-      ),
+      priceToTickIndex(priceLower, decimalsA, decimalsB),
       whirlpool.tickSpacing
     );
     const tickUpperIndex = getNearestValidTickIndexFromTickIndex(
-      priceToTickIndex(
-        priceUpper,
-        strategyState.tokenAMintDecimals.toNumber(),
-        strategyState.tokenBMintDecimals.toNumber()
-      ),
+      priceToTickIndex(priceUpper, decimalsA, decimalsB),
       whirlpool.tickSpacing
     );
 
     const { position, positionBump, positionMetadata } = this.getMetadataProgramAddressesOrca(positionMint);
 
-    const positionTokenAccount = await getAssociatedTokenAddress(positionMint, strategyState.baseVaultAuthority);
+    const positionTokenAccount = await getAssociatedTokenAddress(positionMint, baseVaultAuthority);
 
     const args: OpenLiquidityPositionArgs = {
       tickLowerIndex: new BN(tickLowerIndex),
@@ -1772,19 +1792,19 @@ export class Kamino {
     };
 
     const { startTickIndex, endTickIndex } = this.getStartEndTicketIndexProgramAddressesOrca(
-      strategyState.pool,
+      pool,
       whirlpool,
       tickLowerIndex,
       tickUpperIndex
     );
 
     const accounts: OpenLiquidityPositionAccounts = {
-      adminAuthority: strategyState.adminAuthority,
+      adminAuthority: adminAuthority,
       strategy,
-      pool: strategyState.pool,
+      pool: pool,
       tickArrayLower: startTickIndex,
       tickArrayUpper: endTickIndex,
-      baseVaultAuthority: strategyState.baseVaultAuthority,
+      baseVaultAuthority: baseVaultAuthority,
       position,
       positionMint,
       positionMetadataAccount: positionMetadata,
@@ -1796,18 +1816,14 @@ export class Kamino {
       metadataProgram: METADATA_PROGRAM_ID,
       metadataUpdateAuth: METADATA_UPDATE_AUTH,
       poolProgram: WHIRLPOOL_PROGRAM_ID,
-      oldPositionOrBaseVaultAuthority: isRebalancing ? strategyState.position : strategyState.baseVaultAuthority,
-      oldPositionMintOrBaseVaultAuthority: isRebalancing
-        ? strategyState.positionMint
-        : strategyState.baseVaultAuthority,
-      oldPositionTokenAccountOrBaseVaultAuthority: isRebalancing
-        ? strategyState.positionTokenAccount
-        : strategyState.baseVaultAuthority,
-      raydiumProtocolPositionOrBaseVaultAuthority: strategyState.baseVaultAuthority,
-      adminTokenAAtaOrBaseVaultAuthority: strategyState.baseVaultAuthority,
-      adminTokenBAtaOrBaseVaultAuthority: strategyState.baseVaultAuthority,
-      poolTokenVaultAOrBaseVaultAuthority: strategyState.baseVaultAuthority,
-      poolTokenVaultBOrBaseVaultAuthority: strategyState.baseVaultAuthority,
+      oldPositionOrBaseVaultAuthority: isRebalancing ? oldPosition! : baseVaultAuthority,
+      oldPositionMintOrBaseVaultAuthority: isRebalancing ? oldPositionMint! : baseVaultAuthority,
+      oldPositionTokenAccountOrBaseVaultAuthority: isRebalancing ? oldPositionTokenAccount! : baseVaultAuthority,
+      raydiumProtocolPositionOrBaseVaultAuthority: baseVaultAuthority,
+      adminTokenAAtaOrBaseVaultAuthority: baseVaultAuthority,
+      adminTokenBAtaOrBaseVaultAuthority: baseVaultAuthority,
+      poolTokenVaultAOrBaseVaultAuthority: baseVaultAuthority,
+      poolTokenVaultBOrBaseVaultAuthority: baseVaultAuthority,
     };
 
     return openLiquidityPosition(args, accounts);
@@ -1822,46 +1838,52 @@ export class Kamino {
    * @param status strategy status
    */
   openPositionRaydium = async (
+    adminAuthority: PublicKey,
     strategy: PublicKey,
+    baseVaultAuthority: PublicKey,
+    pool: PublicKey,
     positionMint: PublicKey,
     priceLower: Decimal,
     priceUpper: Decimal,
-    status: StrategyStatusKind = new Uninitialized()
+    tokenAVault: PublicKey,
+    tokenBVault: PublicKey,
+    status: StrategyStatusKind = new Uninitialized(),
+    oldPosition?: PublicKey,
+    oldPositionMint?: PublicKey,
+    oldPositionTokenAccount?: PublicKey
   ): Promise<TransactionInstruction> => {
-    const strategyState: WhirlpoolStrategy | null = await this.getStrategyByAddress(strategy);
-    if (!strategyState) {
-      throw Error(`Could not fetch strategy state with pubkey ${strategy.toString()}`);
-    }
-
-    const poolState = await PoolState.fetch(this._connection, strategyState.pool);
+    const poolState = await PoolState.fetch(this._connection, pool);
     if (!poolState) {
-      throw Error(`Could not fetch Raydium pool state with pubkey ${strategyState.pool.toString()}`);
+      throw Error(`Could not fetch Raydium pool state with pubkey ${pool.toString()}`);
     }
 
     const isRebalancing = status.discriminator === Rebalancing.discriminator;
 
+    let decimalsA = await getMintDecimals(this._connection, poolState.tokenMint0);
+    let decimalsB = await getMintDecimals(this._connection, poolState.tokenMint1);
+
     let tickLowerIndex = TickMath.getTickWithPriceAndTickspacing(
       priceLower,
       poolState.tickSpacing,
-      strategyState.tokenAMintDecimals.toNumber(),
-      strategyState.tokenBMintDecimals.toNumber()
+      decimalsA,
+      decimalsB
     );
 
     let tickUpperIndex = TickMath.getTickWithPriceAndTickspacing(
       priceUpper,
       poolState.tickSpacing,
-      strategyState.tokenAMintDecimals.toNumber(),
-      strategyState.tokenBMintDecimals.toNumber()
+      decimalsA,
+      decimalsB
     );
 
     const { position, positionBump, protocolPosition, positionMetadata } = this.getMetadataProgramAddressesRaydium(
       positionMint,
-      strategyState.pool,
+      pool,
       tickLowerIndex,
       tickUpperIndex
     );
 
-    const positionTokenAccount = await getAssociatedTokenAddress(positionMint, strategyState.baseVaultAuthority);
+    const positionTokenAccount = await getAssociatedTokenAddress(positionMint, baseVaultAuthority);
 
     const args: OpenLiquidityPositionArgs = {
       tickLowerIndex: new BN(tickLowerIndex),
@@ -1870,19 +1892,19 @@ export class Kamino {
     };
 
     const { startTickIndex, endTickIndex } = this.getStartEndTicketIndexProgramAddressesRaydium(
-      strategyState.pool,
+      pool,
       poolState,
       tickLowerIndex,
       tickUpperIndex
     );
 
     const accounts: OpenLiquidityPositionAccounts = {
-      adminAuthority: strategyState.adminAuthority,
+      adminAuthority: adminAuthority,
       strategy,
-      pool: strategyState.pool,
+      pool: pool,
       tickArrayLower: startTickIndex,
       tickArrayUpper: endTickIndex,
-      baseVaultAuthority: strategyState.baseVaultAuthority,
+      baseVaultAuthority: baseVaultAuthority,
       position,
       positionMint,
       positionMetadataAccount: positionMetadata,
@@ -1894,16 +1916,12 @@ export class Kamino {
       metadataProgram: METADATA_PROGRAM_ID,
       metadataUpdateAuth: METADATA_UPDATE_AUTH,
       poolProgram: RAYDIUM_PROGRAM_ID,
-      oldPositionOrBaseVaultAuthority: isRebalancing ? strategyState.position : strategyState.baseVaultAuthority,
-      oldPositionMintOrBaseVaultAuthority: isRebalancing
-        ? strategyState.positionMint
-        : strategyState.baseVaultAuthority,
-      oldPositionTokenAccountOrBaseVaultAuthority: isRebalancing
-        ? strategyState.positionTokenAccount
-        : strategyState.baseVaultAuthority,
+      oldPositionOrBaseVaultAuthority: isRebalancing ? oldPosition! : baseVaultAuthority,
+      oldPositionMintOrBaseVaultAuthority: isRebalancing ? oldPositionMint! : baseVaultAuthority,
+      oldPositionTokenAccountOrBaseVaultAuthority: isRebalancing ? oldPositionTokenAccount! : baseVaultAuthority,
       raydiumProtocolPositionOrBaseVaultAuthority: protocolPosition,
-      adminTokenAAtaOrBaseVaultAuthority: strategyState.tokenAVault,
-      adminTokenBAtaOrBaseVaultAuthority: strategyState.tokenBVault,
+      adminTokenAAtaOrBaseVaultAuthority: tokenAVault,
+      adminTokenBAtaOrBaseVaultAuthority: tokenBVault,
       poolTokenVaultAOrBaseVaultAuthority: poolState.tokenVault0,
       poolTokenVaultBOrBaseVaultAuthority: poolState.tokenVault1,
     };
@@ -2044,6 +2062,7 @@ export class Kamino {
     dex: Dex,
     feeTier: Decimal,
     strategy: PublicKey,
+    positionMint: PublicKey,
     strategyAdmin: PublicKey,
     rebalanceType: Decimal,
     rebalanceParams: Decimal[],
@@ -2054,7 +2073,7 @@ export class Kamino {
     withdrawFeeBps?: Decimal,
     depositFeeBps?: Decimal,
     performanceFeeBps?: Decimal
-  ): Promise<[TransactionInstruction, TransactionInstruction[], TransactionInstruction]> => {
+  ): Promise<[TransactionInstruction, TransactionInstruction[], TransactionInstruction, TransactionInstruction]> => {
     // check both tokens exist in collateralInfo
     let config = await GlobalConfig.fetch(this._connection, this._globalConfig);
     if (!config) {
@@ -2143,10 +2162,121 @@ export class Kamino {
       performanceFeeBps
     );
 
-    let ixs: TransactionInstruction[] = [];
-    ixs = ixs.concat(updateStrategyParamsIx);
-    return [initStrategyIx, ixs, updateRebalanceParamsIx];
+    let baseVaultAuthority: PublicKey;
+    let tokenAVault: PublicKey;
+    let tokenBVault: PublicKey;
+    if (keepMintsOrder) {
+      let programAddresses = await this.getStrategyProgramAddresses(
+        strategy,
+        tokenACollateral.address,
+        tokenBCollateral.address
+      );
+      baseVaultAuthority = programAddresses.baseVaultAuthority;
+      tokenAVault = programAddresses.tokenAVault;
+      tokenBVault = programAddresses.tokenBVault;
+    } else {
+      let programAddresses = await this.getStrategyProgramAddresses(
+        strategy,
+        tokenBCollateral.address,
+        tokenACollateral.address
+      );
+      baseVaultAuthority = programAddresses.baseVaultAuthority;
+      tokenAVault = programAddresses.tokenBVault;
+      tokenBVault = programAddresses.tokenAVault;
+    }
+
+    let lowerPrice: Decimal;
+    let upperPrice: Decimal;
+    if (rebalanceKind.kind == RebalanceType.Manual.kind) {
+      lowerPrice = rebalanceParams[0];
+      upperPrice = rebalanceParams[1];
+    } else if (rebalanceKind.kind == RebalanceType.PricePercentage.kind) {
+      let positionPrices = await this.getPriceRangePercentageBased(dex, pool, rebalanceParams[0], rebalanceParams[1]);
+      lowerPrice = positionPrices[0];
+      upperPrice = positionPrices[1];
+    } else {
+      throw new Error(`Rebalance type ${rebalanceKind} is not supported`);
+    }
+
+    let openPositionIx: TransactionInstruction;
+    if (dex == 'ORCA') {
+      openPositionIx = await this.openPositionOrca(
+        strategyAdmin,
+        strategy,
+        baseVaultAuthority,
+        pool,
+        positionMint,
+        lowerPrice,
+        upperPrice
+      );
+    } else if (dex == 'RAYDIUM') {
+      openPositionIx = await this.openPositionRaydium(
+        strategyAdmin,
+        strategy,
+        baseVaultAuthority,
+        pool,
+        positionMint,
+        lowerPrice,
+        upperPrice,
+        tokenAVault,
+        tokenBVault
+      );
+    } else {
+      throw new Error(`Dex ${dex} is not supported`);
+    }
+
+    return [initStrategyIx, updateStrategyParamsIx, updateRebalanceParamsIx, openPositionIx];
   };
+
+  async getPriceRangePercentageBased(
+    dex: Dex,
+    pool: PublicKey,
+    lowerPriceBpsDifference: Decimal,
+    upperPriceBpsDifference: Decimal
+  ): Promise<[Decimal, Decimal]> {
+    let poolPrice: Decimal;
+    if (dex == 'ORCA') {
+      poolPrice = await this.getOrcaPoolPrice(pool);
+    } else if (dex == 'RAYDIUM') {
+      poolPrice = await this.getRaydiumPoolPrice(pool);
+    } else {
+      throw new Error(`Invalid dex ${dex}`);
+    }
+
+    let fullBPSDecimal = new Decimal(FullBPS);
+    const lowerPrice = poolPrice.mul(fullBPSDecimal.sub(lowerPriceBpsDifference)).div(fullBPSDecimal);
+    const upperPrice = poolPrice.mul(fullBPSDecimal.add(upperPriceBpsDifference)).div(fullBPSDecimal);
+
+    return [lowerPrice, upperPrice];
+  }
+
+  async getOrcaPoolPrice(pool: PublicKey): Promise<Decimal> {
+    const orca = new OrcaWhirlpoolClient({
+      connection: this._connection,
+      network: this._cluster === 'mainnet-beta' ? OrcaNetwork.MAINNET : OrcaNetwork.DEVNET,
+    });
+
+    const poolData = await orca.getPool(pool);
+    if (!poolData) {
+      throw Error(`Could not fetch Whirlpool data for ${pool.toString()}`);
+    }
+
+    return poolData.price;
+  }
+
+  async getRaydiumPoolPrice(pool: PublicKey): Promise<Decimal> {
+    const poolInfo = (
+      await AmmV3.fetchMultiplePoolInfos({
+        connection: this._connection,
+        // @ts-ignore
+        poolKeys: [pool],
+        batchRequest: true,
+        chainTime: new Date().getTime() / 1000,
+      })
+    )[pool.toString()].state;
+
+    return poolInfo.currentPrice;
+  }
 
   mintIsSupported = (collateralInfos: CollateralInfo[], tokenMint: PublicKey): boolean => {
     let found = false;
