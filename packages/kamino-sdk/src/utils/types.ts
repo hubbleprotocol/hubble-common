@@ -163,7 +163,6 @@ export interface GenericPositionRangeInfo {
   estimatedVolumeOnLast7d: number | undefined;
 }
 
-
 export interface VaultParameters {
   tokenMintA: PublicKey;
   tokenMintB: PublicKey;
