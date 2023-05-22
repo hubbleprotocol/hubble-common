@@ -69,6 +69,7 @@ import {
   Dex,
   dexToNumber,
   GenericPoolInfo,
+  GenericPositionRangeInfo,
   getAssociatedTokenAddress,
   getAssociatedTokenAddressAndData,
   getDexProgramId,
@@ -2344,6 +2345,39 @@ export class Kamino {
     } else {
       throw Error('No TransactionV2 on localnet as no lookup table was created');
     }
+  };
+
+  // todo(silviu): implement this
+  getEstimatedApyAndVolumeOnRange = async (dex: Dex, pool: PublicKey, lowerPrice: Decimal, upperPrice: Decimal) => {
+    if (dex == 'ORCA') {
+      return this.getEstimatedApyAndVolumeOnRangeOrca(pool, lowerPrice, upperPrice);
+    } else if (dex == 'RAYDIUM') {
+      return this.getEstimatedApyAndVolumeOnRangeRaydium(pool, lowerPrice, upperPrice);
+    } else {
+      throw new Error(`Dex ${dex} is not supported`);
+    }
+  };
+
+  getEstimatedApyAndVolumeOnRangeOrca = async (
+    pool: PublicKey,
+    lowerPrice: Decimal,
+    upperPrice: Decimal
+  ): Promise<GenericPositionRangeInfo> => {
+    return {
+      estimatedApy: 0,
+      estimatedVolumeOnLast7d: 0,
+    };
+  };
+
+  getEstimatedApyAndVolumeOnRangeRaydium = async (
+    pool: PublicKey,
+    lowerPrice: Decimal,
+    upperPrice: Decimal
+  ): Promise<GenericPositionRangeInfo> => {
+    return {
+      estimatedApy: 0,
+      estimatedVolumeOnLast7d: 0,
+    };
   };
 
   /**

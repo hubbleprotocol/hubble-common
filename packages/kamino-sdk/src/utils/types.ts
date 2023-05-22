@@ -158,6 +158,12 @@ export interface GenericPoolInfo {
   positions: number;
 }
 
+export interface GenericPositionRangeInfo {
+  estimatedApy: number;
+  estimatedVolumeOnLast7d: number | undefined;
+}
+
+
 export interface VaultParameters {
   tokenMintA: PublicKey;
   tokenMintB: PublicKey;
