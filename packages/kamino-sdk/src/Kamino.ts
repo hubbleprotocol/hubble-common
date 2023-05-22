@@ -2364,7 +2364,7 @@ export class Kamino {
     upperPrice: Decimal
   ): Promise<GenericPositionRangeInfo> => {
     return {
-      estimatedApy: 0,
+      estimatedApy: new Decimal(0),
       estimatedVolumeOnLast7d: 0,
     };
   };
@@ -2375,7 +2375,7 @@ export class Kamino {
     upperPrice: Decimal
   ): Promise<GenericPositionRangeInfo> => {
     return {
-      estimatedApy: 0,
+      estimatedApy: new Decimal(0),
       estimatedVolumeOnLast7d: 0,
     };
   };
