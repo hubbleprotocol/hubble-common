@@ -1759,12 +1759,11 @@ export class Kamino {
     positionMint: PublicKey,
     priceLower: Decimal,
     priceUpper: Decimal,
-    status: StrategyStatusKind = new Uninitialized(),
-    oldPosition?: PublicKey,
-    oldPositionMint?: PublicKey,
-    oldPositionTokenAccount?: PublicKey
+    status: StrategyStatusKind = new Uninitialized()
   ): Promise<TransactionInstruction> => {
     const whirlpool = await Whirlpool.fetch(this._connection, pool);
+    const strategyState = await WhirlpoolStrategy.fetch(this._connection, strategy);
+
     if (!whirlpool) {
       throw Error(`Could not fetch whirlpool state with pubkey ${pool.toString()}`);
     }
@@ -1817,14 +1816,16 @@ export class Kamino {
       metadataProgram: METADATA_PROGRAM_ID,
       metadataUpdateAuth: METADATA_UPDATE_AUTH,
       poolProgram: WHIRLPOOL_PROGRAM_ID,
-      oldPositionOrBaseVaultAuthority: isRebalancing ? oldPosition! : baseVaultAuthority,
-      oldPositionMintOrBaseVaultAuthority: isRebalancing ? oldPositionMint! : baseVaultAuthority,
-      oldPositionTokenAccountOrBaseVaultAuthority: isRebalancing ? oldPositionTokenAccount! : baseVaultAuthority,
       raydiumProtocolPositionOrBaseVaultAuthority: baseVaultAuthority,
       adminTokenAAtaOrBaseVaultAuthority: baseVaultAuthority,
       adminTokenBAtaOrBaseVaultAuthority: baseVaultAuthority,
       poolTokenVaultAOrBaseVaultAuthority: baseVaultAuthority,
       poolTokenVaultBOrBaseVaultAuthority: baseVaultAuthority,
+      oldPositionOrBaseVaultAuthority: isRebalancing ? strategyState?.position! : baseVaultAuthority,
+      oldPositionMintOrBaseVaultAuthority: isRebalancing ? strategyState?.positionMint! : baseVaultAuthority,
+      oldPositionTokenAccountOrBaseVaultAuthority: isRebalancing
+        ? strategyState?.positionTokenAccount!
+        : baseVaultAuthority,
     };
 
     return openLiquidityPosition(args, accounts);
@@ -1848,12 +1849,10 @@ export class Kamino {
     priceUpper: Decimal,
     tokenAVault: PublicKey,
     tokenBVault: PublicKey,
-    status: StrategyStatusKind = new Uninitialized(),
-    oldPosition?: PublicKey,
-    oldPositionMint?: PublicKey,
-    oldPositionTokenAccount?: PublicKey
+    status: StrategyStatusKind = new Uninitialized()
   ): Promise<TransactionInstruction> => {
     const poolState = await PoolState.fetch(this._connection, pool);
+    const strategyState = await WhirlpoolStrategy.fetch(this._connection, strategy);
     if (!poolState) {
       throw Error(`Could not fetch Raydium pool state with pubkey ${pool.toString()}`);
     }
@@ -1917,9 +1916,12 @@ export class Kamino {
       metadataProgram: METADATA_PROGRAM_ID,
       metadataUpdateAuth: METADATA_UPDATE_AUTH,
       poolProgram: RAYDIUM_PROGRAM_ID,
-      oldPositionOrBaseVaultAuthority: isRebalancing ? oldPosition! : baseVaultAuthority,
-      oldPositionMintOrBaseVaultAuthority: isRebalancing ? oldPositionMint! : baseVaultAuthority,
-      oldPositionTokenAccountOrBaseVaultAuthority: isRebalancing ? oldPositionTokenAccount! : baseVaultAuthority,
+      oldPositionOrBaseVaultAuthority: isRebalancing ? strategyState?.position! : baseVaultAuthority,
+      oldPositionMintOrBaseVaultAuthority: isRebalancing ? strategyState?.positionMint! : baseVaultAuthority,
+      oldPositionTokenAccountOrBaseVaultAuthority: isRebalancing
+        ? strategyState?.positionTokenAccount!
+        : baseVaultAuthority,
+
       raydiumProtocolPositionOrBaseVaultAuthority: protocolPosition,
       adminTokenAAtaOrBaseVaultAuthority: tokenAVault,
       adminTokenBAtaOrBaseVaultAuthority: tokenBVault,
