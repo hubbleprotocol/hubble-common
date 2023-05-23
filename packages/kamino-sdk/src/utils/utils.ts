@@ -3,7 +3,7 @@ import { WhirlpoolStrategy } from '../kamino-client/accounts';
 import { WHIRLPOOL_PROGRAM_ID } from '../whirpools-client/programId';
 import { PROGRAM_ID as RAYDIUM_PROGRAM_ID } from '../raydium_client/programId';
 import Decimal from 'decimal.js';
-import { RebalanceType, RebalanceTypeKind, StrategyConfigOptionKind } from '../kamino-client/types';
+import { RebalanceRaw, RebalanceType, RebalanceTypeKind, StrategyConfigOptionKind } from '../kamino-client/types';
 import {
   UpdateStrategyConfigAccounts,
   UpdateStrategyConfigArgs,
@@ -54,6 +54,21 @@ export function getStrategyRebalanceParams(params: Array<Decimal>, rebalance_typ
     throw 'Rebalance type not valid ' + rebalance_type;
   }
   return [...buffer];
+}
+
+export function readPercentageRebalanceParams(
+  rebalanceType: RebalanceTypeKind,
+  rebalanceParams: RebalanceRaw
+): Decimal[] {
+  if (rebalanceType.kind == RebalanceType.Manual.kind) {
+    return [new Decimal(rebalanceParams.params[0]), new Decimal(rebalanceParams.params[1])];
+  } else if (rebalanceType.kind == RebalanceType.PricePercentage.kind) {
+    let lowerRangePercentage = rebalanceParams.params[0] + rebalanceParams.params[1] * 256;
+    let upperRangePercentage = rebalanceParams.params[2] + rebalanceParams.params[3] * 256;
+    return [new Decimal(lowerRangePercentage), new Decimal(upperRangePercentage)];
+  } else {
+    throw new Error(`Invalid rebalance type ${rebalanceType}`);
+  }
 }
 
 export function numberToRebalanceType(rebalance_type: number): RebalanceTypeKind {
