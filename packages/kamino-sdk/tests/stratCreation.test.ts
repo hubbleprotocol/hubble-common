@@ -9,7 +9,14 @@ import {
   TransactionInstruction,
   VersionedTransaction,
 } from '@solana/web3.js';
-import { Kamino, numberToRebalanceType, RaydiumService, sendTransactionWithLogs } from '../src';
+import {
+  getStrategyRebalanceParams,
+  Kamino,
+  numberToRebalanceType,
+  RaydiumService,
+  readPercentageRebalanceParams,
+  sendTransactionWithLogs,
+} from '../src';
 import Decimal from 'decimal.js';
 import {
   assignBlockInfoToTransaction,
@@ -60,7 +67,7 @@ describe('Kamino strategy creation SDK Tests', () => {
       newPosition.publicKey,
       signer.publicKey,
       new Decimal(Manual.discriminator),
-      [], // not needed used for manual
+      [new Decimal(0.99), new Decimal(1.01)],
       new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'),
       new PublicKey('USDH1SM1ojwWUga67PGrgFWUHibbjqMvuMaDkRJTgkX')
     );
@@ -98,14 +105,32 @@ describe('Kamino strategy creation SDK Tests', () => {
     txHash = await sendAndConfirmTransaction(kamino._connection, setupStratFeesTransactionV0);
     console.log('setup strategy fees tx hash', txHash);
 
+    let strategy = await kamino.getStrategyByAddress(newStrategy.publicKey);
+    if (!strategy) {
+      throw new Error('strategy not found');
+    }
+
+    let rewardVaults = kamino.generateRewardVaults();
     // after strategy creation we have to set the reward mappings so it autocompounds
-    let updateRewardMappingIxs = await kamino.getUpdateRewardsIxs(signer.publicKey, newStrategy.publicKey);
-    const updateRewardMappingTx = await kamino.getTransactionV2Message(signer.publicKey, updateRewardMappingIxs);
-    const updateRewardMappingsTransactionV0 = new VersionedTransaction(updateRewardMappingTx);
-    updateRewardMappingsTransactionV0.sign([signer]);
-    //@ts-ignore
-    txHash = await sendAndConfirmTransaction(kamino._connection, updateRewardMappingsTransactionV0);
-    console.log('update reward mappings tx hash', txHash);
+    let updateRewardMappingIxs = await kamino.getUpdateRewardsIxs(
+      'ORCA',
+      signer.publicKey,
+      newStrategy.publicKey,
+      strategy.baseVaultAuthority,
+      strategy.pool,
+      GlobalConfigMainnet,
+      rewardVaults.map((vault) => vault.publicKey)
+    );
+    for (let i = 0; i < updateRewardMappingIxs.length; i++) {
+      const tx = new Transaction();
+
+      tx.add(updateRewardMappingIxs[i]);
+      let updateRebalanceParamsTxHash = await sendTransactionWithLogs(connection, tx, signer.publicKey, [
+        signer,
+        rewardVaults[i],
+      ]);
+      console.log('update Rebalance Params Tx Hash ', updateRebalanceParamsTxHash);
+    }
   });
 
   it.skip('create new manual strategy on existing whirlpool', async () => {
@@ -168,13 +193,31 @@ describe('Kamino strategy creation SDK Tests', () => {
     console.log('setup strategy fees tx hash', txHash);
 
     // after strategy creation we have to set the reward mappings so it autocompounds
-    let updateRewardMappingIxs = await kamino.getUpdateRewardsIxs(signer.publicKey, newStrategy.publicKey);
-    const updateRewardMappingTx = await kamino.getTransactionV2Message(signer.publicKey, updateRewardMappingIxs);
-    const updateRewardMappingsTransactionV0 = new VersionedTransaction(updateRewardMappingTx);
-    updateRewardMappingsTransactionV0.sign([signer]);
-    //@ts-ignore
-    txHash = await sendAndConfirmTransaction(kamino._connection, updateRewardMappingsTransactionV0);
-    console.log('update reward mappings tx hash', txHash);
+    let strategy = await kamino.getStrategyByAddress(newStrategy.publicKey);
+    if (!strategy) {
+      throw new Error('strategy not found');
+    }
+    let rewardVaults = kamino.generateRewardVaults();
+
+    let updateRewardMappingIxs = await kamino.getUpdateRewardsIxs(
+      'ORCA',
+      signer.publicKey,
+      newStrategy.publicKey,
+      strategy.baseVaultAuthority,
+      strategy.pool,
+      GlobalConfigMainnet,
+      rewardVaults.map((vault) => vault.publicKey)
+    );
+    for (let i = 0; i < updateRewardMappingIxs.length; i++) {
+      const tx = new Transaction();
+
+      tx.add(updateRewardMappingIxs[i]);
+      let updateRebalanceParamsTxHash = await sendTransactionWithLogs(connection, tx, signer.publicKey, [
+        signer,
+        rewardVaults[i],
+      ]);
+      console.log('update Rebalance Params Tx Hash ', updateRebalanceParamsTxHash);
+    }
   });
 
   it.skip('create new percentage strategy on existing whirlpool', async () => {
@@ -235,13 +278,31 @@ describe('Kamino strategy creation SDK Tests', () => {
     console.log('setup strategy fees tx hash', txHash);
 
     // after strategy creation we have to set the reward mappings so it autocompounds
-    let updateRewardMappingIxs = await kamino.getUpdateRewardsIxs(signer.publicKey, newStrategy.publicKey);
-    const updateRewardMappingTx = await kamino.getTransactionV2Message(signer.publicKey, updateRewardMappingIxs);
-    const updateRewardMappingsTransactionV0 = new VersionedTransaction(updateRewardMappingTx);
-    updateRewardMappingsTransactionV0.sign([signer]);
-    //@ts-ignore
-    txHash = await sendAndConfirmTransaction(kamino._connection, updateRewardMappingsTransactionV0);
-    console.log('update reward mappings tx hash', txHash);
+    let strategy = await kamino.getStrategyByAddress(newStrategy.publicKey);
+    if (!strategy) {
+      throw new Error('strategy not found');
+    }
+    let rewardVaults = kamino.generateRewardVaults();
+
+    let updateRewardMappingIxs = await kamino.getUpdateRewardsIxs(
+      'ORCA',
+      signer.publicKey,
+      newStrategy.publicKey,
+      strategy.baseVaultAuthority,
+      strategy.pool,
+      GlobalConfigMainnet,
+      rewardVaults.map((vault) => vault.publicKey)
+    );
+    for (let i = 0; i < updateRewardMappingIxs.length; i++) {
+      const tx = new Transaction();
+
+      tx.add(updateRewardMappingIxs[i]);
+      let updateRebalanceParamsTxHash = await sendTransactionWithLogs(connection, tx, signer.publicKey, [
+        signer,
+        rewardVaults[i],
+      ]);
+      console.log('update Rebalance Params Tx Hash ', updateRebalanceParamsTxHash);
+    }
   });
 
   it.skip('create custom USDC-USDH new percentage strategy on existing whirlpool', async () => {
@@ -302,13 +363,31 @@ describe('Kamino strategy creation SDK Tests', () => {
     console.log('setup strategy fees tx hash', txHash);
 
     // after strategy creation we have to set the reward mappings so it autocompounds
-    let updateRewardMappingIxs = await kamino.getUpdateRewardsIxs(signer.publicKey, newStrategy.publicKey);
-    const updateRewardMappingTx = await kamino.getTransactionV2Message(signer.publicKey, updateRewardMappingIxs);
-    const updateRewardMappingsTransactionV0 = new VersionedTransaction(updateRewardMappingTx);
-    updateRewardMappingsTransactionV0.sign([signer]);
-    //@ts-ignore
-    txHash = await sendAndConfirmTransaction(kamino._connection, updateRewardMappingsTransactionV0);
-    console.log('update reward mappings tx hash', txHash);
+    let strategy = await kamino.getStrategyByAddress(newStrategy.publicKey);
+    if (!strategy) {
+      throw new Error('strategy not found');
+    }
+    let rewardVaults = kamino.generateRewardVaults();
+
+    let updateRewardMappingIxs = await kamino.getUpdateRewardsIxs(
+      'ORCA',
+      signer.publicKey,
+      newStrategy.publicKey,
+      strategy.baseVaultAuthority,
+      strategy.pool,
+      GlobalConfigMainnet,
+      rewardVaults.map((vault) => vault.publicKey)
+    );
+    for (let i = 0; i < updateRewardMappingIxs.length; i++) {
+      const tx = new Transaction();
+
+      tx.add(updateRewardMappingIxs[i]);
+      let updateRebalanceParamsTxHash = await sendTransactionWithLogs(connection, tx, signer.publicKey, [
+        signer,
+        rewardVaults[i],
+      ]);
+      console.log('update Rebalance Params Tx Hash ', updateRebalanceParamsTxHash);
+    }
   });
 
   it.skip('create new percentage strategy on existing whirlpool', async () => {
@@ -369,13 +448,31 @@ describe('Kamino strategy creation SDK Tests', () => {
     console.log('setup strategy fees tx hash', txHash);
 
     // after strategy creation we have to set the reward mappings so it autocompounds
-    let updateRewardMappingIxs = await kamino.getUpdateRewardsIxs(signer.publicKey, newStrategy.publicKey);
-    const updateRewardMappingTx = await kamino.getTransactionV2Message(signer.publicKey, updateRewardMappingIxs);
-    const updateRewardMappingsTransactionV0 = new VersionedTransaction(updateRewardMappingTx);
-    updateRewardMappingsTransactionV0.sign([signer]);
-    //@ts-ignore
-    txHash = await sendAndConfirmTransaction(kamino._connection, updateRewardMappingsTransactionV0);
-    console.log('update reward mappings tx hash', txHash);
+    let strategy = await kamino.getStrategyByAddress(newStrategy.publicKey);
+    if (!strategy) {
+      throw new Error('strategy not found');
+    }
+    let rewardVaults = kamino.generateRewardVaults();
+
+    let updateRewardMappingIxs = await kamino.getUpdateRewardsIxs(
+      'ORCA',
+      signer.publicKey,
+      newStrategy.publicKey,
+      strategy.baseVaultAuthority,
+      strategy.pool,
+      GlobalConfigMainnet,
+      rewardVaults.map((vault) => vault.publicKey)
+    );
+    for (let i = 0; i < updateRewardMappingIxs.length; i++) {
+      const tx = new Transaction();
+
+      tx.add(updateRewardMappingIxs[i]);
+      let updateRebalanceParamsTxHash = await sendTransactionWithLogs(connection, tx, signer.publicKey, [
+        signer,
+        rewardVaults[i],
+      ]);
+      console.log('update Rebalance Params Tx Hash ', updateRebalanceParamsTxHash);
+    }
 
     // update rebalance params
     let updateRebalanceParamsIx = await kamino.getUpdateRebalancingParmsIxns(signer.publicKey, newStrategy.publicKey, [
@@ -388,8 +485,12 @@ describe('Kamino strategy creation SDK Tests', () => {
     console.log('update Rebalance Params Tx Hash ', updateRebalanceParamsTxHash);
 
     let strategyData = await kamino.getStrategies([newStrategy.publicKey]);
-    expect(strategyData[0]?.rebalanceRaw[0] == 10.0);
-    expect(strategyData[0]?.rebalanceRaw[2] == 24.0);
+    let rebalanceParams = readPercentageRebalanceParams(
+      numberToRebalanceType(strategyData[0]?.rebalanceType!),
+      strategyData[0]?.rebalanceRaw!
+    );
+    expect(rebalanceParams[0] == new Decimal(10.0));
+    expect(rebalanceParams[1] == new Decimal(24.0));
 
     // update rebalance method to manual
     await updateStrategyConfig(

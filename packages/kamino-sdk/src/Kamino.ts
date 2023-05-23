@@ -1707,6 +1707,9 @@ export class Kamino {
     positionMint: PublicKey,
     priceLower: Decimal,
     priceUpper: Decimal,
+    oldPositionOrBaseVaultAuthority: PublicKey,
+    oldPositionMintOrBaseVaultAuthority: PublicKey,
+    oldPositionTokenAccountOrBaseVaultAuthority: PublicKey,
     status: StrategyStatusKind = new Uninitialized()
   ): Promise<TransactionInstruction> => {
     const strategyState: WhirlpoolStrategy | null = await this.getStrategyByAddress(strategy);
@@ -1723,6 +1726,9 @@ export class Kamino {
         positionMint,
         priceLower,
         priceUpper,
+        oldPositionOrBaseVaultAuthority,
+        oldPositionMintOrBaseVaultAuthority,
+        oldPositionTokenAccountOrBaseVaultAuthority,
         status
       );
     } else if (strategyState.strategyDex.toNumber() == dexToNumber('RAYDIUM')) {
@@ -1736,6 +1742,9 @@ export class Kamino {
         priceUpper,
         strategyState.tokenAVault,
         strategyState.tokenBVault,
+        oldPositionOrBaseVaultAuthority,
+        oldPositionMintOrBaseVaultAuthority,
+        oldPositionTokenAccountOrBaseVaultAuthority,
         status
       );
     } else {
@@ -1759,11 +1768,13 @@ export class Kamino {
     positionMint: PublicKey,
     priceLower: Decimal,
     priceUpper: Decimal,
-    status: StrategyStatusKind = new Uninitialized(),
-    oldPosition?: PublicKey,
-    oldPositionMint?: PublicKey,
-    oldPositionTokenAccount?: PublicKey
+    oldPositionOrBaseVaultAuthority: PublicKey,
+    oldPositionMintOrBaseVaultAuthority: PublicKey,
+    oldPositionTokenAccountOrBaseVaultAuthority: PublicKey,
+    status: StrategyStatusKind = new Uninitialized()
   ): Promise<TransactionInstruction> => {
+    console.log('silviu priceLower', priceLower);
+    console.log('silviu priceUpper', priceUpper);
     const whirlpool = await Whirlpool.fetch(this._connection, pool);
     if (!whirlpool) {
       throw Error(`Could not fetch whirlpool state with pubkey ${pool.toString()}`);
@@ -1817,9 +1828,9 @@ export class Kamino {
       metadataProgram: METADATA_PROGRAM_ID,
       metadataUpdateAuth: METADATA_UPDATE_AUTH,
       poolProgram: WHIRLPOOL_PROGRAM_ID,
-      oldPositionOrBaseVaultAuthority: isRebalancing ? oldPosition! : baseVaultAuthority,
-      oldPositionMintOrBaseVaultAuthority: isRebalancing ? oldPositionMint! : baseVaultAuthority,
-      oldPositionTokenAccountOrBaseVaultAuthority: isRebalancing ? oldPositionTokenAccount! : baseVaultAuthority,
+      oldPositionOrBaseVaultAuthority,
+      oldPositionMintOrBaseVaultAuthority,
+      oldPositionTokenAccountOrBaseVaultAuthority,
       raydiumProtocolPositionOrBaseVaultAuthority: baseVaultAuthority,
       adminTokenAAtaOrBaseVaultAuthority: baseVaultAuthority,
       adminTokenBAtaOrBaseVaultAuthority: baseVaultAuthority,
@@ -1848,10 +1859,10 @@ export class Kamino {
     priceUpper: Decimal,
     tokenAVault: PublicKey,
     tokenBVault: PublicKey,
-    status: StrategyStatusKind = new Uninitialized(),
-    oldPosition?: PublicKey,
-    oldPositionMint?: PublicKey,
-    oldPositionTokenAccount?: PublicKey
+    oldPositionOrBaseVaultAuthority: PublicKey,
+    oldPositionMintOrBaseVaultAuthority: PublicKey,
+    oldPositionTokenAccountOrBaseVaultAuthority: PublicKey,
+    status: StrategyStatusKind = new Uninitialized()
   ): Promise<TransactionInstruction> => {
     const poolState = await PoolState.fetch(this._connection, pool);
     if (!poolState) {
@@ -1917,9 +1928,9 @@ export class Kamino {
       metadataProgram: METADATA_PROGRAM_ID,
       metadataUpdateAuth: METADATA_UPDATE_AUTH,
       poolProgram: RAYDIUM_PROGRAM_ID,
-      oldPositionOrBaseVaultAuthority: isRebalancing ? oldPosition! : baseVaultAuthority,
-      oldPositionMintOrBaseVaultAuthority: isRebalancing ? oldPositionMint! : baseVaultAuthority,
-      oldPositionTokenAccountOrBaseVaultAuthority: isRebalancing ? oldPositionTokenAccount! : baseVaultAuthority,
+      oldPositionOrBaseVaultAuthority,
+      oldPositionMintOrBaseVaultAuthority,
+      oldPositionTokenAccountOrBaseVaultAuthority,
       raydiumProtocolPositionOrBaseVaultAuthority: protocolPosition,
       adminTokenAAtaOrBaseVaultAuthority: tokenAVault,
       adminTokenBAtaOrBaseVaultAuthority: tokenBVault,
@@ -2208,7 +2219,10 @@ export class Kamino {
         pool,
         positionMint,
         lowerPrice,
-        upperPrice
+        upperPrice,
+        baseVaultAuthority,
+        baseVaultAuthority,
+        baseVaultAuthority
       );
     } else if (dex == 'RAYDIUM') {
       openPositionIx = await this.openPositionRaydium(
@@ -2220,7 +2234,10 @@ export class Kamino {
         lowerPrice,
         upperPrice,
         tokenAVault,
-        tokenBVault
+        tokenBVault,
+        baseVaultAuthority,
+        baseVaultAuthority,
+        baseVaultAuthority
       );
     } else {
       throw new Error(`Dex ${dex} is not supported`);
@@ -2395,11 +2412,26 @@ export class Kamino {
     priceLower: Decimal,
     priceUpper: Decimal,
     payer: PublicKey
-  ) => [
-    await this.executiveWithdraw(strategy, new Rebalance()),
-    await this.collectFeesAndRewards(strategy),
-    await this.openPosition(strategy, newPosition, priceLower, priceUpper, new Rebalancing()),
-  ];
+  ) => {
+    const strategyState: WhirlpoolStrategy | null = await this.getStrategyByAddress(strategy);
+    if (!strategyState) {
+      throw Error(`Could not fetch strategy state with pubkey ${strategy.toString()}`);
+    }
+    return [
+      await this.executiveWithdraw(strategy, new Rebalance()),
+      await this.collectFeesAndRewards(strategy),
+      await this.openPosition(
+        strategy,
+        newPosition,
+        priceLower,
+        priceUpper,
+        strategyState.position,
+        strategyState.positionMint,
+        strategyState.positionTokenAccount,
+        new Rebalancing()
+      ),
+    ];
+  };
 
   /**
    * Get a list of user's Kamino strategy positions
@@ -2938,21 +2970,25 @@ export class Kamino {
     ];
   };
 
-  getUpdateRewardsIxs = async (strategyOwner: PublicKey, strategy: PublicKey): Promise<TransactionInstruction[]> => {
-    let strategyState = await WhirlpoolStrategy.fetch(this._connection, strategy);
-    if (!strategyState) {
-      throw Error(`Could not fetch strategy state with pubkey ${strategy.toString()}`);
-    }
-    let globalConfig = await GlobalConfig.fetch(this._connection, strategyState.globalConfig);
+  getUpdateRewardsIxs = async (
+    dex: Dex,
+    strategyOwner: PublicKey,
+    strategy: PublicKey,
+    baseVaultAuthority: PublicKey,
+    pool: PublicKey,
+    globalConfigPk: PublicKey,
+    vaults: PublicKey[]
+  ): Promise<TransactionInstruction[]> => {
+    let globalConfig = await GlobalConfig.fetch(this._connection, globalConfigPk);
     if (!globalConfig) {
-      throw Error(`Could not fetch global config with pubkey ${strategyState.globalConfig.toString()}`);
+      throw Error(`Could not fetch global config with pubkey ${globalConfigPk.toString()}`);
     }
     let collateralInfos = await this.getCollateralInfo(globalConfig.tokenInfos);
     let ixs: TransactionInstruction[] = [];
-    if (strategyState.strategyDex.toNumber() == dexToNumber('ORCA')) {
-      const whirlpool = await Whirlpool.fetch(this._connection, strategyState.pool);
+    if (dex == 'ORCA') {
+      const whirlpool = await Whirlpool.fetch(this._connection, pool);
       if (!whirlpool) {
-        throw Error(`Could not fetch whirlpool state with pubkey ${strategyState.pool.toString()}`);
+        throw Error(`Could not fetch whirlpool state with pubkey ${pool.toString()}`);
       }
       for (let i = 0; i < 3; i++) {
         if (whirlpool.rewardInfos[i].mint.toString() != PublicKey.default.toString()) {
@@ -2962,18 +2998,18 @@ export class Kamino {
           }
 
           let args: UpdateRewardMappingArgs = {
-            rewardIndex: 0,
+            rewardIndex: i,
             collateralToken: collateralId,
           };
 
           let accounts: UpdateRewardMappingAccounts = {
             adminAuthority: strategyOwner,
-            globalConfig: strategyState.globalConfig,
+            globalConfig: globalConfigPk,
             strategy: strategy,
-            pool: strategyState.pool,
+            pool: pool,
             rewardMint: whirlpool.rewardInfos[i].mint,
-            rewardVault: whirlpool.rewardInfos[i].vault,
-            baseVaultAuthority: strategyState.baseVaultAuthority,
+            rewardVault: vaults[i],
+            baseVaultAuthority: baseVaultAuthority,
             systemProgram: SystemProgram.programId,
             rent: SYSVAR_RENT_PUBKEY,
             tokenProgram: TOKEN_PROGRAM_ID,
@@ -2985,10 +3021,10 @@ export class Kamino {
         }
       }
       return ixs;
-    } else if (strategyState.strategyDex.toNumber() == dexToNumber('RAYDIUM')) {
-      const poolState = await PoolState.fetch(this._connection, strategyState.pool);
+    } else if (dex == 'RAYDIUM') {
+      const poolState = await PoolState.fetch(this._connection, pool);
       if (!poolState) {
-        throw new Error(`Could not fetch whirlpool state with pubkey ${strategyState.pool.toString()}`);
+        throw new Error(`Could not fetch whirlpool state with pubkey ${pool.toString()}`);
       }
       for (let i = 0; i < 3; i++) {
         if (poolState.rewardInfos[i].tokenMint.toString() != PublicKey.default.toString()) {
@@ -2998,18 +3034,18 @@ export class Kamino {
           }
 
           let args: UpdateRewardMappingArgs = {
-            rewardIndex: 0,
+            rewardIndex: i,
             collateralToken: collateralId,
           };
 
           let accounts: UpdateRewardMappingAccounts = {
             adminAuthority: strategyOwner,
-            globalConfig: strategyState.globalConfig,
+            globalConfig: globalConfigPk,
             strategy: strategy,
-            pool: strategyState.pool,
+            pool,
             rewardMint: poolState.rewardInfos[i].tokenMint,
-            rewardVault: poolState.rewardInfos[i].tokenVault,
-            baseVaultAuthority: strategyState.baseVaultAuthority,
+            rewardVault: vaults[i],
+            baseVaultAuthority,
             systemProgram: SystemProgram.programId,
             rent: SYSVAR_RENT_PUBKEY,
             tokenProgram: TOKEN_PROGRAM_ID,
@@ -3022,9 +3058,21 @@ export class Kamino {
       }
       return ixs;
     } else {
-      throw new Error(`Dex ${strategyState.strategyDex} not supported`);
+      throw new Error(`Dex ${dex} not supported`);
     }
   };
+
+  /**
+   * Generate a list of 3 keypairs to be used as reward vaults for a strategy when creating a new strategy
+   * @returns list of 3 KeyPairs
+   */
+  generateRewardVaults(): Keypair[] {
+    let rewardVaults: Keypair[] = [];
+    for (let i = 0; i < 3; i++) {
+      rewardVaults.push(Keypair.generate());
+    }
+    return rewardVaults;
+  }
 }
 
 export default Kamino;
