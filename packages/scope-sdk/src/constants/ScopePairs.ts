@@ -87,5 +87,7 @@ export const ScopePairs = [
   'MOBILETwap/HNT',
   'IOT/HNT',
   'IOTTwap/HNT',
+  'NANA/USD',
+  'NANATwap/USD',
 ] as const;
 export type ScopePair = (typeof ScopePairs)[number];

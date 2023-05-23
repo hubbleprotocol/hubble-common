@@ -65,6 +65,7 @@ export const ScopeMints: { cluster: SolanaCluster; mints: { token: SupportedToke
       { token: 'HNT', mint: 'hntyVP6YFm1Hg25TN9WGLqM12b8TQmcknKrdu1oxWux' },
       { token: 'MOBILE', mint: 'mb1eu7TzEc71KxDpsmsKoucSSuuoGLv1drys1oP2jh6' },
       { token: 'IOT', mint: 'iotEVVZLEywoTn1QdwNPddxPWszn3zFhEot3MfL9fns' },
+      { token: 'NANA', mint: 'HxRELUQfvvjToVbacjr9YECdfQMUqGgPYB68jVDYxkbr' },
     ],
   },
   {

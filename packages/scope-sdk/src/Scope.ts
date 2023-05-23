@@ -100,6 +100,8 @@ export class Scope {
     { id: 87, pair: 'MOBILETwap/HNT', name: 'MOBILETwap', price: new Decimal(0), nonUsdPairId: 85 },
     { id: 88, pair: 'IOT/HNT', name: 'IOT', price: new Decimal(0), nonUsdPairId: 84 },
     { id: 89, pair: 'IOTTwap/HNT', name: 'IOTTwap', price: new Decimal(0), nonUsdPairId: 85 },
+    { id: 90, pair: 'NANA/USD', name: 'NANA', price: new Decimal(0) },
+    { id: 91, pair: 'NANATwap/USD', name: 'NANATwap', price: new Decimal(0) },
   ];
 
   /**
