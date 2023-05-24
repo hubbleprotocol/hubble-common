@@ -1805,7 +1805,6 @@ export class Kamino {
       tickUpperIndex
     );
 
-    console.log('silviu baseVaultAuthority', baseVaultAuthority.toString());
     const accounts: OpenLiquidityPositionAccounts = {
       adminAuthority: adminAuthority,
       strategy,

@@ -781,7 +781,6 @@ describe('Kamino SDK Tests', () => {
     const usdcAirdropAmount = new Decimal(1000000000);
     const usdhAirdropAmount = new Decimal(1000000000);
 
-    console.log('before user creation');
     let user = await createUser(
       connection,
       signer,
@@ -793,8 +792,8 @@ describe('Kamino SDK Tests', () => {
 
     let tx = createTransactionWithExtraBudget(user.owner.publicKey, 1000000);
 
-    let amounts = await kamino.calculateAmounts(fixtures.newOrcaStrategy, new Decimal(5493));
-    console.log('amounts', amounts);
+    let amounts = await kamino.calculateAmounts(fixtures.newRaydiumStrategy, new Decimal(5400));
+    console.log('orca amounts', amounts);
 
     const depositIx = await kamino.deposit(strategyWithAddress, amounts[0], amounts[1], user.owner.publicKey);
     tx.add(depositIx);
