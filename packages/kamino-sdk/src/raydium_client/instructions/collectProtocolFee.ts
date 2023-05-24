@@ -1,37 +1,34 @@
-import { TransactionInstruction, PublicKey, AccountMeta } from "@solana/web3.js" // eslint-disable-line @typescript-eslint/no-unused-vars
-import BN from "bn.js" // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as borsh from "@project-serum/borsh" // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
-import { PROGRAM_ID } from "../programId"
+import { TransactionInstruction, PublicKey, AccountMeta } from '@solana/web3.js'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import BN from 'bn.js'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as borsh from '@project-serum/borsh'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as types from '../types'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import { PROGRAM_ID } from '../programId';
 
 export interface CollectProtocolFeeArgs {
-  amount0Requested: BN
-  amount1Requested: BN
+  amount0Requested: BN;
+  amount1Requested: BN;
 }
 
 export interface CollectProtocolFeeAccounts {
   /** Only admin or config owner can collect fee now */
-  owner: PublicKey
+  owner: PublicKey;
   /** Pool state stores accumulated protocol fee amount */
-  poolState: PublicKey
+  poolState: PublicKey;
   /** Amm config account stores owner */
-  ammConfig: PublicKey
+  ammConfig: PublicKey;
   /** The address that holds pool tokens for token_0 */
-  tokenVault0: PublicKey
+  tokenVault0: PublicKey;
   /** The address that holds pool tokens for token_1 */
-  tokenVault1: PublicKey
+  tokenVault1: PublicKey;
   /** The address that receives the collected token_0 protocol fees */
-  recipientTokenAccount0: PublicKey
+  recipientTokenAccount0: PublicKey;
   /** The address that receives the collected token_1 protocol fees */
-  recipientTokenAccount1: PublicKey
+  recipientTokenAccount1: PublicKey;
   /** The SPL program to perform token transfers */
-  tokenProgram: PublicKey
+  tokenProgram: PublicKey;
 }
 
-export const layout = borsh.struct([
-  borsh.u64("amount0Requested"),
-  borsh.u64("amount1Requested"),
-])
+export const layout = borsh.struct([borsh.u64('amount0Requested'), borsh.u64('amount1Requested')]);
 
 /**
  * Collect the protocol fee accrued to the pool
@@ -43,10 +40,7 @@ export const layout = borsh.struct([
  * * `amount_1_requested` - The maximum amount of token_1 to send, can be 0 to collect fees in only token_0
  *
  */
-export function collectProtocolFee(
-  args: CollectProtocolFeeArgs,
-  accounts: CollectProtocolFeeAccounts
-) {
+export function collectProtocolFee(args: CollectProtocolFeeArgs, accounts: CollectProtocolFeeAccounts) {
   const keys: Array<AccountMeta> = [
     { pubkey: accounts.owner, isSigner: true, isWritable: false },
     { pubkey: accounts.poolState, isSigner: false, isWritable: true },
@@ -64,17 +58,17 @@ export function collectProtocolFee(
       isWritable: true,
     },
     { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
-  ]
-  const identifier = Buffer.from([136, 136, 252, 221, 194, 66, 126, 89])
-  const buffer = Buffer.alloc(1000)
+  ];
+  const identifier = Buffer.from([136, 136, 252, 221, 194, 66, 126, 89]);
+  const buffer = Buffer.alloc(1000);
   const len = layout.encode(
     {
       amount0Requested: args.amount0Requested,
       amount1Requested: args.amount1Requested,
     },
     buffer
-  )
-  const data = Buffer.concat([identifier, buffer]).slice(0, 8 + len)
-  const ix = new TransactionInstruction({ keys, programId: PROGRAM_ID, data })
-  return ix
+  );
+  const data = Buffer.concat([identifier, buffer]).slice(0, 8 + len);
+  const ix = new TransactionInstruction({ keys, programId: PROGRAM_ID, data });
+  return ix;
 }

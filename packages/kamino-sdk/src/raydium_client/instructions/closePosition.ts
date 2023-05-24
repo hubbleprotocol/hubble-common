@@ -1,25 +1,25 @@
-import { TransactionInstruction, PublicKey, AccountMeta } from "@solana/web3.js" // eslint-disable-line @typescript-eslint/no-unused-vars
-import BN from "bn.js" // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as borsh from "@project-serum/borsh" // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
-import { PROGRAM_ID } from "../programId"
+import { TransactionInstruction, PublicKey, AccountMeta } from '@solana/web3.js'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import BN from 'bn.js'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as borsh from '@project-serum/borsh'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as types from '../types'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import { PROGRAM_ID } from '../programId';
 
 export interface ClosePositionAccounts {
   /** The position nft owner */
-  nftOwner: PublicKey
+  nftOwner: PublicKey;
   /** Unique token mint address */
-  positionNftMint: PublicKey
+  positionNftMint: PublicKey;
   /** Token account where position NFT will be minted */
-  positionNftAccount: PublicKey
+  positionNftAccount: PublicKey;
   /**
    * To store metaplex metadata
    * Metadata for the tokenized position
    */
-  personalPosition: PublicKey
+  personalPosition: PublicKey;
   /** Program to create the position manager state account */
-  systemProgram: PublicKey
+  systemProgram: PublicKey;
   /** Program to create mint account and mint tokens */
-  tokenProgram: PublicKey
+  tokenProgram: PublicKey;
 }
 
 /**
@@ -38,9 +38,9 @@ export function closePosition(accounts: ClosePositionAccounts) {
     { pubkey: accounts.personalPosition, isSigner: false, isWritable: true },
     { pubkey: accounts.systemProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
-  ]
-  const identifier = Buffer.from([123, 134, 81, 0, 49, 68, 98, 98])
-  const data = identifier
-  const ix = new TransactionInstruction({ keys, programId: PROGRAM_ID, data })
-  return ix
+  ];
+  const identifier = Buffer.from([123, 134, 81, 0, 49, 68, 98, 98]);
+  const data = identifier;
+  const ix = new TransactionInstruction({ keys, programId: PROGRAM_ID, data });
+  return ix;
 }

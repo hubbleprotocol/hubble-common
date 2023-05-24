@@ -89,7 +89,7 @@ export async function initializeRaydiumPool(
   {
     let createPoolArgs: RaydiumInstructions.CreatePoolArgs = {
       sqrtPriceX64: sqrtPriceX64InitialPrice,
-      openTime: new BN(1684953391),
+      openTime: new BN(1684953391), // not relevant, it has to be a timestamp < current timestamp
     };
     let createPoolAccounts: RaydiumInstructions.CreatePoolAccounts = {
       poolCreator: signer.publicKey,

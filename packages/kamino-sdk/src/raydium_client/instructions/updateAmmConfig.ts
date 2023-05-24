@@ -1,22 +1,22 @@
-import { TransactionInstruction, PublicKey, AccountMeta } from "@solana/web3.js" // eslint-disable-line @typescript-eslint/no-unused-vars
-import BN from "bn.js" // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as borsh from "@project-serum/borsh" // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
-import { PROGRAM_ID } from "../programId"
+import { TransactionInstruction, PublicKey, AccountMeta } from '@solana/web3.js'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import BN from 'bn.js'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as borsh from '@project-serum/borsh'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as types from '../types'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import { PROGRAM_ID } from '../programId';
 
 export interface UpdateAmmConfigArgs {
-  param: number
-  value: number
+  param: number;
+  value: number;
 }
 
 export interface UpdateAmmConfigAccounts {
   /** The amm config owner or admin */
-  owner: PublicKey
+  owner: PublicKey;
   /** Amm config account to be changed */
-  ammConfig: PublicKey
+  ammConfig: PublicKey;
 }
 
-export const layout = borsh.struct([borsh.u8("param"), borsh.u32("value")])
+export const layout = borsh.struct([borsh.u8('param'), borsh.u32('value')]);
 
 /**
  * Updates the owner of the amm config
@@ -33,24 +33,21 @@ export const layout = borsh.struct([borsh.u8("param"), borsh.u32("value")])
  * * `param`- The vaule can be 0 | 1 | 2 | 3 | 4, otherwise will report a error
  *
  */
-export function updateAmmConfig(
-  args: UpdateAmmConfigArgs,
-  accounts: UpdateAmmConfigAccounts
-) {
+export function updateAmmConfig(args: UpdateAmmConfigArgs, accounts: UpdateAmmConfigAccounts) {
   const keys: Array<AccountMeta> = [
     { pubkey: accounts.owner, isSigner: true, isWritable: false },
     { pubkey: accounts.ammConfig, isSigner: false, isWritable: true },
-  ]
-  const identifier = Buffer.from([49, 60, 174, 136, 154, 28, 116, 200])
-  const buffer = Buffer.alloc(1000)
+  ];
+  const identifier = Buffer.from([49, 60, 174, 136, 154, 28, 116, 200]);
+  const buffer = Buffer.alloc(1000);
   const len = layout.encode(
     {
       param: args.param,
       value: args.value,
     },
     buffer
-  )
-  const data = Buffer.concat([identifier, buffer]).slice(0, 8 + len)
-  const ix = new TransactionInstruction({ keys, programId: PROGRAM_ID, data })
-  return ix
+  );
+  const data = Buffer.concat([identifier, buffer]).slice(0, 8 + len);
+  const ix = new TransactionInstruction({ keys, programId: PROGRAM_ID, data });
+  return ix;
 }

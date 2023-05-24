@@ -881,9 +881,7 @@ describe('Kamino SDK Tests', () => {
         'confirmed',
         true
       );
-      console.log("!!sig", sig);
       expect(sig).to.not.be.null;
-      console.log('new position has been opened');
     }
   });
 
