@@ -2365,14 +2365,7 @@ export class Kamino {
   };
 
   // todo(silviu): implement this
-  getEstimatedApyAndVolumeOnRange = async (
-    dex: Dex,
-    pool: PublicKey,
-    lowerPrice: Decimal,
-    upperPrice: Decimal,
-    _startDate: Date,
-    _endDate: Date
-  ) => {
+  getEstimatedApyAndVolumeOnRange = async (dex: Dex, pool: PublicKey, lowerPrice: Decimal, upperPrice: Decimal, _startDate: Date, _endDate: Date) => {
     if (dex == 'ORCA') {
       return this.getEstimatedApyAndVolumeOnRangeOrca(pool, lowerPrice, upperPrice);
     } else if (dex == 'RAYDIUM') {
