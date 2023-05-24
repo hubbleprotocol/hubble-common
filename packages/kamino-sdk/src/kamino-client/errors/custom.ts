@@ -115,6 +115,9 @@ export type CustomError =
   | CouldNotDeserializeRebalanceState
   | CouldNotSerializeRebalanceState
   | CouldNotDeserializeRebalanceParams
+  | NotEnoughTokensForRatio
+  | AmountsRepresentZeroShares
+  | MaxLossExceeded
 
 export class IntegerOverflow extends Error {
   static readonly code = 6000
@@ -1410,6 +1413,42 @@ export class CouldNotDeserializeRebalanceParams extends Error {
   }
 }
 
+export class NotEnoughTokensForRatio extends Error {
+  static readonly code = 6116
+  readonly code = 6116
+  readonly name = "NotEnoughTokensForRatio"
+  readonly msg =
+    "Deposit is not allowed as token amounts are not enough to match our holdings ratio"
+
+  constructor(readonly logs?: string[]) {
+    super(
+      "6116: Deposit is not allowed as token amounts are not enough to match our holdings ratio"
+    )
+  }
+}
+
+export class AmountsRepresentZeroShares extends Error {
+  static readonly code = 6117
+  readonly code = 6117
+  readonly name = "AmountsRepresentZeroShares"
+  readonly msg = "The provided amounts are too small"
+
+  constructor(readonly logs?: string[]) {
+    super("6117: The provided amounts are too small")
+  }
+}
+
+export class MaxLossExceeded extends Error {
+  static readonly code = 6118
+  readonly code = 6118
+  readonly name = "MaxLossExceeded"
+  readonly msg = "Rouding errors exceed the maximal loss tolerance"
+
+  constructor(readonly logs?: string[]) {
+    super("6118: Rouding errors exceed the maximal loss tolerance")
+  }
+}
+
 export function fromCode(code: number, logs?: string[]): CustomError | null {
   switch (code) {
     case 6000:
@@ -1644,6 +1683,12 @@ export function fromCode(code: number, logs?: string[]): CustomError | null {
       return new CouldNotSerializeRebalanceState(logs)
     case 6115:
       return new CouldNotDeserializeRebalanceParams(logs)
+    case 6116:
+      return new NotEnoughTokensForRatio(logs)
+    case 6117:
+      return new AmountsRepresentZeroShares(logs)
+    case 6118:
+      return new MaxLossExceeded(logs)
   }
 
   return null

@@ -853,7 +853,6 @@ describe('Kamino SDK Tests', () => {
 
   it('should rebalance an Orca strategy', async () => {
     let kamino = new Kamino(cluster, connection, fixtures.globalConfig, fixtures.kaminoProgramId);
-    // Note: this modifies Kamino
 
     // New position to rebalance into
     const newPosition = Keypair.generate();
@@ -874,7 +873,15 @@ describe('Kamino SDK Tests', () => {
     }
     {
       let tx = new Transaction().add(openPositionIx);
-      let sig = await sendTransactionWithLogs(connection, tx, signer.publicKey, [signer, newPosition]);
+      let sig = await sendTransactionWithLogs(
+        connection,
+        tx,
+        signer.publicKey,
+        [signer, newPosition],
+        'confirmed',
+        true
+      );
+      console.log("!!sig", sig);
       expect(sig).to.not.be.null;
       console.log('new position has been opened');
     }
@@ -937,7 +944,14 @@ describe('Kamino SDK Tests', () => {
     }
     {
       let tx = createTransactionWithExtraBudget(signer.publicKey, 1000000).add(openPositionIx);
-      let sig = await sendTransactionWithLogs(connection, tx, signer.publicKey, [signer, newPosition]);
+      let sig = await sendTransactionWithLogs(
+        connection,
+        tx,
+        signer.publicKey,
+        [signer, newPosition],
+        'confirmed',
+        true
+      );
       expect(sig).to.not.be.null;
       console.log('new position has been opened');
     }

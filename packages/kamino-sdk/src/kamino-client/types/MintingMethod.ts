@@ -3,85 +3,85 @@ import BN from "bn.js" // eslint-disable-line @typescript-eslint/no-unused-vars
 import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
 import * as borsh from "@project-serum/borsh"
 
-export interface EnableJSON {
-  kind: "Enable"
+export interface PriceBasedJSON {
+  kind: "PriceBased"
 }
 
-export class Enable {
+export class PriceBased {
   static readonly discriminator = 0
-  static readonly kind = "Enable"
+  static readonly kind = "PriceBased"
   readonly discriminator = 0
-  readonly kind = "Enable"
+  readonly kind = "PriceBased"
 
-  toJSON(): EnableJSON {
+  toJSON(): PriceBasedJSON {
     return {
-      kind: "Enable",
+      kind: "PriceBased",
     }
   }
 
   toEncodable() {
     return {
-      Enable: {},
+      PriceBased: {},
     }
   }
 }
 
-export interface DisableJSON {
-  kind: "Disable"
+export interface ProportionalJSON {
+  kind: "Proportional"
 }
 
-export class Disable {
+export class Proportional {
   static readonly discriminator = 1
-  static readonly kind = "Disable"
+  static readonly kind = "Proportional"
   readonly discriminator = 1
-  readonly kind = "Disable"
+  readonly kind = "Proportional"
 
-  toJSON(): DisableJSON {
+  toJSON(): ProportionalJSON {
     return {
-      kind: "Disable",
+      kind: "Proportional",
     }
   }
 
   toEncodable() {
     return {
-      Disable: {},
+      Proportional: {},
     }
   }
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function fromDecoded(obj: any): types.PoolStatusBitFlagKind {
+export function fromDecoded(obj: any): types.MintingMethodKind {
   if (typeof obj !== "object") {
     throw new Error("Invalid enum object")
   }
 
-  if ("Enable" in obj) {
-    return new Enable()
+  if ("PriceBased" in obj) {
+    return new PriceBased()
   }
-  if ("Disable" in obj) {
-    return new Disable()
+  if ("Proportional" in obj) {
+    return new Proportional()
   }
 
   throw new Error("Invalid enum object")
 }
 
 export function fromJSON(
-  obj: types.PoolStatusBitFlagJSON
-): types.PoolStatusBitFlagKind {
+  obj: types.MintingMethodJSON
+): types.MintingMethodKind {
   switch (obj.kind) {
-    case "Enable": {
-      return new Enable()
+    case "PriceBased": {
+      return new PriceBased()
     }
-    case "Disable": {
-      return new Disable()
+    case "Proportional": {
+      return new Proportional()
     }
   }
 }
 
 export function layout(property?: string) {
   const ret = borsh.rustEnum([
-    borsh.struct([], "Enable"),
-    borsh.struct([], "Disable"),
+    borsh.struct([], "PriceBased"),
+    borsh.struct([], "Proportional"),
   ])
   if (property !== undefined) {
     return ret.replicate(property)

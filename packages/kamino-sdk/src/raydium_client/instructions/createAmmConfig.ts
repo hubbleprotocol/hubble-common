@@ -1,32 +1,32 @@
-import { TransactionInstruction, PublicKey, AccountMeta } from '@solana/web3.js'; // eslint-disable-line @typescript-eslint/no-unused-vars
-import BN from 'bn.js'; // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as borsh from '@project-serum/borsh'; // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as types from '../types'; // eslint-disable-line @typescript-eslint/no-unused-vars
-import { PROGRAM_ID } from '../programId';
+import { TransactionInstruction, PublicKey, AccountMeta } from "@solana/web3.js" // eslint-disable-line @typescript-eslint/no-unused-vars
+import BN from "bn.js" // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as borsh from "@project-serum/borsh" // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
+import { PROGRAM_ID } from "../programId"
 
 export interface CreateAmmConfigArgs {
-  index: number;
-  tickSpacing: number;
-  tradeFeeRate: number;
-  protocolFeeRate: number;
-  fundFeeRate: number;
+  index: number
+  tickSpacing: number
+  tradeFeeRate: number
+  protocolFeeRate: number
+  fundFeeRate: number
 }
 
 export interface CreateAmmConfigAccounts {
   /** Address to be set as protocol owner. */
-  owner: PublicKey;
+  owner: PublicKey
   /** Initialize config state account to store protocol owner address and fee rates. */
-  ammConfig: PublicKey;
-  systemProgram: PublicKey;
+  ammConfig: PublicKey
+  systemProgram: PublicKey
 }
 
 export const layout = borsh.struct([
-  borsh.u16('index'),
-  borsh.u16('tickSpacing'),
-  borsh.u32('tradeFeeRate'),
-  borsh.u32('protocolFeeRate'),
-  borsh.u32('fundFeeRate'),
-]);
+  borsh.u16("index"),
+  borsh.u16("tickSpacing"),
+  borsh.u32("tradeFeeRate"),
+  borsh.u32("protocolFeeRate"),
+  borsh.u32("fundFeeRate"),
+])
 
 /**
  * # Arguments
@@ -39,14 +39,17 @@ export const layout = borsh.struct([
  * * `fund_fee_rate` - The rate of fund fee within tarde fee.
  *
  */
-export function createAmmConfig(args: CreateAmmConfigArgs, accounts: CreateAmmConfigAccounts) {
+export function createAmmConfig(
+  args: CreateAmmConfigArgs,
+  accounts: CreateAmmConfigAccounts
+) {
   const keys: Array<AccountMeta> = [
     { pubkey: accounts.owner, isSigner: true, isWritable: true },
     { pubkey: accounts.ammConfig, isSigner: false, isWritable: true },
     { pubkey: accounts.systemProgram, isSigner: false, isWritable: false },
-  ];
-  const identifier = Buffer.from([137, 52, 237, 212, 215, 117, 108, 104]);
-  const buffer = Buffer.alloc(1000);
+  ]
+  const identifier = Buffer.from([137, 52, 237, 212, 215, 117, 108, 104])
+  const buffer = Buffer.alloc(1000)
   const len = layout.encode(
     {
       index: args.index,
@@ -56,8 +59,8 @@ export function createAmmConfig(args: CreateAmmConfigArgs, accounts: CreateAmmCo
       fundFeeRate: args.fundFeeRate,
     },
     buffer
-  );
-  const data = Buffer.concat([identifier, buffer]).slice(0, 8 + len);
-  const ix = new TransactionInstruction({ keys, programId: PROGRAM_ID, data });
-  return ix;
+  )
+  const data = Buffer.concat([identifier, buffer]).slice(0, 8 + len)
+  const ix = new TransactionInstruction({ keys, programId: PROGRAM_ID, data })
+  return ix
 }

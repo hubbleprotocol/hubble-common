@@ -1,122 +1,122 @@
-import { PublicKey } from '@solana/web3.js'; // eslint-disable-line @typescript-eslint/no-unused-vars
-import BN from 'bn.js'; // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as types from '.'; // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as borsh from '@project-serum/borsh';
+import { PublicKey } from "@solana/web3.js" // eslint-disable-line @typescript-eslint/no-unused-vars
+import BN from "bn.js" // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as borsh from "@project-serum/borsh"
 
 export interface RewardInfoFields {
   /** Reward state */
-  rewardState: number;
+  rewardState: number
   /** Reward open time */
-  openTime: BN;
+  openTime: BN
   /** Reward end time */
-  endTime: BN;
+  endTime: BN
   /** Reward last update time */
-  lastUpdateTime: BN;
+  lastUpdateTime: BN
   /** Q64.64 number indicates how many tokens per second are earned per unit of liquidity. */
-  emissionsPerSecondX64: BN;
+  emissionsPerSecondX64: BN
   /** The total amount of reward emissioned */
-  rewardTotalEmissioned: BN;
+  rewardTotalEmissioned: BN
   /** The total amount of claimed reward */
-  rewardClaimed: BN;
+  rewardClaimed: BN
   /** Reward token mint. */
-  tokenMint: PublicKey;
+  tokenMint: PublicKey
   /** Reward vault token account. */
-  tokenVault: PublicKey;
+  tokenVault: PublicKey
   /** The owner that has permission to set reward param */
-  authority: PublicKey;
+  authority: PublicKey
   /**
    * Q64.64 number that tracks the total tokens earned per unit of liquidity since the reward
    * emissions were turned on.
    */
-  rewardGrowthGlobalX64: BN;
+  rewardGrowthGlobalX64: BN
 }
 
 export interface RewardInfoJSON {
   /** Reward state */
-  rewardState: number;
+  rewardState: number
   /** Reward open time */
-  openTime: string;
+  openTime: string
   /** Reward end time */
-  endTime: string;
+  endTime: string
   /** Reward last update time */
-  lastUpdateTime: string;
+  lastUpdateTime: string
   /** Q64.64 number indicates how many tokens per second are earned per unit of liquidity. */
-  emissionsPerSecondX64: string;
+  emissionsPerSecondX64: string
   /** The total amount of reward emissioned */
-  rewardTotalEmissioned: string;
+  rewardTotalEmissioned: string
   /** The total amount of claimed reward */
-  rewardClaimed: string;
+  rewardClaimed: string
   /** Reward token mint. */
-  tokenMint: string;
+  tokenMint: string
   /** Reward vault token account. */
-  tokenVault: string;
+  tokenVault: string
   /** The owner that has permission to set reward param */
-  authority: string;
+  authority: string
   /**
    * Q64.64 number that tracks the total tokens earned per unit of liquidity since the reward
    * emissions were turned on.
    */
-  rewardGrowthGlobalX64: string;
+  rewardGrowthGlobalX64: string
 }
 
 export class RewardInfo {
   /** Reward state */
-  readonly rewardState: number;
+  readonly rewardState: number
   /** Reward open time */
-  readonly openTime: BN;
+  readonly openTime: BN
   /** Reward end time */
-  readonly endTime: BN;
+  readonly endTime: BN
   /** Reward last update time */
-  readonly lastUpdateTime: BN;
+  readonly lastUpdateTime: BN
   /** Q64.64 number indicates how many tokens per second are earned per unit of liquidity. */
-  readonly emissionsPerSecondX64: BN;
+  readonly emissionsPerSecondX64: BN
   /** The total amount of reward emissioned */
-  readonly rewardTotalEmissioned: BN;
+  readonly rewardTotalEmissioned: BN
   /** The total amount of claimed reward */
-  readonly rewardClaimed: BN;
+  readonly rewardClaimed: BN
   /** Reward token mint. */
-  readonly tokenMint: PublicKey;
+  readonly tokenMint: PublicKey
   /** Reward vault token account. */
-  readonly tokenVault: PublicKey;
+  readonly tokenVault: PublicKey
   /** The owner that has permission to set reward param */
-  readonly authority: PublicKey;
+  readonly authority: PublicKey
   /**
    * Q64.64 number that tracks the total tokens earned per unit of liquidity since the reward
    * emissions were turned on.
    */
-  readonly rewardGrowthGlobalX64: BN;
+  readonly rewardGrowthGlobalX64: BN
 
   constructor(fields: RewardInfoFields) {
-    this.rewardState = fields.rewardState;
-    this.openTime = fields.openTime;
-    this.endTime = fields.endTime;
-    this.lastUpdateTime = fields.lastUpdateTime;
-    this.emissionsPerSecondX64 = fields.emissionsPerSecondX64;
-    this.rewardTotalEmissioned = fields.rewardTotalEmissioned;
-    this.rewardClaimed = fields.rewardClaimed;
-    this.tokenMint = fields.tokenMint;
-    this.tokenVault = fields.tokenVault;
-    this.authority = fields.authority;
-    this.rewardGrowthGlobalX64 = fields.rewardGrowthGlobalX64;
+    this.rewardState = fields.rewardState
+    this.openTime = fields.openTime
+    this.endTime = fields.endTime
+    this.lastUpdateTime = fields.lastUpdateTime
+    this.emissionsPerSecondX64 = fields.emissionsPerSecondX64
+    this.rewardTotalEmissioned = fields.rewardTotalEmissioned
+    this.rewardClaimed = fields.rewardClaimed
+    this.tokenMint = fields.tokenMint
+    this.tokenVault = fields.tokenVault
+    this.authority = fields.authority
+    this.rewardGrowthGlobalX64 = fields.rewardGrowthGlobalX64
   }
 
   static layout(property?: string) {
     return borsh.struct(
       [
-        borsh.u8('rewardState'),
-        borsh.u64('openTime'),
-        borsh.u64('endTime'),
-        borsh.u64('lastUpdateTime'),
-        borsh.u128('emissionsPerSecondX64'),
-        borsh.u64('rewardTotalEmissioned'),
-        borsh.u64('rewardClaimed'),
-        borsh.publicKey('tokenMint'),
-        borsh.publicKey('tokenVault'),
-        borsh.publicKey('authority'),
-        borsh.u128('rewardGrowthGlobalX64'),
+        borsh.u8("rewardState"),
+        borsh.u64("openTime"),
+        borsh.u64("endTime"),
+        borsh.u64("lastUpdateTime"),
+        borsh.u128("emissionsPerSecondX64"),
+        borsh.u64("rewardTotalEmissioned"),
+        borsh.u64("rewardClaimed"),
+        borsh.publicKey("tokenMint"),
+        borsh.publicKey("tokenVault"),
+        borsh.publicKey("authority"),
+        borsh.u128("rewardGrowthGlobalX64"),
       ],
       property
-    );
+    )
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -133,7 +133,7 @@ export class RewardInfo {
       tokenVault: obj.tokenVault,
       authority: obj.authority,
       rewardGrowthGlobalX64: obj.rewardGrowthGlobalX64,
-    });
+    })
   }
 
   static toEncodable(fields: RewardInfoFields) {
@@ -149,7 +149,7 @@ export class RewardInfo {
       tokenVault: fields.tokenVault,
       authority: fields.authority,
       rewardGrowthGlobalX64: fields.rewardGrowthGlobalX64,
-    };
+    }
   }
 
   toJSON(): RewardInfoJSON {
@@ -165,7 +165,7 @@ export class RewardInfo {
       tokenVault: this.tokenVault.toString(),
       authority: this.authority.toString(),
       rewardGrowthGlobalX64: this.rewardGrowthGlobalX64.toString(),
-    };
+    }
   }
 
   static fromJSON(obj: RewardInfoJSON): RewardInfo {
@@ -181,10 +181,10 @@ export class RewardInfo {
       tokenVault: new PublicKey(obj.tokenVault),
       authority: new PublicKey(obj.authority),
       rewardGrowthGlobalX64: new BN(obj.rewardGrowthGlobalX64),
-    });
+    })
   }
 
   toEncodable() {
-    return RewardInfo.toEncodable(this);
+    return RewardInfo.toEncodable(this)
   }
 }
