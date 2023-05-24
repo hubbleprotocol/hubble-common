@@ -1862,6 +1862,8 @@ export class Kamino {
 
     let decimalsA = await getMintDecimals(this._connection, poolState.tokenMint0);
     let decimalsB = await getMintDecimals(this._connection, poolState.tokenMint1);
+    console.log('raydium decimalsA ', decimalsA);
+    console.log('raydium decimalsB ', decimalsB);
 
     let tickLowerIndex = TickMath.getTickWithPriceAndTickspacing(
       priceLower,
@@ -1876,6 +1878,8 @@ export class Kamino {
       decimalsA,
       decimalsB
     );
+    console.log('raydium tickLowerIndex ', tickLowerIndex.toString());
+    console.log('raydium tickUpperIndex ', tickUpperIndex.toString());
 
     const { position, positionBump, protocolPosition, positionMetadata } = this.getMetadataProgramAddressesRaydium(
       positionMint,
@@ -1883,6 +1887,9 @@ export class Kamino {
       tickLowerIndex,
       tickUpperIndex
     );
+    console.log('raydium position ', position.toString());
+    console.log('raydium protocolPosition ', protocolPosition.toString());
+    console.log('raydium positionMetadata ', positionMetadata.toString());
 
     const positionTokenAccount = await getAssociatedTokenAddress(positionMint, baseVaultAuthority);
 
@@ -1898,6 +1905,8 @@ export class Kamino {
       tickLowerIndex,
       tickUpperIndex
     );
+    console.log('raydium startTickIndex ', startTickIndex.toString());
+    console.log('raydium endTickIndex ', endTickIndex.toString());
 
     const accounts: OpenLiquidityPositionAccounts = {
       adminAuthority: adminAuthority,

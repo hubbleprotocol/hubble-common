@@ -269,7 +269,9 @@ describe('Kamino SDK Tests', () => {
     );
 
     await openPosition(kamino, signer, newOrcaStrategy.publicKey, new Decimal(0.97), new Decimal(1.03));
+    console.log('orca position opened');
     await openPosition(kamino, signer, newRaydiumStrategy.publicKey, new Decimal(0.97), new Decimal(1.03));
+    console.log('raydium position opened');
   });
 
   it('should throw on invalid cluster', () => {
@@ -1176,7 +1178,14 @@ export async function openPosition(
 
     let tx = createTransactionWithExtraBudget(owner.publicKey, 1000000);
     tx.add(openPositionIx);
-    await sendTransactionWithLogs(kamino.getConnection(), tx, owner.publicKey, [owner, positionMint]);
+    await sendTransactionWithLogs(
+      kamino.getConnection(),
+      tx,
+      owner.publicKey,
+      [owner, positionMint],
+      'confirmed',
+      true
+    );
     console.log('new position has been opened', positionMint.publicKey.toString());
   }
 }
