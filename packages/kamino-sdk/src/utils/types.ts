@@ -160,7 +160,7 @@ export interface GenericPoolInfo {
 
 export interface GenericPositionRangeInfo {
   estimatedApy: Decimal;
-  estimatedVolumeOnLast7d: number | undefined;
+  estimatedVolume: number | undefined;
 }
 
 export interface VaultParameters {
