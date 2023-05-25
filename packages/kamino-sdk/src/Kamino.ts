@@ -128,6 +128,7 @@ import {
 import {
   CollateralInfo,
   ExecutiveWithdrawActionKind,
+  RebalanceRaw,
   RebalanceType,
   RebalanceTypeKind,
   StrategyConfigOption,
@@ -2423,6 +2424,25 @@ export class Kamino {
     await this.collectFeesAndRewards(strategy),
     await this.openPosition(strategy, newPosition, priceLower, priceUpper, new Rebalancing()),
   ];
+
+  /**
+   * Get a list of rebalancing params
+   * @param rebalanceType the RebalanceTypeKind of the strategy
+   * @param rebalanceParams the raw rebalancing params
+   * @returns list of decoded rebalancing params
+   */
+
+  readPercentageRebalanceParams = (rebalanceType: RebalanceTypeKind, rebalanceParams: RebalanceRaw): Decimal[] => {
+    if (rebalanceType.kind == RebalanceType.Manual.kind) {
+      return [new Decimal(rebalanceParams.params[0]), new Decimal(rebalanceParams.params[1])];
+    } else if (rebalanceType.kind == RebalanceType.PricePercentage.kind) {
+      let lowerRangePercentage = rebalanceParams.params[0] + rebalanceParams.params[1] * 256;
+      let upperRangePercentage = rebalanceParams.params[2] + rebalanceParams.params[3] * 256;
+      return [new Decimal(lowerRangePercentage), new Decimal(upperRangePercentage)];
+    } else {
+      throw new Error(`Invalid rebalance type ${rebalanceType}`);
+    }
+  };
 
   /**
    * Get a list of user's Kamino strategy positions
