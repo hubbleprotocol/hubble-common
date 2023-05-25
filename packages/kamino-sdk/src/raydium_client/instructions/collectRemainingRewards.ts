@@ -33,7 +33,7 @@ export const layout = borsh.struct([borsh.u8('rewardIndex')]);
  */
 export function collectRemainingRewards(args: CollectRemainingRewardsArgs, accounts: CollectRemainingRewardsAccounts) {
   const keys: Array<AccountMeta> = [
-    { pubkey: accounts.rewardFunder, isSigner: true, isWritable: true },
+    { pubkey: accounts.rewardFunder, isSigner: true, isWritable: false },
     { pubkey: accounts.funderTokenAccount, isSigner: false, isWritable: true },
     { pubkey: accounts.poolState, isSigner: false, isWritable: true },
     { pubkey: accounts.rewardTokenVault, isSigner: false, isWritable: false },

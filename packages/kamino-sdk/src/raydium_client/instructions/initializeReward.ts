@@ -47,7 +47,7 @@ export function initializeReward(args: InitializeRewardArgs, accounts: Initializ
     { pubkey: accounts.funderTokenAccount, isSigner: false, isWritable: true },
     { pubkey: accounts.ammConfig, isSigner: false, isWritable: false },
     { pubkey: accounts.poolState, isSigner: false, isWritable: true },
-    { pubkey: accounts.operationState, isSigner: false, isWritable: true },
+    { pubkey: accounts.operationState, isSigner: false, isWritable: false },
     { pubkey: accounts.rewardTokenMint, isSigner: false, isWritable: false },
     { pubkey: accounts.rewardTokenVault, isSigner: false, isWritable: true },
     { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },

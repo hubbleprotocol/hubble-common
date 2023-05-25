@@ -21,6 +21,7 @@ import { METADATA_PROGRAM_ID, METADATA_UPDATE_AUTH } from '../src';
 import { OpenLiquidityPositionArgs } from '../src/kamino-client/instructions';
 import { i32ToBytes, TickUtils } from '@raydium-io/raydium-sdk';
 import * as Instructions from '../src/kamino-client/instructions';
+import { BN } from 'bn.js';
 
 export const OBSERVATION_STATE_LEN = 52121;
 export const AMM_CONFIG_SEED = Buffer.from(anchor.utils.bytes.utf8.encode('amm_config'));
@@ -88,6 +89,7 @@ export async function initializeRaydiumPool(
   {
     let createPoolArgs: RaydiumInstructions.CreatePoolArgs = {
       sqrtPriceX64: sqrtPriceX64InitialPrice,
+      openTime: new BN(1684953391), // not relevant, it has to be a timestamp < current timestamp
     };
     let createPoolAccounts: RaydiumInstructions.CreatePoolAccounts = {
       poolCreator: signer.publicKey,

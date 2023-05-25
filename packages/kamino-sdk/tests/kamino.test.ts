@@ -269,7 +269,9 @@ describe('Kamino SDK Tests', () => {
     );
 
     await openPosition(kamino, signer, newOrcaStrategy.publicKey, new Decimal(0.97), new Decimal(1.03));
+    console.log('orca position opened');
     await openPosition(kamino, signer, newRaydiumStrategy.publicKey, new Decimal(0.97), new Decimal(1.03));
+    console.log('raydium position opened');
   });
 
   it('should throw on invalid cluster', () => {
@@ -779,7 +781,6 @@ describe('Kamino SDK Tests', () => {
     const usdcAirdropAmount = new Decimal(1000000000);
     const usdhAirdropAmount = new Decimal(1000000000);
 
-    console.log('before user creation');
     let user = await createUser(
       connection,
       signer,
@@ -791,8 +792,8 @@ describe('Kamino SDK Tests', () => {
 
     let tx = createTransactionWithExtraBudget(user.owner.publicKey, 1000000);
 
-    let amounts = await kamino.calculateAmounts(fixtures.newOrcaStrategy, new Decimal(5493));
-    console.log('amounts', amounts);
+    let amounts = await kamino.calculateAmounts(fixtures.newRaydiumStrategy, new Decimal(5400));
+    console.log('orca amounts', amounts);
 
     const depositIx = await kamino.deposit(strategyWithAddress, amounts[0], amounts[1], user.owner.publicKey);
     tx.add(depositIx);
@@ -851,7 +852,6 @@ describe('Kamino SDK Tests', () => {
 
   it('should rebalance an Orca strategy', async () => {
     let kamino = new Kamino(cluster, connection, fixtures.globalConfig, fixtures.kaminoProgramId);
-    // Note: this modifies Kamino
 
     // New position to rebalance into
     const newPosition = Keypair.generate();
@@ -872,9 +872,15 @@ describe('Kamino SDK Tests', () => {
     }
     {
       let tx = new Transaction().add(openPositionIx);
-      let sig = await sendTransactionWithLogs(connection, tx, signer.publicKey, [signer, newPosition]);
+      let sig = await sendTransactionWithLogs(
+        connection,
+        tx,
+        signer.publicKey,
+        [signer, newPosition],
+        'confirmed',
+        true
+      );
       expect(sig).to.not.be.null;
-      console.log('new position has been opened');
     }
   });
 
@@ -935,7 +941,14 @@ describe('Kamino SDK Tests', () => {
     }
     {
       let tx = createTransactionWithExtraBudget(signer.publicKey, 1000000).add(openPositionIx);
-      let sig = await sendTransactionWithLogs(connection, tx, signer.publicKey, [signer, newPosition]);
+      let sig = await sendTransactionWithLogs(
+        connection,
+        tx,
+        signer.publicKey,
+        [signer, newPosition],
+        'confirmed',
+        true
+      );
       expect(sig).to.not.be.null;
       console.log('new position has been opened');
     }
@@ -1176,7 +1189,14 @@ export async function openPosition(
 
     let tx = createTransactionWithExtraBudget(owner.publicKey, 1000000);
     tx.add(openPositionIx);
-    await sendTransactionWithLogs(kamino.getConnection(), tx, owner.publicKey, [owner, positionMint]);
+    await sendTransactionWithLogs(
+      kamino.getConnection(),
+      tx,
+      owner.publicKey,
+      [owner, positionMint],
+      'confirmed',
+      true
+    );
     console.log('new position has been opened', positionMint.publicKey.toString());
   }
 }

@@ -42,10 +42,10 @@ export const layout = borsh.struct([
  */
 export function setRewardParams(args: SetRewardParamsArgs, accounts: SetRewardParamsAccounts) {
   const keys: Array<AccountMeta> = [
-    { pubkey: accounts.authority, isSigner: true, isWritable: true },
-    { pubkey: accounts.ammConfig, isSigner: false, isWritable: true },
+    { pubkey: accounts.authority, isSigner: true, isWritable: false },
+    { pubkey: accounts.ammConfig, isSigner: false, isWritable: false },
     { pubkey: accounts.poolState, isSigner: false, isWritable: true },
-    { pubkey: accounts.operationState, isSigner: false, isWritable: true },
+    { pubkey: accounts.operationState, isSigner: false, isWritable: false },
   ];
   const identifier = Buffer.from([112, 52, 167, 75, 32, 201, 211, 137]);
   const buffer = Buffer.alloc(1000);

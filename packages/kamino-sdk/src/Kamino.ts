@@ -1723,6 +1723,9 @@ export class Kamino {
         positionMint,
         priceLower,
         priceUpper,
+        strategyState.position,
+        strategyState.positionMint,
+        strategyState.positionTokenAccount,
         status
       );
     } else if (strategyState.strategyDex.toNumber() == dexToNumber('RAYDIUM')) {
@@ -1736,6 +1739,9 @@ export class Kamino {
         priceUpper,
         strategyState.tokenAVault,
         strategyState.tokenBVault,
+        strategyState.position,
+        strategyState.positionMint,
+        strategyState.positionTokenAccount,
         status
       );
     } else {
@@ -1759,10 +1765,10 @@ export class Kamino {
     positionMint: PublicKey,
     priceLower: Decimal,
     priceUpper: Decimal,
-    status: StrategyStatusKind = new Uninitialized(),
-    oldPosition?: PublicKey,
-    oldPositionMint?: PublicKey,
-    oldPositionTokenAccount?: PublicKey
+    oldPositionOrBaseVaultAuthority: PublicKey,
+    oldPositionMintOrBaseVaultAuthority: PublicKey,
+    oldPositionTokenAccountOrBaseVaultAuthority: PublicKey,
+    status: StrategyStatusKind = new Uninitialized()
   ): Promise<TransactionInstruction> => {
     const whirlpool = await Whirlpool.fetch(this._connection, pool);
     if (!whirlpool) {
@@ -1817,9 +1823,11 @@ export class Kamino {
       metadataProgram: METADATA_PROGRAM_ID,
       metadataUpdateAuth: METADATA_UPDATE_AUTH,
       poolProgram: WHIRLPOOL_PROGRAM_ID,
-      oldPositionOrBaseVaultAuthority: isRebalancing ? oldPosition! : baseVaultAuthority,
-      oldPositionMintOrBaseVaultAuthority: isRebalancing ? oldPositionMint! : baseVaultAuthority,
-      oldPositionTokenAccountOrBaseVaultAuthority: isRebalancing ? oldPositionTokenAccount! : baseVaultAuthority,
+      oldPositionOrBaseVaultAuthority: isRebalancing ? oldPositionOrBaseVaultAuthority : baseVaultAuthority,
+      oldPositionMintOrBaseVaultAuthority: isRebalancing ? oldPositionMintOrBaseVaultAuthority : positionMint,
+      oldPositionTokenAccountOrBaseVaultAuthority: isRebalancing
+        ? oldPositionTokenAccountOrBaseVaultAuthority
+        : positionTokenAccount,
       raydiumProtocolPositionOrBaseVaultAuthority: baseVaultAuthority,
       adminTokenAAtaOrBaseVaultAuthority: baseVaultAuthority,
       adminTokenBAtaOrBaseVaultAuthority: baseVaultAuthority,
@@ -1848,10 +1856,10 @@ export class Kamino {
     priceUpper: Decimal,
     tokenAVault: PublicKey,
     tokenBVault: PublicKey,
-    status: StrategyStatusKind = new Uninitialized(),
-    oldPosition?: PublicKey,
-    oldPositionMint?: PublicKey,
-    oldPositionTokenAccount?: PublicKey
+    oldPositionOrBaseVaultAuthority: PublicKey,
+    oldPositionMintOrBaseVaultAuthority: PublicKey,
+    oldPositionTokenAccountOrBaseVaultAuthority: PublicKey,
+    status: StrategyStatusKind = new Uninitialized()
   ): Promise<TransactionInstruction> => {
     const poolState = await PoolState.fetch(this._connection, pool);
     if (!poolState) {
@@ -1917,9 +1925,11 @@ export class Kamino {
       metadataProgram: METADATA_PROGRAM_ID,
       metadataUpdateAuth: METADATA_UPDATE_AUTH,
       poolProgram: RAYDIUM_PROGRAM_ID,
-      oldPositionOrBaseVaultAuthority: isRebalancing ? oldPosition! : baseVaultAuthority,
-      oldPositionMintOrBaseVaultAuthority: isRebalancing ? oldPositionMint! : baseVaultAuthority,
-      oldPositionTokenAccountOrBaseVaultAuthority: isRebalancing ? oldPositionTokenAccount! : baseVaultAuthority,
+      oldPositionOrBaseVaultAuthority: isRebalancing ? oldPositionOrBaseVaultAuthority : baseVaultAuthority,
+      oldPositionMintOrBaseVaultAuthority: isRebalancing ? oldPositionMintOrBaseVaultAuthority : positionMint,
+      oldPositionTokenAccountOrBaseVaultAuthority: isRebalancing
+        ? oldPositionTokenAccountOrBaseVaultAuthority
+        : positionTokenAccount,
       raydiumProtocolPositionOrBaseVaultAuthority: protocolPosition,
       adminTokenAAtaOrBaseVaultAuthority: tokenAVault,
       adminTokenBAtaOrBaseVaultAuthority: tokenBVault,
@@ -2208,7 +2218,10 @@ export class Kamino {
         pool,
         positionMint,
         lowerPrice,
-        upperPrice
+        upperPrice,
+        baseVaultAuthority,
+        baseVaultAuthority,
+        baseVaultAuthority
       );
     } else if (dex == 'RAYDIUM') {
       openPositionIx = await this.openPositionRaydium(
@@ -2220,7 +2233,10 @@ export class Kamino {
         lowerPrice,
         upperPrice,
         tokenAVault,
-        tokenBVault
+        tokenBVault,
+        baseVaultAuthority,
+        baseVaultAuthority,
+        baseVaultAuthority
       );
     } else {
       throw new Error(`Dex ${dex} is not supported`);

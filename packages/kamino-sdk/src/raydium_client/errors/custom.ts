@@ -11,12 +11,14 @@ export type CustomError =
   | TickUpperOverflow
   | TickAndSpacingNotMatch
   | InvalidTickArray
+  | InvalidTickArrayBoundary
   | SqrtPriceLimitOverflow
   | SqrtPriceX64
   | LiquiditySubValueErr
   | LiquidityAddValueErr
   | InvaildLiquidity
   | ForbidBothZeroForSupplyLiquidity
+  | LiquidityInsufficient
   | TransactionTooOld
   | PriceSlippageCheck
   | TooLittleOutputReceived
@@ -24,6 +26,8 @@ export type CustomError =
   | InvaildSwapAmountSpecified
   | InvalidInputPoolVault
   | TooSmallInputOrOutputAmount
+  | NotEnoughTickArrayAccount
+  | InvalidFirstTickArrayAccount
   | InvalidRewardIndex
   | FullRewardInfo
   | RewardTokenAlreadyInUse
@@ -105,10 +109,10 @@ export class InvaildTickIndex extends Error {
   static readonly code = 6006;
   readonly code = 6006;
   readonly name = 'InvaildTickIndex';
-  readonly msg = 'Tick index of lower must be smaller than upper';
+  readonly msg = 'Tick out of range';
 
   constructor(readonly logs?: string[]) {
-    super('6006: Tick index of lower must be smaller than upper');
+    super('6006: Tick out of range');
   }
 }
 
@@ -167,256 +171,300 @@ export class InvalidTickArray extends Error {
   }
 }
 
-export class SqrtPriceLimitOverflow extends Error {
+export class InvalidTickArrayBoundary extends Error {
   static readonly code = 6012;
   readonly code = 6012;
+  readonly name = 'InvalidTickArrayBoundary';
+  readonly msg = 'Invaild tick array boundary';
+
+  constructor(readonly logs?: string[]) {
+    super('6012: Invaild tick array boundary');
+  }
+}
+
+export class SqrtPriceLimitOverflow extends Error {
+  static readonly code = 6013;
+  readonly code = 6013;
   readonly name = 'SqrtPriceLimitOverflow';
   readonly msg = 'Square root price limit overflow';
 
   constructor(readonly logs?: string[]) {
-    super('6012: Square root price limit overflow');
+    super('6013: Square root price limit overflow');
   }
 }
 
 export class SqrtPriceX64 extends Error {
-  static readonly code = 6013;
-  readonly code = 6013;
+  static readonly code = 6014;
+  readonly code = 6014;
   readonly name = 'SqrtPriceX64';
   readonly msg = 'sqrt_price_x64 out of range';
 
   constructor(readonly logs?: string[]) {
-    super('6013: sqrt_price_x64 out of range');
+    super('6014: sqrt_price_x64 out of range');
   }
 }
 
 export class LiquiditySubValueErr extends Error {
-  static readonly code = 6014;
-  readonly code = 6014;
+  static readonly code = 6015;
+  readonly code = 6015;
   readonly name = 'LiquiditySubValueErr';
   readonly msg = 'Liquidity sub delta L must be smaller than before';
 
   constructor(readonly logs?: string[]) {
-    super('6014: Liquidity sub delta L must be smaller than before');
+    super('6015: Liquidity sub delta L must be smaller than before');
   }
 }
 
 export class LiquidityAddValueErr extends Error {
-  static readonly code = 6015;
-  readonly code = 6015;
+  static readonly code = 6016;
+  readonly code = 6016;
   readonly name = 'LiquidityAddValueErr';
   readonly msg = 'Liquidity add delta L must be greater, or equal to before';
 
   constructor(readonly logs?: string[]) {
-    super('6015: Liquidity add delta L must be greater, or equal to before');
+    super('6016: Liquidity add delta L must be greater, or equal to before');
   }
 }
 
 export class InvaildLiquidity extends Error {
-  static readonly code = 6016;
-  readonly code = 6016;
+  static readonly code = 6017;
+  readonly code = 6017;
   readonly name = 'InvaildLiquidity';
   readonly msg = 'Invaild liquidity when update position';
 
   constructor(readonly logs?: string[]) {
-    super('6016: Invaild liquidity when update position');
+    super('6017: Invaild liquidity when update position');
   }
 }
 
 export class ForbidBothZeroForSupplyLiquidity extends Error {
-  static readonly code = 6017;
-  readonly code = 6017;
+  static readonly code = 6018;
+  readonly code = 6018;
   readonly name = 'ForbidBothZeroForSupplyLiquidity';
   readonly msg = 'Both token amount must not be zero while supply liquidity';
 
   constructor(readonly logs?: string[]) {
-    super('6017: Both token amount must not be zero while supply liquidity');
+    super('6018: Both token amount must not be zero while supply liquidity');
+  }
+}
+
+export class LiquidityInsufficient extends Error {
+  static readonly code = 6019;
+  readonly code = 6019;
+  readonly name = 'LiquidityInsufficient';
+  readonly msg = 'Liquidity insufficient';
+
+  constructor(readonly logs?: string[]) {
+    super('6019: Liquidity insufficient');
   }
 }
 
 export class TransactionTooOld extends Error {
-  static readonly code = 6018;
-  readonly code = 6018;
+  static readonly code = 6020;
+  readonly code = 6020;
   readonly name = 'TransactionTooOld';
   readonly msg = 'Transaction too old';
 
   constructor(readonly logs?: string[]) {
-    super('6018: Transaction too old');
+    super('6020: Transaction too old');
   }
 }
 
 export class PriceSlippageCheck extends Error {
-  static readonly code = 6019;
-  readonly code = 6019;
+  static readonly code = 6021;
+  readonly code = 6021;
   readonly name = 'PriceSlippageCheck';
   readonly msg = 'Price slippage check';
 
   constructor(readonly logs?: string[]) {
-    super('6019: Price slippage check');
+    super('6021: Price slippage check');
   }
 }
 
 export class TooLittleOutputReceived extends Error {
-  static readonly code = 6020;
-  readonly code = 6020;
+  static readonly code = 6022;
+  readonly code = 6022;
   readonly name = 'TooLittleOutputReceived';
   readonly msg = 'Too little output received';
 
   constructor(readonly logs?: string[]) {
-    super('6020: Too little output received');
+    super('6022: Too little output received');
   }
 }
 
 export class TooMuchInputPaid extends Error {
-  static readonly code = 6021;
-  readonly code = 6021;
+  static readonly code = 6023;
+  readonly code = 6023;
   readonly name = 'TooMuchInputPaid';
   readonly msg = 'Too much input paid';
 
   constructor(readonly logs?: string[]) {
-    super('6021: Too much input paid');
+    super('6023: Too much input paid');
   }
 }
 
 export class InvaildSwapAmountSpecified extends Error {
-  static readonly code = 6022;
-  readonly code = 6022;
+  static readonly code = 6024;
+  readonly code = 6024;
   readonly name = 'InvaildSwapAmountSpecified';
   readonly msg = 'Swap special amount can not be zero';
 
   constructor(readonly logs?: string[]) {
-    super('6022: Swap special amount can not be zero');
+    super('6024: Swap special amount can not be zero');
   }
 }
 
 export class InvalidInputPoolVault extends Error {
-  static readonly code = 6023;
-  readonly code = 6023;
+  static readonly code = 6025;
+  readonly code = 6025;
   readonly name = 'InvalidInputPoolVault';
   readonly msg = 'Input pool vault is invalid';
 
   constructor(readonly logs?: string[]) {
-    super('6023: Input pool vault is invalid');
+    super('6025: Input pool vault is invalid');
   }
 }
 
 export class TooSmallInputOrOutputAmount extends Error {
-  static readonly code = 6024;
-  readonly code = 6024;
+  static readonly code = 6026;
+  readonly code = 6026;
   readonly name = 'TooSmallInputOrOutputAmount';
   readonly msg = 'Swap input or output amount is too small';
 
   constructor(readonly logs?: string[]) {
-    super('6024: Swap input or output amount is too small');
+    super('6026: Swap input or output amount is too small');
+  }
+}
+
+export class NotEnoughTickArrayAccount extends Error {
+  static readonly code = 6027;
+  readonly code = 6027;
+  readonly name = 'NotEnoughTickArrayAccount';
+  readonly msg = 'Not enought tick array account';
+
+  constructor(readonly logs?: string[]) {
+    super('6027: Not enought tick array account');
+  }
+}
+
+export class InvalidFirstTickArrayAccount extends Error {
+  static readonly code = 6028;
+  readonly code = 6028;
+  readonly name = 'InvalidFirstTickArrayAccount';
+  readonly msg = 'Invaild first tick array account';
+
+  constructor(readonly logs?: string[]) {
+    super('6028: Invaild first tick array account');
   }
 }
 
 export class InvalidRewardIndex extends Error {
-  static readonly code = 6025;
-  readonly code = 6025;
+  static readonly code = 6029;
+  readonly code = 6029;
   readonly name = 'InvalidRewardIndex';
   readonly msg = 'Invalid reward index';
 
   constructor(readonly logs?: string[]) {
-    super('6025: Invalid reward index');
+    super('6029: Invalid reward index');
   }
 }
 
 export class FullRewardInfo extends Error {
-  static readonly code = 6026;
-  readonly code = 6026;
+  static readonly code = 6030;
+  readonly code = 6030;
   readonly name = 'FullRewardInfo';
   readonly msg = 'The init reward token reach to the max';
 
   constructor(readonly logs?: string[]) {
-    super('6026: The init reward token reach to the max');
+    super('6030: The init reward token reach to the max');
   }
 }
 
 export class RewardTokenAlreadyInUse extends Error {
-  static readonly code = 6027;
-  readonly code = 6027;
+  static readonly code = 6031;
+  readonly code = 6031;
   readonly name = 'RewardTokenAlreadyInUse';
   readonly msg = 'The init reward token already in use';
 
   constructor(readonly logs?: string[]) {
-    super('6027: The init reward token already in use');
+    super('6031: The init reward token already in use');
   }
 }
 
 export class ExceptPoolVaultMint extends Error {
-  static readonly code = 6028;
-  readonly code = 6028;
+  static readonly code = 6032;
+  readonly code = 6032;
   readonly name = 'ExceptPoolVaultMint';
   readonly msg = 'The reward tokens must contain one of pool vault mint except the last reward';
 
   constructor(readonly logs?: string[]) {
-    super('6028: The reward tokens must contain one of pool vault mint except the last reward');
+    super('6032: The reward tokens must contain one of pool vault mint except the last reward');
   }
 }
 
 export class InvalidRewardInitParam extends Error {
-  static readonly code = 6029;
-  readonly code = 6029;
+  static readonly code = 6033;
+  readonly code = 6033;
   readonly name = 'InvalidRewardInitParam';
   readonly msg = 'Invalid reward init param';
 
   constructor(readonly logs?: string[]) {
-    super('6029: Invalid reward init param');
+    super('6033: Invalid reward init param');
   }
 }
 
 export class InvalidRewardDesiredAmount extends Error {
-  static readonly code = 6030;
-  readonly code = 6030;
+  static readonly code = 6034;
+  readonly code = 6034;
   readonly name = 'InvalidRewardDesiredAmount';
   readonly msg = 'Invalid collect reward desired amount';
 
   constructor(readonly logs?: string[]) {
-    super('6030: Invalid collect reward desired amount');
+    super('6034: Invalid collect reward desired amount');
   }
 }
 
 export class InvalidRewardInputAccountNumber extends Error {
-  static readonly code = 6031;
-  readonly code = 6031;
+  static readonly code = 6035;
+  readonly code = 6035;
   readonly name = 'InvalidRewardInputAccountNumber';
   readonly msg = 'Invalid collect reward input account number';
 
   constructor(readonly logs?: string[]) {
-    super('6031: Invalid collect reward input account number');
+    super('6035: Invalid collect reward input account number');
   }
 }
 
 export class InvalidRewardPeriod extends Error {
-  static readonly code = 6032;
-  readonly code = 6032;
+  static readonly code = 6036;
+  readonly code = 6036;
   readonly name = 'InvalidRewardPeriod';
   readonly msg = 'Invalid reward period';
 
   constructor(readonly logs?: string[]) {
-    super('6032: Invalid reward period');
+    super('6036: Invalid reward period');
   }
 }
 
 export class NotApproveUpdateRewardEmissiones extends Error {
-  static readonly code = 6033;
-  readonly code = 6033;
+  static readonly code = 6037;
+  readonly code = 6037;
   readonly name = 'NotApproveUpdateRewardEmissiones';
   readonly msg = 'Modification of emissiones is allowed within 72 hours from the end of the previous cycle';
 
   constructor(readonly logs?: string[]) {
-    super('6033: Modification of emissiones is allowed within 72 hours from the end of the previous cycle');
+    super('6037: Modification of emissiones is allowed within 72 hours from the end of the previous cycle');
   }
 }
 
 export class UnInitializedRewardInfo extends Error {
-  static readonly code = 6034;
-  readonly code = 6034;
+  static readonly code = 6038;
+  readonly code = 6038;
   readonly name = 'UnInitializedRewardInfo';
   readonly msg = 'uninitialized reward info';
 
   constructor(readonly logs?: string[]) {
-    super('6034: uninitialized reward info');
+    super('6038: uninitialized reward info');
   }
 }
 
@@ -447,50 +495,58 @@ export function fromCode(code: number, logs?: string[]): CustomError | null {
     case 6011:
       return new InvalidTickArray(logs);
     case 6012:
-      return new SqrtPriceLimitOverflow(logs);
+      return new InvalidTickArrayBoundary(logs);
     case 6013:
-      return new SqrtPriceX64(logs);
+      return new SqrtPriceLimitOverflow(logs);
     case 6014:
-      return new LiquiditySubValueErr(logs);
+      return new SqrtPriceX64(logs);
     case 6015:
-      return new LiquidityAddValueErr(logs);
+      return new LiquiditySubValueErr(logs);
     case 6016:
-      return new InvaildLiquidity(logs);
+      return new LiquidityAddValueErr(logs);
     case 6017:
-      return new ForbidBothZeroForSupplyLiquidity(logs);
+      return new InvaildLiquidity(logs);
     case 6018:
-      return new TransactionTooOld(logs);
+      return new ForbidBothZeroForSupplyLiquidity(logs);
     case 6019:
-      return new PriceSlippageCheck(logs);
+      return new LiquidityInsufficient(logs);
     case 6020:
-      return new TooLittleOutputReceived(logs);
+      return new TransactionTooOld(logs);
     case 6021:
-      return new TooMuchInputPaid(logs);
+      return new PriceSlippageCheck(logs);
     case 6022:
-      return new InvaildSwapAmountSpecified(logs);
+      return new TooLittleOutputReceived(logs);
     case 6023:
-      return new InvalidInputPoolVault(logs);
+      return new TooMuchInputPaid(logs);
     case 6024:
-      return new TooSmallInputOrOutputAmount(logs);
+      return new InvaildSwapAmountSpecified(logs);
     case 6025:
-      return new InvalidRewardIndex(logs);
+      return new InvalidInputPoolVault(logs);
     case 6026:
-      return new FullRewardInfo(logs);
+      return new TooSmallInputOrOutputAmount(logs);
     case 6027:
-      return new RewardTokenAlreadyInUse(logs);
+      return new NotEnoughTickArrayAccount(logs);
     case 6028:
-      return new ExceptPoolVaultMint(logs);
+      return new InvalidFirstTickArrayAccount(logs);
     case 6029:
-      return new InvalidRewardInitParam(logs);
+      return new InvalidRewardIndex(logs);
     case 6030:
-      return new InvalidRewardDesiredAmount(logs);
+      return new FullRewardInfo(logs);
     case 6031:
-      return new InvalidRewardInputAccountNumber(logs);
+      return new RewardTokenAlreadyInUse(logs);
     case 6032:
-      return new InvalidRewardPeriod(logs);
+      return new ExceptPoolVaultMint(logs);
     case 6033:
-      return new NotApproveUpdateRewardEmissiones(logs);
+      return new InvalidRewardInitParam(logs);
     case 6034:
+      return new InvalidRewardDesiredAmount(logs);
+    case 6035:
+      return new InvalidRewardInputAccountNumber(logs);
+    case 6036:
+      return new InvalidRewardPeriod(logs);
+    case 6037:
+      return new NotApproveUpdateRewardEmissiones(logs);
+    case 6038:
       return new UnInitializedRewardInfo(logs);
   }
 

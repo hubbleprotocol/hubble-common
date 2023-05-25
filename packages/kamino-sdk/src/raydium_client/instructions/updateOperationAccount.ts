@@ -34,7 +34,7 @@ export const layout = borsh.struct([borsh.u8('param'), borsh.vec(borsh.publicKey
  */
 export function updateOperationAccount(args: UpdateOperationAccountArgs, accounts: UpdateOperationAccountAccounts) {
   const keys: Array<AccountMeta> = [
-    { pubkey: accounts.owner, isSigner: true, isWritable: true },
+    { pubkey: accounts.owner, isSigner: true, isWritable: false },
     { pubkey: accounts.operationState, isSigner: false, isWritable: true },
     { pubkey: accounts.systemProgram, isSigner: false, isWritable: false },
   ];

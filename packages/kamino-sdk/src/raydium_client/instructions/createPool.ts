@@ -6,6 +6,7 @@ import { PROGRAM_ID } from '../programId';
 
 export interface CreatePoolArgs {
   sqrtPriceX64: BN;
+  openTime: BN;
 }
 
 export interface CreatePoolAccounts {
@@ -32,7 +33,7 @@ export interface CreatePoolAccounts {
   rent: PublicKey;
 }
 
-export const layout = borsh.struct([borsh.u128('sqrtPriceX64')]);
+export const layout = borsh.struct([borsh.u128('sqrtPriceX64'), borsh.u64('openTime')]);
 
 /**
  * Creates a pool for the given token pair and the initial price
@@ -62,6 +63,7 @@ export function createPool(args: CreatePoolArgs, accounts: CreatePoolAccounts) {
   const len = layout.encode(
     {
       sqrtPriceX64: args.sqrtPriceX64,
+      openTime: args.openTime,
     },
     buffer
   );
