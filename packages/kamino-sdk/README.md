@@ -32,7 +32,7 @@ const customStrategy = await kamino.getStrategyByAddress(new PublicKey('my strat
 // get strategy share price
 const sharePrice = await kamino.getStrategySharePrice(new PublicKey('my strategy address'));
 
-// get token holders of a strategy
+// get token holders of a strategy 
 const holders = await kamino.getStrategyHolders(usdhUsdtStrategy);
 
 // get strategy share price
