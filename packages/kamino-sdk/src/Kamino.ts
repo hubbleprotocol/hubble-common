@@ -2388,7 +2388,7 @@ export class Kamino {
   ): Promise<GenericPositionRangeInfo> => {
     return {
       estimatedApy: new Decimal(0),
-      estimatedVolume: 0,
+      estimatedVolume: new Decimal(0),
     };
   };
 
@@ -2399,7 +2399,7 @@ export class Kamino {
   ): Promise<GenericPositionRangeInfo> => {
     return {
       estimatedApy: new Decimal(0),
-      estimatedVolume: 0,
+      estimatedVolume: new Decimal(0),
     };
   };
 
