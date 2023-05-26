@@ -1329,8 +1329,8 @@ export class Kamino {
     const lamportsB = amountB.mul(new Decimal(10).pow(strategyState.strategy.tokenBMintDecimals.toString()));
 
     const depositArgs: DepositAndInvestArgs = {
-      tokenMaxA: new BN(lamportsA.toString()),
-      tokenMaxB: new BN(lamportsB.toString()),
+      tokenMaxA: new BN(lamportsA.floor().toString()),
+      tokenMaxB: new BN(lamportsB.floor().toString()),
     };
 
     const depositAccounts: DepositAndInvestAccounts = {
