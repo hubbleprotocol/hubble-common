@@ -6,8 +6,9 @@ import Decimal from 'decimal.js';
 import { AmmV3, AmmV3PoolInfo, TickMath, TickUtils } from '@raydium-io/raydium-sdk';
 import { WhirlpoolAprApy } from './WhirlpoolAprApy';
 import { WhirlpoolStrategy } from '../kamino-client/accounts';
-import { aprToApy, getStrategyPriceRangeRaydium, ZERO } from '../utils';
+import { aprToApy, GenericPoolInfo, getStrategyPriceRangeRaydium, ZERO } from '../utils';
 import axios from 'axios';
+import { FullBPS } from '../utils/CreationParameters';
 
 export class RaydiumService {
   private readonly _connection: Connection;
@@ -201,4 +202,39 @@ export class RaydiumService {
       ...priceRange,
     };
   };
+
+  async getGenericPoolInfo(poolPubkey: PublicKey, pools?: Pool[]) {
+    const poolState = await PoolState.fetch(this._connection, poolPubkey);
+    if (!poolState) {
+      throw Error(`Raydium pool state ${poolPubkey} does not exist`);
+    }
+
+    if (!pools) {
+      ({ data: pools } = await this.getRaydiumWhirlpools());
+    }
+
+    if (!pools || pools.length === 0) {
+      throw Error(`Could not get Raydium amm pools from Raydium API`);
+    }
+
+    const raydiumPool = pools.filter((d) => d.id === poolPubkey.toString()).shift();
+    if (!raydiumPool) {
+      throw Error(`Could not get find Raydium amm pool ${poolPubkey.toString()} from Raydium API`);
+    }
+
+    let poolInfo: GenericPoolInfo = {
+      dex: 'RAYDIUM',
+      address: new PublicKey(poolPubkey),
+      tokenMintA: poolState.tokenMint0,
+      tokenMintB: poolState.tokenMint1,
+      price: new Decimal(raydiumPool.price),
+      feeRate: new Decimal(raydiumPool.ammConfig.tradeFeeRate).div(new Decimal(FullBPS)),
+      volumeOnLast7d: new Decimal(raydiumPool.week.volume),
+      tvl: new Decimal(raydiumPool.tvl),
+      tickSpacing: new Decimal(raydiumPool.ammConfig.tickSpacing),
+      // todo(Silviu): get real amount of positions
+      positions: new Decimal(0),
+    };
+    return poolInfo;
+  }
 }

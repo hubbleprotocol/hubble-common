@@ -150,12 +150,12 @@ export interface GenericPoolInfo {
   address: PublicKey;
   tokenMintA: PublicKey;
   tokenMintB: PublicKey;
-  price: number;
-  feeRate: number;
-  volumeOnLast7d: number | undefined;
-  tvl: number | undefined;
-  tickSpacing: number;
-  positions: number;
+  price: Decimal;
+  feeRate: Decimal;
+  volumeOnLast7d: Decimal | undefined;
+  tvl: Decimal | undefined;
+  tickSpacing: Decimal;
+  positions: Decimal;
 }
 
 export interface GenericPositionRangeInfo {
