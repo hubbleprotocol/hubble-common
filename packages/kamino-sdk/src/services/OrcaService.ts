@@ -16,7 +16,7 @@ import { Scope, ScopeToken } from '@hubbleprotocol/scope-sdk';
 import { Position } from '../whirpools-client';
 import { getKaminoTokenName, getScopeTokenFromKaminoMints } from '../constants';
 import { WhirlpoolAprApy } from './WhirlpoolAprApy';
-import { aprToApy, getStrategyPriceRangeOrca, ZERO } from '../utils';
+import { aprToApy, GenericPoolInfo, getStrategyPriceRangeOrca, ZERO } from '../utils';
 import { WHIRLPOOL_PROGRAM_ID } from '../whirpools-client/programId';
 
 export class OrcaService {
@@ -230,5 +230,38 @@ export class OrcaService {
       poolPrice: pool.price,
       strategyOutOfRange,
     };
+  }
+
+  async getGenericPoolInfo(poolPubkey: PublicKey, whirlpools?: Whirlpool[]) {
+    const orca = new OrcaWhirlpoolClient({
+      connection: this._connection,
+      network: this._orcaNetwork,
+    });
+
+    const pool = await orca.getPool(poolPubkey);
+    if (!whirlpools) {
+      ({ whirlpools } = await this.getOrcaWhirlpools());
+    }
+
+    const whirlpool = whirlpools?.find((x) => x.address === poolPubkey.toString());
+
+    if (!pool || !whirlpool) {
+      throw Error(`Could not get orca pool data for ${poolPubkey}`);
+    }
+
+    let poolInfo: GenericPoolInfo = {
+      dex: 'ORCA',
+      address: new PublicKey(poolPubkey),
+      tokenMintA: pool.tokenMintA,
+      tokenMintB: pool.tokenMintB,
+      price: pool.price,
+      feeRate: pool.feePercentage,
+      volumeOnLast7d: whirlpool.volume ? new Decimal(whirlpool.volume?.week) : undefined,
+      tvl: whirlpool.tvl ? new Decimal(whirlpool.tvl) : undefined,
+      tickSpacing: new Decimal(pool.tickSpacing),
+      // todo(Silviu): get real amount of positions
+      positions: new Decimal(0),
+    };
+    return poolInfo;
   }
 }

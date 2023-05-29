@@ -459,15 +459,15 @@ export class Kamino {
         let poolInfo: GenericPoolInfo = {
           dex,
           address: new PublicKey(pool.address),
-          price: pool.price,
+          price: new Decimal(pool.price),
           tokenMintA: new PublicKey(pool.tokenA.mint),
           tokenMintB: new PublicKey(pool.tokenB.mint),
-          tvl: pool.tvl,
-          feeRate: pool.lpFeeRate,
-          volumeOnLast7d: pool.volume?.week,
-          tickSpacing: pool.tickSpacing,
+          tvl: pool.tvl ? new Decimal(pool.tvl) : undefined,
+          feeRate: new Decimal(pool.lpFeeRate),
+          volumeOnLast7d: pool.volume ? new Decimal(pool.volume.week) : undefined,
+          tickSpacing: new Decimal(pool.tickSpacing),
           // TODO: get real amount of positions
-          positions: 0,
+          positions: new Decimal(0),
         };
         return poolInfo;
       });
@@ -478,15 +478,15 @@ export class Kamino {
         let poolInfo: GenericPoolInfo = {
           dex,
           address: new PublicKey(pool.id),
-          price: pool.price,
+          price: new Decimal(pool.price),
           tokenMintA: new PublicKey(pool.mintA),
           tokenMintB: new PublicKey(pool.mintB),
-          tvl: pool.tvl,
-          feeRate: pool.ammConfig.tradeFeeRate / FullBPS,
-          volumeOnLast7d: pool.week.volume,
-          tickSpacing: pool.ammConfig.tickSpacing,
+          tvl: new Decimal(pool.tvl),
+          feeRate: new Decimal(pool.ammConfig.tradeFeeRate).div(new Decimal(FullBPS)),
+          volumeOnLast7d: new Decimal(pool.week.volume),
+          tickSpacing: new Decimal(pool.ammConfig.tickSpacing),
           // TODO: get real amount of positions
-          positions: 0,
+          positions: new Decimal(0),
         };
         return poolInfo;
       });
@@ -2364,6 +2364,19 @@ export class Kamino {
     )[pool.toString()].state;
 
     return poolInfo.currentPrice;
+  }
+
+  async getGenericPoolInfo(dex: Dex, pool: PublicKey): Promise<GenericPoolInfo> {
+    let poolInfo: GenericPoolInfo;
+    if (dex == 'ORCA') {
+      poolInfo = await this._orcaService.getGenericPoolInfo(pool);
+    } else if (dex == 'RAYDIUM') {
+      poolInfo = await this._raydiumService.getGenericPoolInfo(pool);
+    } else {
+      throw new Error(`Invalid dex ${dex}`);
+    }
+
+    return poolInfo;
   }
 
   mintIsSupported = (collateralInfos: CollateralInfo[], tokenMint: PublicKey): boolean => {
