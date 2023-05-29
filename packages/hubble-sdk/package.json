@@ -30,11 +30,6 @@
     "@types/bn.js": "^5.1.0",
     "tweetnacl-ts": "^1.0.3"
   },
-  "overrides": {
-    "@streamflow/stream": {
-      "@solana/web3.js": "~1.73.0"
-    }
-  },
   "dependencies": {
     "@hubbleprotocol/hubble-config": "^1.0.275",
     "@hubbleprotocol/hubble-idl": "^1.0.276",
