@@ -1091,7 +1091,7 @@ export class Kamino {
    * Get Raydium pool from public key
    * @param pool pubkey of the orca whirlpool
    */
-  getRaydiumPoollByAddress = (pool: PublicKey) => PoolState.fetch(this._connection, pool);
+  getRaydiumPoolByAddress = (pool: PublicKey) => PoolState.fetch(this._connection, pool);
 
   /**
    * Get scope token name from a kamino strategy collateral ID
@@ -1139,7 +1139,7 @@ export class Kamino {
 
     let programId = getDexProgramId(strategyState.strategy);
 
-    const args: WithdrawArgs = { sharesAmount: new BN(sharesAmountInLamports.toString()) };
+    const args: WithdrawArgs = { sharesAmount: new BN(sharesAmountInLamports.floor().toString()) };
     const accounts: WithdrawAccounts = {
       user: owner,
       strategy: strategyState.address,
@@ -1166,7 +1166,40 @@ export class Kamino {
       instructionSysvarAccount: SYSVAR_INSTRUCTIONS_PUBKEY,
     };
 
-    return withdraw(args, accounts);
+    const withdrawIxn = await withdraw(args, accounts);
+    let collectFeesAndRewardsIxns: TransactionInstruction[] = [];
+
+    //  for Raydium strats we need to collect fees and rewards before withdrawal
+    //  add rewards vaults accounts to withdraw
+    const isRaydium = strategyState.strategy.strategyDex.toNumber() == dexToNumber('RAYDIUM');
+    if (isRaydium) {
+      collectFeesAndRewardsIxns = [await this.collectFeesAndRewards(strategy, owner)];
+      const poolState = await this.getRaydiumPoolByAddress(strategyState.strategy.pool);
+      if (!poolState) {
+        throw new Error('Pool is not found');
+      }
+
+      if (strategyState.strategy.reward0Decimals.toNumber() > 0) {
+        withdrawIxn.keys = withdrawIxn.keys.concat([
+          { pubkey: poolState.rewardInfos[0].tokenVault, isSigner: false, isWritable: true },
+          { pubkey: strategyState.strategy.reward0Vault, isSigner: false, isWritable: true },
+        ]);
+      }
+      if (strategyState.strategy.reward1Decimals.toNumber() > 0) {
+        withdrawIxn.keys = withdrawIxn.keys.concat([
+          { pubkey: poolState.rewardInfos[1].tokenVault, isSigner: false, isWritable: true },
+          { pubkey: strategyState.strategy.reward1Vault, isSigner: false, isWritable: true },
+        ]);
+      }
+      if (strategyState.strategy.reward2Decimals.toNumber() > 0) {
+        withdrawIxn.keys = withdrawIxn.keys.concat([
+          { pubkey: poolState.rewardInfos[2].tokenVault, isSigner: false, isWritable: true },
+          { pubkey: strategyState.strategy.reward2Vault, isSigner: false, isWritable: true },
+        ]);
+      }
+    }
+
+    return [...collectFeesAndRewardsIxns, withdrawIxn];
   };
 
   /**
@@ -1521,9 +1554,10 @@ export class Kamino {
    * Get transaction instruction to collect strategy fees from the treasury fee
    * vaults and rewards from the reward vaults.
    * @param strategy strategy public key or already fetched object
+   * @param owner signer of the tx
    * @returns transaction instruction to collect strategy fees and rewards
    */
-  collectFeesAndRewards = async (strategy: PublicKey | StrategyWithAddress) => {
+  collectFeesAndRewards = async (strategy: PublicKey | StrategyWithAddress, owner?: PublicKey) => {
     const { address: strategyPubkey, strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
 
     const { treasuryFeeTokenAVault, treasuryFeeTokenBVault, treasuryFeeVaultAuthority } =
@@ -1556,7 +1590,7 @@ export class Kamino {
     }
 
     const accounts: CollectFeesAndRewardsAccounts = {
-      user: strategyState.adminAuthority,
+      user: owner || strategyState.adminAuthority,
       strategy: strategyPubkey,
       globalConfig: strategyState.globalConfig,
       pool: strategyState.pool,
