@@ -1,6 +1,6 @@
 {
   "packages": ["packages/*"],
-  "version": "1.0.294",
+  "version": "1.0.295",
   "command": {
     "publish": {
       "ignoreChanges": ["tests/**"]
