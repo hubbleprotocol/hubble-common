@@ -52,6 +52,22 @@ export const ExtraCollateralMap: ExtraCollateralToken[] = [
   { id: 9, name: 'scnSOL' },
   { id: 10, name: 'wstETH' },
   { id: 11, name: 'LDO' },
+  { id: 12, name: 'CSOL' },
+  { id: 13, name: 'CETH' },
+  { id: 14, name: 'CBTC' },
+  { id: 15, name: 'CMSOL' },
+  { id: 16, name: 'CUSDC' },
+  { id: 17, name: 'CSRM' },
+  { id: 18, name: 'CRAY' },
+  { id: 19, name: 'CFTT' },
+  { id: 20, name: 'CSTSOL' },
+  { id: 21, name: 'CSLND' },
+  { id: 22, name: 'CORCA' },
+  { id: 23, name: 'KUSDHUSDCORCA' },
+  { id: 24, name: 'KUSDCUSDTORCA' },
+  { id: 25, name: 'KSTSOLSOLORCA' },
+  { id: 26, name: 'KUSHUSDCORCA' },
+  { id: 27, name: 'JSOL' },
 ];
 
 export const getExtraCollateralToken = (token: string) => {

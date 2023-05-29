@@ -28,6 +28,24 @@ export const DECIMALS_WSTETH = 1_000_000_00;
 export const DECIMALS_LDO = 1_000_000_00;
 // Number of decimals for USDC
 export const DECIMALS_USDC = 1_000_000;
+export const DECIMALS_JSOL = 1_000_000_000;
+export const DECIMALS_SCNSOL = 1_000_000_000;
+export const DECIMALS_USDT = 1_000_000;
+export const DECIMALS_CSOL = 1_000_000_000;
+export const DECIMALS_CETH = 1_000_000_00;
+export const DECIMALS_CBTC = 1_000_000;
+export const DECIMALS_CSRM = 1_000_000;
+export const DECIMALS_CRAY = 1_000_000;
+export const DECIMALS_CFTT = 1_000_000;
+export const DECIMALS_CMSOL = 1_000_000_000;
+export const DECIMALS_CSTSOL = 1_000_000_000;
+export const DECIMALS_CUSDC = 1_000_000;
+export const DECIMALS_CSLND = 1_000_000;
+export const DECIMALS_CORCA = 1_000_000;
+export const DECIMALS_KUSDHUSDCORCA = 1_000_000;
+export const DECIMALS_KUSDCUSDTORCA = 1_000_000;
+export const DECIMALS_KSTSOLSOLORCA = 1_000_000_000;
+export const DECIMALS_KUSHUSDCORCA = 1_000_000_000;
 // Number of decimals for HBB
 export const HBB_DECIMALS = 1_000_000;
 // Number of decimals for USDH (stablecoin)
