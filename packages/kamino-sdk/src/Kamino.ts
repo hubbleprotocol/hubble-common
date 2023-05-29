@@ -2470,9 +2470,13 @@ export class Kamino {
     if (rebalanceType.kind == RebalanceType.Manual.kind) {
       return [new Decimal(rebalanceParams.params[0]), new Decimal(rebalanceParams.params[1])];
     } else if (rebalanceType.kind == RebalanceType.PricePercentage.kind) {
-      let lowerRangePercentage = rebalanceParams.params[0] + rebalanceParams.params[1] * 256;
-      let upperRangePercentage = rebalanceParams.params[2] + rebalanceParams.params[3] * 256;
-      return [new Decimal(lowerRangePercentage), new Decimal(upperRangePercentage)];
+      let lowerRangePercentage = new Decimal(rebalanceParams.params[0]).plus(
+        new Decimal(rebalanceParams.params[1]).mul(new Decimal(256))
+      );
+      let upperRangePercentage = new Decimal(rebalanceParams.params[2]).plus(
+        new Decimal(rebalanceParams.params[3]).mul(new Decimal(256))
+      );
+      return [lowerRangePercentage, upperRangePercentage];
     } else {
       throw new Error(`Invalid rebalance type ${rebalanceType}`);
     }
