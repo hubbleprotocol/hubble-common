@@ -14,6 +14,23 @@ import {
   HBB_DECIMALS,
   ExtraCollateralMap,
   getExtraCollateralTokenById,
+  DECIMALS_JSOL,
+  DECIMALS_USDT,
+  DECIMALS_CSOL,
+  DECIMALS_CETH,
+  DECIMALS_CBTC,
+  DECIMALS_CMSOL,
+  DECIMALS_CUSDC,
+  DECIMALS_CSRM,
+  DECIMALS_CRAY,
+  DECIMALS_CFTT,
+  DECIMALS_CSTSOL,
+  DECIMALS_CSLND,
+  DECIMALS_CORCA,
+  DECIMALS_KUSDHUSDCORCA,
+  DECIMALS_KSTSOLSOLORCA,
+  DECIMALS_KUSHUSDCORCA,
+  DECIMALS_KUSDCUSDTORCA,
 } from '../constants';
 import { BN } from '@project-serum/anchor';
 import Decimal from 'decimal.js';
@@ -146,6 +163,9 @@ export const calculateStabilityProvided = (
 export const addCollateralAmounts = (first: CollateralAmounts, second: CollateralAmounts): CollateralAmounts => {
   const leftExtra = first.extraCollaterals ? first.extraCollaterals : zeroExtraCollateral();
   const rightExtra = second.extraCollaterals ? second.extraCollaterals : zeroExtraCollateral();
+  const extraCollaterals = [
+    ...new Set([...leftExtra.map((x) => x.tokenId.toNumber()), ...rightExtra.map((x) => x.tokenId.toNumber())]),
+  ];
   return {
     sol: first.sol.add(second.sol),
     eth: first.eth.add(second.eth),
@@ -154,10 +174,12 @@ export const addCollateralAmounts = (first: CollateralAmounts, second: Collatera
     btc: first.btc.add(second.btc),
     srm: first.srm.add(second.srm),
     msol: first.msol.add(second.msol),
-    extraCollaterals: leftExtra.map((coll) => {
+    extraCollaterals: extraCollaterals.map((id) => {
+      const left = leftExtra.find((x) => x.tokenId.eq(id))?.amount ?? new Decimal(0);
+      const right = rightExtra.find((x) => x.tokenId.eq(id))?.amount ?? new Decimal(0);
       return {
-        amount: coll.amount.plus(rightExtra.find((x) => x.tokenId.eq(coll.tokenId))?.amount ?? 0),
-        tokenId: coll.tokenId,
+        amount: left.plus(right),
+        tokenId: new Decimal(id),
       };
     }),
   };
@@ -529,6 +551,57 @@ export const convertTokenLamportsToDecimal = (lamports: Decimal, tokenName: stri
       break;
     case 'FTT':
       factor = DECIMALS_FTT;
+      break;
+    case 'JSOL':
+      factor = DECIMALS_JSOL;
+      break;
+    case 'USDT':
+      factor = DECIMALS_USDT;
+      break;
+    case 'CSOL':
+      factor = DECIMALS_CSOL;
+      break;
+    case 'CETH':
+      factor = DECIMALS_CETH;
+      break;
+    case 'CBTC':
+      factor = DECIMALS_CBTC;
+      break;
+    case 'CMSOL':
+      factor = DECIMALS_CMSOL;
+      break;
+    case 'CUSDC':
+      factor = DECIMALS_CUSDC;
+      break;
+    case 'CSRM':
+      factor = DECIMALS_CSRM;
+      break;
+    case 'CRAY':
+      factor = DECIMALS_CRAY;
+      break;
+    case 'CFTT':
+      factor = DECIMALS_CFTT;
+      break;
+    case 'CSTSOL':
+      factor = DECIMALS_CSTSOL;
+      break;
+    case 'CSLND':
+      factor = DECIMALS_CSLND;
+      break;
+    case 'CORCA':
+      factor = DECIMALS_CORCA;
+      break;
+    case 'KUSDHUSDCORCA':
+      factor = DECIMALS_KUSDHUSDCORCA;
+      break;
+    case 'KUSDCUSDTORCA':
+      factor = DECIMALS_KUSDCUSDTORCA;
+      break;
+    case 'KSTSOLSOLORCA':
+      factor = DECIMALS_KSTSOLSOLORCA;
+      break;
+    case 'KUSHUSDCORCA':
+      factor = DECIMALS_KUSHUSDCORCA;
       break;
     default:
       throw Error(`${tokenName} not supported yet`);
