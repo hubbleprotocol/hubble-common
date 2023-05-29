@@ -494,8 +494,8 @@ describe('Kamino SDK Tests', () => {
     let shares = await kamino.getTokenAccountBalance(sharesAta);
     console.log('shares, ', shares);
 
-    const withdrawIx = await kamino.withdrawShares(strategyWithAddress, new Decimal(0.2), signer.publicKey);
-    withdrawTx.add(withdrawIx);
+    const withdrawIxns = await kamino.withdrawShares(strategyWithAddress, new Decimal(0.2), signer.publicKey);
+    withdrawTx.add(...withdrawIxns);
 
     withdrawTx = await assignBlockInfoToTransaction(connection, withdrawTx, signer.publicKey);
 
@@ -560,8 +560,8 @@ describe('Kamino SDK Tests', () => {
     await sleep(5000);
 
     let withdrawTx = createTransactionWithExtraBudget(signer.publicKey);
-    const withdrawIx = await kamino.withdrawShares(strategyWithAddress, new Decimal(0.02), signer.publicKey);
-    tx.add(withdrawIx);
+    const withdrawIxns = await kamino.withdrawShares(strategyWithAddress, new Decimal(0.02), signer.publicKey);
+    tx.add(...withdrawIxns);
 
     withdrawTx = await assignBlockInfoToTransaction(connection, withdrawTx, signer.publicKey);
 
@@ -612,9 +612,9 @@ describe('Kamino SDK Tests', () => {
 
     let withdrawTx = createTransactionWithExtraBudget(user.owner.publicKey);
 
-    const withdrawIx = await kamino.withdrawAllShares(strategyWithAddress, user.owner.publicKey);
-    if (withdrawIx) {
-      tx.add(withdrawIx);
+    const withdrawIxns = await kamino.withdrawAllShares(strategyWithAddress, user.owner.publicKey);
+    if (withdrawIxns) {
+      tx.add(...withdrawIxns);
     } else {
       console.log('balance is 0, cant withdraw');
       return;
@@ -668,9 +668,9 @@ describe('Kamino SDK Tests', () => {
 
     let withdrawTx = createTransactionWithExtraBudget(user.owner.publicKey, 1000000);
 
-    const withdrawIx = await kamino.withdrawAllShares(strategyWithAddress, user.owner.publicKey);
-    if (withdrawIx) {
-      tx.add(withdrawIx);
+    const withdrawIxns = await kamino.withdrawAllShares(strategyWithAddress, user.owner.publicKey);
+    if (withdrawIxns) {
+      tx.add(...withdrawIxns);
     } else {
       console.log('balance is 0, cant withdraw');
       return;

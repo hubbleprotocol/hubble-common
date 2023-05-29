@@ -240,9 +240,9 @@ if (ataInstructions.length > 0) {
 }
 
 // withdraw all strategy shares from the wallet:
-const withdrawIx = await kamino.withdrawAllShares(strategyWithAddress, owner);
-if (withdrawIx) {
-  tx.add(withdrawIx);
+const withdrawIxns = await kamino.withdrawAllShares(strategyWithAddress, owner);
+if (withdrawIxns) {
+  tx.add(...withdrawIxns);
 } else {
   console.log('Wallet balance is 0 shares, cant withdraw any');
   return;
