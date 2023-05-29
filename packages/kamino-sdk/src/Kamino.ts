@@ -1126,8 +1126,10 @@ export class Kamino {
     }
     const strategyState = await this.getStrategyStateIfNotFetched(strategy);
 
-    const { treasuryFeeTokenAVault, treasuryFeeTokenBVault, treasuryFeeVaultAuthority } =
-      await this.getTreasuryFeeVaultPDAs(strategyState.strategy.tokenAMint, strategyState.strategy.tokenBMint);
+    const { treasuryFeeTokenAVault, treasuryFeeTokenBVault } = this.getTreasuryFeeVaultPDAs(
+      strategyState.strategy.tokenAMint,
+      strategyState.strategy.tokenBMint
+    );
 
     const sharesAta = await getAssociatedTokenAddress(strategyState.strategy.sharesMint, owner);
     const tokenAAta = await getAssociatedTokenAddress(strategyState.strategy.tokenAMint, owner);
@@ -1166,7 +1168,7 @@ export class Kamino {
       instructionSysvarAccount: SYSVAR_INSTRUCTIONS_PUBKEY,
     };
 
-    const withdrawIxn = await withdraw(args, accounts);
+    const withdrawIxn = withdraw(args, accounts);
     let collectFeesAndRewardsIxns: TransactionInstruction[] = [];
 
     //  for Raydium strats we need to collect fees and rewards before withdrawal
@@ -1981,7 +1983,10 @@ export class Kamino {
    * @param action withdrawal action
    * @returns transaction for executive withdrawal
    */
-  executiveWithdraw = async (strategy: PublicKey | StrategyWithAddress, action: ExecutiveWithdrawActionKind) => {
+  executiveWithdraw = async (
+    strategy: PublicKey | StrategyWithAddress,
+    action: ExecutiveWithdrawActionKind
+  ): Promise<TransactionInstruction> => {
     const { address: strategyPubkey, strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
 
     let globalConfig = await GlobalConfig.fetch(this._connection, strategyState.globalConfig);
@@ -2020,7 +2025,38 @@ export class Kamino {
       tokenInfos: globalConfig.tokenInfos,
     };
 
-    return executiveWithdraw(args, accounts);
+    let executiveWithdrawIx = executiveWithdraw(args, accounts);
+
+    //  for Raydium strats we need to collect fees and rewards before withdrawal
+    //  add rewards vaults accounts to withdraw
+    const isRaydium = strategyState.strategyDex.toNumber() == dexToNumber('RAYDIUM');
+    if (isRaydium) {
+      const poolState = await this.getRaydiumPoolByAddress(strategyState.pool);
+      if (!poolState) {
+        throw new Error('Pool is not found');
+      }
+
+      if (strategyState.reward0Decimals.toNumber() > 0) {
+        executiveWithdrawIx.keys = executiveWithdrawIx.keys.concat([
+          { pubkey: poolState.rewardInfos[0].tokenVault, isSigner: false, isWritable: true },
+          { pubkey: strategyState.reward0Vault, isSigner: false, isWritable: true },
+        ]);
+      }
+      if (strategyState.reward1Decimals.toNumber() > 0) {
+        executiveWithdrawIx.keys = executiveWithdrawIx.keys.concat([
+          { pubkey: poolState.rewardInfos[1].tokenVault, isSigner: false, isWritable: true },
+          { pubkey: strategyState.reward1Vault, isSigner: false, isWritable: true },
+        ]);
+      }
+      if (strategyState.reward2Decimals.toNumber() > 0) {
+        executiveWithdrawIx.keys = executiveWithdrawIx.keys.concat([
+          { pubkey: poolState.rewardInfos[2].tokenVault, isSigner: false, isWritable: true },
+          { pubkey: strategyState.reward2Vault, isSigner: false, isWritable: true },
+        ]);
+      }
+    }
+
+    return executiveWithdrawIx;
   };
 
   /**
