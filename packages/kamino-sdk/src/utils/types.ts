@@ -170,3 +170,12 @@ export interface VaultParameters {
   feeTier: Decimal;
   rebalancingParameters: RebalanceFieldInfo[];
 }
+
+export interface LiquidityDistribution {
+  distribution: LiquidityForPrice[];
+}
+
+export interface LiquidityForPrice {
+  price: Decimal;
+  liquidity: Decimal;
+}

@@ -16,7 +16,15 @@ import { Scope, ScopeToken } from '@hubbleprotocol/scope-sdk';
 import { Position } from '../whirpools-client';
 import { getKaminoTokenName, getScopeTokenFromKaminoMints } from '../constants';
 import { WhirlpoolAprApy } from './WhirlpoolAprApy';
-import { aprToApy, GenericPoolInfo, getStrategyPriceRangeOrca, ZERO } from '../utils';
+import {
+  aprToApy,
+  GenericPoolInfo,
+  getStrategyPriceRangeOrca,
+  LiquidityDistribution,
+  LiquidityForPrice,
+  ZERO,
+} from '../utils';
+import { getTickArrayPda, WhirlpoolData } from '@orca-so/whirlpool-client-sdk';
 import { WHIRLPOOL_PROGRAM_ID } from '../whirpools-client/programId';
 
 export class OrcaService {
@@ -151,6 +159,40 @@ export class OrcaService {
       rewardsApy: rewardsApr.map((x) => aprToApy(x, 365)),
       ...priceRange,
     };
+  }
+
+  async getWhirlpoolLiquidityDistribution(pool: PublicKey): Promise<LiquidityDistribution> {
+    const orca = new OrcaWhirlpoolClient({
+      connection: this._connection,
+      network: this._orcaNetwork,
+    });
+    const poolData = await orca.getPool(pool);
+    if (!poolData) {
+      throw new Error(`Could not get pool data for Whirlpool ${pool}`);
+    }
+
+    let lowestInitializedTick = await orca.pool.getLowestInitializedTickArrayTickIndex(pool, poolData.tickSpacing);
+    let highestInitializedTick = await orca.pool.getHighestInitializedTickArrayTickIndex(pool, poolData.tickSpacing);
+    const orcaLiqDistribution = await orca.pool.getLiquidityDistribution(
+      pool,
+      lowestInitializedTick,
+      highestInitializedTick
+    );
+
+    let liqDistribution: LiquidityDistribution = {
+      distribution: [],
+    };
+
+    orcaLiqDistribution.datapoints.forEach((entry) => {
+      const liq: LiquidityForPrice = {
+        price: entry.price,
+        liquidity: entry.liquidity,
+      };
+
+      liqDistribution.distribution.push(liq);
+    });
+
+    return liqDistribution;
   }
 
   async getWhirlpoolPositionAprApy(
