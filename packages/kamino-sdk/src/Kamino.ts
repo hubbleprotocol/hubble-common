@@ -236,7 +236,7 @@ export class Kamino {
     if (raydiumProgramId) {
       setRaydiumProgramId(raydiumProgramId);
     }
-    this._orcaService = new OrcaService(connection, cluster, this._config);
+    this._orcaService = new OrcaService(connection, cluster);
     this._raydiumService = new RaydiumService(connection, cluster);
   }
 
@@ -265,8 +265,6 @@ export class Kamino {
   };
 
   getSupportedDexes = (): Dex[] => ['ORCA', 'RAYDIUM'];
-
-  // const whirlpoolConfig: PublicKey = new PublicKey("2LecshUwdy9xi7meFgHtFJQNSKk4KdTrcpvaB56dP2NQ");
 
   // todo: see if we can read this dinamically
   getFeeTiersForDex = (dex: Dex): Decimal[] => {
@@ -456,41 +454,46 @@ export class Kamino {
   async getExistentPoolsForPair(dex: Dex, tokenMintA: PublicKey, tokenMintB: PublicKey): Promise<GenericPoolInfo[]> {
     if (dex == 'ORCA') {
       let pools = await this.getOrcaPoolsForTokens(tokenMintA, tokenMintB);
-      let genericPoolInfos: GenericPoolInfo[] = pools.map((pool: OrcaPool) => {
-        let poolInfo: GenericPoolInfo = {
-          dex,
-          address: new PublicKey(pool.address),
-          price: new Decimal(pool.price),
-          tokenMintA: new PublicKey(pool.tokenA.mint),
-          tokenMintB: new PublicKey(pool.tokenB.mint),
-          tvl: pool.tvl ? new Decimal(pool.tvl) : undefined,
-          feeRate: new Decimal(pool.lpFeeRate),
-          volumeOnLast7d: pool.volume ? new Decimal(pool.volume.week) : undefined,
-          tickSpacing: new Decimal(pool.tickSpacing),
-          // TODO: get real amount of positions
-          positions: new Decimal(0),
-        };
-        return poolInfo;
-      });
+      let genericPoolInfos: GenericPoolInfo[] = await Promise.all(
+        pools.map(async (pool: OrcaPool) => {
+          let positionsCount = new Decimal(await this.getPositionsCountForPool(dex, new PublicKey(pool.address)));
+          let poolInfo: GenericPoolInfo = {
+            dex,
+            address: new PublicKey(pool.address),
+            price: new Decimal(pool.price),
+            tokenMintA: new PublicKey(pool.tokenA.mint),
+            tokenMintB: new PublicKey(pool.tokenB.mint),
+            tvl: pool.tvl ? new Decimal(pool.tvl) : undefined,
+            feeRate: new Decimal(pool.lpFeeRate),
+            volumeOnLast7d: pool.volume ? new Decimal(pool.volume.week) : undefined,
+            tickSpacing: new Decimal(pool.tickSpacing),
+            positions: positionsCount,
+          };
+          return poolInfo;
+        })
+      );
       return genericPoolInfos;
     } else if (dex == 'RAYDIUM') {
       let pools = await this.getRaydiumPoolsForTokens(tokenMintA, tokenMintB);
-      let genericPoolInfos: GenericPoolInfo[] = pools.map((pool: Pool) => {
-        let poolInfo: GenericPoolInfo = {
-          dex,
-          address: new PublicKey(pool.id),
-          price: new Decimal(pool.price),
-          tokenMintA: new PublicKey(pool.mintA),
-          tokenMintB: new PublicKey(pool.mintB),
-          tvl: new Decimal(pool.tvl),
-          feeRate: new Decimal(pool.ammConfig.tradeFeeRate).div(new Decimal(FullBPS)),
-          volumeOnLast7d: new Decimal(pool.week.volume),
-          tickSpacing: new Decimal(pool.ammConfig.tickSpacing),
-          // TODO: get real amount of positions
-          positions: new Decimal(0),
-        };
-        return poolInfo;
-      });
+      let genericPoolInfos: GenericPoolInfo[] = await Promise.all(
+        pools.map(async (pool: Pool) => {
+          let positionsCount = new Decimal(await this.getPositionsCountForPool(dex, new PublicKey(pool.id)));
+          let poolInfo: GenericPoolInfo = {
+            dex,
+            address: new PublicKey(pool.id),
+            price: new Decimal(pool.price),
+            tokenMintA: new PublicKey(pool.mintA),
+            tokenMintB: new PublicKey(pool.mintB),
+            tvl: new Decimal(pool.tvl),
+            feeRate: new Decimal(pool.ammConfig.tradeFeeRate).div(new Decimal(FullBPS)),
+            volumeOnLast7d: new Decimal(pool.week.volume),
+            tickSpacing: new Decimal(pool.ammConfig.tickSpacing),
+            // TODO: get real amount of positions
+            positions: positionsCount,
+          };
+          return poolInfo;
+        })
+      );
 
       return genericPoolInfos;
     } else {
@@ -2600,15 +2603,34 @@ export class Kamino {
     return this._raydiumService.getRaydiumPoolLiquidityDistribution(pool);
   };
 
-  getLiquidityDistributionOrcaWhirlpool = (pool: PublicKey): Promise<LiquidityDistribution> => {
-    return this._orcaService.getWhirlpoolLiquidityDistribution(pool);
+  getLiquidityDistributionOrcaWhirlpool = (
+    pool: PublicKey,
+    lowestTick?: number,
+    highestTick?: number
+  ): Promise<LiquidityDistribution> => {
+    return this._orcaService.getWhirlpoolLiquidityDistribution(pool, lowestTick, highestTick);
   };
 
-  getLiquidityDistribution = async (dex: Dex, pool: PublicKey): Promise<LiquidityDistribution> => {
+  getLiquidityDistribution = async (
+    dex: Dex,
+    pool: PublicKey,
+    lowestTick?: number,
+    highestTick?: number
+  ): Promise<LiquidityDistribution> => {
     if (dex == 'ORCA') {
-      return this.getLiquidityDistributionOrcaWhirlpool(pool);
+      return this.getLiquidityDistributionOrcaWhirlpool(pool, lowestTick, highestTick);
     } else if (dex == 'RAYDIUM') {
       return this.getLiquidityDistributionRaydiumPool(pool);
+    } else {
+      throw Error(`Dex ${dex} not supported`);
+    }
+  };
+
+  getPositionsCountForPool = async (dex: Dex, pool: PublicKey): Promise<number> => {
+    if (dex == 'ORCA') {
+      return this._orcaService.getPositionsCountByPool(pool);
+    } else if (dex == 'RAYDIUM') {
+      return this._raydiumService.getPositionsCountByPool(pool);
     } else {
       throw Error(`Dex ${dex} not supported`);
     }

@@ -9,7 +9,7 @@ import {
   TransactionInstruction,
   VersionedTransaction,
 } from '@solana/web3.js';
-import { Kamino, numberToRebalanceType, RaydiumService, sendTransactionWithLogs } from '../src';
+import { Kamino, numberToRebalanceType, OrcaService, RaydiumService, sendTransactionWithLogs } from '../src';
 import Decimal from 'decimal.js';
 import {
   assignBlockInfoToTransaction,
@@ -22,6 +22,7 @@ import { expect } from 'chai';
 import { WHIRLPOOL_PROGRAM_ID } from '../src/whirpools-client/programId';
 import { PROGRAM_ID as RAYDIUM_PROGRAM_ID } from '../src/raydium_client/programId';
 import { Manual, PricePercentage } from '../src/kamino-client/types/RebalanceType';
+import { getNearestValidTickIndexFromTickIndex } from '@orca-so/whirlpool-sdk';
 
 const GlobalConfigMainnet = new PublicKey('GKnHiWh3RRrE1zsNzWxRkomymHc374TvJPSTv2wPeYdB');
 const KaminoProgramIdMainnet = new PublicKey('6LtLpnUFNByNXLyCoK9wA2MykKAmQNZKBdY8s47dehDc');
@@ -410,7 +411,25 @@ describe('Kamino strategy creation SDK Tests', () => {
       new PublicKey('2QdhepnKRTLjjSqPL1PtKNwqrUkoLee5Gqs8bvZhRdMv')
     );
 
-    console.log('liquidityDistribution', liquidityDistribution);
+    console.log('raydium liquidityDistribution', liquidityDistribution);
+  });
+
+  it.skip('get orca pool liquidity distribution', async () => {
+    let orcaService = new OrcaService(connection, cluster);
+    let liquidityDistribution = await orcaService.getWhirlpoolLiquidityDistribution(
+      new PublicKey('7qbRF6YsyGuLUVs6Y1q64bdVrfe4ZcUUz1JRdoVNUJnm')
+    );
+
+    console.log('orca liquidityDistribution', liquidityDistribution);
+  });
+
+  it.skip('get orca positions for pool', async () => {
+    let orcaService = new OrcaService(connection, cluster);
+    let positionsCount = await orcaService.getPositionsCountByPool(
+      new PublicKey('7qbRF6YsyGuLUVs6Y1q64bdVrfe4ZcUUz1JRdoVNUJnm')
+    );
+
+    console.log('orca positions count', positionsCount);
   });
 
   it.skip('create new custom USDC-USDH percentage strategy on existing whirlpool', async () => {

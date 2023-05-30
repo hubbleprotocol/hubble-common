@@ -54,7 +54,3 @@ export function getKaminoTokenName(collateralId: number) {
   }
   return token.name;
 }
-
-export const getScopeTokenFromKaminoMints = (mint: PublicKey, config: HubbleConfig): string | undefined => {
-  return config.kamino.mints.find((x) => x.address.toString() === mint.toString())?.scopeToken;
-};

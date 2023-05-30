@@ -12,9 +12,9 @@ import axios from 'axios';
 import { OrcaWhirlpoolsResponse, Whirlpool } from './OrcaWhirlpoolsResponse';
 import { HubbleConfig, SolanaCluster } from '@hubbleprotocol/hubble-config';
 import { WhirlpoolStrategy } from '../kamino-client/accounts';
-import { Scope, ScopeToken } from '@hubbleprotocol/scope-sdk';
+import { Scope, ScopeToken, mintToScopeToken, scopeTokenToMint } from '@hubbleprotocol/scope-sdk';
 import { Position } from '../whirpools-client';
-import { getKaminoTokenName, getScopeTokenFromKaminoMints } from '../constants';
+import { getKaminoTokenName } from '../constants';
 import { WhirlpoolAprApy } from './WhirlpoolAprApy';
 import {
   aprToApy,
@@ -24,20 +24,19 @@ import {
   LiquidityForPrice,
   ZERO,
 } from '../utils';
-import { getTickArrayPda, WhirlpoolData } from '@orca-so/whirlpool-client-sdk';
 import { WHIRLPOOL_PROGRAM_ID } from '../whirpools-client/programId';
+import { AccountName, PositionData } from '@orca-so/whirlpool-client-sdk';
+import { BorshAccountsCoder } from '@project-serum/anchor';
 
 export class OrcaService {
   private readonly _connection: Connection;
   private readonly _cluster: SolanaCluster;
-  private readonly _config: HubbleConfig;
   private readonly _orcaNetwork: OrcaNetwork;
   private readonly _orcaApiUrl: string;
 
-  constructor(connection: Connection, cluster: SolanaCluster, config: HubbleConfig) {
+  constructor(connection: Connection, cluster: SolanaCluster) {
     this._connection = connection;
     this._cluster = cluster;
-    this._config = config;
     this._orcaNetwork = cluster === 'mainnet-beta' ? OrcaNetwork.MAINNET : OrcaNetwork.DEVNET;
     this._orcaApiUrl = `https://api.${cluster === 'mainnet-beta' ? 'mainnet' : 'devnet'}.orca.so`;
   }
@@ -48,40 +47,45 @@ export class OrcaService {
 
   private getTokenPrices(strategy: WhirlpoolStrategy, prices: ScopeToken[]) {
     const tokensPrices: Record<string, Decimal> = {};
-    const tokenA = getScopeTokenFromKaminoMints(strategy.tokenAMint, this._config);
-    const tokenB = getScopeTokenFromKaminoMints(strategy.tokenBMint, this._config);
+
+    const tokenA = mintToScopeToken(strategy.tokenAMint.toString(), this._cluster);
+    const tokenB = mintToScopeToken(strategy.tokenBMint.toString(), this._cluster);
     const reward0 = getKaminoTokenName(Number(strategy.reward0CollateralId));
     const reward1 = getKaminoTokenName(Number(strategy.reward1CollateralId));
     const reward2 = getKaminoTokenName(Number(strategy.reward2CollateralId));
     const tokens = [tokenA, tokenB, reward0, reward1, reward2];
     for (const token of tokens) {
-      const mint = this._config.kamino.mints.find((x) => x.scopeToken === token);
-      const scopeToken = prices.find((x) => x.name === token);
-      if (!mint || !scopeToken) {
-        throw new Error(`Could not get token ${token} prices`);
+      if (token) {
+        const mint = scopeTokenToMint(token);
+
+        const scopeToken = prices.find((x) => x.name === token);
+        if (!mint || !scopeToken) {
+          throw new Error(`Could not get token ${token} prices`);
+        }
+        tokensPrices[mint] = scopeToken.price;
       }
-      tokensPrices[mint.address.toString()] = scopeToken.price;
     }
+
     return tokensPrices;
   }
 
   private getPoolTokensPrices(pool: PoolData, prices: ScopeToken[]) {
     const tokensPrices: Record<string, Decimal> = {};
-    const tokenA = getScopeTokenFromKaminoMints(pool.tokenMintA, this._config);
-    const tokenB = getScopeTokenFromKaminoMints(pool.tokenMintB, this._config);
-    const reward0 = getScopeTokenFromKaminoMints(pool.rewards[0].mint, this._config);
-    const reward1 = getScopeTokenFromKaminoMints(pool.rewards[1].mint, this._config);
-    const reward2 = getScopeTokenFromKaminoMints(pool.rewards[2].mint, this._config);
+    const tokenA = mintToScopeToken(pool.tokenMintA.toString(), this._cluster);
+    const tokenB = mintToScopeToken(pool.tokenMintB.toString(), this._cluster);
+    const reward0 = mintToScopeToken(pool.rewards[0].mint.toString(), this._cluster);
+    const reward1 = mintToScopeToken(pool.rewards[1].mint.toString(), this._cluster);
+    const reward2 = mintToScopeToken(pool.rewards[2].mint.toString(), this._cluster);
 
     const tokens = [tokenA, tokenB, reward0, reward1, reward2];
     for (const token of tokens) {
       if (token) {
-        const mint = this._config.kamino.mints.find((x) => x.scopeToken === token);
+        const mint = scopeTokenToMint(token);
         const scopeToken = prices.find((x) => x.name === token);
         if (!mint || !scopeToken) {
           throw new Error(`Could not get token ${token} prices`);
         }
-        tokensPrices[mint.address.toString()] = scopeToken.price;
+        tokensPrices[mint] = scopeToken.price;
       }
     }
     return tokensPrices;
@@ -161,7 +165,12 @@ export class OrcaService {
     };
   }
 
-  async getWhirlpoolLiquidityDistribution(pool: PublicKey): Promise<LiquidityDistribution> {
+  // strongly recommended to pass lowestTick and highestTick because fetching the lowest and highest existent takes very long
+  async getWhirlpoolLiquidityDistribution(
+    pool: PublicKey,
+    lowestTick?: number,
+    highestTick?: number
+  ): Promise<LiquidityDistribution> {
     const orca = new OrcaWhirlpoolClient({
       connection: this._connection,
       network: this._orcaNetwork,
@@ -171,8 +180,20 @@ export class OrcaService {
       throw new Error(`Could not get pool data for Whirlpool ${pool}`);
     }
 
-    let lowestInitializedTick = await orca.pool.getLowestInitializedTickArrayTickIndex(pool, poolData.tickSpacing);
-    let highestInitializedTick = await orca.pool.getHighestInitializedTickArrayTickIndex(pool, poolData.tickSpacing);
+    let lowestInitializedTick: number;
+    if (lowestTick) {
+      lowestInitializedTick = lowestTick;
+    } else {
+      lowestInitializedTick = await orca.pool.getLowestInitializedTickArrayTickIndex(pool, poolData.tickSpacing);
+    }
+
+    let highestInitializedTick: number;
+    if (highestTick) {
+      highestInitializedTick = highestTick;
+    } else {
+      highestInitializedTick = await orca.pool.getHighestInitializedTickArrayTickIndex(pool, poolData.tickSpacing);
+    }
+
     const orcaLiqDistribution = await orca.pool.getLiquidityDistribution(
       pool,
       lowestInitializedTick,
@@ -191,6 +212,7 @@ export class OrcaService {
 
       liqDistribution.distribution.push(liq);
     });
+    console.log('after getting datapoints');
 
     return liqDistribution;
   }
@@ -305,5 +327,18 @@ export class OrcaService {
       positions: new Decimal(0),
     };
     return poolInfo;
+  }
+
+  async getPositionsCountByPool(pool: PublicKey): Promise<number> {
+    const rawPositions = await this._connection.getProgramAccounts(WHIRLPOOL_PROGRAM_ID, {
+      commitment: 'confirmed',
+      filters: [
+        // account LAYOUT: https://github.com/orca-so/whirlpools/blob/main/programs/whirlpool/src/state/position.rs#L20
+        { dataSize: 216 },
+        { memcmp: { bytes: pool.toBase58(), offset: 8 } },
+      ],
+    });
+
+    return rawPositions.length;
   }
 }
