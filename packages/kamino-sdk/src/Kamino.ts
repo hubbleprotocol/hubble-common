@@ -456,9 +456,7 @@ export class Kamino {
       let pools = await this.getOrcaPoolsForTokens(tokenMintA, tokenMintB);
       let genericPoolInfos: GenericPoolInfo[] = await Promise.all(
         pools.map(async (pool: OrcaPool) => {
-          let positionsCount = new Decimal(
-            await this._orcaService.getPositionsCountByPool(new PublicKey(pool.address))
-          );
+          let positionsCount = new Decimal(await this.getPositionsCountForPool(dex, new PublicKey(pool.address)));
           let poolInfo: GenericPoolInfo = {
             dex,
             address: new PublicKey(pool.address),
@@ -479,7 +477,7 @@ export class Kamino {
       let pools = await this.getRaydiumPoolsForTokens(tokenMintA, tokenMintB);
       let genericPoolInfos: GenericPoolInfo[] = await Promise.all(
         pools.map(async (pool: Pool) => {
-          let positionsCount = new Decimal(await this._orcaService.getPositionsCountByPool(new PublicKey(pool.id)));
+          let positionsCount = new Decimal(await this.getPositionsCountForPool(dex, new PublicKey(pool.id)));
           let poolInfo: GenericPoolInfo = {
             dex,
             address: new PublicKey(pool.id),
@@ -491,7 +489,7 @@ export class Kamino {
             volumeOnLast7d: new Decimal(pool.week.volume),
             tickSpacing: new Decimal(pool.ammConfig.tickSpacing),
             // TODO: get real amount of positions
-            positions: new Decimal(0),
+            positions: positionsCount,
           };
           return poolInfo;
         })
