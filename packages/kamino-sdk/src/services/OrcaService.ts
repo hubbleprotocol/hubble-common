@@ -180,16 +180,16 @@ export class OrcaService {
     );
 
     let liqDistribution: LiquidityDistribution = {
-      data: [],
+      distribution: [],
     };
 
-    orcaLiqDistribution.datapoints.map((entry) => {
+    orcaLiqDistribution.datapoints.forEach((entry) => {
       const liq: LiquidityForPrice = {
         price: entry.price,
         liquidity: entry.liquidity,
       };
 
-      liqDistribution.data.push(liq);
+      liqDistribution.distribution.push(liq);
     });
 
     return liqDistribution;

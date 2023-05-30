@@ -40,14 +40,14 @@ export class RaydiumService {
     ).data;
 
     let liqDistribution: LiquidityDistribution = {
-      data: [],
+      distribution: [],
     };
-    raydiumLiqDistribution.data.map((entry) => {
+    raydiumLiqDistribution.data.forEach((entry) => {
       const liq: LiquidityForPrice = {
         price: new Decimal(entry.price),
         liquidity: new Decimal(entry.liquidity),
       };
-      liqDistribution.data.push(liq);
+      liqDistribution.distribution.push(liq);
     });
 
     return liqDistribution;

@@ -172,7 +172,7 @@ export interface VaultParameters {
 }
 
 export interface LiquidityDistribution {
-  data: LiquidityForPrice[];
+  distribution: LiquidityForPrice[];
 }
 
 export interface LiquidityForPrice {
