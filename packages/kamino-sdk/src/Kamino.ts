@@ -78,6 +78,7 @@ import {
   getReadOnlyWallet,
   getStrategyRebalanceParams,
   getUpdateStrategyConfigIx,
+  LiquidityDistribution,
   numberToRebalanceType,
   RebalanceFieldInfo,
   StrategiesFilters,
@@ -148,7 +149,7 @@ import {
   InternalAddLiquidityQuoteParam,
 } from '@orca-so/whirlpool-sdk/dist/position/quotes/add-liquidity';
 import { signTerms, SignTermsAccounts, SignTermsArgs } from './kamino-client/instructions';
-import { LiquidityDistribution, Pool } from './services/RaydiumPoolsResponse';
+import { Pool } from './services/RaydiumPoolsResponse';
 import { Orca, Raydium } from './kamino-client/types/DEX';
 import {
   UpdateDepositCap,
@@ -2595,8 +2596,22 @@ export class Kamino {
     throw Error(`Strategy dex ${dex} not supported`);
   };
 
-  getLiquidityDistributionRaydiumPool = (strategy: PublicKey): Promise<LiquidityDistribution> => {
-    return this._raydiumService.getRaydiumPoolLiquidityDistribution(strategy);
+  getLiquidityDistributionRaydiumPool = (pool: PublicKey): Promise<LiquidityDistribution> => {
+    return this._raydiumService.getRaydiumPoolLiquidityDistribution(pool);
+  };
+
+  getLiquidityDistributionOrcaWhirlpool = (pool: PublicKey): Promise<LiquidityDistribution> => {
+    return this._orcaService.getWhirlpoolLiquidityDistribution(pool);
+  };
+
+  getLiquidityDistribution = async (dex: Dex, pool: PublicKey): Promise<LiquidityDistribution> => {
+    if (dex == 'ORCA') {
+      return this.getLiquidityDistributionOrcaWhirlpool(pool);
+    } else if (dex == 'RAYDIUM') {
+      return this.getLiquidityDistributionRaydiumPool(pool);
+    } else {
+      throw Error(`Dex ${dex} not supported`);
+    }
   };
 
   calculateAmounts = async (

@@ -1,12 +1,23 @@
 import { Connection, PublicKey } from '@solana/web3.js';
 import { SolanaCluster } from '@hubbleprotocol/hubble-config';
-import { LiquidityDistribution, Pool, RaydiumPoolsResponse } from './RaydiumPoolsResponse';
+import {
+  LiquidityDistribution as RaydiumLiquidityDistribuion,
+  Pool,
+  RaydiumPoolsResponse,
+} from './RaydiumPoolsResponse';
 import { PersonalPositionState, PoolState } from '../raydium_client';
 import Decimal from 'decimal.js';
 import { AmmV3, AmmV3PoolInfo, TickMath, TickUtils } from '@raydium-io/raydium-sdk';
 import { WhirlpoolAprApy } from './WhirlpoolAprApy';
 import { WhirlpoolStrategy } from '../kamino-client/accounts';
-import { aprToApy, GenericPoolInfo, getStrategyPriceRangeRaydium, ZERO } from '../utils';
+import {
+  aprToApy,
+  GenericPoolInfo,
+  getStrategyPriceRangeRaydium,
+  LiquidityDistribution,
+  LiquidityForPrice,
+  ZERO,
+} from '../utils';
 import axios from 'axios';
 import { FullBPS } from '../utils/CreationParameters';
 
@@ -24,8 +35,22 @@ export class RaydiumService {
   }
 
   async getRaydiumPoolLiquidityDistribution(pool: PublicKey): Promise<LiquidityDistribution> {
-    return (await axios.get<LiquidityDistribution>(`https://api.raydium.io/v2/ammV3/positionLine/${pool.toString()}`))
-      .data;
+    let raydiumLiqDistribution = (
+      await axios.get<RaydiumLiquidityDistribuion>(`https://api.raydium.io/v2/ammV3/positionLine/${pool.toString()}`)
+    ).data;
+
+    let liqDistribution: LiquidityDistribution = {
+      data: [],
+    };
+    raydiumLiqDistribution.data.map((entry) => {
+      const liq: LiquidityForPrice = {
+        price: new Decimal(entry.price),
+        liquidity: new Decimal(entry.liquidity),
+      };
+      liqDistribution.data.push(liq);
+    });
+
+    return liqDistribution;
   }
 
   getStrategyWhirlpoolPoolAprApy = async (strategy: WhirlpoolStrategy, pools?: Pool[]): Promise<WhirlpoolAprApy> => {
