@@ -262,4 +262,9 @@ export class RaydiumService {
     };
     return poolInfo;
   }
+
+  // todo(Silviu): implement this
+  async getPositionsCountByPool(pool: PublicKey): Promise<number> {
+    return 0;
+  }
 }
