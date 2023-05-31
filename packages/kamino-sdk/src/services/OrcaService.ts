@@ -11,10 +11,9 @@ import {
 import axios from 'axios';
 import { OrcaWhirlpoolsResponse, Whirlpool } from './OrcaWhirlpoolsResponse';
 import { SolanaCluster } from '@hubbleprotocol/hubble-config';
-import { WhirlpoolStrategy } from '../kamino-client/accounts';
-import { Scope, ScopeToken, mintToScopeToken, scopeTokenToMint } from '@hubbleprotocol/scope-sdk';
+import { CollateralInfos, GlobalConfig, WhirlpoolStrategy } from '../kamino-client/accounts';
+import { Scope, ScopeToken } from '@hubbleprotocol/scope-sdk';
 import { Position } from '../whirpools-client';
-import { getKaminoTokenName } from '../constants';
 import { WhirlpoolAprApy } from './WhirlpoolAprApy';
 import {
   aprToApy,
@@ -25,16 +24,19 @@ import {
   ZERO,
 } from '../utils';
 import { WHIRLPOOL_PROGRAM_ID } from '../whirpools-client/programId';
+import { CollateralInfo } from '../kamino-client/types';
 
 export class OrcaService {
   private readonly _connection: Connection;
   private readonly _cluster: SolanaCluster;
   private readonly _orcaNetwork: OrcaNetwork;
   private readonly _orcaApiUrl: string;
+  private readonly _globalConfig: PublicKey;
 
-  constructor(connection: Connection, cluster: SolanaCluster) {
+  constructor(connection: Connection, cluster: SolanaCluster, globalConfig: PublicKey) {
     this._connection = connection;
     this._cluster = cluster;
+    this._globalConfig = globalConfig;
     this._orcaNetwork = cluster === 'mainnet-beta' ? OrcaNetwork.MAINNET : OrcaNetwork.DEVNET;
     this._orcaApiUrl = `https://api.${cluster === 'mainnet-beta' ? 'mainnet' : 'devnet'}.orca.so`;
   }
@@ -43,24 +45,20 @@ export class OrcaService {
     return (await axios.get<OrcaWhirlpoolsResponse>(`${this._orcaApiUrl}/v1/whirlpool/list`)).data;
   }
 
-  private getTokenPrices(strategy: WhirlpoolStrategy, prices: ScopeToken[]) {
+  private getTokenPrices(strategy: WhirlpoolStrategy, prices: ScopeToken[], collateralInfos: CollateralInfo[]) {
     const tokensPrices: Record<string, Decimal> = {};
 
-    const tokenA = mintToScopeToken(strategy.tokenAMint.toString(), this._cluster);
-    const tokenB = mintToScopeToken(strategy.tokenBMint.toString(), this._cluster);
-    const reward0 = getKaminoTokenName(Number(strategy.reward0CollateralId));
-    const reward1 = getKaminoTokenName(Number(strategy.reward1CollateralId));
-    const reward2 = getKaminoTokenName(Number(strategy.reward2CollateralId));
-    const tokens = [tokenA, tokenB, reward0, reward1, reward2];
-    for (const token of tokens) {
-      if (token) {
-        const mint = scopeTokenToMint(token);
-
-        const scopeToken = prices.find((x) => x.name === token);
-        if (!mint || !scopeToken) {
-          throw new Error(`Could not get token ${token} prices`);
+    const reward0 = collateralInfos[strategy.reward0CollateralId.toNumber()]?.mint?.toString();
+    const reward1 = collateralInfos[strategy.reward1CollateralId.toNumber()]?.mint?.toString();
+    const reward2 = collateralInfos[strategy.reward2CollateralId.toNumber()]?.mint?.toString();
+    const tokens = [strategy.tokenAMint.toString(), strategy.tokenBMint.toString(), reward0, reward1, reward2];
+    for (const mint of tokens) {
+      if (mint) {
+        const price = prices.find((x) => x.mint?.toString() === mint)?.price;
+        if (!price) {
+          throw new Error(`Could not get token ${mint} price`);
         }
-        tokensPrices[mint] = scopeToken.price;
+        tokensPrices[mint] = price;
       }
     }
 
@@ -69,23 +67,23 @@ export class OrcaService {
 
   private getPoolTokensPrices(pool: PoolData, prices: ScopeToken[]) {
     const tokensPrices: Record<string, Decimal> = {};
-    const tokenA = mintToScopeToken(pool.tokenMintA.toString(), this._cluster);
-    const tokenB = mintToScopeToken(pool.tokenMintB.toString(), this._cluster);
-    const reward0 = mintToScopeToken(pool.rewards[0].mint.toString(), this._cluster);
-    const reward1 = mintToScopeToken(pool.rewards[1].mint.toString(), this._cluster);
-    const reward2 = mintToScopeToken(pool.rewards[2].mint.toString(), this._cluster);
-
-    const tokens = [tokenA, tokenB, reward0, reward1, reward2];
-    for (const token of tokens) {
-      if (token) {
-        const mint = scopeTokenToMint(token);
-        const scopeToken = prices.find((x) => x.name === token);
-        if (!mint || !scopeToken) {
-          throw new Error(`Could not get token ${token} prices`);
+    const tokens = [
+      pool.tokenMintA.toString(),
+      pool.tokenMintB.toString(),
+      pool.rewards[0].mint.toString(),
+      pool.rewards[1].mint.toString(),
+      pool.rewards[2].mint.toString(),
+    ];
+    for (const mint of tokens) {
+      if (mint) {
+        const price = prices.find((x) => x.mint?.toString() === mint)?.price;
+        if (!price) {
+          throw new Error(`Could not get token ${mint} price`);
         }
-        tokensPrices[mint] = scopeToken.price;
+        tokensPrices[mint] = price;
       }
     }
+
     return tokensPrices;
   }
 
@@ -139,7 +137,15 @@ export class OrcaService {
     const lpFeeRate = pool.feePercentage;
     const volume24hUsd = whirlpool?.volume?.day ?? new Decimal(0);
     const fee24Usd = new Decimal(volume24hUsd).mul(lpFeeRate).toNumber();
-    const tokensPrices = this.getTokenPrices(strategy, prices);
+    const config = await GlobalConfig.fetch(this._connection, this._globalConfig);
+    if (!config) {
+      throw Error(`Could not fetch globalConfig with pubkey ${this._globalConfig}`);
+    }
+    const collateralInfos = await CollateralInfos.fetch(this._connection, config.tokenInfos);
+    if (!collateralInfos) {
+      throw Error('Could not fetch collateral infos');
+    }
+    const tokensPrices = this.getTokenPrices(strategy, prices, collateralInfos.infos);
 
     const apr = estimateAprsForPriceRange(
       pool,
@@ -213,7 +219,6 @@ export class OrcaService {
 
       liqDistribution.distribution.push(liq);
     });
-    console.log('after getting datapoints');
 
     return liqDistribution;
   }

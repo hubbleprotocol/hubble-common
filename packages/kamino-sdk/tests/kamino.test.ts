@@ -8,7 +8,6 @@ import {
 } from '../src';
 import * as Instructions from '../src/kamino-client/instructions';
 import { GlobalConfigOption, GlobalConfigOptionKind, UpdateCollateralInfoMode } from '../src/kamino-client/types';
-import BN from 'bn.js';
 import { initializeRaydiumPool, orderMints } from './raydium_utils';
 import { initializeWhirlpool } from './orca_utils';
 import {
@@ -34,6 +33,7 @@ import { expect } from 'chai';
 import { WHIRLPOOL_PROGRAM_ID } from '../src/whirpools-client/programId';
 import * as ed25519 from 'tweetnacl-ts';
 import { Provider } from '@project-serum/anchor';
+import { ScopeMints } from '@hubbleprotocol/scope-sdk';
 
 export const LOCAL_RAYDIUM_PROGRAM_ID = new PublicKey('devi51mZmdwUJGU9hjN27vEz64Gps7uUefqxg27EAtH');
 export const USDH_SCOPE_CHAIN_ID = BigInt(12);
@@ -90,8 +90,6 @@ describe('Kamino SDK Tests', () => {
     tokenBMint = tokens[1];
     fixtures.newTokenMintA = tokenAMint;
     fixtures.newTokenMintB = tokenBMint;
-    kamino._config.kamino.mints.push({ address: tokenAMint, scopeToken: 'USDH' });
-    kamino._config.kamino.mints.push({ address: tokenBMint, scopeToken: 'USDC' });
 
     let globalConfig = await setUpGlobalConfig(kamino, signer, fixtures.scopeProgram, fixtures.scopePrices);
     console.log('globalConfig initialized ', globalConfig.toString());
@@ -172,8 +170,6 @@ describe('Kamino SDK Tests', () => {
       newRaydiumStrategy.publicKey,
       raydiumPool.pool,
       signer.publicKey,
-      'USDH',
-      'USDC',
       'RAYDIUM'
     );
 
@@ -198,8 +194,6 @@ describe('Kamino SDK Tests', () => {
       newOrcaStrategy.publicKey,
       whirlpool.pool,
       signer.publicKey,
-      'USDH',
-      'USDC',
       'ORCA'
     );
     tx.add(orcaStrategyIx);
@@ -272,6 +266,14 @@ describe('Kamino SDK Tests', () => {
     console.log('orca position opened');
     await openPosition(kamino, signer, newRaydiumStrategy.publicKey, new Decimal(0.97), new Decimal(1.03));
     console.log('raydium position opened');
+
+    ScopeMints.push({
+      cluster: 'localnet',
+      mints: [
+        { token: 'USDH', mint: tokenAMint.toString() },
+        { token: 'USDC', mint: tokenBMint.toString() },
+      ],
+    });
   });
 
   it('should throw on invalid cluster', () => {
@@ -483,7 +485,7 @@ describe('Kamino SDK Tests', () => {
     let depositIx = await kamino.deposit(fixtures.newOrcaStrategy, usdcDeposit, usdhDeposit, signer.publicKey);
     let depositTx = createTransactionWithExtraBudget(signer.publicKey, 1200000);
     depositTx.add(depositIx);
-    sendTransactionWithLogs(connection, depositTx, signer.publicKey, [signer]);
+    await sendTransactionWithLogs(connection, depositTx, signer.publicKey, [signer]);
 
     const strategy = (await kamino.getStrategyByAddress(fixtures.newOrcaStrategy))!;
     const strategyWithAddress = { strategy, address: fixtures.newOrcaStrategy };
@@ -1157,14 +1159,7 @@ export async function createStrategy(kamino: Kamino, owner: Keypair, pool: Publi
   // Create strategy
   const newStrategy = Keypair.generate();
   const createStrategyAccountIx = await kamino.createStrategyAccount(owner.publicKey, newStrategy.publicKey);
-  const createStrategyIx = await kamino.createStrategy(
-    newStrategy.publicKey,
-    pool,
-    owner.publicKey,
-    'USDH',
-    'USDC',
-    dex
-  );
+  const createStrategyIx = await kamino.createStrategy(newStrategy.publicKey, pool, owner.publicKey, dex);
 
   let tx = createTransactionWithExtraBudget(owner.publicKey).add(createStrategyAccountIx).add(createStrategyIx);
 

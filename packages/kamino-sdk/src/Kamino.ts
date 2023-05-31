@@ -1,9 +1,4 @@
-import {
-  getCollateralMintByAddress,
-  getConfigByCluster,
-  HubbleConfig,
-  SolanaCluster,
-} from '@hubbleprotocol/hubble-config';
+import { getConfigByCluster, HubbleConfig, SolanaCluster } from '@hubbleprotocol/hubble-config';
 import {
   AccountInfo,
   Connection,
@@ -13,11 +8,9 @@ import {
   SYSVAR_INSTRUCTIONS_PUBKEY,
   SYSVAR_RENT_PUBKEY,
   TransactionInstruction,
-  AddressLookupTableProgram,
   AddressLookupTableAccount,
   MessageV0,
   TransactionMessage,
-  Keypair,
 } from '@solana/web3.js';
 import { setKaminoProgramId } from './kamino-client/programId';
 import {
@@ -40,7 +33,6 @@ import {
   OrcaWhirlpoolClient,
   Percentage,
   priceToTickIndex,
-  tickIndexToPrice,
 } from '@orca-so/whirlpool-sdk';
 import { OrcaDAL } from '@orca-so/whirlpool-sdk/dist/dal/orca-dal';
 import { OrcaPosition } from '@orca-so/whirlpool-sdk/dist/position/orca-position';
@@ -60,8 +52,7 @@ import {
   TreasuryFeeVault,
 } from './models';
 import { PROGRAM_ID_CLI as WHIRLPOOL_PROGRAM_ID, setWhirlpoolsProgramId } from './whirpools-client/programId';
-import { Scope, ScopeToken, SupportedToken, SupportedTokens } from '@hubbleprotocol/scope-sdk';
-import { KaminoToken } from './models/KaminoToken';
+import { Scope, ScopeToken, SupportedTokens } from '@hubbleprotocol/scope-sdk';
 import { PriceData } from './models/PriceData';
 import {
   batchFetch,
@@ -119,13 +110,7 @@ import BN from 'bn.js';
 import StrategyWithAddress from './models/StrategyWithAddress';
 import { Idl, Program, Provider } from '@project-serum/anchor';
 import { Rebalancing, Uninitialized } from './kamino-client/types/StrategyStatus';
-import {
-  FRONTEND_KAMINO_STRATEGY_URL,
-  getKaminoTokenName,
-  KAMINO_TOKEN_MAP,
-  METADATA_PROGRAM_ID,
-  METADATA_UPDATE_AUTH,
-} from './constants';
+import { FRONTEND_KAMINO_STRATEGY_URL, METADATA_PROGRAM_ID, METADATA_UPDATE_AUTH } from './constants';
 import {
   CollateralInfo,
   ExecutiveWithdrawActionKind,
@@ -133,7 +118,6 @@ import {
   RebalanceType,
   RebalanceTypeKind,
   StrategyConfigOption,
-  StrategyConfigOptionKind,
   StrategyStatusKind,
 } from './kamino-client/types';
 import { Rebalance } from './kamino-client/types/ExecutiveWithdrawAction';
@@ -150,7 +134,6 @@ import {
 } from '@orca-so/whirlpool-sdk/dist/position/quotes/add-liquidity';
 import { signTerms, SignTermsAccounts, SignTermsArgs } from './kamino-client/instructions';
 import { Pool } from './services/RaydiumPoolsResponse';
-import { Orca, Raydium } from './kamino-client/types/DEX';
 import {
   UpdateDepositCap,
   UpdateDepositCapIxn,
@@ -196,7 +179,6 @@ export class Kamino {
   private readonly _provider: Provider;
   private readonly _kaminoProgram: Program;
   private readonly _kaminoProgramId: PublicKey;
-  private readonly _tokenMap: KaminoToken[] = KAMINO_TOKEN_MAP;
   private readonly _orcaService: OrcaService;
   private readonly _raydiumService: RaydiumService;
 
@@ -236,7 +218,7 @@ export class Kamino {
     if (raydiumProgramId) {
       setRaydiumProgramId(raydiumProgramId);
     }
-    this._orcaService = new OrcaService(connection, cluster);
+    this._orcaService = new OrcaService(connection, cluster, this._globalConfig);
     this._raydiumService = new RaydiumService(connection, cluster);
   }
 
@@ -252,16 +234,17 @@ export class Kamino {
 
   getGlobalConfig = () => this._globalConfig;
 
-  getTokenMap = () => this._tokenMap;
-
   getDepositableTokens = async (): Promise<CollateralInfo[]> => {
-    let config = await GlobalConfig.fetch(this._connection, this._globalConfig);
-    if (!config) {
-      throw Error(`Could not fetch globalConfig  with pubkey ${this.getGlobalConfig().toString()}`);
-    }
-    const collateralInfos = await this.getCollateralInfo(config.tokenInfos);
-
+    const collateralInfos = await this.getCollateralInfos();
     return collateralInfos.filter((x) => x.mint.toString() != SystemProgram.programId.toString());
+  };
+
+  getCollateralInfos = async () => {
+    const config = await GlobalConfig.fetch(this._connection, this._globalConfig);
+    if (!config) {
+      throw Error(`Could not fetch globalConfig with pubkey ${this.getGlobalConfig().toString()}`);
+    }
+    return this.getCollateralInfo(config.tokenInfos);
   };
 
   getSupportedDexes = (): Dex[] => ['ORCA', 'RAYDIUM'];
@@ -652,8 +635,9 @@ export class Kamino {
     const inactiveStrategies = strategiesWithAddresses.filter(
       (x) => x.strategy.position.toString() === PublicKey.default.toString()
     );
+    const collateralInfos = await this.getCollateralInfos();
     for (const { strategy, address } of inactiveStrategies) {
-      const strategyPrices = await this.getPrices(strategy, prices);
+      const strategyPrices = await this.getPrices(strategy, collateralInfos, prices);
       result.push({
         address,
         strategy,
@@ -667,12 +651,20 @@ export class Kamino {
         raydiumPools,
         raydiumPositions,
         this.getRaydiumBalances,
+        collateralInfos,
         prices
       )
     );
 
     fetchBalances.push(
-      ...this.getBalance<Whirlpool, Position>(orcaStrategies, orcaPools, orcaPositions, this.getOrcaBalances, prices)
+      ...this.getBalance<Whirlpool, Position>(
+        orcaStrategies,
+        orcaPools,
+        orcaPositions,
+        this.getOrcaBalances,
+        collateralInfos,
+        prices
+      )
     );
 
     const strategyBalances = await Promise.all(fetchBalances);
@@ -706,8 +698,10 @@ export class Kamino {
       strategy: WhirlpoolStrategy,
       pool: PoolT,
       position: PositionT,
+      collateralInfos: CollateralInfo[],
       prices?: ScopeToken[]
     ) => Promise<StrategyBalances>,
+    collateralInfos: CollateralInfo[],
     prices?: ScopeToken[]
   ): Promise<StrategyBalanceWithAddress>[] => {
     const fetchBalances: Promise<StrategyBalanceWithAddress>[] = [];
@@ -722,7 +716,7 @@ export class Kamino {
         throw new Error(`Position ${strategy.position.toString()} could not be found.`);
       }
       fetchBalances.push(
-        fetchBalance(strategy, pool as PoolT, position as PositionT, prices).then((balance) => {
+        fetchBalance(strategy, pool as PoolT, position as PositionT, collateralInfos, prices).then((balance) => {
           return { balance, strategyWithAddress: { strategy, address } };
         })
       );
@@ -734,6 +728,7 @@ export class Kamino {
     strategy: WhirlpoolStrategy,
     pool: PoolState,
     position: PersonalPositionState,
+    collateralInfos: CollateralInfo[],
     prices?: ScopeToken[]
   ) => {
     const lowerSqrtPriceX64 = SqrtPriceMath.getSqrtPriceX64FromTick(position.tickLowerIndex);
@@ -747,7 +742,7 @@ export class Kamino {
       false // round down so the holdings are not overestimated
     );
 
-    const strategyPrices = await this.getPrices(strategy, prices);
+    const strategyPrices = await this.getPrices(strategy, collateralInfos, prices);
     const aAvailable = new Decimal(strategy.tokenAAmounts.toString());
     const bAvailable = new Decimal(strategy.tokenBAmounts.toString());
     const aInvested = new Decimal(amountA.toString());
@@ -777,9 +772,10 @@ export class Kamino {
     strategy: WhirlpoolStrategy,
     pool: Whirlpool,
     position: Position,
+    collateralInfos: CollateralInfo[],
     prices?: ScopeToken[]
   ) => {
-    const strategyPrices = await this.getPrices(strategy, prices);
+    const strategyPrices = await this.getPrices(strategy, collateralInfos, prices);
     const quote = getRemoveLiquidityQuote({
       positionAddress: strategy.position,
       liquidity: position.liquidity,
@@ -849,10 +845,11 @@ export class Kamino {
   };
 
   private getStrategyBalances = async (strategy: WhirlpoolStrategy, scopePrices?: ScopeToken[]) => {
+    const collateralInfos = await this.getCollateralInfos();
     if (strategy.strategyDex.toNumber() == dexToNumber('ORCA')) {
-      return this.getStrategyBalancesOrca(strategy, scopePrices);
+      return this.getStrategyBalancesOrca(strategy, collateralInfos, scopePrices);
     } else if (strategy.strategyDex.toNumber() == dexToNumber('RAYDIUM')) {
-      return this.getStrategyBalancesRaydium(strategy, scopePrices);
+      return this.getStrategyBalancesRaydium(strategy, collateralInfos, scopePrices);
     } else {
       throw new Error(`Invalid dex ${strategy.strategyDex.toString()}`);
     }
@@ -887,7 +884,11 @@ export class Kamino {
     return { totalTokenAmount, vaults, timestamp: new Date() };
   };
 
-  private getStrategyBalancesOrca = async (strategy: WhirlpoolStrategy, scopePrices?: ScopeToken[]) => {
+  private getStrategyBalancesOrca = async (
+    strategy: WhirlpoolStrategy,
+    collateralInfos: CollateralInfo[],
+    scopePrices?: ScopeToken[]
+  ) => {
     const states = await Promise.all([
       Whirlpool.fetch(this._connection, strategy.pool),
       Position.fetch(this._connection, strategy.position),
@@ -902,10 +903,14 @@ export class Kamino {
       throw new Error(`Whirlpool ${strategy.pool.toString()} could not be found.`);
     }
 
-    return this.getOrcaBalances(strategy, whirlpool, position, scopePrices);
+    return this.getOrcaBalances(strategy, whirlpool, position, collateralInfos, scopePrices);
   };
 
-  private getStrategyBalancesRaydium = async (strategy: WhirlpoolStrategy, scopePrices?: ScopeToken[]) => {
+  private getStrategyBalancesRaydium = async (
+    strategy: WhirlpoolStrategy,
+    collateralInfos: CollateralInfo[],
+    scopePrices?: ScopeToken[]
+  ) => {
     const states = await Promise.all([
       PoolState.fetch(this._connection, strategy.pool),
       PersonalPositionState.fetch(this._connection, strategy.position),
@@ -920,7 +925,7 @@ export class Kamino {
       throw new Error(`Raydium pool ${strategy.pool.toString()} could not be found.`);
     }
 
-    return this.getRaydiumBalances(strategy, poolState, positionState, scopePrices);
+    return this.getRaydiumBalances(strategy, poolState, positionState, collateralInfos, scopePrices);
   };
 
   private getStrategyHoldingsUsd = (
@@ -959,50 +964,38 @@ export class Kamino {
 
   private getAllPrices = (): Promise<ScopeToken[]> => this._scope.getPrices([...SupportedTokens]);
 
-  private getPrices = async (strategy: WhirlpoolStrategy, scopeTokens?: ScopeToken[]): Promise<PriceData> => {
-    const collateralMintA = getCollateralMintByAddress(strategy.tokenAMint, this._config);
-    const collateralMintB = getCollateralMintByAddress(strategy.tokenBMint, this._config);
-    if (!collateralMintA) {
-      throw Error(`Could not map token mint with scope price token (token A: ${strategy.tokenAMint.toBase58()})`);
-    }
-    if (!collateralMintB) {
-      throw Error(`Could not map token mint with scope price token (token B: ${strategy.tokenBMint.toBase58()})`);
-    }
-    const tokens: SupportedToken[] = [];
-    const rewardToken0 = this.getRewardToken(strategy.reward0CollateralId.toNumber(), tokens);
-    const rewardToken1 = this.getRewardToken(strategy.reward1CollateralId.toNumber(), tokens);
-    const rewardToken2 = this.getRewardToken(strategy.reward2CollateralId.toNumber(), tokens);
-    tokens.push(collateralMintA.scopeToken as SupportedToken);
-    tokens.push(collateralMintB.scopeToken as SupportedToken);
+  private getPrices = async (
+    strategy: WhirlpoolStrategy,
+    collateralInfos: CollateralInfo[],
+    scopeTokens?: ScopeToken[]
+  ): Promise<PriceData> => {
+    const rewardToken0 = collateralInfos[strategy.reward0CollateralId.toNumber()];
+    const rewardToken1 = collateralInfos[strategy.reward1CollateralId.toNumber()];
+    const rewardToken2 = collateralInfos[strategy.reward2CollateralId.toNumber()];
 
     let prices: ScopeToken[];
     if (scopeTokens) {
       prices = scopeTokens;
     } else {
-      prices = await this._scope.getPrices([...new Set(tokens)]);
+      prices = await this._scope.getAllPrices();
     }
-    const aPrice = prices.find((x) => x.name === collateralMintA.scopeToken);
-    const bPrice = prices.find((x) => x.name === collateralMintB.scopeToken);
+    const aPrice = prices.find((x) => x.mint?.toString() === strategy.tokenAMint.toString());
+    const bPrice = prices.find((x) => x.mint?.toString() === strategy.tokenBMint.toString());
 
-    const reward0Price = prices.find((x) => x.name === rewardToken0?.name)?.price ?? new Decimal(0);
-    const reward1Price = prices.find((x) => x.name === rewardToken1?.name)?.price ?? new Decimal(0);
-    const reward2Price = prices.find((x) => x.name === rewardToken2?.name)?.price ?? new Decimal(0);
+    const reward0Price =
+      prices.find((x) => x.mint?.toString() === rewardToken0?.mint.toString())?.price ?? new Decimal(0);
+    const reward1Price =
+      prices.find((x) => x.mint?.toString() === rewardToken1?.mint.toString())?.price ?? new Decimal(0);
+    const reward2Price =
+      prices.find((x) => x.mint?.toString() === rewardToken2?.mint.toString())?.price ?? new Decimal(0);
 
     if (!aPrice) {
-      throw Error(`Could not get token price from scope for ${collateralMintA.scopeToken}`);
+      throw Error(`Could not get token price from scope for ${strategy.tokenAMint}`);
     }
     if (!bPrice) {
-      throw Error(`Could not get token price from scope for ${collateralMintB.scopeToken}`);
+      throw Error(`Could not get token price from scope for ${strategy.tokenBMint}`);
     }
     return { aPrice: aPrice.price, bPrice: bPrice.price, reward0Price, reward1Price, reward2Price };
-  };
-
-  private getRewardToken = (tokenId: number, tokens: SupportedToken[]) => {
-    const rewardToken = this._tokenMap.find((x) => x.id === tokenId);
-    if (rewardToken) {
-      tokens.push(rewardToken.name);
-    }
-    return rewardToken;
   };
 
   /**
@@ -1095,26 +1088,6 @@ export class Kamino {
    * @param pool pubkey of the orca whirlpool
    */
   getRaydiumPoolByAddress = (pool: PublicKey) => PoolState.fetch(this._connection, pool);
-
-  /**
-   * Get scope token name from a kamino strategy collateral ID
-   * @param collateralId ID of the collateral token
-   * @returns Kamino token name
-   */
-  getTokenName = (collateralId: number) => getKaminoTokenName(collateralId);
-
-  /**
-   * Get Kamino collateral ID from token name
-   * @param name Name of the collateral token
-   * @returns Kamino collateral ID
-   */
-  getCollateralId = (name: SupportedToken) => {
-    const token = this._tokenMap.find((x) => x.name === name);
-    if (!token) {
-      throw Error(`Token with collateral name ${name} does not exist.`);
-    }
-    return token.id;
-  };
 
   /**
    * Return transaction instruction to withdraw shares from a strategy owner (wallet) and get back token A and token B
@@ -1415,19 +1388,10 @@ export class Kamino {
    * @param strategy public key of the new strategy to create
    * @param pool public key of the CLMM pool (either Orca or Raydium)
    * @param owner public key of the strategy owner (admin authority)
-   * @param tokenA name of the token A collateral used in the strategy
-   * @param tokenB name of the token B collateral used in the strategy
    * @param dex decentralized exchange specifier
    * @returns transaction instruction for Kamino strategy creation
    */
-  createStrategy = async (
-    strategy: PublicKey,
-    pool: PublicKey,
-    owner: PublicKey,
-    tokenA: SupportedToken,
-    tokenB: SupportedToken,
-    dex: Dex
-  ) => {
+  createStrategy = async (strategy: PublicKey, pool: PublicKey, owner: PublicKey, dex: Dex) => {
     let tokenMintA = PublicKey.default;
     let tokenMintB = PublicKey.default;
     if (dex == 'ORCA') {
@@ -1452,12 +1416,21 @@ export class Kamino {
     if (!config) {
       throw Error(`Could not fetch globalConfig  with pubkey ${this.getGlobalConfig().toString()}`);
     }
+    const collateralInfos = await this.getCollateralInfo(config.tokenInfos);
+    const tokenACollateralId = collateralInfos.findIndex((x) => x.mint.toString() === tokenMintA.toString());
+    if (tokenACollateralId === -1) {
+      throw Error(`Could not find token A (mint ${tokenMintA}) in collateral infos`);
+    }
+    const tokenBCollateralId = collateralInfos.findIndex((x) => x.mint.toString() === tokenMintB.toString());
+    if (tokenBCollateralId === -1) {
+      throw Error(`Could not find token A (mint ${tokenMintA}) in collateral infos`);
+    }
 
     const programAddresses = await this.getStrategyProgramAddresses(strategy, tokenMintA, tokenMintB);
 
     const strategyArgs: InitializeStrategyArgs = {
-      tokenACollateralId: new BN(this.getCollateralId(tokenA)),
-      tokenBCollateralId: new BN(this.getCollateralId(tokenB)),
+      tokenACollateralId: new BN(tokenACollateralId),
+      tokenBCollateralId: new BN(tokenBCollateralId),
       strategyType: new BN(dexToNumber(dex)),
     };
 
@@ -2197,35 +2170,12 @@ export class Kamino {
       throw new Error(`Dex ${dex} is not supported`);
     }
 
-    let tokenACollateral = getCollateralMintByAddress(tokenAMint, this._config);
-    if (!tokenACollateral) {
-      throw Error(`Token mint ${tokenAMint.toString()} is not supported`);
-    }
-    let tokenBCollateral = getCollateralMintByAddress(tokenBMint, this._config);
-    if (!tokenBCollateral) {
-      throw Error(`Token mint ${tokenBMint.toString()} is not supported`);
-    }
-
     let initStrategyIx: TransactionInstruction;
 
     if (keepMintsOrder) {
-      initStrategyIx = await this.createStrategy(
-        strategy,
-        pool,
-        strategyAdmin,
-        tokenACollateral.scopeToken as SupportedToken,
-        tokenBCollateral.scopeToken as SupportedToken,
-        dex
-      );
+      initStrategyIx = await this.createStrategy(strategy, pool, strategyAdmin, dex);
     } else {
-      initStrategyIx = await this.createStrategy(
-        strategy,
-        pool,
-        strategyAdmin,
-        tokenBCollateral.scopeToken as SupportedToken,
-        tokenACollateral.scopeToken as SupportedToken,
-        dex
-      );
+      initStrategyIx = await this.createStrategy(strategy, pool, strategyAdmin, dex);
     }
 
     let rebalanceKind = numberToRebalanceType(rebalanceType.toNumber());
@@ -2251,20 +2201,12 @@ export class Kamino {
     let tokenAVault: PublicKey;
     let tokenBVault: PublicKey;
     if (keepMintsOrder) {
-      let programAddresses = await this.getStrategyProgramAddresses(
-        strategy,
-        tokenACollateral.address,
-        tokenBCollateral.address
-      );
+      let programAddresses = await this.getStrategyProgramAddresses(strategy, tokenAMint, tokenBMint);
       baseVaultAuthority = programAddresses.baseVaultAuthority;
       tokenAVault = programAddresses.tokenAVault;
       tokenBVault = programAddresses.tokenBVault;
     } else {
-      let programAddresses = await this.getStrategyProgramAddresses(
-        strategy,
-        tokenBCollateral.address,
-        tokenACollateral.address
-      );
+      let programAddresses = await this.getStrategyProgramAddresses(strategy, tokenBMint, tokenAMint);
       baseVaultAuthority = programAddresses.baseVaultAuthority;
       tokenAVault = programAddresses.tokenBVault;
       tokenBVault = programAddresses.tokenAVault;
