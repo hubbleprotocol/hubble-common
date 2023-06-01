@@ -265,11 +265,6 @@ export class RaydiumService {
   }
 
   async getPositionsCountByPool(pool: PublicKey): Promise<number> {
-    const poolInfoAccount = await this._connection.getAccountInfo(pool);
-    if (poolInfoAccount === null) throw Error(' pool id error ');
-
-    const poolInfo = PoolInfoLayout.decode(poolInfoAccount.data);
-
     const positions = await this._connection.getProgramAccounts(RAYDIUM_PROGRAM_ID, {
       commitment: 'confirmed',
       filters: [
