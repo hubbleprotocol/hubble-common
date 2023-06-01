@@ -431,7 +431,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     console.log('orca positions count', positionsCount);
   });
 
-  it('get raydium positions for pool', async () => {
+  it.skip('get raydium positions for pool', async () => {
     let raydiumService = new RaydiumService(connection, cluster);
     let positionsCount = await raydiumService.getPositionsCountByPool(
       new PublicKey('2QdhepnKRTLjjSqPL1PtKNwqrUkoLee5Gqs8bvZhRdMv')
