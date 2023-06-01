@@ -14,7 +14,6 @@ export interface CollateralInfoFields {
   name: Array<number>
   maxAgePriceSeconds: BN
   maxAgeTwapSeconds: BN
-  maxIgnorableAmountAsReward: BN
   padding: Array<BN>
 }
 
@@ -29,7 +28,6 @@ export interface CollateralInfoJSON {
   name: Array<number>
   maxAgePriceSeconds: string
   maxAgeTwapSeconds: string
-  maxIgnorableAmountAsReward: string
   padding: Array<string>
 }
 
@@ -44,7 +42,6 @@ export class CollateralInfo {
   readonly name: Array<number>
   readonly maxAgePriceSeconds: BN
   readonly maxAgeTwapSeconds: BN
-  readonly maxIgnorableAmountAsReward: BN
   readonly padding: Array<BN>
 
   constructor(fields: CollateralInfoFields) {
@@ -58,7 +55,6 @@ export class CollateralInfo {
     this.name = fields.name
     this.maxAgePriceSeconds = fields.maxAgePriceSeconds
     this.maxAgeTwapSeconds = fields.maxAgeTwapSeconds
-    this.maxIgnorableAmountAsReward = fields.maxIgnorableAmountAsReward
     this.padding = fields.padding
   }
 
@@ -75,8 +71,7 @@ export class CollateralInfo {
         borsh.array(borsh.u8(), 32, "name"),
         borsh.u64("maxAgePriceSeconds"),
         borsh.u64("maxAgeTwapSeconds"),
-        borsh.u64("maxIgnorableAmountAsReward"),
-        borsh.array(borsh.u64(), 10, "padding"),
+        borsh.array(borsh.u64(), 11, "padding"),
       ],
       property
     )
@@ -95,7 +90,6 @@ export class CollateralInfo {
       name: obj.name,
       maxAgePriceSeconds: obj.maxAgePriceSeconds,
       maxAgeTwapSeconds: obj.maxAgeTwapSeconds,
-      maxIgnorableAmountAsReward: obj.maxIgnorableAmountAsReward,
       padding: obj.padding,
     })
   }
@@ -112,7 +106,6 @@ export class CollateralInfo {
       name: fields.name,
       maxAgePriceSeconds: fields.maxAgePriceSeconds,
       maxAgeTwapSeconds: fields.maxAgeTwapSeconds,
-      maxIgnorableAmountAsReward: fields.maxIgnorableAmountAsReward,
       padding: fields.padding,
     }
   }
@@ -129,7 +122,6 @@ export class CollateralInfo {
       name: this.name,
       maxAgePriceSeconds: this.maxAgePriceSeconds.toString(),
       maxAgeTwapSeconds: this.maxAgeTwapSeconds.toString(),
-      maxIgnorableAmountAsReward: this.maxIgnorableAmountAsReward.toString(),
       padding: this.padding.map((item) => item.toString()),
     }
   }
@@ -146,7 +138,6 @@ export class CollateralInfo {
       name: obj.name,
       maxAgePriceSeconds: new BN(obj.maxAgePriceSeconds),
       maxAgeTwapSeconds: new BN(obj.maxAgeTwapSeconds),
-      maxIgnorableAmountAsReward: new BN(obj.maxIgnorableAmountAsReward),
       padding: obj.padding.map((item) => new BN(item)),
     })
   }
