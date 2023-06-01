@@ -414,7 +414,7 @@ describe('Kamino strategy creation SDK Tests', () => {
   });
 
   it.skip('get orca pool liquidity distribution', async () => {
-    let orcaService = new OrcaService(connection, cluster);
+    let orcaService = new OrcaService(connection, cluster, GlobalConfigMainnet);
     let liquidityDistribution = await orcaService.getWhirlpoolLiquidityDistribution(
       new PublicKey('7qbRF6YsyGuLUVs6Y1q64bdVrfe4ZcUUz1JRdoVNUJnm')
     );
@@ -423,7 +423,7 @@ describe('Kamino strategy creation SDK Tests', () => {
   });
 
   it.skip('get orca positions for pool', async () => {
-    let orcaService = new OrcaService(connection, cluster);
+    let orcaService = new OrcaService(connection, cluster, GlobalConfigMainnet);
     let positionsCount = await orcaService.getPositionsCountByPool(
       new PublicKey('7qbRF6YsyGuLUVs6Y1q64bdVrfe4ZcUUz1JRdoVNUJnm')
     );

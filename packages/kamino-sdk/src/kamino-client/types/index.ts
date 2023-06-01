@@ -1,6 +1,5 @@
 import * as WithdrawalCapAccumulatorAction from "./WithdrawalCapAccumulatorAction"
 import * as SwapLimit from "./SwapLimit"
-import * as MintingMethod from "./MintingMethod"
 import * as GlobalConfigOption from "./GlobalConfigOption"
 import * as StrategyConfigOption from "./StrategyConfigOption"
 import * as StrategyStatus from "./StrategyStatus"
@@ -54,15 +53,6 @@ export { SwapLimit }
 
 export type SwapLimitKind = SwapLimit.Bps | SwapLimit.Absolute
 export type SwapLimitJSON = SwapLimit.BpsJSON | SwapLimit.AbsoluteJSON
-
-export { MintingMethod }
-
-export type MintingMethodKind =
-  | MintingMethod.PriceBased
-  | MintingMethod.Proportional
-export type MintingMethodJSON =
-  | MintingMethod.PriceBasedJSON
-  | MintingMethod.ProportionalJSON
 
 export { GlobalConfigOption }
 
@@ -148,8 +138,6 @@ export type StrategyConfigOptionKind =
   | StrategyConfigOption.UpdateIsCommunity
   | StrategyConfigOption.UpdateRebalanceType
   | StrategyConfigOption.UpdateRebalanceParams
-  | StrategyConfigOption.UpdateDepositMintingMethod
-  | StrategyConfigOption.UpdateLookupTable
 export type StrategyConfigOptionJSON =
   | StrategyConfigOption.UpdateDepositCapJSON
   | StrategyConfigOption.UpdateDepositCapIxnJSON
@@ -191,8 +179,6 @@ export type StrategyConfigOptionJSON =
   | StrategyConfigOption.UpdateIsCommunityJSON
   | StrategyConfigOption.UpdateRebalanceTypeJSON
   | StrategyConfigOption.UpdateRebalanceParamsJSON
-  | StrategyConfigOption.UpdateDepositMintingMethodJSON
-  | StrategyConfigOption.UpdateLookupTableJSON
 
 export { StrategyStatus }
 
