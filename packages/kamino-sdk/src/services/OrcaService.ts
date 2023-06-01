@@ -199,6 +199,8 @@ export class OrcaService {
     );
 
     let liqDistribution: LiquidityDistribution = {
+      currentPrice: poolData.price,
+      currentTickIndex: poolData.tickCurrentIndex,
       distribution: [],
     };
 
@@ -206,6 +208,7 @@ export class OrcaService {
       const liq: LiquidityForPrice = {
         price: entry.price,
         liquidity: entry.liquidity,
+        tickIndex: entry.tickIndex,
       };
 
       liqDistribution.distribution.push(liq);

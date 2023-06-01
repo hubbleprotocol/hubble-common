@@ -7,7 +7,15 @@ import {
 } from './RaydiumPoolsResponse';
 import { PersonalPositionState, PoolState } from '../raydium_client';
 import Decimal from 'decimal.js';
-import { AmmV3, AmmV3PoolInfo, PoolInfoLayout, PositionInfoLayout, TickMath, TickUtils } from '@raydium-io/raydium-sdk';
+import {
+  AmmV3,
+  AmmV3PoolInfo,
+  PoolInfoLayout,
+  PositionInfoLayout,
+  TickMath,
+  SqrtPriceMath,
+  TickUtils,
+} from '@raydium-io/raydium-sdk';
 import { WhirlpoolAprApy } from './WhirlpoolAprApy';
 import { WhirlpoolStrategy } from '../kamino-client/accounts';
 import {
@@ -40,13 +48,32 @@ export class RaydiumService {
       await axios.get<RaydiumLiquidityDistribuion>(`https://api.raydium.io/v2/ammV3/positionLine/${pool.toString()}`)
     ).data;
 
+    const poolState = await PoolState.fetch(this._connection, pool);
+    if (!poolState) {
+      throw Error(`Raydium pool state ${pool} does not exist`);
+    }
+
+    let poolPrice = SqrtPriceMath.sqrtPriceX64ToPrice(
+      poolState.sqrtPriceX64,
+      poolState.mintDecimals0,
+      poolState.mintDecimals1
+    );
+
     let liqDistribution: LiquidityDistribution = {
+      currentPrice: poolPrice,
+      currentTickIndex: poolState.tickCurrent,
       distribution: [],
     };
     raydiumLiqDistribution.data.forEach((entry) => {
       const liq: LiquidityForPrice = {
         price: new Decimal(entry.price),
         liquidity: new Decimal(entry.liquidity),
+        tickIndex: TickMath.getTickWithPriceAndTickspacing(
+          poolPrice,
+          poolState.tickSpacing,
+          poolState.mintDecimals0,
+          poolState.mintDecimals1
+        ),
       };
       liqDistribution.distribution.push(liq);
     });
