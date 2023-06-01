@@ -1818,6 +1818,22 @@ export class Kamino {
       tickUpperIndex
     );
 
+    let globalConfigPk = this.getGlobalConfig();
+    const globalConfig = await GlobalConfig.fetch(this._connection, globalConfigPk);
+    if (!globalConfig) {
+      throw Error(`Could not fetch global config with pubkey ${globalConfigPk.toString()}`);
+    }
+
+    let oldTickArrayLowerOrBaseVaultAuthority: PublicKey, oldTickArrayUpperOrBaseVaultAuthority: PublicKey;
+    if (isRebalancing) {
+      const { strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
+      oldTickArrayLowerOrBaseVaultAuthority = strategyState.tickArrayLower;
+      oldTickArrayUpperOrBaseVaultAuthority = strategyState.tickArrayUpper;
+    } else {
+      oldTickArrayLowerOrBaseVaultAuthority = baseVaultAuthority;
+      oldTickArrayUpperOrBaseVaultAuthority = baseVaultAuthority;
+    }
+
     const accounts: OpenLiquidityPositionAccounts = {
       adminAuthority: adminAuthority,
       strategy,
@@ -1833,19 +1849,21 @@ export class Kamino {
       system: SystemProgram.programId,
       tokenProgram: TOKEN_PROGRAM_ID,
       associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
-      metadataProgram: METADATA_PROGRAM_ID,
-      metadataUpdateAuth: METADATA_UPDATE_AUTH,
       poolProgram: WHIRLPOOL_PROGRAM_ID,
       oldPositionOrBaseVaultAuthority: isRebalancing ? oldPositionOrBaseVaultAuthority : baseVaultAuthority,
       oldPositionMintOrBaseVaultAuthority: isRebalancing ? oldPositionMintOrBaseVaultAuthority : positionMint,
       oldPositionTokenAccountOrBaseVaultAuthority: isRebalancing
         ? oldPositionTokenAccountOrBaseVaultAuthority
         : positionTokenAccount,
-      raydiumProtocolPositionOrBaseVaultAuthority: baseVaultAuthority,
-      adminTokenAAtaOrBaseVaultAuthority: baseVaultAuthority,
-      adminTokenBAtaOrBaseVaultAuthority: baseVaultAuthority,
-      poolTokenVaultAOrBaseVaultAuthority: baseVaultAuthority,
-      poolTokenVaultBOrBaseVaultAuthority: baseVaultAuthority,
+      globalConfig: globalConfigPk,
+      oldTickArrayLowerOrBaseVaultAuthority,
+      oldTickArrayUpperOrBaseVaultAuthority,
+      tokenAVault: baseVaultAuthority,
+      tokenBVault: baseVaultAuthority,
+      poolTokenVaultA: whirlpool.tokenVaultA,
+      poolTokenVaultB: whirlpool.tokenVaultB,
+      scopePrices: globalConfig.scopePriceId,
+      tokenInfos: globalConfig.tokenInfos,
     };
 
     return openLiquidityPosition(args, accounts);
@@ -1877,6 +1895,12 @@ export class Kamino {
     const poolState = await PoolState.fetch(this._connection, pool);
     if (!poolState) {
       throw Error(`Could not fetch Raydium pool state with pubkey ${pool.toString()}`);
+    }
+
+    let globalConfigPk = this.getGlobalConfig();
+    const globalConfig = await GlobalConfig.fetch(this._connection, globalConfigPk);
+    if (!globalConfig) {
+      throw Error(`Could not fetch global config with pubkey ${globalConfigPk.toString()}`);
     }
 
     const isRebalancing = status.discriminator === Rebalancing.discriminator;
@@ -1920,6 +1944,16 @@ export class Kamino {
       tickUpperIndex
     );
 
+    let oldTickArrayLowerOrBaseVaultAuthority: PublicKey, oldTickArrayUpperOrBaseVaultAuthority: PublicKey;
+    if (isRebalancing) {
+      const { strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
+      oldTickArrayLowerOrBaseVaultAuthority = strategyState.tickArrayLower;
+      oldTickArrayUpperOrBaseVaultAuthority = strategyState.tickArrayUpper;
+    } else {
+      oldTickArrayLowerOrBaseVaultAuthority = baseVaultAuthority;
+      oldTickArrayUpperOrBaseVaultAuthority = baseVaultAuthority;
+    }
+
     const accounts: OpenLiquidityPositionAccounts = {
       adminAuthority: adminAuthority,
       strategy,
@@ -1935,19 +1969,21 @@ export class Kamino {
       system: SystemProgram.programId,
       tokenProgram: TOKEN_PROGRAM_ID,
       associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
-      metadataProgram: METADATA_PROGRAM_ID,
-      metadataUpdateAuth: METADATA_UPDATE_AUTH,
       poolProgram: RAYDIUM_PROGRAM_ID,
       oldPositionOrBaseVaultAuthority: isRebalancing ? oldPositionOrBaseVaultAuthority : baseVaultAuthority,
       oldPositionMintOrBaseVaultAuthority: isRebalancing ? oldPositionMintOrBaseVaultAuthority : positionMint,
       oldPositionTokenAccountOrBaseVaultAuthority: isRebalancing
         ? oldPositionTokenAccountOrBaseVaultAuthority
         : positionTokenAccount,
-      raydiumProtocolPositionOrBaseVaultAuthority: protocolPosition,
-      adminTokenAAtaOrBaseVaultAuthority: tokenAVault,
-      adminTokenBAtaOrBaseVaultAuthority: tokenBVault,
-      poolTokenVaultAOrBaseVaultAuthority: poolState.tokenVault0,
-      poolTokenVaultBOrBaseVaultAuthority: poolState.tokenVault1,
+      globalConfig: globalConfigPk,
+      oldTickArrayLowerOrBaseVaultAuthority,
+      oldTickArrayUpperOrBaseVaultAuthority,
+      tokenAVault,
+      tokenBVault,
+      poolTokenVaultA: poolState.tokenVault0,
+      poolTokenVaultB: poolState.tokenVault1,
+      scopePrices: globalConfig.scopePriceId,
+      tokenInfos: globalConfig.tokenInfos,
     };
 
     return openLiquidityPosition(args, accounts);
