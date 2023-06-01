@@ -10,7 +10,7 @@ import {
 } from '@orca-so/whirlpool-sdk';
 import axios from 'axios';
 import { OrcaWhirlpoolsResponse, Whirlpool } from './OrcaWhirlpoolsResponse';
-import { HubbleConfig, SolanaCluster } from '@hubbleprotocol/hubble-config';
+import { SolanaCluster } from '@hubbleprotocol/hubble-config';
 import { WhirlpoolStrategy } from '../kamino-client/accounts';
 import { Scope, ScopeToken, mintToScopeToken, scopeTokenToMint } from '@hubbleprotocol/scope-sdk';
 import { Position } from '../whirpools-client';
@@ -25,8 +25,6 @@ import {
   ZERO,
 } from '../utils';
 import { WHIRLPOOL_PROGRAM_ID } from '../whirpools-client/programId';
-import { AccountName, PositionData } from '@orca-so/whirlpool-client-sdk';
-import { BorshAccountsCoder } from '@project-serum/anchor';
 
 export class OrcaService {
   private readonly _connection: Connection;

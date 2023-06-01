@@ -22,7 +22,6 @@ import { expect } from 'chai';
 import { WHIRLPOOL_PROGRAM_ID } from '../src/whirpools-client/programId';
 import { PROGRAM_ID as RAYDIUM_PROGRAM_ID } from '../src/raydium_client/programId';
 import { Manual, PricePercentage } from '../src/kamino-client/types/RebalanceType';
-import { getNearestValidTickIndexFromTickIndex } from '@orca-so/whirlpool-sdk';
 
 const GlobalConfigMainnet = new PublicKey('GKnHiWh3RRrE1zsNzWxRkomymHc374TvJPSTv2wPeYdB');
 const KaminoProgramIdMainnet = new PublicKey('6LtLpnUFNByNXLyCoK9wA2MykKAmQNZKBdY8s47dehDc');
@@ -430,6 +429,15 @@ describe('Kamino strategy creation SDK Tests', () => {
     );
 
     console.log('orca positions count', positionsCount);
+  });
+
+  it.skip('get raydium positions for pool', async () => {
+    let raydiumService = new RaydiumService(connection, cluster);
+    let positionsCount = await raydiumService.getPositionsCountByPool(
+      new PublicKey('2QdhepnKRTLjjSqPL1PtKNwqrUkoLee5Gqs8bvZhRdMv')
+    );
+
+    console.log('raydium positions count', positionsCount);
   });
 
   it.skip('create new custom USDC-USDH percentage strategy on existing whirlpool', async () => {

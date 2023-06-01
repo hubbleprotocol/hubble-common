@@ -488,7 +488,6 @@ export class Kamino {
             feeRate: new Decimal(pool.ammConfig.tradeFeeRate).div(new Decimal(FullBPS)),
             volumeOnLast7d: new Decimal(pool.week.volume),
             tickSpacing: new Decimal(pool.ammConfig.tickSpacing),
-            // TODO: get real amount of positions
             positions: positionsCount,
           };
           return poolInfo;
