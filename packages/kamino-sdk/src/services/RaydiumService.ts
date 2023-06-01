@@ -7,7 +7,7 @@ import {
 } from './RaydiumPoolsResponse';
 import { PersonalPositionState, PoolState } from '../raydium_client';
 import Decimal from 'decimal.js';
-import { AmmV3, AmmV3PoolInfo, TickMath, TickUtils } from '@raydium-io/raydium-sdk';
+import { AmmV3, AmmV3PoolInfo, PoolInfoLayout, PositionInfoLayout, TickMath, TickUtils } from '@raydium-io/raydium-sdk';
 import { WhirlpoolAprApy } from './WhirlpoolAprApy';
 import { WhirlpoolStrategy } from '../kamino-client/accounts';
 import {
@@ -20,6 +20,7 @@ import {
 } from '../utils';
 import axios from 'axios';
 import { FullBPS } from '../utils/CreationParameters';
+import { PROGRAM_ID as RAYDIUM_PROGRAM_ID } from '../raydium_client/programId';
 
 export class RaydiumService {
   private readonly _connection: Connection;
@@ -263,8 +264,20 @@ export class RaydiumService {
     return poolInfo;
   }
 
-  // todo(Silviu): implement this
   async getPositionsCountByPool(pool: PublicKey): Promise<number> {
-    return 0;
+    const poolInfoAccount = await this._connection.getAccountInfo(pool);
+    if (poolInfoAccount === null) throw Error(' pool id error ');
+
+    const poolInfo = PoolInfoLayout.decode(poolInfoAccount.data);
+
+    const positions = await this._connection.getProgramAccounts(RAYDIUM_PROGRAM_ID, {
+      commitment: 'confirmed',
+      filters: [
+        { dataSize: PositionInfoLayout.span },
+        { memcmp: { bytes: pool.toBase58(), offset: PositionInfoLayout.offsetOf('poolId') } },
+      ],
+    });
+
+    return positions.length;
   }
 }
