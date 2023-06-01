@@ -172,10 +172,13 @@ export interface VaultParameters {
 }
 
 export interface LiquidityDistribution {
+  currentPrice: Decimal;
+  currentTickIndex: number;
   distribution: LiquidityForPrice[];
 }
 
 export interface LiquidityForPrice {
   price: Decimal;
   liquidity: Decimal;
+  tickIndex: number;
 }
