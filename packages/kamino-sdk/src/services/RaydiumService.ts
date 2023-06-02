@@ -27,7 +27,7 @@ import {
   ZERO,
 } from '../utils';
 import axios from 'axios';
-import { FullBPS } from '../utils/CreationParameters';
+import { FullBPS, FullPercentage } from '../utils/CreationParameters';
 import { PROGRAM_ID as RAYDIUM_PROGRAM_ID } from '../raydium_client/programId';
 
 export class RaydiumService {
@@ -281,7 +281,7 @@ export class RaydiumService {
       tokenMintA: poolState.tokenMint0,
       tokenMintB: poolState.tokenMint1,
       price: new Decimal(raydiumPool.price),
-      feeRate: new Decimal(raydiumPool.ammConfig.tradeFeeRate).div(new Decimal(FullBPS)),
+      feeRate: new Decimal(raydiumPool.ammConfig.tradeFeeRate).div(new Decimal(FullPercentage)),
       volumeOnLast7d: new Decimal(raydiumPool.week.volume),
       tvl: new Decimal(raydiumPool.tvl),
       tickSpacing: new Decimal(raydiumPool.ammConfig.tickSpacing),
