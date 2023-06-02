@@ -4,6 +4,7 @@ import Decimal from 'decimal.js';
 import { Dex } from './utils';
 
 export const FullBPS = 10_000;
+export const FullPercentage = 100;
 
 export const DefaultLowerPercentageBPS: number = 1000;
 export const DefaultUpperPercentageBPS: number = 1000;
