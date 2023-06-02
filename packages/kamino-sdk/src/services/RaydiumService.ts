@@ -27,7 +27,7 @@ import {
   ZERO,
 } from '../utils';
 import axios from 'axios';
-import { FullBPS, FullPercentage } from '../utils/CreationParameters';
+import { FullPercentage } from '../utils/CreationParameters';
 import { PROGRAM_ID as RAYDIUM_PROGRAM_ID } from '../raydium_client/programId';
 
 export class RaydiumService {
@@ -64,18 +64,30 @@ export class RaydiumService {
       currentTickIndex: poolState.tickCurrent,
       distribution: [],
     };
+
     raydiumLiqDistribution.data.forEach((entry) => {
-      const liq: LiquidityForPrice = {
-        price: new Decimal(entry.price),
-        liquidity: new Decimal(entry.liquidity),
-        tickIndex: TickMath.getTickWithPriceAndTickspacing(
-          poolPrice,
-          poolState.tickSpacing,
-          poolState.mintDecimals0,
-          poolState.mintDecimals1
-        ),
-      };
-      liqDistribution.distribution.push(liq);
+      let tickIndex = TickMath.getTickWithPriceAndTickspacing(
+        new Decimal(entry.price),
+        poolState.tickSpacing,
+        poolState.mintDecimals0,
+        poolState.mintDecimals1
+      );
+      // if the prevoious entry has the same tick index, add to it
+      if (
+        liqDistribution.distribution.length > 0 &&
+        liqDistribution.distribution[liqDistribution.distribution.length - 1].tickIndex === tickIndex
+      ) {
+        liqDistribution.distribution[liqDistribution.distribution.length - 1].liquidity = liqDistribution.distribution[
+          liqDistribution.distribution.length - 1
+        ].liquidity.add(new Decimal(entry.liquidity));
+      } else {
+        const liq: LiquidityForPrice = {
+          price: new Decimal(entry.price),
+          liquidity: new Decimal(entry.liquidity),
+          tickIndex,
+        };
+        liqDistribution.distribution.push(liq);
+      }
     });
 
     return liqDistribution;

@@ -4,19 +4,13 @@ import {
   Keypair,
   PublicKey,
   sendAndConfirmTransaction,
-  SystemProgram,
-  Transaction,
   TransactionInstruction,
   VersionedTransaction,
 } from '@solana/web3.js';
 import { Kamino, numberToRebalanceType, OrcaService, RaydiumService, sendTransactionWithLogs } from '../src';
 import Decimal from 'decimal.js';
-import {
-  assignBlockInfoToTransaction,
-  createTransactionWithExtraBudget,
-  getAssociatedTokenAddressAndData,
-} from '../src';
-import { updateStrategyConfig, updateTreasuryFeeVault, solAirdrop } from './utils';
+import { createTransactionWithExtraBudget } from '../src';
+import { updateStrategyConfig } from './utils';
 import { UpdateRebalanceType } from '../src/kamino-client/types/StrategyConfigOption';
 import { expect } from 'chai';
 import { WHIRLPOOL_PROGRAM_ID } from '../src/whirpools-client/programId';
@@ -404,7 +398,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     expect(strategyData[0]?.rebalanceType == Manual.discriminator);
   });
 
-  it.skip('get raydium pool liquidity distribution', async () => {
+  it('get raydium pool liquidity distribution', async () => {
     let raydiumService = new RaydiumService(connection, cluster);
     let liquidityDistribution = await raydiumService.getRaydiumPoolLiquidityDistribution(
       new PublicKey('2QdhepnKRTLjjSqPL1PtKNwqrUkoLee5Gqs8bvZhRdMv')
