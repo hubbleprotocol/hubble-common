@@ -4,19 +4,13 @@ import {
   Keypair,
   PublicKey,
   sendAndConfirmTransaction,
-  SystemProgram,
-  Transaction,
   TransactionInstruction,
   VersionedTransaction,
 } from '@solana/web3.js';
 import { Kamino, numberToRebalanceType, OrcaService, RaydiumService, sendTransactionWithLogs } from '../src';
 import Decimal from 'decimal.js';
-import {
-  assignBlockInfoToTransaction,
-  createTransactionWithExtraBudget,
-  getAssociatedTokenAddressAndData,
-} from '../src';
-import { updateStrategyConfig, updateTreasuryFeeVault, solAirdrop } from './utils';
+import { createTransactionWithExtraBudget } from '../src';
+import { updateStrategyConfig } from './utils';
 import { UpdateRebalanceType } from '../src/kamino-client/types/StrategyConfigOption';
 import { expect } from 'chai';
 import { WHIRLPOOL_PROGRAM_ID } from '../src/whirpools-client/programId';
