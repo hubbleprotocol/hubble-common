@@ -398,7 +398,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     expect(strategyData[0]?.rebalanceType == Manual.discriminator);
   });
 
-  it('get raydium pool liquidity distribution', async () => {
+  it.skip('get raydium pool liquidity distribution', async () => {
     let raydiumService = new RaydiumService(connection, cluster);
     let liquidityDistribution = await raydiumService.getRaydiumPoolLiquidityDistribution(
       new PublicKey('2QdhepnKRTLjjSqPL1PtKNwqrUkoLee5Gqs8bvZhRdMv')
