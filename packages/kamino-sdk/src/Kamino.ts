@@ -425,7 +425,7 @@ export class Kamino {
       let pool = PublicKey.default;
       let raydiumPools = await this.getRaydiumPoolsForTokens(poolTokenA, poolTokenB);
       raydiumPools.forEach((element) => {
-        if (element.ammConfig.tradeFeeRate == fee.toNumber()) {
+        if (new Decimal(element.ammConfig.tradeFeeRate).div(FullBPS).div(FullPercentage).toString() == fee.toString()) {
           pool = new PublicKey(element.id);
         }
       });
@@ -2541,8 +2541,12 @@ export class Kamino {
     throw Error(`Strategy dex ${dex} not supported`);
   };
 
-  getLiquidityDistributionRaydiumPool = (pool: PublicKey): Promise<LiquidityDistribution> => {
-    return this._raydiumService.getRaydiumPoolLiquidityDistribution(pool);
+  getLiquidityDistributionRaydiumPool = (
+    pool: PublicKey,
+    lowestTick?: number,
+    highestTick?: number
+  ): Promise<LiquidityDistribution> => {
+    return this._raydiumService.getRaydiumPoolLiquidityDistribution(pool, lowestTick, highestTick);
   };
 
   getLiquidityDistributionOrcaWhirlpool = (
@@ -2562,7 +2566,7 @@ export class Kamino {
     if (dex == 'ORCA') {
       return this.getLiquidityDistributionOrcaWhirlpool(pool, lowestTick, highestTick);
     } else if (dex == 'RAYDIUM') {
-      return this.getLiquidityDistributionRaydiumPool(pool);
+      return this.getLiquidityDistributionRaydiumPool(pool, lowestTick, highestTick);
     } else {
       throw Error(`Dex ${dex} not supported`);
     }

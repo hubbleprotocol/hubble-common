@@ -43,7 +43,11 @@ export class RaydiumService {
     return (await axios.get<RaydiumPoolsResponse>(`https://api.raydium.io/v2/ammV3/ammPools`)).data;
   }
 
-  async getRaydiumPoolLiquidityDistribution(pool: PublicKey): Promise<LiquidityDistribution> {
+  async getRaydiumPoolLiquidityDistribution(
+    pool: PublicKey,
+    lowestTick?: number,
+    highestTick?: number
+  ): Promise<LiquidityDistribution> {
     let raydiumLiqDistribution = (
       await axios.get<RaydiumLiquidityDistribuion>(`https://api.raydium.io/v2/ammV3/positionLine/${pool.toString()}`)
     ).data;
@@ -72,6 +76,10 @@ export class RaydiumService {
         poolState.mintDecimals0,
         poolState.mintDecimals1
       );
+      if ((lowestTick && tickIndex < lowestTick) || (highestTick && tickIndex > highestTick)) {
+        return;
+      }
+
       // if the prevoious entry has the same tick index, add to it
       if (
         liqDistribution.distribution.length > 0 &&

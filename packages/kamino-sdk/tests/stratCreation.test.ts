@@ -7,7 +7,7 @@ import {
   TransactionInstruction,
   VersionedTransaction,
 } from '@solana/web3.js';
-import { Kamino, numberToRebalanceType, OrcaService, RaydiumService, sendTransactionWithLogs } from '../src';
+import { Kamino, OrcaService, RaydiumService, sendTransactionWithLogs } from '../src';
 import Decimal from 'decimal.js';
 import { createTransactionWithExtraBudget } from '../src';
 import { updateStrategyConfig } from './utils';
@@ -31,6 +31,45 @@ describe('Kamino strategy creation SDK Tests', () => {
   // use your private key here
   const signerPrivateKey = [];
   const signer = Keypair.fromSecretKey(Uint8Array.from(signerPrivateKey));
+
+  it.skip('get pools for Raydium SOL-USDC pair', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      GlobalConfigMainnet,
+      KaminoProgramIdMainnet,
+      WHIRLPOOL_PROGRAM_ID,
+      RAYDIUM_PROGRAM_ID
+    );
+
+    let pool = await kamino.getPoolInitializedForDexPairTier(
+      'RAYDIUM',
+      new PublicKey('So11111111111111111111111111111111111111112'),
+      new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'),
+      new Decimal(0.0005)
+    );
+
+    console.log('pools', pool.toString());
+  });
+
+  it.skip('getExistentPoolsForPair Raydium for SOL-USDC', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      GlobalConfigMainnet,
+      KaminoProgramIdMainnet,
+      WHIRLPOOL_PROGRAM_ID,
+      RAYDIUM_PROGRAM_ID
+    );
+
+    let pools = await kamino.getExistentPoolsForPair(
+      'RAYDIUM',
+      new PublicKey('So11111111111111111111111111111111111111112'),
+      new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v')
+    );
+
+    console.log('pools', pools);
+  });
 
   it.skip('create custom USDC-USDH new manual strategy on existing whirlpool', async () => {
     let kamino = new Kamino(
@@ -402,6 +441,17 @@ describe('Kamino strategy creation SDK Tests', () => {
     let raydiumService = new RaydiumService(connection, cluster);
     let liquidityDistribution = await raydiumService.getRaydiumPoolLiquidityDistribution(
       new PublicKey('2QdhepnKRTLjjSqPL1PtKNwqrUkoLee5Gqs8bvZhRdMv')
+    );
+
+    console.log('raydium liquidityDistribution', liquidityDistribution);
+  });
+
+  it.skip('get raydium pool liquidity distribution with range', async () => {
+    let raydiumService = new RaydiumService(connection, cluster);
+    let liquidityDistribution = await raydiumService.getRaydiumPoolLiquidityDistribution(
+      new PublicKey('2QdhepnKRTLjjSqPL1PtKNwqrUkoLee5Gqs8bvZhRdMv'),
+      -39470,
+      -37360
     );
 
     console.log('raydium liquidityDistribution', liquidityDistribution);
