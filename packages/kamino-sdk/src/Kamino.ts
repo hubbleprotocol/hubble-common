@@ -425,7 +425,7 @@ export class Kamino {
       let pool = PublicKey.default;
       let raydiumPools = await this.getRaydiumPoolsForTokens(poolTokenA, poolTokenB);
       raydiumPools.forEach((element) => {
-        if (new Decimal(element.ammConfig.tradeFeeRate).div(FullBPS).div(FullPercentage).toString() == fee.toString()) {
+        if (new Decimal(element.ammConfig.tradeFeeRate).div(FullBPS).div(FullPercentage).equals(fee)) {
           pool = new PublicKey(element.id);
         }
       });
