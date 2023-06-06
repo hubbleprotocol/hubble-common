@@ -11,6 +11,7 @@ import {
   AddressLookupTableAccount,
   MessageV0,
   TransactionMessage,
+  Keypair,
 } from '@solana/web3.js';
 import { setKaminoProgramId } from './kamino-client/programId';
 import {
@@ -170,6 +171,7 @@ import {
   RebalanceMethod,
 } from './utils/CreationParameters';
 import { getMintDecimals } from '@project-serum/serum/lib/market';
+import { Key } from 'readline';
 export const KAMINO_IDL = KaminoIdl;
 
 export class Kamino {
@@ -1547,7 +1549,7 @@ export class Kamino {
    * @param newStrategy public key of the new strategy
    * @returns transaction instruction to create the account
    */
-  createStrategyAccount = async (payer: PublicKey, newStrategy: PublicKey) => {
+  createStrategyAccount = async (payer: PublicKey, newStrategy: PublicKey): Promise<TransactionInstruction> => {
     const accountSize = this._kaminoProgram.account.whirlpoolStrategy.size;
     return this.createAccountRentExempt(payer, newStrategy, accountSize);
   };
@@ -3085,7 +3087,10 @@ export class Kamino {
     ];
   };
 
-  getUpdateRewardsIxs = async (strategyOwner: PublicKey, strategy: PublicKey): Promise<TransactionInstruction[]> => {
+  getUpdateRewardsIxs = async (
+    strategyOwner: PublicKey,
+    strategy: PublicKey
+  ): Promise<[TransactionInstruction, Keypair][]> => {
     let strategyState = await WhirlpoolStrategy.fetch(this._connection, strategy);
     if (!strategyState) {
       throw Error(`Could not fetch strategy state with pubkey ${strategy.toString()}`);
@@ -3095,7 +3100,7 @@ export class Kamino {
       throw Error(`Could not fetch global config with pubkey ${strategyState.globalConfig.toString()}`);
     }
     let collateralInfos = await this.getCollateralInfo(globalConfig.tokenInfos);
-    let ixs: TransactionInstruction[] = [];
+    let result: [TransactionInstruction, Keypair][] = [];
     if (strategyState.strategyDex.toNumber() == dexToNumber('ORCA')) {
       const whirlpool = await Whirlpool.fetch(this._connection, strategyState.pool);
       if (!whirlpool) {
@@ -3108,8 +3113,9 @@ export class Kamino {
             throw Error(`Could not find collateral id for mint ${whirlpool.rewardInfos[i].mint.toString()}`);
           }
 
+          let rewardVault = Keypair.generate();
           let args: UpdateRewardMappingArgs = {
-            rewardIndex: 0,
+            rewardIndex: i,
             collateralToken: collateralId,
           };
 
@@ -3119,7 +3125,7 @@ export class Kamino {
             strategy: strategy,
             pool: strategyState.pool,
             rewardMint: whirlpool.rewardInfos[i].mint,
-            rewardVault: whirlpool.rewardInfos[i].vault,
+            rewardVault: rewardVault.publicKey,
             baseVaultAuthority: strategyState.baseVaultAuthority,
             systemProgram: SystemProgram.programId,
             rent: SYSVAR_RENT_PUBKEY,
@@ -3128,10 +3134,10 @@ export class Kamino {
           };
 
           let ix = updateRewardMapping(args, accounts);
-          ixs.push(ix);
+          result.push([ix, rewardVault]);
         }
       }
-      return ixs;
+      return result;
     } else if (strategyState.strategyDex.toNumber() == dexToNumber('RAYDIUM')) {
       const poolState = await PoolState.fetch(this._connection, strategyState.pool);
       if (!poolState) {
@@ -3144,8 +3150,9 @@ export class Kamino {
             throw Error(`Could not find collateral id for mint ${poolState.rewardInfos[i].tokenMint.toString()}`);
           }
 
+          let rewardVault = Keypair.generate();
           let args: UpdateRewardMappingArgs = {
-            rewardIndex: 0,
+            rewardIndex: i,
             collateralToken: collateralId,
           };
 
@@ -3155,7 +3162,7 @@ export class Kamino {
             strategy: strategy,
             pool: strategyState.pool,
             rewardMint: poolState.rewardInfos[i].tokenMint,
-            rewardVault: poolState.rewardInfos[i].tokenVault,
+            rewardVault: rewardVault.publicKey,
             baseVaultAuthority: strategyState.baseVaultAuthority,
             systemProgram: SystemProgram.programId,
             rent: SYSVAR_RENT_PUBKEY,
@@ -3164,10 +3171,10 @@ export class Kamino {
           };
 
           let ix = updateRewardMapping(args, accounts);
-          ixs.push(ix);
+          result.push([ix, rewardVault]);
         }
       }
-      return ixs;
+      return result;
     } else {
       throw new Error(`Dex ${strategyState.strategyDex} not supported`);
     }
