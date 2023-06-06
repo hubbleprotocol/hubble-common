@@ -2180,7 +2180,7 @@ export class Kamino {
       throw Error(`Token mint ${tokenAMint.toString()} is not supported`);
     }
 
-    let pool = await this.getPoolInitializedForDexPairTier(dex, tokenAMint, tokenBMint, feeTier);
+    let pool = await this.getPoolInitializedForDexPairTier(dex, tokenAMint, tokenBMint, feeTier.mul(FullBPS));
     if (pool == PublicKey.default) {
       throw Error(
         `Pool for tokens ${tokenAMint.toString()} and ${tokenBMint.toString()} for feeTier ${feeTier.toString()} does not exist`
