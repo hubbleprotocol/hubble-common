@@ -1458,7 +1458,6 @@ export class Kamino {
       associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
     };
 
-    console.log('initializeStrategy');
     return initializeStrategy(strategyArgs, strategyAccounts);
   };
 
@@ -1883,8 +1882,6 @@ export class Kamino {
       throw Error(`Could not fetch Raydium pool state with pubkey ${pool.toString()}`);
     }
 
-    console.log('priceLower', priceLower.toString());
-    console.log('priceUpper', priceUpper.toString());
     const isRebalancing = status.discriminator === Rebalancing.discriminator;
 
     let decimalsA = await getMintDecimals(this._connection, poolState.tokenMint0);
@@ -2154,8 +2151,6 @@ export class Kamino {
         `Pool for tokens ${tokenAMint.toString()} and ${tokenBMint.toString()} for feeTier ${feeTier.toString()} does not exist`
       );
     }
-
-    console.log('pool', pool.toString());
 
     let keepMintsOrder = true;
     if (dex == 'ORCA') {
