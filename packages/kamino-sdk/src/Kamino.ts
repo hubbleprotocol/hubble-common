@@ -413,13 +413,13 @@ export class Kamino {
     dex: Dex,
     poolTokenA: PublicKey,
     poolTokenB: PublicKey,
-    fee: Decimal
+    feeBPS: Decimal
   ): Promise<PublicKey> => {
     if (dex == 'ORCA') {
       let pool = PublicKey.default;
       let orcaPools = await this.getOrcaPoolsForTokens(poolTokenA, poolTokenB);
       orcaPools.forEach((element) => {
-        if (element.lpFeeRate == fee.toNumber()) {
+        if (element.lpFeeRate * FullBPS == feeBPS.toNumber()) {
           pool = new PublicKey(element.address);
         }
       });
@@ -428,7 +428,7 @@ export class Kamino {
       let pool = PublicKey.default;
       let raydiumPools = await this.getRaydiumPoolsForTokens(poolTokenA, poolTokenB);
       raydiumPools.forEach((element) => {
-        if (new Decimal(element.ammConfig.tradeFeeRate).div(FullBPS).div(FullPercentage).equals(fee)) {
+        if (new Decimal(element.ammConfig.tradeFeeRate).div(FullBPS).div(FullPercentage).equals(feeBPS.div(FullBPS))) {
           pool = new PublicKey(element.id);
         }
       });
@@ -451,7 +451,7 @@ export class Kamino {
             tokenMintA: new PublicKey(pool.tokenA.mint),
             tokenMintB: new PublicKey(pool.tokenB.mint),
             tvl: pool.tvl ? new Decimal(pool.tvl) : undefined,
-            feeRate: new Decimal(pool.lpFeeRate),
+            feeRate: new Decimal(pool.lpFeeRate).mul(FullBPS),
             volumeOnLast7d: pool.volume ? new Decimal(pool.volume.week) : undefined,
             tickSpacing: new Decimal(pool.tickSpacing),
             positions: positionsCount,
@@ -2147,7 +2147,7 @@ export class Kamino {
   /**
    * Get a list of instructions to initialize and set up a strategy
    * @param dex the dex to use (Orca or Raydium)
-   * @param feeTier which fee tier for that specific pair should be used
+   * @param feeTierBps which fee tier for that specific pair should be used (in BPS)
    * @param tokenAMint the mint of TokenA in the pool
    * @param tokenBMint the mint of TokenB in the pool
    * @param depositCap the maximum amount in USD in lamports (6 decimals) that can be deposited into the strategy
@@ -2155,7 +2155,7 @@ export class Kamino {
    */
   getBuildStrategyIxns = async (
     dex: Dex,
-    feeTier: Decimal,
+    feeTierBps: Decimal,
     strategy: PublicKey,
     positionMint: PublicKey,
     strategyAdmin: PublicKey,
@@ -2169,6 +2169,7 @@ export class Kamino {
     depositFeeBps?: Decimal,
     performanceFeeBps?: Decimal
   ): Promise<[TransactionInstruction, TransactionInstruction[], TransactionInstruction, TransactionInstruction]> => {
+    let feeTier: Decimal = feeTierBps.div(FullBPS);
     // check both tokens exist in collateralInfo
     let config = await GlobalConfig.fetch(this._connection, this._globalConfig);
     if (!config) {
