@@ -33,6 +33,8 @@ import {
   OrcaWhirlpoolClient,
   Percentage,
   priceToTickIndex,
+  sqrtPriceX64ToPrice,
+  tickIndexToPrice,
 } from '@orca-so/whirlpool-sdk';
 import { OrcaDAL } from '@orca-so/whirlpool-sdk/dist/dal/orca-dal';
 import { OrcaPosition } from '@orca-so/whirlpool-sdk/dist/position/orca-position';
@@ -53,7 +55,6 @@ import {
 } from './models';
 import { PROGRAM_ID_CLI as WHIRLPOOL_PROGRAM_ID, setWhirlpoolsProgramId } from './whirpools-client/programId';
 import { Scope, ScopeToken, SupportedTokens } from '@hubbleprotocol/scope-sdk';
-import { PriceData } from './models/PriceData';
 import {
   batchFetch,
   createAssociatedTokenAccountInstruction,
@@ -642,7 +643,12 @@ export class Kamino {
       result.push({
         address,
         strategy,
-        shareData: getEmptyShareData(strategyPrices),
+        shareData: getEmptyShareData({
+          ...strategyPrices,
+          poolPrice: ZERO,
+          upperPrice: ZERO,
+          lowerPrice: ZERO,
+        }),
       });
     }
 
@@ -760,9 +766,24 @@ export class Kamino {
       strategyPrices.bPrice
     );
 
+    let decimalsA = strategy.tokenAMintDecimals.toNumber();
+    let decimalsB = strategy.tokenBMintDecimals.toNumber();
+
+    const poolPrice = SqrtPriceMath.sqrtPriceX64ToPrice(pool.sqrtPriceX64, decimalsA, decimalsB);
+    const upperPrice = SqrtPriceMath.sqrtPriceX64ToPrice(
+      SqrtPriceMath.getSqrtPriceX64FromTick(position.tickUpperIndex),
+      decimalsA,
+      decimalsB
+    );
+    const lowerPrice = SqrtPriceMath.sqrtPriceX64ToPrice(
+      SqrtPriceMath.getSqrtPriceX64FromTick(position.tickLowerIndex),
+      decimalsA,
+      decimalsB
+    );
+
     const balance: StrategyBalances = {
       computedHoldings,
-      prices: strategyPrices,
+      prices: { ...strategyPrices, poolPrice, lowerPrice, upperPrice },
       tokenAAmounts: aAvailable.plus(aInvested),
       tokenBAmounts: bAvailable.plus(bInvested),
     };
@@ -801,9 +822,16 @@ export class Kamino {
       strategyPrices.bPrice
     );
 
+    const decimalsA = strategy.tokenAMintDecimals.toNumber();
+    const decimalsB = strategy.tokenBMintDecimals.toNumber();
+
+    const poolPrice = sqrtPriceX64ToPrice(pool.sqrtPrice, decimalsA, decimalsB);
+    const upperPrice = tickIndexToPrice(position.tickUpperIndex, decimalsA, decimalsB);
+    const lowerPrice = tickIndexToPrice(position.tickLowerIndex, decimalsA, decimalsB);
+
     const balance: StrategyBalances = {
       computedHoldings,
-      prices: strategyPrices,
+      prices: { ...strategyPrices, poolPrice, upperPrice, lowerPrice },
       tokenAAmounts: aAvailable.plus(aInvested),
       tokenBAmounts: bAvailable.plus(bInvested),
     };
@@ -969,7 +997,7 @@ export class Kamino {
     strategy: WhirlpoolStrategy,
     collateralInfos: CollateralInfo[],
     scopeTokens?: ScopeToken[]
-  ): Promise<PriceData> => {
+  ) => {
     const rewardToken0 = collateralInfos[strategy.reward0CollateralId.toNumber()];
     const rewardToken1 = collateralInfos[strategy.reward1CollateralId.toNumber()];
     const rewardToken2 = collateralInfos[strategy.reward2CollateralId.toNumber()];
@@ -996,7 +1024,13 @@ export class Kamino {
     if (!bPrice) {
       throw Error(`Could not get token price from scope for ${strategy.tokenBMint}`);
     }
-    return { aPrice: aPrice.price, bPrice: bPrice.price, reward0Price, reward1Price, reward2Price };
+    return {
+      aPrice: aPrice.price,
+      bPrice: bPrice.price,
+      reward0Price,
+      reward1Price,
+      reward2Price,
+    };
   };
 
   /**
