@@ -47,10 +47,30 @@ describe('Kamino strategy creation SDK Tests', () => {
       'RAYDIUM',
       new PublicKey('So11111111111111111111111111111111111111112'),
       new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'),
-      new Decimal(0.0005)
+      new Decimal(5)
     );
 
     console.log('pools', pool.toString());
+  });
+
+  it.skip('get pools for Orca SOL-USDC pair', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      GlobalConfigMainnet,
+      KaminoProgramIdMainnet,
+      WHIRLPOOL_PROGRAM_ID,
+      RAYDIUM_PROGRAM_ID
+    );
+
+    let pool = await kamino.getPoolInitializedForDexPairTier(
+      'RAYDIUM',
+      new PublicKey('So11111111111111111111111111111111111111112'),
+      new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'),
+      new Decimal(1)
+    );
+
+    console.log('orca pools', pool.toString());
   });
 
   it.skip('getExistentPoolsForPair Raydium for SOL-USDC', async () => {

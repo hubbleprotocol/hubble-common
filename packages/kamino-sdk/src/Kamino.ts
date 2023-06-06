@@ -419,7 +419,7 @@ export class Kamino {
       let pool = PublicKey.default;
       let orcaPools = await this.getOrcaPoolsForTokens(poolTokenA, poolTokenB);
       orcaPools.forEach((element) => {
-        if (element.lpFeeRate == feeBPS.toNumber()) {
+        if (element.lpFeeRate * FullBPS == feeBPS.toNumber()) {
           pool = new PublicKey(element.address);
         }
       });
@@ -428,7 +428,7 @@ export class Kamino {
       let pool = PublicKey.default;
       let raydiumPools = await this.getRaydiumPoolsForTokens(poolTokenA, poolTokenB);
       raydiumPools.forEach((element) => {
-        if (new Decimal(element.ammConfig.tradeFeeRate).div(FullBPS).div(FullPercentage).equals(feeBPS)) {
+        if (new Decimal(element.ammConfig.tradeFeeRate).div(FullBPS).div(FullPercentage).equals(feeBPS.div(FullBPS))) {
           pool = new PublicKey(element.id);
         }
       });
