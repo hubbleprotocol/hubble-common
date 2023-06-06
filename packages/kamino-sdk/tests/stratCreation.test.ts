@@ -69,7 +69,26 @@ describe('Kamino strategy creation SDK Tests', () => {
       new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v')
     );
 
-    console.log('pools', pools);
+    console.log('Raydium pools', pools);
+  });
+
+  it.skip('getExistentPoolsForPair ORCA for USDH-USDC', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      GlobalConfigMainnet,
+      KaminoProgramIdMainnet,
+      WHIRLPOOL_PROGRAM_ID,
+      RAYDIUM_PROGRAM_ID
+    );
+
+    let pools = await kamino.getExistentPoolsForPair(
+      'ORCA',
+      new PublicKey('USDH1SM1ojwWUga67PGrgFWUHibbjqMvuMaDkRJTgkX'),
+      new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v')
+    );
+
+    console.log('Orca pools', pools);
   });
 
   it.skip('build strategy IX for Raydium SOL-USDC', async () => {
@@ -89,7 +108,7 @@ describe('Kamino strategy creation SDK Tests', () => {
 
     let buildNewStrategyIxs = await kamino.getBuildStrategyIxns(
       'RAYDIUM',
-      new Decimal('0.0005'),
+      new Decimal('5'),
       newStrategy.publicKey,
       newPosition.publicKey,
       signer.publicKey,
@@ -98,7 +117,6 @@ describe('Kamino strategy creation SDK Tests', () => {
       new PublicKey('So11111111111111111111111111111111111111112'),
       new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v')
     );
-    console.log('buildNewStrategyIxs', buildNewStrategyIxs.length);
 
     let ixs: TransactionInstruction[] = [];
     ixs.push(createRaydiumStrategyAccountIx);
@@ -162,7 +180,7 @@ describe('Kamino strategy creation SDK Tests', () => {
 
     let buildNewStrategyIxs = await kamino.getBuildStrategyIxns(
       'ORCA',
-      new Decimal(0.0001),
+      new Decimal(1),
       newStrategy.publicKey,
       newPosition.publicKey,
       signer.publicKey,
@@ -235,7 +253,7 @@ describe('Kamino strategy creation SDK Tests', () => {
 
     let buildNewStrategyIxs = await kamino.getBuildStrategyIxns(
       'ORCA',
-      new Decimal(0.0005),
+      new Decimal(5),
       newStrategy.publicKey,
       newPosition.publicKey,
       signer.publicKey,
@@ -307,7 +325,7 @@ describe('Kamino strategy creation SDK Tests', () => {
 
     let buildNewStrategyIxs = await kamino.getBuildStrategyIxns(
       'ORCA',
-      new Decimal(0.0005),
+      new Decimal(5),
       newStrategy.publicKey,
       newPosition.publicKey,
       signer.publicKey,
@@ -377,7 +395,7 @@ describe('Kamino strategy creation SDK Tests', () => {
 
     let buildNewStrategyIxs = await kamino.getBuildStrategyIxns(
       'ORCA',
-      new Decimal(0.0001),
+      new Decimal(1),
       newStrategy.publicKey,
       newPosition.publicKey,
       signer.publicKey,
@@ -447,7 +465,7 @@ describe('Kamino strategy creation SDK Tests', () => {
 
     let buildNewStrategyIxs = await kamino.getBuildStrategyIxns(
       'ORCA',
-      new Decimal(0.0005),
+      new Decimal(5),
       newStrategy.publicKey,
       newPosition.publicKey,
       signer.publicKey,
@@ -590,7 +608,7 @@ describe('Kamino strategy creation SDK Tests', () => {
 
     let buildNewStrategyIxs = await kamino.getBuildStrategyIxns(
       'ORCA',
-      new Decimal(0.0001),
+      new Decimal(1),
       newStrategy.publicKey,
       newPosition.publicKey,
       signer.publicKey,
@@ -677,7 +695,7 @@ describe('Kamino strategy creation SDK Tests', () => {
 
     let buildNewStrategyIxs = await kamino.getBuildStrategyIxns(
       'ORCA',
-      new Decimal(0.0001),
+      new Decimal(1),
       newStrategy.publicKey,
       newPosition.publicKey,
       signer.publicKey,
