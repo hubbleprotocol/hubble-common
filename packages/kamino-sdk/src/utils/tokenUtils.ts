@@ -15,7 +15,7 @@ import { sleep } from './utils';
 import { WhirlpoolStrategy } from '../kamino-client/accounts';
 import { tickIndexToPrice } from '@orca-so/whirlpool-sdk';
 import Decimal from 'decimal.js';
-import BN from 'bn.js';
+import { CollateralInfo } from '../kamino-client/types';
 
 export const ASSOCIATED_TOKEN_PROGRAM_ID = new PublicKey('ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL');
 export const TOKEN_PROGRAM_ID = new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA');
@@ -175,4 +175,8 @@ export function getPriceLowerUpper(
     Number(tokenBMintDecimals.toString())
   );
   return { priceLower, priceUpper };
+}
+
+export function getTokenNameFromCollateralInfo(collateralInfo: CollateralInfo) {
+  return String.fromCharCode(...collateralInfo.name.filter((x) => x > 0));
 }
