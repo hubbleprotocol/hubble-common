@@ -115,6 +115,12 @@ export type CustomError =
   | CouldNotDeserializeRebalanceState
   | CouldNotSerializeRebalanceState
   | CouldNotDeserializeRebalanceParams
+  | NotEnoughTokensForRatio
+  | AmountsRepresentZeroShares
+  | MaxLossExceeded
+  | RewardNotStrategyToken
+  | DecimalToU64ConversionFailed
+  | DecimalOperationFailed
 
 export class IntegerOverflow extends Error {
   static readonly code = 6000
@@ -1410,6 +1416,75 @@ export class CouldNotDeserializeRebalanceParams extends Error {
   }
 }
 
+export class NotEnoughTokensForRatio extends Error {
+  static readonly code = 6116
+  readonly code = 6116
+  readonly name = "NotEnoughTokensForRatio"
+  readonly msg =
+    "Deposit is not allowed as token amounts are not enough to match our holdings ratio"
+
+  constructor(readonly logs?: string[]) {
+    super(
+      "6116: Deposit is not allowed as token amounts are not enough to match our holdings ratio"
+    )
+  }
+}
+
+export class AmountsRepresentZeroShares extends Error {
+  static readonly code = 6117
+  readonly code = 6117
+  readonly name = "AmountsRepresentZeroShares"
+  readonly msg = "The provided amounts are too small"
+
+  constructor(readonly logs?: string[]) {
+    super("6117: The provided amounts are too small")
+  }
+}
+
+export class MaxLossExceeded extends Error {
+  static readonly code = 6118
+  readonly code = 6118
+  readonly name = "MaxLossExceeded"
+  readonly msg = "Rouding errors exceed the maximal loss tolerance"
+
+  constructor(readonly logs?: string[]) {
+    super("6118: Rouding errors exceed the maximal loss tolerance")
+  }
+}
+
+export class RewardNotStrategyToken extends Error {
+  static readonly code = 6119
+  readonly code = 6119
+  readonly name = "RewardNotStrategyToken"
+  readonly msg = "Reward does not match strategy token"
+
+  constructor(readonly logs?: string[]) {
+    super("6119: Reward does not match strategy token")
+  }
+}
+
+export class DecimalToU64ConversionFailed extends Error {
+  static readonly code = 6120
+  readonly code = 6120
+  readonly name = "DecimalToU64ConversionFailed"
+  readonly msg = "Decimal to u64 conversion failed"
+
+  constructor(readonly logs?: string[]) {
+    super("6120: Decimal to u64 conversion failed")
+  }
+}
+
+export class DecimalOperationFailed extends Error {
+  static readonly code = 6121
+  readonly code = 6121
+  readonly name = "DecimalOperationFailed"
+  readonly msg = "Decimal operation failed"
+
+  constructor(readonly logs?: string[]) {
+    super("6121: Decimal operation failed")
+  }
+}
+
 export function fromCode(code: number, logs?: string[]): CustomError | null {
   switch (code) {
     case 6000:
@@ -1644,6 +1719,18 @@ export function fromCode(code: number, logs?: string[]): CustomError | null {
       return new CouldNotSerializeRebalanceState(logs)
     case 6115:
       return new CouldNotDeserializeRebalanceParams(logs)
+    case 6116:
+      return new NotEnoughTokensForRatio(logs)
+    case 6117:
+      return new AmountsRepresentZeroShares(logs)
+    case 6118:
+      return new MaxLossExceeded(logs)
+    case 6119:
+      return new RewardNotStrategyToken(logs)
+    case 6120:
+      return new DecimalToU64ConversionFailed(logs)
+    case 6121:
+      return new DecimalOperationFailed(logs)
   }
 
   return null

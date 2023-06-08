@@ -80,7 +80,8 @@ export interface WhirlpoolStrategyFields {
   depositBlocked: number
   creationStatus: number
   investBlocked: number
-  reservedFlag1: number
+  /** share_calculation_method can be either DOLAR_BASED=0 or PROPORTION_BASED=1 */
+  shareCalculationMethod: number
   withdrawBlocked: number
   reservedFlag2: number
   localAdminBlocked: number
@@ -92,10 +93,13 @@ export interface WhirlpoolStrategyFields {
   padding0: Array<number>
   rebalanceRaw: types.RebalanceRawFields
   padding1: Array<number>
-  padding2: Array<BN>
+  tokenAFeesFromRewardsCumulative: BN
+  tokenBFeesFromRewardsCumulative: BN
+  strategyLookupTable: PublicKey
   padding3: Array<BN>
   padding4: Array<BN>
   padding5: Array<BN>
+  padding6: Array<BN>
 }
 
 export interface WhirlpoolStrategyJSON {
@@ -174,7 +178,8 @@ export interface WhirlpoolStrategyJSON {
   depositBlocked: number
   creationStatus: number
   investBlocked: number
-  reservedFlag1: number
+  /** share_calculation_method can be either DOLAR_BASED=0 or PROPORTION_BASED=1 */
+  shareCalculationMethod: number
   withdrawBlocked: number
   reservedFlag2: number
   localAdminBlocked: number
@@ -186,10 +191,13 @@ export interface WhirlpoolStrategyJSON {
   padding0: Array<number>
   rebalanceRaw: types.RebalanceRawJSON
   padding1: Array<number>
-  padding2: Array<string>
+  tokenAFeesFromRewardsCumulative: string
+  tokenBFeesFromRewardsCumulative: string
+  strategyLookupTable: string
   padding3: Array<string>
   padding4: Array<string>
   padding5: Array<string>
+  padding6: Array<string>
 }
 
 export class WhirlpoolStrategy {
@@ -268,7 +276,8 @@ export class WhirlpoolStrategy {
   readonly depositBlocked: number
   readonly creationStatus: number
   readonly investBlocked: number
-  readonly reservedFlag1: number
+  /** share_calculation_method can be either DOLAR_BASED=0 or PROPORTION_BASED=1 */
+  readonly shareCalculationMethod: number
   readonly withdrawBlocked: number
   readonly reservedFlag2: number
   readonly localAdminBlocked: number
@@ -280,10 +289,13 @@ export class WhirlpoolStrategy {
   readonly padding0: Array<number>
   readonly rebalanceRaw: types.RebalanceRaw
   readonly padding1: Array<number>
-  readonly padding2: Array<BN>
+  readonly tokenAFeesFromRewardsCumulative: BN
+  readonly tokenBFeesFromRewardsCumulative: BN
+  readonly strategyLookupTable: PublicKey
   readonly padding3: Array<BN>
   readonly padding4: Array<BN>
   readonly padding5: Array<BN>
+  readonly padding6: Array<BN>
 
   static readonly discriminator = Buffer.from([
     190, 178, 231, 184, 49, 186, 103, 13,
@@ -365,7 +377,7 @@ export class WhirlpoolStrategy {
     borsh.u8("depositBlocked"),
     borsh.u8("creationStatus"),
     borsh.u8("investBlocked"),
-    borsh.u8("reservedFlag1"),
+    borsh.u8("shareCalculationMethod"),
     borsh.u8("withdrawBlocked"),
     borsh.u8("reservedFlag2"),
     borsh.u8("localAdminBlocked"),
@@ -377,10 +389,13 @@ export class WhirlpoolStrategy {
     borsh.array(borsh.u8(), 6, "padding0"),
     types.RebalanceRaw.layout("rebalanceRaw"),
     borsh.array(borsh.u8(), 8, "padding1"),
-    borsh.array(borsh.u128(), 29, "padding2"),
-    borsh.array(borsh.u128(), 32, "padding3"),
+    borsh.u64("tokenAFeesFromRewardsCumulative"),
+    borsh.u64("tokenBFeesFromRewardsCumulative"),
+    borsh.publicKey("strategyLookupTable"),
+    borsh.array(borsh.u128(), 26, "padding3"),
     borsh.array(borsh.u128(), 32, "padding4"),
     borsh.array(borsh.u128(), 32, "padding5"),
+    borsh.array(borsh.u128(), 32, "padding6"),
   ])
 
   constructor(fields: WhirlpoolStrategyFields) {
@@ -464,7 +479,7 @@ export class WhirlpoolStrategy {
     this.depositBlocked = fields.depositBlocked
     this.creationStatus = fields.creationStatus
     this.investBlocked = fields.investBlocked
-    this.reservedFlag1 = fields.reservedFlag1
+    this.shareCalculationMethod = fields.shareCalculationMethod
     this.withdrawBlocked = fields.withdrawBlocked
     this.reservedFlag2 = fields.reservedFlag2
     this.localAdminBlocked = fields.localAdminBlocked
@@ -480,10 +495,15 @@ export class WhirlpoolStrategy {
     this.padding0 = fields.padding0
     this.rebalanceRaw = new types.RebalanceRaw({ ...fields.rebalanceRaw })
     this.padding1 = fields.padding1
-    this.padding2 = fields.padding2
+    this.tokenAFeesFromRewardsCumulative =
+      fields.tokenAFeesFromRewardsCumulative
+    this.tokenBFeesFromRewardsCumulative =
+      fields.tokenBFeesFromRewardsCumulative
+    this.strategyLookupTable = fields.strategyLookupTable
     this.padding3 = fields.padding3
     this.padding4 = fields.padding4
     this.padding5 = fields.padding5
+    this.padding6 = fields.padding6
   }
 
   static async fetch(
@@ -610,7 +630,7 @@ export class WhirlpoolStrategy {
       depositBlocked: dec.depositBlocked,
       creationStatus: dec.creationStatus,
       investBlocked: dec.investBlocked,
-      reservedFlag1: dec.reservedFlag1,
+      shareCalculationMethod: dec.shareCalculationMethod,
       withdrawBlocked: dec.withdrawBlocked,
       reservedFlag2: dec.reservedFlag2,
       localAdminBlocked: dec.localAdminBlocked,
@@ -622,10 +642,13 @@ export class WhirlpoolStrategy {
       padding0: dec.padding0,
       rebalanceRaw: types.RebalanceRaw.fromDecoded(dec.rebalanceRaw),
       padding1: dec.padding1,
-      padding2: dec.padding2,
+      tokenAFeesFromRewardsCumulative: dec.tokenAFeesFromRewardsCumulative,
+      tokenBFeesFromRewardsCumulative: dec.tokenBFeesFromRewardsCumulative,
+      strategyLookupTable: dec.strategyLookupTable,
       padding3: dec.padding3,
       padding4: dec.padding4,
       padding5: dec.padding5,
+      padding6: dec.padding6,
     })
   }
 
@@ -709,7 +732,7 @@ export class WhirlpoolStrategy {
       depositBlocked: this.depositBlocked,
       creationStatus: this.creationStatus,
       investBlocked: this.investBlocked,
-      reservedFlag1: this.reservedFlag1,
+      shareCalculationMethod: this.shareCalculationMethod,
       withdrawBlocked: this.withdrawBlocked,
       reservedFlag2: this.reservedFlag2,
       localAdminBlocked: this.localAdminBlocked,
@@ -721,10 +744,15 @@ export class WhirlpoolStrategy {
       padding0: this.padding0,
       rebalanceRaw: this.rebalanceRaw.toJSON(),
       padding1: this.padding1,
-      padding2: this.padding2.map((item) => item.toString()),
+      tokenAFeesFromRewardsCumulative:
+        this.tokenAFeesFromRewardsCumulative.toString(),
+      tokenBFeesFromRewardsCumulative:
+        this.tokenBFeesFromRewardsCumulative.toString(),
+      strategyLookupTable: this.strategyLookupTable.toString(),
       padding3: this.padding3.map((item) => item.toString()),
       padding4: this.padding4.map((item) => item.toString()),
       padding5: this.padding5.map((item) => item.toString()),
+      padding6: this.padding6.map((item) => item.toString()),
     }
   }
 
@@ -812,7 +840,7 @@ export class WhirlpoolStrategy {
       depositBlocked: obj.depositBlocked,
       creationStatus: obj.creationStatus,
       investBlocked: obj.investBlocked,
-      reservedFlag1: obj.reservedFlag1,
+      shareCalculationMethod: obj.shareCalculationMethod,
       withdrawBlocked: obj.withdrawBlocked,
       reservedFlag2: obj.reservedFlag2,
       localAdminBlocked: obj.localAdminBlocked,
@@ -824,10 +852,17 @@ export class WhirlpoolStrategy {
       padding0: obj.padding0,
       rebalanceRaw: types.RebalanceRaw.fromJSON(obj.rebalanceRaw),
       padding1: obj.padding1,
-      padding2: obj.padding2.map((item) => new BN(item)),
+      tokenAFeesFromRewardsCumulative: new BN(
+        obj.tokenAFeesFromRewardsCumulative
+      ),
+      tokenBFeesFromRewardsCumulative: new BN(
+        obj.tokenBFeesFromRewardsCumulative
+      ),
+      strategyLookupTable: new PublicKey(obj.strategyLookupTable),
       padding3: obj.padding3.map((item) => new BN(item)),
       padding4: obj.padding4.map((item) => new BN(item)),
       padding5: obj.padding5.map((item) => new BN(item)),
+      padding6: obj.padding6.map((item) => new BN(item)),
     })
   }
 }

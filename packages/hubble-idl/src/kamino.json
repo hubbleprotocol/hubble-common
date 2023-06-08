@@ -566,7 +566,9 @@
         },
         {
           "name": "value",
-          "type": "u64"
+          "type": {
+            "array": ["u8", 128]
+          }
         }
       ]
     },
@@ -654,6 +656,11 @@
           "isSigner": false
         },
         {
+          "name": "globalConfig",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "pool",
           "isMut": true,
           "isSigner": false
@@ -676,51 +683,22 @@
         {
           "name": "position",
           "isMut": true,
-          "isSigner": false,
-          "docs": ["Also whirlpools will fail if this is not set correctly"]
-        },
-        {
-          "name": "raydiumProtocolPositionOrBaseVaultAuthority",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "adminTokenAAtaOrBaseVaultAuthority",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "adminTokenBAtaOrBaseVaultAuthority",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "poolTokenVaultAOrBaseVaultAuthority",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "poolTokenVaultBOrBaseVaultAuthority",
-          "isMut": true,
           "isSigner": false
         },
         {
           "name": "positionMint",
           "isMut": true,
-          "isSigner": true,
-          "docs": ["Also whirlpools will fail if this is not set correctly"]
+          "isSigner": true
         },
         {
           "name": "positionMetadataAccount",
           "isMut": true,
-          "isSigner": false,
-          "docs": ["Also whirlpools will fail if this is not set correctly"]
+          "isSigner": false
         },
         {
           "name": "positionTokenAccount",
           "isMut": true,
-          "isSigner": false,
-          "docs": ["Also whirlpools will fail if this is not set correctly"]
+          "isSigner": false
         },
         {
           "name": "rent",
@@ -743,37 +721,64 @@
           "isSigner": false
         },
         {
-          "name": "metadataProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "metadataUpdateAuth",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "poolProgram",
           "isMut": false,
           "isSigner": false
         },
         {
+          "name": "oldTickArrayLowerOrBaseVaultAuthority",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "oldTickArrayUpperOrBaseVaultAuthority",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
           "name": "oldPositionOrBaseVaultAuthority",
           "isMut": true,
-          "isSigner": false,
-          "docs": ["If strategy is uninitialized then pass base_vault_authority"]
+          "isSigner": false
         },
         {
           "name": "oldPositionMintOrBaseVaultAuthority",
           "isMut": true,
-          "isSigner": false,
-          "docs": ["If strategy is uninitialized then pass base_vault_authority"]
+          "isSigner": false
         },
         {
           "name": "oldPositionTokenAccountOrBaseVaultAuthority",
           "isMut": true,
-          "isSigner": false,
-          "docs": ["If strategy is uninitialized then pass base_vault_authority"]
+          "isSigner": false
+        },
+        {
+          "name": "tokenAVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenBVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "poolTokenVaultA",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "poolTokenVaultB",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "scopePrices",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenInfos",
+          "isMut": false,
+          "isSigner": false
         }
       ],
       "args": [
@@ -1272,16 +1277,6 @@
           "isSigner": false
         },
         {
-          "name": "tokenAMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenBMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "userSharesAta",
           "isMut": true,
           "isSigner": false
@@ -1292,11 +1287,6 @@
           "isSigner": false
         },
         {
-          "name": "sharesMintAuthority",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "treasuryFeeTokenAVault",
           "isMut": true,
           "isSigner": false
@@ -1304,11 +1294,6 @@
         {
           "name": "treasuryFeeTokenBVault",
           "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "treasuryFeeVaultAuthority",
-          "isMut": false,
           "isSigner": false
         },
         {
@@ -2243,6 +2228,37 @@
       "args": []
     },
     {
+      "name": "closeProgramAccount",
+      "accounts": [
+        {
+          "name": "adminAuthority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "program",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "programData",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "closingAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "orcaSwap",
       "accounts": [
         {
@@ -2331,6 +2347,39 @@
         {
           "name": "aToB",
           "type": "bool"
+        }
+      ]
+    },
+    {
+      "name": "signTerms",
+      "accounts": [
+        {
+          "name": "owner",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "ownerSignatureState",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "signature",
+          "type": {
+            "array": ["u8", 64]
+          }
         }
       ]
     }
@@ -3105,7 +3154,8 @@
             "type": "u8"
           },
           {
-            "name": "reservedFlag1",
+            "name": "shareCalculationMethod",
+            "docs": ["share_calculation_method can be either DOLAR_BASED=0 or PROPORTION_BASED=1"],
             "type": "u8"
           },
           {
@@ -3137,21 +3187,47 @@
             }
           },
           {
-            "name": "padding1",
+            "name": "isCommunity",
+            "type": "u8"
+          },
+          {
+            "name": "rebalanceType",
+            "type": "u8"
+          },
+          {
+            "name": "padding0",
             "type": {
-              "array": ["u128", 22]
+              "array": ["u8", 6]
             }
           },
           {
-            "name": "padding2",
+            "name": "rebalanceRaw",
             "type": {
-              "array": ["u128", 32]
+              "defined": "RebalanceRaw"
             }
+          },
+          {
+            "name": "padding1",
+            "type": {
+              "array": ["u8", 8]
+            }
+          },
+          {
+            "name": "tokenAFeesFromRewardsCumulative",
+            "type": "u64"
+          },
+          {
+            "name": "tokenBFeesFromRewardsCumulative",
+            "type": "u64"
+          },
+          {
+            "name": "strategyLookupTable",
+            "type": "publicKey"
           },
           {
             "name": "padding3",
             "type": {
-              "array": ["u128", 32]
+              "array": ["u128", 26]
             }
           },
           {
@@ -3162,6 +3238,12 @@
           },
           {
             "name": "padding5",
+            "type": {
+              "array": ["u128", 32]
+            }
+          },
+          {
+            "name": "padding6",
             "type": {
               "array": ["u128", 32]
             }
@@ -3253,7 +3335,43 @@
           {
             "name": "padding",
             "type": {
-              "array": ["u64", 2043]
+              "array": ["u64", 1024]
+            }
+          },
+          {
+            "name": "padding2",
+            "type": {
+              "array": ["u64", 512]
+            }
+          },
+          {
+            "name": "padding3",
+            "type": {
+              "array": ["u64", 256]
+            }
+          },
+          {
+            "name": "padding4",
+            "type": {
+              "array": ["u64", 128]
+            }
+          },
+          {
+            "name": "padding5",
+            "type": {
+              "array": ["u64", 64]
+            }
+          },
+          {
+            "name": "padding6",
+            "type": {
+              "array": ["u64", 30]
+            }
+          },
+          {
+            "name": "padding7",
+            "type": {
+              "array": ["u64", 29]
             }
           }
         ]
@@ -3292,6 +3410,20 @@
                 },
                 512
               ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "TermsSignature",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "signature",
+            "type": {
+              "array": ["u8", 64]
             }
           }
         ]
@@ -3452,6 +3584,26 @@
       }
     },
     {
+      "name": "RebalanceRaw",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "params",
+            "type": {
+              "array": ["u8", 128]
+            }
+          },
+          {
+            "name": "state",
+            "type": {
+              "array": ["u8", 256]
+            }
+          }
+        ]
+      }
+    },
+    {
       "name": "CollateralInfo",
       "type": {
         "kind": "struct",
@@ -3501,9 +3653,13 @@
             "type": "u64"
           },
           {
+            "name": "maxIgnorableAmountAsReward",
+            "type": "u64"
+          },
+          {
             "name": "padding",
             "type": {
-              "array": ["u64", 11]
+              "array": ["u64", 10]
             }
           }
         ]
@@ -3634,6 +3790,20 @@
                 "type": "bool"
               }
             ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "MintingMethod",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "PriceBased"
+          },
+          {
+            "name": "Proportional"
           }
         ]
       }
@@ -3815,6 +3985,21 @@
           },
           {
             "name": "UpdateStrategyCreationState"
+          },
+          {
+            "name": "UpdateIsCommunity"
+          },
+          {
+            "name": "UpdateRebalanceType"
+          },
+          {
+            "name": "UpdateRebalanceParams"
+          },
+          {
+            "name": "UpdateDepositMintingMethod"
+          },
+          {
+            "name": "UpdateLookupTable"
           }
         ]
       }
@@ -3935,6 +4120,20 @@
           },
           {
             "name": "Unbalanced"
+          }
+        ]
+      }
+    },
+    {
+      "name": "RebalanceType",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Manual"
+          },
+          {
+            "name": "PricePercentage"
           }
         ]
       }
@@ -4797,6 +4996,86 @@
       "code": 6105,
       "name": "PositionHasRemainingLiquidity",
       "msg": "Existent position has liquidity, new position creation is forbidden"
+    },
+    {
+      "code": 6106,
+      "name": "PoolRebalancing",
+      "msg": "Deposit is not allowed as pool is rebalancing"
+    },
+    {
+      "code": 6107,
+      "name": "PermissionlessRebalancingDisabled",
+      "msg": "Permissionless rebalancing is disabled"
+    },
+    {
+      "code": 6108,
+      "name": "ManualRebalanceInvalidOwner",
+      "msg": "Only the owner of the strategy can manually rebalance it"
+    },
+    {
+      "code": 6109,
+      "name": "InvalidRebalanceType",
+      "msg": "Invalid rebalance type for the strategy"
+    },
+    {
+      "code": 6110,
+      "name": "NoRebalanceNecessary",
+      "msg": "No rebalance necessary based on current rebalance type/parameters"
+    },
+    {
+      "code": 6111,
+      "name": "TickArraysDoNotMatchRebalance",
+      "msg": "The given tick arrays do not match the rebalance result"
+    },
+    {
+      "code": 6112,
+      "name": "StrategyPositionNotValid",
+      "msg": "Expected strategy position to be initialized"
+    },
+    {
+      "code": 6113,
+      "name": "CouldNotDeserializeRebalanceState",
+      "msg": "Rebalance state could not be deserialized"
+    },
+    {
+      "code": 6114,
+      "name": "CouldNotSerializeRebalanceState",
+      "msg": "Rebalance state could not be serialized"
+    },
+    {
+      "code": 6115,
+      "name": "CouldNotDeserializeRebalanceParams",
+      "msg": "Rebalance params could not be deserialized"
+    },
+    {
+      "code": 6116,
+      "name": "NotEnoughTokensForRatio",
+      "msg": "Deposit is not allowed as token amounts are not enough to match our holdings ratio"
+    },
+    {
+      "code": 6117,
+      "name": "AmountsRepresentZeroShares",
+      "msg": "The provided amounts are too small"
+    },
+    {
+      "code": 6118,
+      "name": "MaxLossExceeded",
+      "msg": "Rouding errors exceed the maximal loss tolerance"
+    },
+    {
+      "code": 6119,
+      "name": "RewardNotStrategyToken",
+      "msg": "Reward does not match strategy token"
+    },
+    {
+      "code": 6120,
+      "name": "DecimalToU64ConversionFailed",
+      "msg": "Decimal to u64 conversion failed"
+    },
+    {
+      "code": 6121,
+      "name": "DecimalOperationFailed",
+      "msg": "Decimal operation failed"
     }
   ]
 }
