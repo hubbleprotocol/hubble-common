@@ -1,5 +1,13 @@
 import { Connection, Keypair, PublicKey, sendAndConfirmTransaction, SystemProgram, Transaction } from '@solana/web3.js';
-import { Dex, getReadOnlyWallet, Kamino, sendTransactionWithLogs, sleep, StrategiesFilters } from '../src';
+import {
+  createAddExtraComputeUnitsTransaction,
+  Dex,
+  getReadOnlyWallet,
+  Kamino,
+  sendTransactionWithLogs,
+  sleep,
+  StrategiesFilters,
+} from '../src';
 import Decimal from 'decimal.js';
 import {
   assignBlockInfoToTransaction,
@@ -794,7 +802,7 @@ describe('Kamino SDK Tests', () => {
 
     let tx = createTransactionWithExtraBudget(user.owner.publicKey, 1000000);
 
-    let amounts = await kamino.calculateAmounts(fixtures.newRaydiumStrategy, new Decimal(5400));
+    let amounts = await kamino.calculateAmounts(fixtures.newOrcaStrategy, new Decimal(5400));
     console.log('orca amounts', amounts);
 
     const depositIx = await kamino.deposit(strategyWithAddress, amounts[0], amounts[1], user.owner.publicKey);
@@ -867,13 +875,15 @@ describe('Kamino SDK Tests', () => {
     );
 
     {
-      let tx = new Transaction().add(executiveWithdrawIx, collectFeesIx);
+      const increaseBudgetIx = createAddExtraComputeUnitsTransaction(signer.publicKey, 1_000_000);
+      let tx = new Transaction().add(increaseBudgetIx, executiveWithdrawIx, collectFeesIx);
       let sig = await sendTransactionWithLogs(connection, tx, signer.publicKey, [signer]);
       expect(sig).to.not.be.null;
       console.log('executive withdraw and collect fees have been executed');
     }
     {
-      let tx = new Transaction().add(openPositionIx);
+      const increaseBudgetIx = createAddExtraComputeUnitsTransaction(signer.publicKey, 1_000_000);
+      let tx = new Transaction().add(increaseBudgetIx, openPositionIx);
       let sig = await sendTransactionWithLogs(
         connection,
         tx,
@@ -936,13 +946,15 @@ describe('Kamino SDK Tests', () => {
     );
 
     {
-      let tx = createTransactionWithExtraBudget(signer.publicKey, 1000000).add(collectFeesIx).add(executiveWithdrawIx);
+      let tx = createTransactionWithExtraBudget(signer.publicKey, 1_000_000)
+        .add(collectFeesIx)
+        .add(executiveWithdrawIx);
       let sig = await sendTransactionWithLogs(connection, tx, signer.publicKey, [signer]);
       expect(sig).to.not.be.null;
       console.log('executive withdraw and collect fees have been executed');
     }
     {
-      let tx = createTransactionWithExtraBudget(signer.publicKey, 1000000).add(openPositionIx);
+      let tx = createTransactionWithExtraBudget(signer.publicKey, 1_000_000).add(openPositionIx);
       let sig = await sendTransactionWithLogs(
         connection,
         tx,
@@ -1184,7 +1196,7 @@ export async function openPosition(
 
     let tx = createTransactionWithExtraBudget(owner.publicKey, 1000000);
     tx.add(openPositionIx);
-    await sendTransactionWithLogs(
+    let res = await sendTransactionWithLogs(
       kamino.getConnection(),
       tx,
       owner.publicKey,
@@ -1192,6 +1204,7 @@ export async function openPosition(
       'confirmed',
       true
     );
+    console.log('open ray position th hash', res);
     console.log('new position has been opened', positionMint.publicKey.toString());
   }
 }

@@ -1776,14 +1776,27 @@ export class Kamino {
         priceUpper,
         strategyState.tokenAVault,
         strategyState.tokenBVault,
-        strategyState.tickArrayLower,
-        strategyState.tickArrayUpper,
         strategyState.position,
         strategyState.positionMint,
         strategyState.positionTokenAccount,
+        strategyState.tickArrayLower,
+        strategyState.tickArrayUpper,
         status
       );
     } else if (strategyState.strategyDex.toNumber() == dexToNumber('RAYDIUM')) {
+      let reward0Vault: PublicKey | undefined = undefined;
+      let reward1Vault: PublicKey | undefined = undefined;
+      let reward2Vault: PublicKey | undefined = undefined;
+      if (strategyState.reward0Decimals.toNumber() > 0) {
+        reward0Vault = strategyState.reward0Vault;
+      }
+      if (strategyState.reward1Decimals.toNumber() > 0) {
+        reward1Vault = strategyState.reward1Vault;
+      }
+      if (strategyState.reward2Decimals.toNumber() > 0) {
+        reward2Vault = strategyState.reward2Vault;
+      }
+
       return this.openPositionRaydium(
         strategyState.adminAuthority,
         strategy,
@@ -1799,7 +1812,11 @@ export class Kamino {
         strategyState.position,
         strategyState.positionMint,
         strategyState.positionTokenAccount,
-        status
+        strategyState.raydiumProtocolPositionOrBaseVaultAuthority,
+        status,
+        reward0Vault,
+        reward1Vault,
+        reward2Vault
       );
     } else {
       throw new Error(`Invalid dex ${strategyState.strategyDex.toString()}`);
@@ -1929,7 +1946,11 @@ export class Kamino {
     oldPositionOrBaseVaultAuthority: PublicKey,
     oldPositionMintOrBaseVaultAuthority: PublicKey,
     oldPositionTokenAccountOrBaseVaultAuthority: PublicKey,
-    status: StrategyStatusKind = new Uninitialized()
+    oldProtocolPositionOrBaseVaultAuthority: PublicKey,
+    status: StrategyStatusKind = new Uninitialized(),
+    strategyRewardOVault?: PublicKey,
+    strategyReward1Vault?: PublicKey,
+    strategyReward2Vault?: PublicKey
   ): Promise<TransactionInstruction> => {
     const poolState = await PoolState.fetch(this._connection, pool);
     if (!poolState) {
@@ -2013,7 +2034,32 @@ export class Kamino {
       tokenInfos: globalConfig.tokenInfos,
     };
 
-    return openLiquidityPosition(args, accounts);
+    let ix = openLiquidityPosition(args, accounts);
+
+    ix.keys = ix.keys.concat([
+      { pubkey: protocolPosition, isSigner: false, isWritable: true },
+      { pubkey: oldProtocolPositionOrBaseVaultAuthority, isSigner: false, isWritable: true },
+      { pubkey: METADATA_PROGRAM_ID, isSigner: false, isWritable: false },
+    ]);
+    if (strategyRewardOVault) {
+      ix.keys = ix.keys.concat([
+        { pubkey: poolState.rewardInfos[0].tokenVault, isSigner: false, isWritable: true },
+        { pubkey: strategyRewardOVault, isSigner: false, isWritable: true },
+      ]);
+    }
+    if (strategyReward1Vault) {
+      ix.keys = ix.keys.concat([
+        { pubkey: poolState.rewardInfos[1].tokenVault, isSigner: false, isWritable: true },
+        { pubkey: strategyReward1Vault, isSigner: false, isWritable: true },
+      ]);
+    }
+    if (strategyReward2Vault) {
+      ix.keys = ix.keys.concat([
+        { pubkey: poolState.rewardInfos[2].tokenVault, isSigner: false, isWritable: true },
+        { pubkey: strategyReward2Vault, isSigner: false, isWritable: true },
+      ]);
+    }
+    return ix;
   };
 
   /**
@@ -2322,6 +2368,7 @@ export class Kamino {
         baseVaultAuthority,
         baseVaultAuthority,
         baseVaultAuthority,
+        baseVaultAuthority,
         baseVaultAuthority
       );
     } else {
@@ -2446,7 +2493,8 @@ export class Kamino {
 
   getTransactionV2Message = async (
     payer: PublicKey,
-    instructions: Array<TransactionInstruction>
+    instructions: Array<TransactionInstruction>,
+    lookupTables?: Array<PublicKey>
   ): Promise<MessageV0> => {
     if (this._cluster == 'mainnet-beta' || this._cluster == 'devnet') {
       let lookupTable = await this.getLookupTable();
