@@ -13,36 +13,31 @@ export interface OpenLiquidityPositionArgs {
 export interface OpenLiquidityPositionAccounts {
   adminAuthority: PublicKey
   strategy: PublicKey
+  globalConfig: PublicKey
   pool: PublicKey
   tickArrayLower: PublicKey
   tickArrayUpper: PublicKey
   baseVaultAuthority: PublicKey
-  /** Also whirlpools will fail if this is not set correctly */
   position: PublicKey
-  raydiumProtocolPositionOrBaseVaultAuthority: PublicKey
-  adminTokenAAtaOrBaseVaultAuthority: PublicKey
-  adminTokenBAtaOrBaseVaultAuthority: PublicKey
-  poolTokenVaultAOrBaseVaultAuthority: PublicKey
-  poolTokenVaultBOrBaseVaultAuthority: PublicKey
-  /** Also whirlpools will fail if this is not set correctly */
   positionMint: PublicKey
-  /** Also whirlpools will fail if this is not set correctly */
   positionMetadataAccount: PublicKey
-  /** Also whirlpools will fail if this is not set correctly */
   positionTokenAccount: PublicKey
   rent: PublicKey
   system: PublicKey
   tokenProgram: PublicKey
   associatedTokenProgram: PublicKey
-  metadataProgram: PublicKey
-  metadataUpdateAuth: PublicKey
   poolProgram: PublicKey
-  /** If strategy is uninitialized then pass base_vault_authority */
+  oldTickArrayLowerOrBaseVaultAuthority: PublicKey
+  oldTickArrayUpperOrBaseVaultAuthority: PublicKey
   oldPositionOrBaseVaultAuthority: PublicKey
-  /** If strategy is uninitialized then pass base_vault_authority */
   oldPositionMintOrBaseVaultAuthority: PublicKey
-  /** If strategy is uninitialized then pass base_vault_authority */
   oldPositionTokenAccountOrBaseVaultAuthority: PublicKey
+  tokenAVault: PublicKey
+  tokenBVault: PublicKey
+  poolTokenVaultA: PublicKey
+  poolTokenVaultB: PublicKey
+  scopePrices: PublicKey
+  tokenInfos: PublicKey
 }
 
 export const layout = borsh.struct([
@@ -58,36 +53,12 @@ export function openLiquidityPosition(
   const keys: Array<AccountMeta> = [
     { pubkey: accounts.adminAuthority, isSigner: true, isWritable: true },
     { pubkey: accounts.strategy, isSigner: false, isWritable: true },
+    { pubkey: accounts.globalConfig, isSigner: false, isWritable: false },
     { pubkey: accounts.pool, isSigner: false, isWritable: true },
     { pubkey: accounts.tickArrayLower, isSigner: false, isWritable: true },
     { pubkey: accounts.tickArrayUpper, isSigner: false, isWritable: true },
     { pubkey: accounts.baseVaultAuthority, isSigner: false, isWritable: true },
     { pubkey: accounts.position, isSigner: false, isWritable: true },
-    {
-      pubkey: accounts.raydiumProtocolPositionOrBaseVaultAuthority,
-      isSigner: false,
-      isWritable: true,
-    },
-    {
-      pubkey: accounts.adminTokenAAtaOrBaseVaultAuthority,
-      isSigner: false,
-      isWritable: true,
-    },
-    {
-      pubkey: accounts.adminTokenBAtaOrBaseVaultAuthority,
-      isSigner: false,
-      isWritable: true,
-    },
-    {
-      pubkey: accounts.poolTokenVaultAOrBaseVaultAuthority,
-      isSigner: false,
-      isWritable: true,
-    },
-    {
-      pubkey: accounts.poolTokenVaultBOrBaseVaultAuthority,
-      isSigner: false,
-      isWritable: true,
-    },
     { pubkey: accounts.positionMint, isSigner: true, isWritable: true },
     {
       pubkey: accounts.positionMetadataAccount,
@@ -107,9 +78,17 @@ export function openLiquidityPosition(
       isSigner: false,
       isWritable: false,
     },
-    { pubkey: accounts.metadataProgram, isSigner: false, isWritable: false },
-    { pubkey: accounts.metadataUpdateAuth, isSigner: false, isWritable: false },
     { pubkey: accounts.poolProgram, isSigner: false, isWritable: false },
+    {
+      pubkey: accounts.oldTickArrayLowerOrBaseVaultAuthority,
+      isSigner: false,
+      isWritable: true,
+    },
+    {
+      pubkey: accounts.oldTickArrayUpperOrBaseVaultAuthority,
+      isSigner: false,
+      isWritable: true,
+    },
     {
       pubkey: accounts.oldPositionOrBaseVaultAuthority,
       isSigner: false,
@@ -125,6 +104,12 @@ export function openLiquidityPosition(
       isSigner: false,
       isWritable: true,
     },
+    { pubkey: accounts.tokenAVault, isSigner: false, isWritable: true },
+    { pubkey: accounts.tokenBVault, isSigner: false, isWritable: true },
+    { pubkey: accounts.poolTokenVaultA, isSigner: false, isWritable: true },
+    { pubkey: accounts.poolTokenVaultB, isSigner: false, isWritable: true },
+    { pubkey: accounts.scopePrices, isSigner: false, isWritable: false },
+    { pubkey: accounts.tokenInfos, isSigner: false, isWritable: false },
   ]
   const identifier = Buffer.from([204, 234, 204, 219, 6, 91, 96, 241])
   const buffer = Buffer.alloc(1000)

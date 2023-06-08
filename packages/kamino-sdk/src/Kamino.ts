@@ -172,6 +172,7 @@ import {
 } from './utils/CreationParameters';
 import { getMintDecimals } from '@project-serum/serum/lib/market';
 import { Key } from 'readline';
+import { token } from '@project-serum/anchor/dist/cjs/utils';
 export const KAMINO_IDL = KaminoIdl;
 
 export class Kamino {
@@ -1773,12 +1774,29 @@ export class Kamino {
         positionMint,
         priceLower,
         priceUpper,
+        strategyState.tokenAVault,
+        strategyState.tokenBVault,
         strategyState.position,
         strategyState.positionMint,
         strategyState.positionTokenAccount,
+        strategyState.tickArrayLower,
+        strategyState.tickArrayUpper,
         status
       );
     } else if (strategyState.strategyDex.toNumber() == dexToNumber('RAYDIUM')) {
+      let reward0Vault: PublicKey | undefined = undefined;
+      let reward1Vault: PublicKey | undefined = undefined;
+      let reward2Vault: PublicKey | undefined = undefined;
+      if (strategyState.reward0Decimals.toNumber() > 0) {
+        reward0Vault = strategyState.reward0Vault;
+      }
+      if (strategyState.reward1Decimals.toNumber() > 0) {
+        reward1Vault = strategyState.reward1Vault;
+      }
+      if (strategyState.reward2Decimals.toNumber() > 0) {
+        reward2Vault = strategyState.reward2Vault;
+      }
+
       return this.openPositionRaydium(
         strategyState.adminAuthority,
         strategy,
@@ -1789,10 +1807,16 @@ export class Kamino {
         priceUpper,
         strategyState.tokenAVault,
         strategyState.tokenBVault,
+        strategyState.tickArrayLower,
+        strategyState.tickArrayUpper,
         strategyState.position,
         strategyState.positionMint,
         strategyState.positionTokenAccount,
-        status
+        strategyState.raydiumProtocolPositionOrBaseVaultAuthority,
+        status,
+        reward0Vault,
+        reward1Vault,
+        reward2Vault
       );
     } else {
       throw new Error(`Invalid dex ${strategyState.strategyDex.toString()}`);
@@ -1815,9 +1839,13 @@ export class Kamino {
     positionMint: PublicKey,
     priceLower: Decimal,
     priceUpper: Decimal,
+    tokenAVault: PublicKey,
+    tokenBVault: PublicKey,
     oldPositionOrBaseVaultAuthority: PublicKey,
     oldPositionMintOrBaseVaultAuthority: PublicKey,
     oldPositionTokenAccountOrBaseVaultAuthority: PublicKey,
+    oldTickArrayLowerOrBaseVaultAuthority: PublicKey,
+    oldTickArrayUpperOrBaseVaultAuthority: PublicKey,
     status: StrategyStatusKind = new Uninitialized()
   ): Promise<TransactionInstruction> => {
     const whirlpool = await Whirlpool.fetch(this._connection, pool);
@@ -1855,6 +1883,11 @@ export class Kamino {
       tickUpperIndex
     );
 
+    const globalConfig = await GlobalConfig.fetch(this._connection, this._globalConfig);
+    if (!globalConfig) {
+      throw Error(`Could not fetch global config with pubkey ${this._globalConfig.toString()}`);
+    }
+
     const accounts: OpenLiquidityPositionAccounts = {
       adminAuthority: adminAuthority,
       strategy,
@@ -1870,19 +1903,21 @@ export class Kamino {
       system: SystemProgram.programId,
       tokenProgram: TOKEN_PROGRAM_ID,
       associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
-      metadataProgram: METADATA_PROGRAM_ID,
-      metadataUpdateAuth: METADATA_UPDATE_AUTH,
       poolProgram: WHIRLPOOL_PROGRAM_ID,
       oldPositionOrBaseVaultAuthority: isRebalancing ? oldPositionOrBaseVaultAuthority : baseVaultAuthority,
       oldPositionMintOrBaseVaultAuthority: isRebalancing ? oldPositionMintOrBaseVaultAuthority : positionMint,
       oldPositionTokenAccountOrBaseVaultAuthority: isRebalancing
         ? oldPositionTokenAccountOrBaseVaultAuthority
         : positionTokenAccount,
-      raydiumProtocolPositionOrBaseVaultAuthority: baseVaultAuthority,
-      adminTokenAAtaOrBaseVaultAuthority: baseVaultAuthority,
-      adminTokenBAtaOrBaseVaultAuthority: baseVaultAuthority,
-      poolTokenVaultAOrBaseVaultAuthority: baseVaultAuthority,
-      poolTokenVaultBOrBaseVaultAuthority: baseVaultAuthority,
+      globalConfig: this._globalConfig,
+      oldTickArrayLowerOrBaseVaultAuthority: isRebalancing ? oldTickArrayLowerOrBaseVaultAuthority : baseVaultAuthority,
+      oldTickArrayUpperOrBaseVaultAuthority: isRebalancing ? oldTickArrayUpperOrBaseVaultAuthority : baseVaultAuthority,
+      tokenAVault,
+      tokenBVault,
+      poolTokenVaultA: whirlpool.tokenVaultA,
+      poolTokenVaultB: whirlpool.tokenVaultB,
+      scopePrices: globalConfig.scopePriceId,
+      tokenInfos: globalConfig.tokenInfos,
     };
 
     return openLiquidityPosition(args, accounts);
@@ -1906,10 +1941,16 @@ export class Kamino {
     priceUpper: Decimal,
     tokenAVault: PublicKey,
     tokenBVault: PublicKey,
+    oldTickArrayLowerOrBaseVaultAuthority: PublicKey,
+    oldTickArrayUpperOrBaseVaultAuthority: PublicKey,
     oldPositionOrBaseVaultAuthority: PublicKey,
     oldPositionMintOrBaseVaultAuthority: PublicKey,
     oldPositionTokenAccountOrBaseVaultAuthority: PublicKey,
-    status: StrategyStatusKind = new Uninitialized()
+    oldProtocolPositionOrBaseVaultAuthority: PublicKey,
+    status: StrategyStatusKind = new Uninitialized(),
+    strategyRewardOVault?: PublicKey,
+    strategyReward1Vault?: PublicKey,
+    strategyReward2Vault?: PublicKey
   ): Promise<TransactionInstruction> => {
     const poolState = await PoolState.fetch(this._connection, pool);
     if (!poolState) {
@@ -1957,6 +1998,10 @@ export class Kamino {
       tickUpperIndex
     );
 
+    const globalConfig = await GlobalConfig.fetch(this._connection, this._globalConfig);
+    if (!globalConfig) {
+      throw Error(`Could not fetch global config with pubkey ${this._globalConfig.toString()}`);
+    }
     const accounts: OpenLiquidityPositionAccounts = {
       adminAuthority: adminAuthority,
       strategy,
@@ -1972,22 +2017,49 @@ export class Kamino {
       system: SystemProgram.programId,
       tokenProgram: TOKEN_PROGRAM_ID,
       associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
-      metadataProgram: METADATA_PROGRAM_ID,
-      metadataUpdateAuth: METADATA_UPDATE_AUTH,
       poolProgram: RAYDIUM_PROGRAM_ID,
       oldPositionOrBaseVaultAuthority: isRebalancing ? oldPositionOrBaseVaultAuthority : baseVaultAuthority,
       oldPositionMintOrBaseVaultAuthority: isRebalancing ? oldPositionMintOrBaseVaultAuthority : positionMint,
       oldPositionTokenAccountOrBaseVaultAuthority: isRebalancing
         ? oldPositionTokenAccountOrBaseVaultAuthority
         : positionTokenAccount,
-      raydiumProtocolPositionOrBaseVaultAuthority: protocolPosition,
-      adminTokenAAtaOrBaseVaultAuthority: tokenAVault,
-      adminTokenBAtaOrBaseVaultAuthority: tokenBVault,
-      poolTokenVaultAOrBaseVaultAuthority: poolState.tokenVault0,
-      poolTokenVaultBOrBaseVaultAuthority: poolState.tokenVault1,
+      globalConfig: this._globalConfig,
+      oldTickArrayLowerOrBaseVaultAuthority: isRebalancing ? oldTickArrayLowerOrBaseVaultAuthority : baseVaultAuthority,
+      oldTickArrayUpperOrBaseVaultAuthority: isRebalancing ? oldTickArrayUpperOrBaseVaultAuthority : baseVaultAuthority,
+      tokenAVault: tokenAVault,
+      tokenBVault: tokenBVault,
+      poolTokenVaultA: poolState.tokenVault0,
+      poolTokenVaultB: poolState.tokenVault1,
+      scopePrices: globalConfig.scopePriceId,
+      tokenInfos: globalConfig.tokenInfos,
     };
 
-    return openLiquidityPosition(args, accounts);
+    let ix = openLiquidityPosition(args, accounts);
+
+    ix.keys = ix.keys.concat([
+      { pubkey: protocolPosition, isSigner: false, isWritable: true },
+      { pubkey: oldProtocolPositionOrBaseVaultAuthority, isSigner: false, isWritable: true },
+      { pubkey: METADATA_PROGRAM_ID, isSigner: false, isWritable: false },
+    ]);
+    if (strategyRewardOVault) {
+      ix.keys = ix.keys.concat([
+        { pubkey: poolState.rewardInfos[0].tokenVault, isSigner: false, isWritable: true },
+        { pubkey: strategyRewardOVault, isSigner: false, isWritable: true },
+      ]);
+    }
+    if (strategyReward1Vault) {
+      ix.keys = ix.keys.concat([
+        { pubkey: poolState.rewardInfos[1].tokenVault, isSigner: false, isWritable: true },
+        { pubkey: strategyReward1Vault, isSigner: false, isWritable: true },
+      ]);
+    }
+    if (strategyReward2Vault) {
+      ix.keys = ix.keys.concat([
+        { pubkey: poolState.rewardInfos[2].tokenVault, isSigner: false, isWritable: true },
+        { pubkey: strategyReward2Vault, isSigner: false, isWritable: true },
+      ]);
+    }
+    return ix;
   };
 
   /**
@@ -2273,6 +2345,10 @@ export class Kamino {
         positionMint,
         lowerPrice,
         upperPrice,
+        tokenAVault,
+        tokenBVault,
+        baseVaultAuthority,
+        baseVaultAuthority,
         baseVaultAuthority,
         baseVaultAuthority,
         baseVaultAuthority
@@ -2288,6 +2364,9 @@ export class Kamino {
         upperPrice,
         tokenAVault,
         tokenBVault,
+        baseVaultAuthority,
+        baseVaultAuthority,
+        baseVaultAuthority,
         baseVaultAuthority,
         baseVaultAuthority,
         baseVaultAuthority
@@ -2414,7 +2493,8 @@ export class Kamino {
 
   getTransactionV2Message = async (
     payer: PublicKey,
-    instructions: Array<TransactionInstruction>
+    instructions: Array<TransactionInstruction>,
+    lookupTables?: Array<PublicKey>
   ): Promise<MessageV0> => {
     if (this._cluster == 'mainnet-beta' || this._cluster == 'devnet') {
       let lookupTable = await this.getLookupTable();

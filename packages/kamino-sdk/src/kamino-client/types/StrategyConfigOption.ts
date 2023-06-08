@@ -923,6 +923,52 @@ export class UpdateRebalanceParams {
   }
 }
 
+export interface UpdateDepositMintingMethodJSON {
+  kind: "UpdateDepositMintingMethod"
+}
+
+export class UpdateDepositMintingMethod {
+  static readonly discriminator = 40
+  static readonly kind = "UpdateDepositMintingMethod"
+  readonly discriminator = 40
+  readonly kind = "UpdateDepositMintingMethod"
+
+  toJSON(): UpdateDepositMintingMethodJSON {
+    return {
+      kind: "UpdateDepositMintingMethod",
+    }
+  }
+
+  toEncodable() {
+    return {
+      UpdateDepositMintingMethod: {},
+    }
+  }
+}
+
+export interface UpdateLookupTableJSON {
+  kind: "UpdateLookupTable"
+}
+
+export class UpdateLookupTable {
+  static readonly discriminator = 41
+  static readonly kind = "UpdateLookupTable"
+  readonly discriminator = 41
+  readonly kind = "UpdateLookupTable"
+
+  toJSON(): UpdateLookupTableJSON {
+    return {
+      kind: "UpdateLookupTable",
+    }
+  }
+
+  toEncodable() {
+    return {
+      UpdateLookupTable: {},
+    }
+  }
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function fromDecoded(obj: any): types.StrategyConfigOptionKind {
   if (typeof obj !== "object") {
@@ -1048,6 +1094,12 @@ export function fromDecoded(obj: any): types.StrategyConfigOptionKind {
   }
   if ("UpdateRebalanceParams" in obj) {
     return new UpdateRebalanceParams()
+  }
+  if ("UpdateDepositMintingMethod" in obj) {
+    return new UpdateDepositMintingMethod()
+  }
+  if ("UpdateLookupTable" in obj) {
+    return new UpdateLookupTable()
   }
 
   throw new Error("Invalid enum object")
@@ -1177,6 +1229,12 @@ export function fromJSON(
     case "UpdateRebalanceParams": {
       return new UpdateRebalanceParams()
     }
+    case "UpdateDepositMintingMethod": {
+      return new UpdateDepositMintingMethod()
+    }
+    case "UpdateLookupTable": {
+      return new UpdateLookupTable()
+    }
   }
 }
 
@@ -1222,6 +1280,8 @@ export function layout(property?: string) {
     borsh.struct([], "UpdateIsCommunity"),
     borsh.struct([], "UpdateRebalanceType"),
     borsh.struct([], "UpdateRebalanceParams"),
+    borsh.struct([], "UpdateDepositMintingMethod"),
+    borsh.struct([], "UpdateLookupTable"),
   ])
   if (property !== undefined) {
     return ret.replicate(property)
