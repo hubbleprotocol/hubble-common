@@ -29,6 +29,7 @@ export * from './TradeAggregatorEntity';
 export * from './TradeEntity';
 export * from './TradeSourceEntity';
 export * from './StrategyMetricsEntity';
+export * from './TradePoolEntity';
 
 export const CLUSTER_TABLE: string = 'cluster';
 export const COLLATERAL_TABLE: string = 'collateral';
@@ -61,5 +62,6 @@ export const TOKEN_MINT_TABLE = 'token_mint';
 export const PROGRAM_ACCOUNT_TABLE = 'program_account';
 export const TRADE_AGGREGATOR_TABLE = 'trade_aggregator';
 export const TRADE_SOURCE_TABLE = 'trade_source';
+export const TRADE_POOL_TABLE = 'trade_pool';
 export const STRATEGY_METRICS_TABLE = 'strategy_metrics';
 export const API_SCHEMA: string = 'api';

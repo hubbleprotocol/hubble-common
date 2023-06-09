@@ -14,6 +14,7 @@ export interface TradeEntity {
   trade_source_id: number;
   trade_aggregator_id: number | null;
   program_account_id: number | null;
+  trade_pool_id: number | null;
 }
 
 export default TradeEntity;
