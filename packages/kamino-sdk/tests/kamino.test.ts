@@ -1,4 +1,12 @@
-import { Connection, Keypair, PublicKey, sendAndConfirmTransaction, SystemProgram, Transaction } from '@solana/web3.js';
+import {
+  Connection,
+  Keypair,
+  PublicKey,
+  sendAndConfirmTransaction,
+  SystemProgram,
+  Transaction,
+  VersionedTransaction,
+} from '@solana/web3.js';
 import {
   createAddExtraComputeUnitsTransaction,
   Dex,
@@ -274,6 +282,8 @@ describe('Kamino SDK Tests', () => {
     console.log('orca position opened');
     await openPosition(kamino, signer, newRaydiumStrategy.publicKey, new Decimal(0.97), new Decimal(1.03));
     console.log('raydium position opened');
+
+    await kamino.setupStrategyLookupTable(signer, newOrcaStrategy.publicKey);
 
     ScopeMints.push({
       cluster: 'localnet',
@@ -879,7 +889,7 @@ describe('Kamino SDK Tests', () => {
       let tx = new Transaction().add(increaseBudgetIx, executiveWithdrawIx, collectFeesIx);
       let sig = await sendTransactionWithLogs(connection, tx, signer.publicKey, [signer]);
       expect(sig).to.not.be.null;
-      console.log('executive withdraw and collect fees have been executed');
+      console.log('executive withdraw and collect fees have been executed ');
     }
     {
       const increaseBudgetIx = createAddExtraComputeUnitsTransaction(signer.publicKey, 1_000_000);

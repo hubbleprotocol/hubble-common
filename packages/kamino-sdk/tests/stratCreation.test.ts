@@ -111,7 +111,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     console.log('Orca pools', pools);
   });
 
-  it.skip('build strategy IX for Raydium SOL-USDC', async () => {
+  it('build strategy IX for Raydium SOL-USDC', async () => {
     let kamino = new Kamino(
       cluster,
       connection,
@@ -181,6 +181,9 @@ describe('Kamino strategy creation SDK Tests', () => {
       txHash = await sendAndConfirmTransaction(kamino._connection, updateRewardMappingsTransactionV0);
       console.log('setup strategy reward mapping', txHash);
     }
+
+    // set up lookup table for strategy
+    await kamino.setupStrategyLookupTable(signer, newStrategy.publicKey);
   });
 
   it.skip('build strategy IX for Raydium SOL-USDC', async () => {

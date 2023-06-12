@@ -12,6 +12,8 @@ import {
   MessageV0,
   TransactionMessage,
   Keypair,
+  AddressLookupTableProgram,
+  Transaction,
 } from '@solana/web3.js';
 import { setKaminoProgramId } from './kamino-client/programId';
 import {
@@ -74,6 +76,7 @@ import {
   LiquidityDistribution,
   numberToRebalanceType,
   RebalanceFieldInfo,
+  sendTransactionWithLogs,
   StrategiesFilters,
   strategyCreationStatusToBase58,
   strategyTypeToBase58,
@@ -146,6 +149,8 @@ import {
   UpdateReward2Fee,
   UpdateCollectFeesFee,
   UpdateRebalanceType,
+  UpdateStrategyCreationState,
+  UpdateLookupTable,
 } from './kamino-client/types/StrategyConfigOption';
 import {
   DefaultDepositCap,
@@ -173,6 +178,7 @@ import {
 import { getMintDecimals } from '@project-serum/serum/lib/market';
 import { Key } from 'readline';
 import { token } from '@project-serum/anchor/dist/cjs/utils';
+import { table } from 'console';
 export const KAMINO_IDL = KaminoIdl;
 
 export class Kamino {
@@ -2469,7 +2475,7 @@ export class Kamino {
     return -1;
   };
 
-  getLookupTable = async (): Promise<AddressLookupTableAccount> => {
+  getMainLookupTable = async (): Promise<AddressLookupTableAccount> => {
     if (this._cluster == 'mainnet-beta') {
       const lookupTableAccount = await this._connection
         .getAddressLookupTable(MAINNET_GLOBAL_LOOKUP_TABLE)
@@ -2491,14 +2497,112 @@ export class Kamino {
     }
   };
 
+  getInitLookupTableIx = async (authority: PublicKey, slot?: number): Promise<[TransactionInstruction, PublicKey]> => {
+    let recentSlot = slot;
+    if (!recentSlot) {
+      recentSlot = await this._connection.getSlot();
+    }
+    return AddressLookupTableProgram.createLookupTable({
+      authority,
+      payer: authority,
+      recentSlot,
+    });
+  };
+
+  getPopulateLookupTableIx = async (
+    authority: PublicKey,
+    lookupTable: PublicKey,
+    strategy: PublicKey
+  ): Promise<TransactionInstruction> => {
+    let strategyState = await WhirlpoolStrategy.fetch(this._connection, strategy);
+    if (!strategyState) {
+      throw Error(`Could not fetch strategy state with pubkey ${strategy.toString()}`);
+    }
+    console.log('after fetching the strat');
+
+    let accountsToBeInserted: PublicKey[] = [
+      strategy,
+      strategyState.adminAuthority,
+      strategyState.baseVaultAuthority,
+      strategyState.pool,
+      strategyState.tokenAMint,
+      strategyState.tokenBMint,
+      strategyState.tokenAVault,
+      strategyState.tokenBVault,
+      strategyState.poolTokenVaultA,
+      strategyState.poolTokenVaultB,
+      strategyState.reward0Vault,
+      strategyState.reward1Vault,
+      strategyState.reward2Vault,
+      strategyState.kaminoRewards[0].rewardVault,
+      strategyState.kaminoRewards[1].rewardVault,
+      strategyState.kaminoRewards[2].rewardVault,
+      strategyState.tokenAVaultAuthority,
+      strategyState.tokenAMint,
+      strategyState.sharesMintAuthority,
+      strategyState.raydiumProtocolPositionOrBaseVaultAuthority,
+      strategyState.raydiumPoolConfigOrBaseVaultAuthority,
+    ];
+
+    return this.getAddLookupTableEntriesIx(authority, lookupTable, accountsToBeInserted);
+  };
+
+  getAddLookupTableEntriesIx = (
+    authority: PublicKey,
+    lookupTable: PublicKey,
+    entries: PublicKey[]
+  ): TransactionInstruction => {
+    return AddressLookupTableProgram.extendLookupTable({
+      payer: authority,
+      authority,
+      lookupTable,
+      addresses: entries,
+    });
+  };
+
+  getLookupTable = async (tablePk: PublicKey): Promise<AddressLookupTableAccount> => {
+    const lookupTableAccount = await this._connection.getAddressLookupTable(tablePk).then((res) => res.value);
+    if (!lookupTableAccount) {
+      throw new Error(`Could not get lookup table ${MAINNET_GLOBAL_LOOKUP_TABLE}`);
+    }
+    return lookupTableAccount;
+  };
+
+  setupStrategyLookupTable = async (authority: Keypair, strategy: PublicKey, slot?: number): Promise<PublicKey> => {
+    let [createLookupTableIx, lookupTable] = await this.getInitLookupTableIx(authority.publicKey, slot);
+    let populateLookupTableIx = await this.getPopulateLookupTableIx(authority.publicKey, lookupTable, strategy);
+
+    let getUpdateStrategyLookupTableIx = await getUpdateStrategyConfigIx(
+      authority.publicKey,
+      this._globalConfig,
+      strategy,
+      new UpdateLookupTable(),
+      new Decimal(0),
+      lookupTable
+    );
+
+    const tx = new Transaction().add(createLookupTableIx, populateLookupTableIx, getUpdateStrategyLookupTableIx);
+    let hash = await sendTransactionWithLogs(this._connection, tx, authority.publicKey, [authority]);
+
+    return lookupTable;
+  };
+
   getTransactionV2Message = async (
     payer: PublicKey,
     instructions: Array<TransactionInstruction>,
     lookupTables?: Array<PublicKey>
   ): Promise<MessageV0> => {
     if (this._cluster == 'mainnet-beta' || this._cluster == 'devnet') {
-      let lookupTable = await this.getLookupTable();
+      let lookupTable = await this.getMainLookupTable();
       let blockhash = await this._connection.getLatestBlockhash();
+
+      let allLookupTables = [lookupTable];
+      if (lookupTables) {
+        lookupTables.forEach(async (table) => {
+          let lookupTableData = await this.getLookupTable(table);
+          allLookupTables.push(lookupTableData);
+        });
+      }
       const v2Tx = new TransactionMessage({
         payerKey: payer,
         recentBlockhash: blockhash.blockhash,
