@@ -2542,6 +2542,16 @@ export class Kamino {
       strategyState.sharesMintAuthority,
       strategyState.raydiumProtocolPositionOrBaseVaultAuthority,
       strategyState.raydiumPoolConfigOrBaseVaultAuthority,
+      strategyState.tickArrayLower,
+      strategyState.tickArrayUpper,
+      strategyState.positionMint,
+      strategyState.positionTokenAccount,
+      SYSVAR_RENT_PUBKEY,
+      TOKEN_PROGRAM_ID,
+      ASSOCIATED_TOKEN_PROGRAM_ID,
+      METADATA_PROGRAM_ID,
+      WHIRLPOOL_PROGRAM_ID,
+      RAYDIUM_PROGRAM_ID,
     ];
 
     return this.getAddLookupTableEntriesIx(authority, lookupTable, accountsToBeInserted);
