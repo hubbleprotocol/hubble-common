@@ -2475,7 +2475,7 @@ export class Kamino {
     return -1;
   };
 
-  getMainLookupTable = async (): Promise<AddressLookupTableAccount> => {
+  getMainLookupTable = async (): Promise<AddressLookupTableAccount | undefined> => {
     if (this._cluster == 'mainnet-beta') {
       const lookupTableAccount = await this._connection
         .getAddressLookupTable(MAINNET_GLOBAL_LOOKUP_TABLE)
@@ -2493,7 +2493,7 @@ export class Kamino {
       }
       return lookupTableAccount;
     } else {
-      throw Error('There is no lookup table for localnet yet');
+      return undefined;
     }
   };
 
@@ -2502,10 +2502,11 @@ export class Kamino {
     if (!recentSlot) {
       recentSlot = await this._connection.getSlot();
     }
+    const slots = await this._connection.getBlocks(recentSlot - 20, recentSlot, 'confirmed');
     return AddressLookupTableProgram.createLookupTable({
       authority,
       payer: authority,
-      recentSlot,
+      recentSlot: slots[0],
     });
   };
 
@@ -2518,7 +2519,6 @@ export class Kamino {
     if (!strategyState) {
       throw Error(`Could not fetch strategy state with pubkey ${strategy.toString()}`);
     }
-    console.log('after fetching the strat');
 
     let accountsToBeInserted: PublicKey[] = [
       strategy,
@@ -2593,26 +2593,19 @@ export class Kamino {
     instructions: Array<TransactionInstruction>,
     lookupTables?: Array<PublicKey>
   ): Promise<MessageV0> => {
-    if (this._cluster == 'mainnet-beta' || this._cluster == 'devnet') {
-      let lookupTable = await this.getMainLookupTable();
-      let blockhash = await this._connection.getLatestBlockhash();
+    let lookupTable = await this.getMainLookupTable();
 
-      let allLookupTables = [lookupTable];
-      if (lookupTables) {
-        lookupTables.forEach(async (table) => {
-          let lookupTableData = await this.getLookupTable(table);
-          allLookupTables.push(lookupTableData);
-        });
-      }
-      const v2Tx = new TransactionMessage({
-        payerKey: payer,
-        recentBlockhash: blockhash.blockhash,
-        instructions: instructions,
-      }).compileToV0Message(allLookupTables);
-      return v2Tx;
-    } else {
-      throw Error('No TransactionV2 on localnet as no lookup table was created');
+    let allLookupTables: AddressLookupTableAccount[] = [];
+    if (lookupTable) {
+      allLookupTables.push(lookupTable);
     }
+    if (lookupTables) {
+      lookupTables.forEach(async (table) => {
+        let lookupTableData = await this.getLookupTable(table);
+        allLookupTables.push(lookupTableData);
+      });
+    }
+    return await this.getTransactionV2MessageWithFetchedLookupTables(payer, instructions, allLookupTables);
   };
 
   // the optional param is the lookup table list of the tables that are already feteched from chain
@@ -2621,23 +2614,22 @@ export class Kamino {
     instructions: Array<TransactionInstruction>,
     lookupTables?: Array<AddressLookupTableAccount>
   ): Promise<MessageV0> => {
-    if (this._cluster == 'mainnet-beta' || this._cluster == 'devnet') {
-      let lookupTable = await this.getMainLookupTable();
-      let blockhash = await this._connection.getLatestBlockhash();
+    let lookupTable = await this.getMainLookupTable();
+    let blockhash = await this._connection.getLatestBlockhash();
 
-      let allLookupTables = [lookupTable];
-      if (lookupTables) {
-        allLookupTables.push(...lookupTables);
-      }
-      const v2Tx = new TransactionMessage({
-        payerKey: payer,
-        recentBlockhash: blockhash.blockhash,
-        instructions: instructions,
-      }).compileToV0Message(allLookupTables);
-      return v2Tx;
-    } else {
-      throw Error('No TransactionV2 on localnet as no lookup table was created');
+    let allLookupTables: AddressLookupTableAccount[] = [];
+    if (lookupTable) {
+      allLookupTables.push(lookupTable);
     }
+    if (lookupTables) {
+      allLookupTables.push(...lookupTables);
+    }
+    const v2Tx = new TransactionMessage({
+      payerKey: payer,
+      recentBlockhash: blockhash.blockhash,
+      instructions: instructions,
+    }).compileToV0Message(allLookupTables);
+    return v2Tx;
   };
 
   // todo(silviu): implement this

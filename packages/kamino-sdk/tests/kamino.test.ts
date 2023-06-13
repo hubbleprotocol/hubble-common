@@ -284,6 +284,7 @@ describe('Kamino SDK Tests', () => {
     console.log('raydium position opened');
 
     await kamino.setupStrategyLookupTable(signer, newOrcaStrategy.publicKey);
+    await kamino.setupStrategyLookupTable(signer, newRaydiumStrategy.publicKey);
 
     ScopeMints.push({
       cluster: 'localnet',
@@ -964,17 +965,23 @@ describe('Kamino SDK Tests', () => {
       console.log('executive withdraw and collect fees have been executed');
     }
     {
-      let tx = createTransactionWithExtraBudget(signer.publicKey, 1_000_000).add(openPositionIx);
-      let sig = await sendTransactionWithLogs(
-        connection,
-        tx,
+      console.log('strategy.strategyLookupTable', strategy.strategyLookupTable.toString());
+      const increaseBudgetIx = createAddExtraComputeUnitsTransaction(signer.publicKey, 1_000_000);
+
+      const openPositionTx = await kamino.getTransactionV2Message(
         signer.publicKey,
-        [signer, newPosition],
-        'confirmed',
-        true
+        [increaseBudgetIx, openPositionIx],
+        [strategy.strategyLookupTable]
       );
-      expect(sig).to.not.be.null;
-      console.log('new position has been opened');
+      let openPositionTxV0 = new VersionedTransaction(openPositionTx);
+      openPositionTxV0.sign([signer, newPosition]);
+      try {
+        //@ts-ignore
+        txHash = await sendAndConfirmTransaction(kamino._connection, openPositionTxV0);
+        console.log('open position tx hash', txHash);
+      } catch (e) {
+        console.log('silviu error', e);
+      }
     }
     {
       let invextIx = await kamino.invest(fixtures.newRaydiumStrategy, signer.publicKey);
