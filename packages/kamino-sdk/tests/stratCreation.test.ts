@@ -173,8 +173,15 @@ describe('Kamino strategy creation SDK Tests', () => {
     let updateRewardMappingIxs = await kamino.getUpdateRewardsIxs(signer.publicKey, newStrategy.publicKey);
     console.log('updateRewardMappingIxs', updateRewardMappingIxs.length);
 
+    // set up lookup table for strategy
+    let strategyLookupTable = await kamino.setupStrategyLookupTable(signer, newStrategy.publicKey);
+
     for (let ix of updateRewardMappingIxs) {
-      const updateRewardMappingTx = await kamino.getTransactionV2Message(signer.publicKey, [ix[0]]);
+      const updateRewardMappingTx = await kamino.getTransactionV2Message(
+        signer.publicKey,
+        [ix[0]],
+        [strategyLookupTable]
+      );
       const updateRewardMappingsTransactionV0 = new VersionedTransaction(updateRewardMappingTx);
       updateRewardMappingsTransactionV0.sign([signer, ix[1]]);
       //@ts-ignore

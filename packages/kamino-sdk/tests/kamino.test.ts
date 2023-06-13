@@ -1,4 +1,12 @@
-import { Connection, Keypair, PublicKey, sendAndConfirmTransaction, SystemProgram, Transaction } from '@solana/web3.js';
+import {
+  Connection,
+  Keypair,
+  PublicKey,
+  sendAndConfirmTransaction,
+  SystemProgram,
+  Transaction,
+  VersionedTransaction,
+} from '@solana/web3.js';
 import {
   createAddExtraComputeUnitsTransaction,
   Dex,
@@ -274,6 +282,9 @@ describe('Kamino SDK Tests', () => {
     console.log('orca position opened');
     await openPosition(kamino, signer, newRaydiumStrategy.publicKey, new Decimal(0.97), new Decimal(1.03));
     console.log('raydium position opened');
+
+    await kamino.setupStrategyLookupTable(signer, newOrcaStrategy.publicKey);
+    await kamino.setupStrategyLookupTable(signer, newRaydiumStrategy.publicKey);
 
     ScopeMints.push({
       cluster: 'localnet',
@@ -879,7 +890,7 @@ describe('Kamino SDK Tests', () => {
       let tx = new Transaction().add(increaseBudgetIx, executiveWithdrawIx, collectFeesIx);
       let sig = await sendTransactionWithLogs(connection, tx, signer.publicKey, [signer]);
       expect(sig).to.not.be.null;
-      console.log('executive withdraw and collect fees have been executed');
+      console.log('executive withdraw and collect fees have been executed ');
     }
     {
       const increaseBudgetIx = createAddExtraComputeUnitsTransaction(signer.publicKey, 1_000_000);
@@ -954,17 +965,20 @@ describe('Kamino SDK Tests', () => {
       console.log('executive withdraw and collect fees have been executed');
     }
     {
-      let tx = createTransactionWithExtraBudget(signer.publicKey, 1_000_000).add(openPositionIx);
-      let sig = await sendTransactionWithLogs(
-        connection,
-        tx,
+      const increaseBudgetIx = createAddExtraComputeUnitsTransaction(signer.publicKey, 1_000_000);
+
+      const openPositionTx = await kamino.getTransactionV2Message(
         signer.publicKey,
-        [signer, newPosition],
-        'confirmed',
-        true
+        [increaseBudgetIx, openPositionIx],
+        [strategy.strategyLookupTable]
       );
-      expect(sig).to.not.be.null;
-      console.log('new position has been opened');
+      let openPositionTxV0 = new VersionedTransaction(openPositionTx);
+      openPositionTxV0.sign([signer, newPosition]);
+
+      console.log('opening raydium position in rebalancing');
+      //@ts-ignore
+      let myHash = await sendAndConfirmTransaction(kamino._connection, openPositionTxV0);
+      console.log('open position tx hash', myHash);
     }
     {
       let invextIx = await kamino.invest(fixtures.newRaydiumStrategy, signer.publicKey);
