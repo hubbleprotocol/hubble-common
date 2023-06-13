@@ -2607,10 +2607,14 @@ export class Kamino {
       allLookupTables.push(lookupTable);
     }
     if (lookupTables) {
-      lookupTables.forEach(async (table) => {
+      for (let table of lookupTables) {
         let lookupTableData = await this.getLookupTable(table);
         allLookupTables.push(lookupTableData);
-      });
+      }
+      // lookupTables.forEach(async (table) => {
+      //   let lookupTableData = await this.getLookupTable(table);
+      //   allLookupTables.push(lookupTableData);
+      // });
     }
     return await this.getTransactionV2MessageWithFetchedLookupTables(payer, instructions, allLookupTables);
   };
@@ -2625,12 +2629,15 @@ export class Kamino {
     let blockhash = await this._connection.getLatestBlockhash();
 
     let allLookupTables: AddressLookupTableAccount[] = [];
-    if (lookupTable) {
-      allLookupTables.push(lookupTable);
-    }
     if (lookupTables) {
       allLookupTables.push(...lookupTables);
     }
+
+    if (lookupTable) {
+      allLookupTables.push(lookupTable);
+    }
+
+    // console.log('allLookupTables', allLookupTables.length);
     const v2Tx = new TransactionMessage({
       payerKey: payer,
       recentBlockhash: blockhash.blockhash,

@@ -965,7 +965,6 @@ describe('Kamino SDK Tests', () => {
       console.log('executive withdraw and collect fees have been executed');
     }
     {
-      console.log('strategy.strategyLookupTable', strategy.strategyLookupTable.toString());
       const increaseBudgetIx = createAddExtraComputeUnitsTransaction(signer.publicKey, 1_000_000);
 
       const openPositionTx = await kamino.getTransactionV2Message(
@@ -975,13 +974,11 @@ describe('Kamino SDK Tests', () => {
       );
       let openPositionTxV0 = new VersionedTransaction(openPositionTx);
       openPositionTxV0.sign([signer, newPosition]);
-      try {
-        //@ts-ignore
-        txHash = await sendAndConfirmTransaction(kamino._connection, openPositionTxV0);
-        console.log('open position tx hash', txHash);
-      } catch (e) {
-        console.log('silviu error', e);
-      }
+
+      console.log('opening raydium position in rebalancing');
+      //@ts-ignore
+      let myHash = await sendAndConfirmTransaction(kamino._connection, openPositionTxV0);
+      console.log('open position tx hash', myHash);
     }
     {
       let invextIx = await kamino.invest(fixtures.newRaydiumStrategy, signer.publicKey);
