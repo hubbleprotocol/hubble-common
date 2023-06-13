@@ -2513,37 +2513,37 @@ export class Kamino {
   getPopulateLookupTableIx = async (
     authority: PublicKey,
     lookupTable: PublicKey,
-    strategy: PublicKey
+    strategy: PublicKey | StrategyWithAddress
   ): Promise<TransactionInstruction> => {
-    let strategyState = await WhirlpoolStrategy.fetch(this._connection, strategy);
+    const strategyState = await this.getStrategyStateIfNotFetched(strategy);
     if (!strategyState) {
       throw Error(`Could not fetch strategy state with pubkey ${strategy.toString()}`);
     }
     let programId = PublicKey.default;
-    if (strategyState.strategyDex.toNumber() === dexToNumber('RAYDIUM')) {
+    if (strategyState.strategy.strategyDex.toNumber() === dexToNumber('RAYDIUM')) {
       programId = RAYDIUM_PROGRAM_ID;
     } else {
       programId = WHIRLPOOL_PROGRAM_ID;
     }
 
     let accountsToBeInserted: PublicKey[] = [
-      strategy,
-      strategyState.adminAuthority,
-      strategyState.baseVaultAuthority,
-      strategyState.pool,
-      strategyState.tokenAMint,
-      strategyState.tokenBMint,
-      strategyState.tokenAVault,
-      strategyState.tokenBVault,
-      strategyState.poolTokenVaultA,
-      strategyState.poolTokenVaultB,
-      strategyState.tokenAMint,
-      strategyState.raydiumProtocolPositionOrBaseVaultAuthority,
-      strategyState.raydiumPoolConfigOrBaseVaultAuthority,
-      strategyState.tickArrayLower,
-      strategyState.tickArrayUpper,
-      strategyState.positionMint,
-      strategyState.positionTokenAccount,
+      strategyState.address,
+      strategyState.strategy.adminAuthority,
+      strategyState.strategy.baseVaultAuthority,
+      strategyState.strategy.pool,
+      strategyState.strategy.tokenAMint,
+      strategyState.strategy.tokenBMint,
+      strategyState.strategy.tokenAVault,
+      strategyState.strategy.tokenBVault,
+      strategyState.strategy.poolTokenVaultA,
+      strategyState.strategy.poolTokenVaultB,
+      strategyState.strategy.tokenAMint,
+      strategyState.strategy.raydiumProtocolPositionOrBaseVaultAuthority,
+      strategyState.strategy.raydiumPoolConfigOrBaseVaultAuthority,
+      strategyState.strategy.tickArrayLower,
+      strategyState.strategy.tickArrayUpper,
+      strategyState.strategy.positionMint,
+      strategyState.strategy.positionTokenAccount,
       SYSVAR_RENT_PUBKEY,
       TOKEN_PROGRAM_ID,
       ASSOCIATED_TOKEN_PROGRAM_ID,
