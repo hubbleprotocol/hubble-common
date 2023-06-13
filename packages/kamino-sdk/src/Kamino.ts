@@ -2519,6 +2519,12 @@ export class Kamino {
     if (!strategyState) {
       throw Error(`Could not fetch strategy state with pubkey ${strategy.toString()}`);
     }
+    let programId = PublicKey.default;
+    if (strategyState.strategyDex.toNumber() === dexToNumber('RAYDIUM')) {
+      programId = RAYDIUM_PROGRAM_ID;
+    } else {
+      programId = WHIRLPOOL_PROGRAM_ID;
+    }
 
     let accountsToBeInserted: PublicKey[] = [
       strategy,
@@ -2531,15 +2537,7 @@ export class Kamino {
       strategyState.tokenBVault,
       strategyState.poolTokenVaultA,
       strategyState.poolTokenVaultB,
-      strategyState.reward0Vault,
-      strategyState.reward1Vault,
-      strategyState.reward2Vault,
-      strategyState.kaminoRewards[0].rewardVault,
-      strategyState.kaminoRewards[1].rewardVault,
-      strategyState.kaminoRewards[2].rewardVault,
-      strategyState.tokenAVaultAuthority,
       strategyState.tokenAMint,
-      strategyState.sharesMintAuthority,
       strategyState.raydiumProtocolPositionOrBaseVaultAuthority,
       strategyState.raydiumPoolConfigOrBaseVaultAuthority,
       strategyState.tickArrayLower,
@@ -2550,8 +2548,7 @@ export class Kamino {
       TOKEN_PROGRAM_ID,
       ASSOCIATED_TOKEN_PROGRAM_ID,
       METADATA_PROGRAM_ID,
-      WHIRLPOOL_PROGRAM_ID,
-      RAYDIUM_PROGRAM_ID,
+      programId,
     ];
 
     return this.getAddLookupTableEntriesIx(authority, lookupTable, accountsToBeInserted);
