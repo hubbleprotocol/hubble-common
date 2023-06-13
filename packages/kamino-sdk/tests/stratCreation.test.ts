@@ -175,7 +175,6 @@ describe('Kamino strategy creation SDK Tests', () => {
 
     // set up lookup table for strategy
     let strategyLookupTable = await kamino.setupStrategyLookupTable(signer, newStrategy.publicKey);
-    console.log('after lookup table init');
 
     for (let ix of updateRewardMappingIxs) {
       const updateRewardMappingTx = await kamino.getTransactionV2Message(
