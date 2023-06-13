@@ -2570,7 +2570,7 @@ export class Kamino {
   getLookupTable = async (tablePk: PublicKey): Promise<AddressLookupTableAccount> => {
     const lookupTableAccount = await this._connection.getAddressLookupTable(tablePk).then((res) => res.value);
     if (!lookupTableAccount) {
-      throw new Error(`Could not get lookup table ${MAINNET_GLOBAL_LOOKUP_TABLE}`);
+      throw new Error(`Could not get lookup table ${tablePk.toString()}`);
     }
     return lookupTableAccount;
   };
@@ -2611,10 +2611,6 @@ export class Kamino {
         let lookupTableData = await this.getLookupTable(table);
         allLookupTables.push(lookupTableData);
       }
-      // lookupTables.forEach(async (table) => {
-      //   let lookupTableData = await this.getLookupTable(table);
-      //   allLookupTables.push(lookupTableData);
-      // });
     }
     return await this.getTransactionV2MessageWithFetchedLookupTables(payer, instructions, allLookupTables);
   };
@@ -2637,7 +2633,6 @@ export class Kamino {
       allLookupTables.push(lookupTable);
     }
 
-    // console.log('allLookupTables', allLookupTables.length);
     const v2Tx = new TransactionMessage({
       payerKey: payer,
       recentBlockhash: blockhash.blockhash,
