@@ -2587,6 +2587,7 @@ export class Kamino {
     return lookupTable;
   };
 
+  // the optional param is a list of pubkeys of lookup tables and they will be read from chain and used in the tx
   getTransactionV2Message = async (
     payer: PublicKey,
     instructions: Array<TransactionInstruction>,
@@ -2607,7 +2608,32 @@ export class Kamino {
         payerKey: payer,
         recentBlockhash: blockhash.blockhash,
         instructions: instructions,
-      }).compileToV0Message([lookupTable]);
+      }).compileToV0Message(allLookupTables);
+      return v2Tx;
+    } else {
+      throw Error('No TransactionV2 on localnet as no lookup table was created');
+    }
+  };
+
+  // the optional param is the lookup table list of the tables that are already feteched from chain
+  getTransactionV2MessageWithFetchedLookupTables = async (
+    payer: PublicKey,
+    instructions: Array<TransactionInstruction>,
+    lookupTables?: Array<AddressLookupTableAccount>
+  ): Promise<MessageV0> => {
+    if (this._cluster == 'mainnet-beta' || this._cluster == 'devnet') {
+      let lookupTable = await this.getMainLookupTable();
+      let blockhash = await this._connection.getLatestBlockhash();
+
+      let allLookupTables = [lookupTable];
+      if (lookupTables) {
+        allLookupTables.push(...lookupTables);
+      }
+      const v2Tx = new TransactionMessage({
+        payerKey: payer,
+        recentBlockhash: blockhash.blockhash,
+        instructions: instructions,
+      }).compileToV0Message(allLookupTables);
       return v2Tx;
     } else {
       throw Error('No TransactionV2 on localnet as no lookup table was created');
