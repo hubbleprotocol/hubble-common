@@ -27,10 +27,12 @@ export interface RebalanceMethod {
 export const ManualRebalanceMethod: RebalanceMethod = {
   label: 'Manual',
   value: Manual.discriminator,
-  description: 'With Kamino’s Manual Price Range Selection strategy, you have full control over the price range at which your orders are placed. This strategy allows you to set your own price range and adjust it as needed, giving you greater flexibility and customization in your market-making efforts.'
+  description:
+    'With Kamino’s Manual Price Range Selection strategy, you have full control over the price range at which your orders are placed. This strategy allows you to set your own price range and adjust it as needed, giving you greater flexibility and customization in your market-making efforts.',
 };
 export const PricePercentageRebalanceMethod: RebalanceMethod = {
   label: 'Price Percentage',
   value: PricePercentage.discriminator,
-  description: 'Optimize your portfolio for maximum returns with Kamino’s Automated Percentage Rebalancing strategy. Automatically adjust your allocation based on predetermined percentages for a balanced and risk-minimized portfolio.'
+  description:
+    'Optimize your portfolio for maximum returns with Kamino’s Automated Percentage Rebalancing strategy. Automatically adjust your allocation based on predetermined percentages for a balanced and risk-minimized portfolio.',
 };
