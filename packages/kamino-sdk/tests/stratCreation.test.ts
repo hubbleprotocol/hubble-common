@@ -850,4 +850,80 @@ describe('Kamino strategy creation SDK Tests', () => {
     const openPositionTxId = await sendAndConfirmTransaction(kamino._connection, openPositionTx);
     console.log('openPositionTxId', openPositionTxId);
   });
+
+  it.skip('create new custom SOL-BONK percentage strategy on existing whirlpool and open position', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      GlobalConfigMainnet,
+      KaminoProgramIdMainnet,
+      WHIRLPOOL_PROGRAM_ID,
+      RAYDIUM_PROGRAM_ID
+    );
+
+    const newStrategy = Keypair.generate();
+    const newPosition = Keypair.generate();
+    const createRaydiumStrategyAccountIx = await kamino.createStrategyAccount(signer.publicKey, newStrategy.publicKey);
+    console.log('newStrategy.publicKey', newStrategy.publicKey.toString());
+
+    let lowerPriceBpsDifference = new Decimal(100.0);
+    let upperPriceBpsDifference = new Decimal(110.0);
+
+    let buildNewStrategyIxs = await kamino.getBuildStrategyIxns(
+      'ORCA',
+      new Decimal(30),
+      newStrategy.publicKey,
+      newPosition.publicKey,
+      signer.publicKey,
+      new Decimal(PricePercentage.discriminator),
+      [lowerPriceBpsDifference, upperPriceBpsDifference],
+      new PublicKey('So11111111111111111111111111111111111111112'),
+      new PublicKey('DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263')
+    );
+
+    let ixs: TransactionInstruction[] = [];
+    ixs.push(createRaydiumStrategyAccountIx);
+    ixs.push(buildNewStrategyIxs[0]);
+    const createStratTx = await kamino.getTransactionV2Message(signer.publicKey, ixs);
+    const createStratTransactionV0 = new VersionedTransaction(createStratTx);
+    createStratTransactionV0.sign([newStrategy, signer]);
+    //@ts-ignore
+    let txHash = await sendAndConfirmTransaction(kamino._connection, createStratTransactionV0);
+    console.log('create strategy tx hash', txHash);
+
+    let strategySetupIxs: TransactionInstruction[] = [];
+    buildNewStrategyIxs[1].slice(0, 4).map((ix) => strategySetupIxs.push(ix));
+    const setupStratTx = await kamino.getTransactionV2Message(signer.publicKey, strategySetupIxs);
+    const setupStratTransactionV0 = new VersionedTransaction(setupStratTx);
+    setupStratTransactionV0.sign([signer]);
+
+    //@ts-ignore
+    txHash = await sendAndConfirmTransaction(kamino._connection, setupStratTransactionV0);
+    console.log('setup strategy tx hash', txHash);
+
+    let strategySetupFeesIxs: TransactionInstruction[] = [];
+    buildNewStrategyIxs[1].slice(4).map((ix) => strategySetupFeesIxs.push(ix));
+    strategySetupFeesIxs.push(buildNewStrategyIxs[2]);
+    const setupStratFeesTx = await kamino.getTransactionV2Message(signer.publicKey, strategySetupFeesIxs);
+    const setupStratFeesTransactionV0 = new VersionedTransaction(setupStratFeesTx);
+    setupStratFeesTransactionV0.sign([signer]);
+    //@ts-ignore
+    txHash = await sendAndConfirmTransaction(kamino._connection, setupStratFeesTransactionV0);
+    console.log('setup strategy fees tx hash', txHash);
+
+    // verify strategy rebalance params
+    let strategyData = await kamino.getStrategies([newStrategy.publicKey]);
+    expect(strategyData[0]?.rebalanceRaw[0] == lowerPriceBpsDifference);
+    expect(strategyData[0]?.rebalanceRaw[2] == upperPriceBpsDifference);
+
+    // open position
+    const openPositionIxn = buildNewStrategyIxs[3];
+    const openPositionMessage = await kamino.getTransactionV2Message(signer.publicKey, [openPositionIxn]);
+    const openPositionTx = new VersionedTransaction(openPositionMessage);
+    openPositionTx.sign([signer, newPosition]);
+
+    //@ts-ignore
+    const openPositionTxId = await sendAndConfirmTransaction(kamino._connection, openPositionTx);
+    console.log('openPositionTxId', openPositionTxId);
+  });
 });
