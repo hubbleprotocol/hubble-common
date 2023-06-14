@@ -30,7 +30,11 @@ describe('Kamino strategy creation SDK Tests', () => {
   connection = new Connection(clusterUrl, 'processed');
 
   // use your private key here
-  const signerPrivateKey = [];
+  const signerPrivateKey = [
+    178, 65, 98, 152, 172, 223, 56, 136, 242, 32, 177, 181, 183, 67, 173, 24, 65, 117, 155, 205, 15, 234, 161, 244, 50,
+    68, 101, 44, 121, 17, 172, 226, 252, 121, 151, 204, 91, 236, 195, 244, 71, 187, 116, 212, 30, 169, 243, 124, 216,
+    184, 28, 167, 65, 210, 113, 11, 177, 219, 79, 127, 243, 194, 2, 2,
+  ];
   const signer = Keypair.fromSecretKey(Uint8Array.from(signerPrivateKey));
 
   it.skip('get pools for Raydium SOL-USDC pair', async () => {
@@ -851,7 +855,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     console.log('openPositionTxId', openPositionTxId);
   });
 
-  it.skip('create new custom SOL-BONK percentage strategy on existing whirlpool and open position', async () => {
+  it('create new custom SOL-BONK percentage strategy on existing whirlpool and open position', async () => {
     let kamino = new Kamino(
       cluster,
       connection,
@@ -866,8 +870,8 @@ describe('Kamino strategy creation SDK Tests', () => {
     const createRaydiumStrategyAccountIx = await kamino.createStrategyAccount(signer.publicKey, newStrategy.publicKey);
     console.log('newStrategy.publicKey', newStrategy.publicKey.toString());
 
-    let lowerPriceBpsDifference = new Decimal(10.0);
-    let upperPriceBpsDifference = new Decimal(11.0);
+    let lowerPriceBpsDifference = new Decimal(100.0);
+    let upperPriceBpsDifference = new Decimal(110.0);
 
     let buildNewStrategyIxs = await kamino.getBuildStrategyIxns(
       'ORCA',
@@ -878,7 +882,7 @@ describe('Kamino strategy creation SDK Tests', () => {
       new Decimal(PricePercentage.discriminator),
       [lowerPriceBpsDifference, upperPriceBpsDifference],
       new PublicKey('So11111111111111111111111111111111111111112'),
-      new PublicKey('USDH1SM1ojwWUga67PGrgFWUHibbjqMvuMaDkRJTgkX')
+      new PublicKey('DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263')
     );
 
     let ixs: TransactionInstruction[] = [];
