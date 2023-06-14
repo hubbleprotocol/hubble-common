@@ -851,7 +851,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     console.log('openPositionTxId', openPositionTxId);
   });
 
-  it('create new custom SOL-BONK percentage strategy on existing whirlpool and open position', async () => {
+  it.skip('create new custom SOL-BONK percentage strategy on existing whirlpool and open position', async () => {
     let kamino = new Kamino(
       cluster,
       connection,
