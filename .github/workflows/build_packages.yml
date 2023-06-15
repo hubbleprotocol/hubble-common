@@ -15,7 +15,9 @@ jobs:
 
     - name: test
       run: |
+        echo $PATH
         lerna -v
+        whereis lerna
 
     # 1. provide Personal Access Token for checkout@v2
     # GITHUB_TOKEN (personal access token) always exists in repositories, does not have to be explicitly added
@@ -33,10 +35,6 @@ jobs:
 
     - name: Install dependencies
       run: |
-        lerna -v
-        npm uninstall lerna
-        lerna -v
-        npm uninstall -g lerna
         lerna -v
         npm ci
         lerna -v
