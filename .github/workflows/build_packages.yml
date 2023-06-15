@@ -13,10 +13,6 @@ jobs:
     needs: prettier
     steps:
 
-    - name: Uninstall lerna v7
-      run: |
-        rm -rf /usr/local/bin/lerna
-
     # 1. provide Personal Access Token for checkout@v2
     # GITHUB_TOKEN (personal access token) always exists in repositories, does not have to be explicitly added
     - name: Checkout
@@ -31,9 +27,14 @@ jobs:
         node-version: '16'
         registry-url: 'https://registry.npmjs.org'
 
+    - name: Install lerna v4
+      run: |
+        rm -rf /usr/local/bin/lerna
+        npm install -g lerna@4.0.0
+
     - name: Install dependencies
       run: |
-        npm install
+        npm ci
         lerna bootstrap
 
     - name: Build packages
