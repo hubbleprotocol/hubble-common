@@ -27,13 +27,10 @@ jobs:
         node-version: '16'
         registry-url: 'https://registry.npmjs.org'
 
-    - name: Install dependencies
+    - name: Build packages
       run: | 
         npm install
-        lerna run bootstrap
-
-    - name: Build packages
-      run: lerna run build
+        lerna run build
       
   prettier:
     runs-on: ubuntu-latest
