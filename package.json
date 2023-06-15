@@ -20,7 +20,7 @@
     "@types/node": "^16.18.11",
     "@types/node-fetch": "^2.6.2",
     "chai": "^4.3.6",
-    "lerna": "^4.0.0",
+    "lerna": "4.0.0",
     "mocha": "^10.2.0",
     "mocha-sinon": "^2.1.2",
     "prettier": "^2.7.1",
