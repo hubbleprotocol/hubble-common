@@ -1,9 +1,13 @@
 {
-  "packages": ["packages/*"],
-  "version": "2.0.14",
+  "packages": [
+    "packages/*"
+  ],
+  "version": "2.0.15",
   "command": {
     "publish": {
-      "ignoreChanges": ["tests/**"]
+      "ignoreChanges": [
+        "tests/**"
+      ]
     }
   }
 }
