@@ -54,7 +54,6 @@ jobs:
     - name: Install dependencies
       run: | 
         npm ci
-        lerna bootstrap
 
     - name: Build packages
       run: lerna run build

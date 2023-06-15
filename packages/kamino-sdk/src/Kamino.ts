@@ -2791,30 +2791,33 @@ export class Kamino {
 
   getLiquidityDistributionRaydiumPool = (
     pool: PublicKey,
+    keepOrder: boolean = true,
     lowestTick?: number,
     highestTick?: number
   ): Promise<LiquidityDistribution> => {
-    return this._raydiumService.getRaydiumPoolLiquidityDistribution(pool, lowestTick, highestTick);
+    return this._raydiumService.getRaydiumPoolLiquidityDistribution(pool, keepOrder, lowestTick, highestTick);
   };
 
   getLiquidityDistributionOrcaWhirlpool = (
     pool: PublicKey,
+    keepOrder: boolean = true,
     lowestTick?: number,
     highestTick?: number
   ): Promise<LiquidityDistribution> => {
-    return this._orcaService.getWhirlpoolLiquidityDistribution(pool, lowestTick, highestTick);
+    return this._orcaService.getWhirlpoolLiquidityDistribution(pool, keepOrder, lowestTick, highestTick);
   };
 
   getLiquidityDistribution = async (
     dex: Dex,
     pool: PublicKey,
+    keepOrder: boolean = true,
     lowestTick?: number,
     highestTick?: number
   ): Promise<LiquidityDistribution> => {
     if (dex == 'ORCA') {
-      return this.getLiquidityDistributionOrcaWhirlpool(pool, lowestTick, highestTick);
+      return this.getLiquidityDistributionOrcaWhirlpool(pool, keepOrder, lowestTick, highestTick);
     } else if (dex == 'RAYDIUM') {
-      return this.getLiquidityDistributionRaydiumPool(pool, lowestTick, highestTick);
+      return this.getLiquidityDistributionRaydiumPool(pool, keepOrder, lowestTick, highestTick);
     } else {
       throw Error(`Dex ${dex} not supported`);
     }

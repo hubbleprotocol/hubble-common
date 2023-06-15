@@ -45,6 +45,7 @@ export class RaydiumService {
 
   async getRaydiumPoolLiquidityDistribution(
     pool: PublicKey,
+    keepOrder: boolean = true,
     lowestTick?: number,
     highestTick?: number
   ): Promise<LiquidityDistribution> {
@@ -89,8 +90,12 @@ export class RaydiumService {
           liqDistribution.distribution.length - 1
         ].liquidity.add(new Decimal(entry.liquidity));
       } else {
+        let priceWithOrder = new Decimal(entry.price);
+        if (!keepOrder) {
+          priceWithOrder = new Decimal(1).div(priceWithOrder);
+        }
         const liq: LiquidityForPrice = {
-          price: new Decimal(entry.price),
+          price: new Decimal(priceWithOrder),
           liquidity: new Decimal(entry.liquidity),
           tickIndex,
         };
