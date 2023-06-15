@@ -33,7 +33,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        npm ci
+        npm install
         lerna bootstrap
 
     - name: Build packages
