@@ -29,7 +29,6 @@ jobs:
 
     - name: Install dependencies
       run: | 
-        npm uninstall lerna
         npm ci
         lerna -v
         lerna bootstrap
