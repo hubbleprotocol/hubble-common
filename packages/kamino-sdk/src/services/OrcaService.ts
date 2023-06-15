@@ -172,6 +172,7 @@ export class OrcaService {
   // strongly recommended to pass lowestTick and highestTick because fetching the lowest and highest existent takes very long
   async getWhirlpoolLiquidityDistribution(
     pool: PublicKey,
+    keepOrder: boolean = true,
     lowestTick?: number,
     highestTick?: number
   ): Promise<LiquidityDistribution> {
@@ -211,8 +212,12 @@ export class OrcaService {
     };
 
     orcaLiqDistribution.datapoints.forEach((entry) => {
+      let priceWithOrder = new Decimal(entry.price);
+      if (!keepOrder) {
+        priceWithOrder = new Decimal(1).div(priceWithOrder);
+      }
       const liq: LiquidityForPrice = {
-        price: entry.price,
+        price: priceWithOrder,
         liquidity: entry.liquidity,
         tickIndex: entry.tickIndex,
       };

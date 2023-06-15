@@ -657,6 +657,19 @@ describe('Kamino strategy creation SDK Tests', () => {
     let raydiumService = new RaydiumService(connection, cluster);
     let liquidityDistribution = await raydiumService.getRaydiumPoolLiquidityDistribution(
       new PublicKey('2QdhepnKRTLjjSqPL1PtKNwqrUkoLee5Gqs8bvZhRdMv'),
+      true,
+      -39470,
+      -37360
+    );
+
+    console.log('raydium liquidityDistribution', liquidityDistribution);
+  });
+
+  it.skip('get raydium pool liquidity distribution with range inverse order', async () => {
+    let raydiumService = new RaydiumService(connection, cluster);
+    let liquidityDistribution = await raydiumService.getRaydiumPoolLiquidityDistribution(
+      new PublicKey('2QdhepnKRTLjjSqPL1PtKNwqrUkoLee5Gqs8bvZhRdMv'),
+      false,
       -39470,
       -37360
     );
