@@ -13,13 +13,9 @@ jobs:
     needs: prettier
     steps:
 
-    - name: test
+    - name: Uninstall lerna v7
       run: |
-        lerna -v
-        whereis lerna
         rm -rf /usr/local/bin/lerna
-        lerna -v
-        whereis lerna
 
     # 1. provide Personal Access Token for checkout@v2
     # GITHUB_TOKEN (personal access token) always exists in repositories, does not have to be explicitly added
