@@ -29,12 +29,14 @@ jobs:
 
     - name: Install dependencies
       run: | 
+        lerna -v
         npm ci
+        lerna -v
         lerna bootstrap
 
     - name: Build packages
       run: lerna run build
-      
+
   prettier:
     runs-on: ubuntu-latest
     steps:
