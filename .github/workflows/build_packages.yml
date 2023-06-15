@@ -25,22 +25,19 @@ jobs:
           submodules: recursive
           token: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: test
-      run: |
-        lerna -v          
-
     - name: Setup node
       uses: actions/setup-node@v2
       with:
         node-version: '16'
         registry-url: 'https://registry.npmjs.org'
 
-    - name: test
+    - name: Install dependencies
       run: |
         lerna -v
-
-    - name: Install dependencies
-      run: | 
+        npm uninstall lerna
+        lerna -v
+        npm uninstall -g lerna
+        lerna -v
         npm ci
         lerna -v
         lerna bootstrap
