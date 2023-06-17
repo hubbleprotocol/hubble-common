@@ -49,6 +49,29 @@ export class PricePercentage {
   }
 }
 
+export interface PricePercentageWithResetJSON {
+  kind: "PricePercentageWithReset"
+}
+
+export class PricePercentageWithReset {
+  static readonly discriminator = 2
+  static readonly kind = "PricePercentageWithReset"
+  readonly discriminator = 2
+  readonly kind = "PricePercentageWithReset"
+
+  toJSON(): PricePercentageWithResetJSON {
+    return {
+      kind: "PricePercentageWithReset",
+    }
+  }
+
+  toEncodable() {
+    return {
+      PricePercentageWithReset: {},
+    }
+  }
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function fromDecoded(obj: any): types.RebalanceTypeKind {
   if (typeof obj !== "object") {
@@ -60,6 +83,9 @@ export function fromDecoded(obj: any): types.RebalanceTypeKind {
   }
   if ("PricePercentage" in obj) {
     return new PricePercentage()
+  }
+  if ("PricePercentageWithReset" in obj) {
+    return new PricePercentageWithReset()
   }
 
   throw new Error("Invalid enum object")
@@ -75,6 +101,9 @@ export function fromJSON(
     case "PricePercentage": {
       return new PricePercentage()
     }
+    case "PricePercentageWithReset": {
+      return new PricePercentageWithReset()
+    }
   }
 }
 
@@ -82,6 +111,7 @@ export function layout(property?: string) {
   const ret = borsh.rustEnum([
     borsh.struct([], "Manual"),
     borsh.struct([], "PricePercentage"),
+    borsh.struct([], "PricePercentageWithReset"),
   ])
   if (property !== undefined) {
     return ret.replicate(property)
