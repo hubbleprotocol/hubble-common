@@ -121,6 +121,8 @@ export type CustomError =
   | RewardNotStrategyToken
   | DecimalToU64ConversionFailed
   | DecimalOperationFailed
+  | VaultBalancesCausesWrongSharesIssuance
+  | TokenDisabled
 
 export class IntegerOverflow extends Error {
   static readonly code = 6000
@@ -1485,6 +1487,31 @@ export class DecimalOperationFailed extends Error {
   }
 }
 
+export class VaultBalancesCausesWrongSharesIssuance extends Error {
+  static readonly code = 6122
+  readonly code = 6122
+  readonly name = "VaultBalancesCausesWrongSharesIssuance"
+  readonly msg =
+    "Deposit is not allowed as the strategy is not fully invested in the pool "
+
+  constructor(readonly logs?: string[]) {
+    super(
+      "6122: Deposit is not allowed as the strategy is not fully invested in the pool "
+    )
+  }
+}
+
+export class TokenDisabled extends Error {
+  static readonly code = 6123
+  readonly code = 6123
+  readonly name = "TokenDisabled"
+  readonly msg = "Token cannot be used in strategy creation"
+
+  constructor(readonly logs?: string[]) {
+    super("6123: Token cannot be used in strategy creation")
+  }
+}
+
 export function fromCode(code: number, logs?: string[]): CustomError | null {
   switch (code) {
     case 6000:
@@ -1731,6 +1758,10 @@ export function fromCode(code: number, logs?: string[]): CustomError | null {
       return new DecimalToU64ConversionFailed(logs)
     case 6121:
       return new DecimalOperationFailed(logs)
+    case 6122:
+      return new VaultBalancesCausesWrongSharesIssuance(logs)
+    case 6123:
+      return new TokenDisabled(logs)
   }
 
   return null

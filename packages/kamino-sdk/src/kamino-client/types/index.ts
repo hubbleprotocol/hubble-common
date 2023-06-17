@@ -5,6 +5,7 @@ import * as GlobalConfigOption from "./GlobalConfigOption"
 import * as StrategyConfigOption from "./StrategyConfigOption"
 import * as StrategyStatus from "./StrategyStatus"
 import * as StrategyType from "./StrategyType"
+import * as CreationStatus from "./CreationStatus"
 import * as ExecutiveWithdrawAction from "./ExecutiveWithdrawAction"
 import * as LiquidityCalculationMode from "./LiquidityCalculationMode"
 import * as UpdateCollateralInfoMode from "./UpdateCollateralInfoMode"
@@ -218,6 +219,21 @@ export type StrategyTypeJSON =
   | StrategyType.PeggedJSON
   | StrategyType.VolatileJSON
 
+export { CreationStatus }
+
+export type CreationStatusKind =
+  | CreationStatus.IGNORED
+  | CreationStatus.SHADOW
+  | CreationStatus.LIVE
+  | CreationStatus.DEPRECATED
+  | CreationStatus.STAGING
+export type CreationStatusJSON =
+  | CreationStatus.IGNOREDJSON
+  | CreationStatus.SHADOWJSON
+  | CreationStatus.LIVEJSON
+  | CreationStatus.DEPRECATEDJSON
+  | CreationStatus.STAGINGJSON
+
 export { ExecutiveWithdrawAction }
 
 export type ExecutiveWithdrawActionKind =
@@ -251,6 +267,7 @@ export type UpdateCollateralInfoModeKind =
   | UpdateCollateralInfoMode.UpdateName
   | UpdateCollateralInfoMode.UpdatePriceMaxAge
   | UpdateCollateralInfoMode.UpdateTwapMaxAge
+  | UpdateCollateralInfoMode.UpdateDisabled
 export type UpdateCollateralInfoModeJSON =
   | UpdateCollateralInfoMode.CollateralIdJSON
   | UpdateCollateralInfoMode.LowerHeuristicJSON
@@ -262,6 +279,7 @@ export type UpdateCollateralInfoModeJSON =
   | UpdateCollateralInfoMode.UpdateNameJSON
   | UpdateCollateralInfoMode.UpdatePriceMaxAgeJSON
   | UpdateCollateralInfoMode.UpdateTwapMaxAgeJSON
+  | UpdateCollateralInfoMode.UpdateDisabledJSON
 
 export { BalanceStatus }
 
@@ -277,9 +295,11 @@ export { RebalanceType }
 export type RebalanceTypeKind =
   | RebalanceType.Manual
   | RebalanceType.PricePercentage
+  | RebalanceType.PricePercentageWithReset
 export type RebalanceTypeJSON =
   | RebalanceType.ManualJSON
   | RebalanceType.PricePercentageJSON
+  | RebalanceType.PricePercentageWithResetJSON
 
 export { CollateralTestToken }
 
