@@ -9,7 +9,6 @@ export type Holdings = {
   totalSum: Decimal;
 };
 
-
 export type TokenHoldings = {
   available: TokenAmounts;
   invested: TokenAmounts;
