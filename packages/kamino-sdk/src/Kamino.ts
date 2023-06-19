@@ -2951,13 +2951,8 @@ export class Kamino {
    * @param amountA
    */
   getStrategyTokensRatio = async (strategy: PublicKey | StrategyWithAddress): Promise<Decimal> => {
-    const { strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
-
-    const holdings = await this.getStrategyTokensBalances(strategyState);
-
-    const totalA = holdings.available.a.add(holdings.invested.a);
-    const totalB = holdings.available.b.add(holdings.invested.b);
-    return totalA.div(totalB);
+    let totalHoldings = await this.getStrategyTokensHoldings(strategy);
+    return totalHoldings.a.div(totalHoldings.b);
   };
 
   calculateAmountsToBeDeposited = async (
@@ -2985,6 +2980,14 @@ export class Kamino {
     }
 
     const tokensRatio = await this.getStrategyTokensRatio(strategy);
+    return await this.calculateDepositAmountsProportionalWithRatio(tokensRatio, tokenAAmount, tokenBAmount);
+  };
+
+  calculateDepositAmountsProportionalWithRatio = async (
+    tokensRatio: Decimal,
+    tokenAAmount?: Decimal,
+    tokenBAmount?: Decimal
+  ): Promise<[Decimal, Decimal]> => {
     if (tokenAAmount) {
       const requiredBAmount = tokenAAmount.mul(new Decimal(1).div(tokensRatio));
       if (!tokenBAmount || tokenBAmount.lt(requiredBAmount)) {
