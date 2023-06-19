@@ -2720,6 +2720,20 @@ export class Kamino {
         new Decimal(rebalanceParams.params[3]).mul(new Decimal(256))
       );
       return [lowerRangePercentage, upperRangePercentage];
+    } else if (rebalanceType.kind == RebalanceType.PricePercentageWithReset.kind) {
+      let lowerRangePercentage = new Decimal(rebalanceParams.params[0]).plus(
+        new Decimal(rebalanceParams.params[1]).mul(new Decimal(256))
+      );
+      let upperRangePercentage = new Decimal(rebalanceParams.params[2]).plus(
+        new Decimal(rebalanceParams.params[3]).mul(new Decimal(256))
+      );
+      let lowerResetRangePercentage = new Decimal(rebalanceParams.params[4]).plus(
+        new Decimal(rebalanceParams.params[5]).mul(new Decimal(256))
+      );
+      let upperResetRangePercentage = new Decimal(rebalanceParams.params[6]).plus(
+        new Decimal(rebalanceParams.params[7]).mul(new Decimal(256))
+      );
+      return [lowerRangePercentage, upperRangePercentage, lowerResetRangePercentage, upperResetRangePercentage];
     } else {
       throw new Error(`Invalid rebalance type ${rebalanceType}`);
     }
