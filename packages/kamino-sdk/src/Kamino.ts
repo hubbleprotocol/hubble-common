@@ -2333,7 +2333,10 @@ export class Kamino {
     if (rebalanceKind.kind == RebalanceType.Manual.kind) {
       lowerPrice = rebalanceParams[0];
       upperPrice = rebalanceParams[1];
-    } else if (rebalanceKind.kind == RebalanceType.PricePercentage.kind) {
+    } else if (
+      rebalanceKind.kind == RebalanceType.PricePercentage.kind ||
+      rebalanceKind.kind == RebalanceType.PricePercentageWithReset.kind
+    ) {
       let positionPrices = await this.getPriceRangePercentageBased(dex, pool, rebalanceParams[0], rebalanceParams[1]);
       lowerPrice = positionPrices[0];
       upperPrice = positionPrices[1];

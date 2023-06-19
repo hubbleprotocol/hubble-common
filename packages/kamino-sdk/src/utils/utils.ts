@@ -50,6 +50,11 @@ export function getStrategyRebalanceParams(params: Array<Decimal>, rebalance_typ
   } else if (rebalance_type.kind == RebalanceType.PricePercentage.kind) {
     buffer.writeUint16LE(params[0].toNumber());
     buffer.writeUint16LE(params[1].toNumber(), 2);
+  } else if (rebalance_type.kind == RebalanceType.PricePercentageWithReset.kind) {
+    buffer.writeUint16LE(params[0].toNumber());
+    buffer.writeUint16LE(params[1].toNumber(), 2);
+    buffer.writeUint16LE(params[2].toNumber(), 4);
+    buffer.writeUint16LE(params[3].toNumber(), 6);
   } else {
     throw 'Rebalance type not valid ' + rebalance_type;
   }
