@@ -53,6 +53,7 @@ import {
   StrategyHolder,
   StrategyProgramAddress,
   StrategyVaultTokens,
+  TokenAmounts,
   TokenHoldings,
   TotalStrategyVaultTokens,
   TreasuryFeeVault,
@@ -2933,8 +2934,19 @@ export class Kamino {
     }
   };
 
+  getStrategyTokensHoldings = async (strategy: PublicKey | StrategyWithAddress): Promise<TokenAmounts> => {
+    const { strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
+
+    const holdings = await this.getStrategyTokensBalances(strategyState);
+
+    const totalA = holdings.available.a.add(holdings.invested.a);
+    const totalB = holdings.available.b.add(holdings.invested.b);
+
+    return { a: totalA, b: totalB };
+  };
+
   /**
-   * Get ratio of total_a_in_strategy/total_b_in_strategy; if the
+   * Get ratio of total_a_in_strategy/total_b_in_strategy; if the total_b_in_strategy is 0 throws;
    * @param strategy
    * @param amountA
    */
