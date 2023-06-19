@@ -1179,8 +1179,6 @@ describe('Kamino SDK Tests', () => {
     expect(depositableTokens[1].mint.toString()).to.be.eq(fixtures.newTokenMintA.toString());
     expect(depositableTokens[0].mint.toString()).to.be.eq(fixtures.newTokenMintB.toString());
   });
-
-  it('')
 });
 
 export async function createStrategy(kamino: Kamino, owner: Keypair, pool: PublicKey, dex: Dex): Promise<PublicKey> {
