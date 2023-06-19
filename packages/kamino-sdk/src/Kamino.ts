@@ -131,7 +131,7 @@ import {
 import { Rebalance } from './kamino-client/types/ExecutiveWithdrawAction';
 import { AmmConfig, PersonalPositionState, PoolState } from './raydium_client';
 import { PROGRAM_ID as RAYDIUM_PROGRAM_ID, setRaydiumProgramId } from './raydium_client/programId';
-import { AmmV3, i32ToBytes, LiquidityMath, SqrtPriceMath, TickMath, TickUtils } from '@raydium-io/raydium-sdk';
+import { AmmV3, i32ToBytes, LiquidityMath, SqrtPriceMath, TickMath, TickUtils, Token } from '@raydium-io/raydium-sdk';
 
 import KaminoIdl from './kamino-client/kamino.json';
 import { OrcaService, RaydiumService, Whirlpool as OrcaPool, WhirlpoolAprApy } from './services';
@@ -2979,15 +2979,26 @@ export class Kamino {
       return [new Decimal(0), new Decimal(0)];
     }
 
-    const tokensRatio = await this.getStrategyTokensRatio(strategy);
-    return await this.calculateDepositAmountsProportionalWithRatio(tokensRatio, tokenAAmount, tokenBAmount);
+    let totalHoldings = await this.getStrategyTokensHoldings(strategy);
+    // if we have no holdings, on the initial deposit we use the old method
+    if (totalHoldings.a.eq(ZERO) && totalHoldings.b.eq(ZERO)) {
+      return await this.calculateDepostAmountsDollarBased(strategy, tokenAAmount, tokenBAmount);
+    }
+    return await this.calculateDepositAmountsProportionalWithTotalTokens(totalHoldings, tokenAAmount, tokenBAmount);
   };
 
-  calculateDepositAmountsProportionalWithRatio = async (
-    tokensRatio: Decimal,
+  private calculateDepositAmountsProportionalWithTotalTokens = async (
+    totalTokens: TokenAmounts,
     tokenAAmount?: Decimal,
     tokenBAmount?: Decimal
   ): Promise<[Decimal, Decimal]> => {
+    if (totalTokens.a.eq(ZERO)) {
+      return [ZERO, tokenBAmount ? tokenBAmount : new Decimal(Number.MAX_VALUE)];
+    }
+    if (totalTokens.b.eq(ZERO)) {
+      return [tokenAAmount ? tokenAAmount : new Decimal(Number.MAX_VALUE), ZERO];
+    }
+    const tokensRatio = totalTokens.a.div(totalTokens.b);
     if (tokenAAmount) {
       const requiredBAmount = tokenAAmount.mul(new Decimal(1).div(tokensRatio));
       if (!tokenBAmount || tokenBAmount.lt(requiredBAmount)) {
