@@ -76,6 +76,7 @@ import {
   LiquidityDistribution,
   numberToRebalanceType,
   RebalanceFieldInfo,
+  RebalanceParamOffset,
   sendTransactionWithLogs,
   StrategiesFilters,
   strategyCreationStatusToBase58,
@@ -149,7 +150,6 @@ import {
   UpdateReward2Fee,
   UpdateCollectFeesFee,
   UpdateRebalanceType,
-  UpdateStrategyCreationState,
   UpdateLookupTable,
 } from './kamino-client/types/StrategyConfigOption';
 import {
@@ -176,9 +176,6 @@ import {
   RebalanceMethod,
 } from './utils/CreationParameters';
 import { getMintDecimals } from '@project-serum/serum/lib/market';
-import { Key } from 'readline';
-import { token } from '@project-serum/anchor/dist/cjs/utils';
-import { table } from 'console';
 export const KAMINO_IDL = KaminoIdl;
 
 export class Kamino {
@@ -2713,28 +2710,29 @@ export class Kamino {
    */
 
   readPercentageRebalanceParams = (rebalanceType: RebalanceTypeKind, rebalanceParams: RebalanceRaw): Decimal[] => {
+    // we represent the rebalance params as a vector of bytes and each param is represented over 2 bytes so when we read them we interpret the 2 bytes
     if (rebalanceType.kind == RebalanceType.Manual.kind) {
       return [new Decimal(rebalanceParams.params[0]), new Decimal(rebalanceParams.params[1])];
     } else if (rebalanceType.kind == RebalanceType.PricePercentage.kind) {
       let lowerRangePercentage = new Decimal(rebalanceParams.params[0]).plus(
-        new Decimal(rebalanceParams.params[1]).mul(new Decimal(256))
+        new Decimal(rebalanceParams.params[1]).mul(RebalanceParamOffset)
       );
       let upperRangePercentage = new Decimal(rebalanceParams.params[2]).plus(
-        new Decimal(rebalanceParams.params[3]).mul(new Decimal(256))
+        new Decimal(rebalanceParams.params[3]).mul(RebalanceParamOffset)
       );
       return [lowerRangePercentage, upperRangePercentage];
     } else if (rebalanceType.kind == RebalanceType.PricePercentageWithReset.kind) {
       let lowerRangePercentage = new Decimal(rebalanceParams.params[0]).plus(
-        new Decimal(rebalanceParams.params[1]).mul(new Decimal(256))
+        new Decimal(rebalanceParams.params[1]).mul(RebalanceParamOffset)
       );
       let upperRangePercentage = new Decimal(rebalanceParams.params[2]).plus(
-        new Decimal(rebalanceParams.params[3]).mul(new Decimal(256))
+        new Decimal(rebalanceParams.params[3]).mul(RebalanceParamOffset)
       );
       let lowerResetRangePercentage = new Decimal(rebalanceParams.params[4]).plus(
-        new Decimal(rebalanceParams.params[5]).mul(new Decimal(256))
+        new Decimal(rebalanceParams.params[5]).mul(RebalanceParamOffset)
       );
       let upperResetRangePercentage = new Decimal(rebalanceParams.params[6]).plus(
-        new Decimal(rebalanceParams.params[7]).mul(new Decimal(256))
+        new Decimal(rebalanceParams.params[7]).mul(RebalanceParamOffset)
       );
       return [lowerRangePercentage, upperRangePercentage, lowerResetRangePercentage, upperResetRangePercentage];
     } else {

@@ -10,6 +10,8 @@ import {
   updateStrategyConfig,
 } from '../kamino-client/instructions';
 
+export const RebalanceParamOffset = new Decimal(256);
+
 export function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
