@@ -15,6 +15,8 @@ import {
   sendTransactionWithLogs,
   sleep,
   StrategiesFilters,
+  TokenAmounts,
+  ZERO,
 } from '../src';
 import Decimal from 'decimal.js';
 import {
@@ -1178,6 +1180,139 @@ describe('Kamino SDK Tests', () => {
 
     expect(depositableTokens[1].mint.toString()).to.be.eq(fixtures.newTokenMintA.toString());
     expect(depositableTokens[0].mint.toString()).to.be.eq(fixtures.newTokenMintB.toString());
+  });
+
+  it('proportional deposit no tokenA in strategy', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      fixtures.globalConfig,
+      fixtures.kaminoProgramId,
+      WHIRLPOOL_PROGRAM_ID,
+      LOCAL_RAYDIUM_PROGRAM_ID
+    );
+
+    let totalTokens: TokenAmounts = { a: ZERO, b: new Decimal(489_454) };
+    // @ts-ignore
+    // let { aToDeposit, bToDeposit }
+    let tokens = await kamino.calculateDepositAmountsProportionalWithTotalTokens(
+      totalTokens,
+      new Decimal(1000),
+      new Decimal(2000)
+    );
+
+    expect(tokens[0]).to.be.eq(ZERO);
+    expect(tokens[1].toString()).to.be.eq(new Decimal(2000).toString());
+  });
+
+  it('proportional deposit no tokenB in strategy', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      fixtures.globalConfig,
+      fixtures.kaminoProgramId,
+      WHIRLPOOL_PROGRAM_ID,
+      LOCAL_RAYDIUM_PROGRAM_ID
+    );
+
+    let totalTokens: TokenAmounts = { a: new Decimal(5678), b: ZERO };
+    // @ts-ignore
+    let tokens = await kamino.calculateDepositAmountsProportionalWithTotalTokens(
+      totalTokens,
+      new Decimal(546),
+      new Decimal(2000)
+    );
+
+    expect(tokens[0].toString()).to.be.eq(new Decimal(546).toString());
+    expect(tokens[1].toString()).to.be.eq(ZERO.toString());
+  });
+
+  it('proportional deposit more tokenA in strategy', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      fixtures.globalConfig,
+      fixtures.kaminoProgramId,
+      WHIRLPOOL_PROGRAM_ID,
+      LOCAL_RAYDIUM_PROGRAM_ID
+    );
+
+    let totalTokens: TokenAmounts = { a: new Decimal(3000), b: new Decimal(1000) };
+    // @ts-ignore
+    let tokens = await kamino.calculateDepositAmountsProportionalWithTotalTokens(
+      totalTokens,
+      new Decimal(546),
+      new Decimal(2000)
+    );
+
+    expect(tokens[0].toString()).to.be.eq(new Decimal(546).toString());
+    expect(tokens[1].toString()).to.be.eq(new Decimal(182).toString());
+  });
+
+  it('proportional deposit more tokenA in strategy but not enough tokenB to deposit for all A', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      fixtures.globalConfig,
+      fixtures.kaminoProgramId,
+      WHIRLPOOL_PROGRAM_ID,
+      LOCAL_RAYDIUM_PROGRAM_ID
+    );
+
+    let totalTokens: TokenAmounts = { a: new Decimal(3000), b: new Decimal(1000) };
+    // @ts-ignore
+    let tokens = await kamino.calculateDepositAmountsProportionalWithTotalTokens(
+      totalTokens,
+      new Decimal(546),
+      new Decimal(180)
+    );
+
+    expect(tokens[0].toString()).to.be.eq(new Decimal(540).toString());
+    expect(tokens[1].toString()).to.be.eq(new Decimal(180).toString());
+  });
+
+  it('proportional deposit more tokenB in strategy', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      fixtures.globalConfig,
+      fixtures.kaminoProgramId,
+      WHIRLPOOL_PROGRAM_ID,
+      LOCAL_RAYDIUM_PROGRAM_ID
+    );
+
+    let totalTokens: TokenAmounts = { a: new Decimal(111), b: new Decimal(444) };
+    // @ts-ignore
+    let tokens = await kamino.calculateDepositAmountsProportionalWithTotalTokens(
+      totalTokens,
+      new Decimal(200),
+      new Decimal(2000)
+    );
+
+    expect(tokens[0].toString()).to.be.eq(new Decimal(200).toString());
+    expect(tokens[1].toString()).to.be.eq(new Decimal(800).toString());
+  });
+
+  it('proportional deposit more tokenB in strategy but not enough tokenA to deposit for all B', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      fixtures.globalConfig,
+      fixtures.kaminoProgramId,
+      WHIRLPOOL_PROGRAM_ID,
+      LOCAL_RAYDIUM_PROGRAM_ID
+    );
+
+    let totalTokens: TokenAmounts = { a: new Decimal(2000), b: new Decimal(5000) };
+    // @ts-ignore
+    let tokens = await kamino.calculateDepositAmountsProportionalWithTotalTokens(
+      totalTokens,
+      new Decimal(10),
+      new Decimal(450)
+    );
+
+    expect(tokens[0].toString()).to.be.eq(new Decimal(10).toString());
+    expect(tokens[1].toString()).to.be.eq(new Decimal(25).toString());
   });
 });
 
