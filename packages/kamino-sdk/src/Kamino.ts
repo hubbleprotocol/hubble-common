@@ -3000,8 +3000,8 @@ export class Kamino {
     }
     const tokensRatio = totalTokens.a.div(totalTokens.b);
     if (tokenAAmount) {
-      const requiredBAmount = tokenAAmount.mul(new Decimal(1).div(tokensRatio));
-      if (!tokenBAmount || tokenBAmount.lt(requiredBAmount)) {
+      const requiredBAmount = tokenAAmount.div(tokensRatio);
+      if (!tokenBAmount || tokenBAmount.gt(requiredBAmount)) {
         return [tokenAAmount, requiredBAmount];
       } else {
         const requiredAAmount = tokenBAmount.mul(tokensRatio);
