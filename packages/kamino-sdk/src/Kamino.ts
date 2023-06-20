@@ -1977,11 +1977,6 @@ export class Kamino {
       throw Error(`Could not fetch global config with pubkey ${this._globalConfig.toString()}`);
     }
 
-    console.log('tokenAVault', tokenAVault.toString());
-    console.log('  tokenBVault', tokenBVault.toString());
-    console.log('  poolTokenVaultA', whirlpool.tokenVaultA.toString());
-    console.log('  poolTokenVaultB', whirlpool.tokenVaultB.toString());
-
     const accounts: OpenLiquidityPositionAccounts = {
       adminAuthority: adminAuthority,
       strategy,
@@ -2372,9 +2367,6 @@ export class Kamino {
       }
       tokenMintA = whirlpoolState.tokenMintA;
       tokenMintB = whirlpoolState.tokenMintB;
-      // if (whirlpoolState.tokenMintA.toString() == tokenBMint.toString()) {
-      //   keepMintsOrder = false;
-      // }
     } else if (dex == 'RAYDIUM') {
       const raydiumPoolState = await PoolState.fetch(this._connection, pool);
       if (!raydiumPoolState) {
@@ -2382,9 +2374,6 @@ export class Kamino {
       }
       tokenMintA = raydiumPoolState.tokenMint0;
       tokenMintB = raydiumPoolState.tokenMint1;
-      // if (raydiumPoolState.tokenMint0.toString() == tokenBMint.toString()) {
-      //   keepMintsOrder = false;
-      // }
     } else {
       throw new Error(`Dex ${dex} is not supported`);
     }
