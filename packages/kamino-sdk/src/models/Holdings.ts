@@ -8,3 +8,8 @@ export type Holdings = {
   investedUsd: Decimal;
   totalSum: Decimal;
 };
+
+export type TokenHoldings = {
+  available: TokenAmounts;
+  invested: TokenAmounts;
+};
