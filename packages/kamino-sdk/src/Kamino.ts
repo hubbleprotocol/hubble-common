@@ -1517,22 +1517,22 @@ export class Kamino {
    * @returns transaction instruction for Kamino strategy creation
    */
   createStrategy = async (strategy: PublicKey, pool: PublicKey, owner: PublicKey, dex: Dex) => {
-    let tokenMintA = PublicKey.default;
-    let tokenMintB = PublicKey.default;
+    let tokenAMint = PublicKey.default;
+    let tokenBMint = PublicKey.default;
     if (dex == 'ORCA') {
       const whirlpoolState = await Whirlpool.fetch(this._connection, pool);
       if (!whirlpoolState) {
         throw Error(`Could not fetch whirlpool state with pubkey ${pool.toString()}`);
       }
-      tokenMintA = whirlpoolState.tokenMintA;
-      tokenMintB = whirlpoolState.tokenMintB;
+      tokenAMint = whirlpoolState.tokenMintA;
+      tokenBMint = whirlpoolState.tokenMintB;
     } else if (dex == 'RAYDIUM') {
       const raydiumPoolState = await PoolState.fetch(this._connection, pool);
       if (!raydiumPoolState) {
         throw Error(`Could not fetch Raydium pool state with pubkey ${pool.toString()}`);
       }
-      tokenMintA = raydiumPoolState.tokenMint0;
-      tokenMintB = raydiumPoolState.tokenMint1;
+      tokenAMint = raydiumPoolState.tokenMint0;
+      tokenBMint = raydiumPoolState.tokenMint1;
     } else {
       throw new Error(`Invalid dex ${dex.toString()}`);
     }
@@ -1542,16 +1542,16 @@ export class Kamino {
       throw Error(`Could not fetch globalConfig  with pubkey ${this.getGlobalConfig().toString()}`);
     }
     const collateralInfos = await this.getCollateralInfo(config.tokenInfos);
-    const tokenACollateralId = collateralInfos.findIndex((x) => x.mint.toString() === tokenMintA.toString());
+    const tokenACollateralId = collateralInfos.findIndex((x) => x.mint.toString() === tokenAMint.toString());
     if (tokenACollateralId === -1) {
-      throw Error(`Could not find token A (mint ${tokenMintA}) in collateral infos`);
+      throw Error(`Could not find token A (mint ${tokenAMint}) in collateral infos`);
     }
-    const tokenBCollateralId = collateralInfos.findIndex((x) => x.mint.toString() === tokenMintB.toString());
+    const tokenBCollateralId = collateralInfos.findIndex((x) => x.mint.toString() === tokenBMint.toString());
     if (tokenBCollateralId === -1) {
-      throw Error(`Could not find token A (mint ${tokenMintA}) in collateral infos`);
+      throw Error(`Could not find token A (mint ${tokenAMint}) in collateral infos`);
     }
 
-    const programAddresses = await this.getStrategyProgramAddresses(strategy, tokenMintA, tokenMintB);
+    const programAddresses = await this.getStrategyProgramAddresses(strategy, tokenAMint, tokenBMint);
 
     const strategyArgs: InitializeStrategyArgs = {
       tokenACollateralId: new BN(tokenACollateralId),
@@ -1564,8 +1564,8 @@ export class Kamino {
       strategy,
       globalConfig: this._globalConfig,
       pool,
-      tokenAMint: tokenMintA,
-      tokenBMint: tokenMintB,
+      tokenAMint,
+      tokenBMint,
       tokenAVault: programAddresses.tokenAVault,
       tokenBVault: programAddresses.tokenBVault,
       baseVaultAuthority: programAddresses.baseVaultAuthority,
@@ -1977,6 +1977,11 @@ export class Kamino {
       throw Error(`Could not fetch global config with pubkey ${this._globalConfig.toString()}`);
     }
 
+    console.log('tokenAVault', tokenAVault.toString());
+    console.log('  tokenBVault', tokenBVault.toString());
+    console.log('  poolTokenVaultA', whirlpool.tokenVaultA.toString());
+    console.log('  poolTokenVaultB', whirlpool.tokenVaultB.toString());
+
     const accounts: OpenLiquidityPositionAccounts = {
       adminAuthority: adminAuthority,
       strategy,
@@ -2305,6 +2310,16 @@ export class Kamino {
     return updateStrategyConfig(args, accounts);
   };
 
+  getStrategyRebalanceParams = async (strategy: PublicKey | StrategyWithAddress): Promise<number[]> => {
+    const strategyState = await this.getStrategyStateIfNotFetched(strategy);
+    if (!strategyState) {
+      throw Error(`Could not fetch strategy state with pubkey ${strategy.toString()}`);
+    }
+
+    let params = strategyState.strategy.rebalanceRaw.params.map((p) => new Decimal(p.toString()));
+    return getStrategyRebalanceParams(params, numberToRebalanceType(strategyState.strategy.rebalanceType));
+  };
+
   /**
    * Get a list of instructions to initialize and set up a strategy
    * @param dex the dex to use (Orca or Raydium)
@@ -2348,34 +2363,33 @@ export class Kamino {
       );
     }
 
-    let keepMintsOrder = true;
+    let tokenMintA: PublicKey;
+    let tokenMintB: PublicKey;
     if (dex == 'ORCA') {
       const whirlpoolState = await Whirlpool.fetch(this._connection, pool);
       if (!whirlpoolState) {
         throw Error(`Could not fetch whirlpool state with pubkey ${pool.toString()}`);
       }
-      if (whirlpoolState.tokenMintA.toString() == tokenBMint.toString()) {
-        keepMintsOrder = false;
-      }
+      tokenMintA = whirlpoolState.tokenMintA;
+      tokenMintB = whirlpoolState.tokenMintB;
+      // if (whirlpoolState.tokenMintA.toString() == tokenBMint.toString()) {
+      //   keepMintsOrder = false;
+      // }
     } else if (dex == 'RAYDIUM') {
       const raydiumPoolState = await PoolState.fetch(this._connection, pool);
       if (!raydiumPoolState) {
         throw Error(`Could not fetch Raydium pool state with pubkey ${pool.toString()}`);
       }
-      if (raydiumPoolState.tokenMint0.toString() == tokenBMint.toString()) {
-        keepMintsOrder = false;
-      }
+      tokenMintA = raydiumPoolState.tokenMint0;
+      tokenMintB = raydiumPoolState.tokenMint1;
+      // if (raydiumPoolState.tokenMint0.toString() == tokenBMint.toString()) {
+      //   keepMintsOrder = false;
+      // }
     } else {
       throw new Error(`Dex ${dex} is not supported`);
     }
 
-    let initStrategyIx: TransactionInstruction;
-
-    if (keepMintsOrder) {
-      initStrategyIx = await this.createStrategy(strategy, pool, strategyAdmin, dex);
-    } else {
-      initStrategyIx = await this.createStrategy(strategy, pool, strategyAdmin, dex);
-    }
+    let initStrategyIx: TransactionInstruction = await this.createStrategy(strategy, pool, strategyAdmin, dex);
 
     let rebalanceKind = numberToRebalanceType(rebalanceType.toNumber());
     let updateRebalanceParamsIx = await this.getUpdateRebalancingParmsIxns(
@@ -2396,20 +2410,10 @@ export class Kamino {
       performanceFeeBps
     );
 
-    let baseVaultAuthority: PublicKey;
-    let tokenAVault: PublicKey;
-    let tokenBVault: PublicKey;
-    if (keepMintsOrder) {
-      let programAddresses = await this.getStrategyProgramAddresses(strategy, tokenAMint, tokenBMint);
-      baseVaultAuthority = programAddresses.baseVaultAuthority;
-      tokenAVault = programAddresses.tokenAVault;
-      tokenBVault = programAddresses.tokenBVault;
-    } else {
-      let programAddresses = await this.getStrategyProgramAddresses(strategy, tokenBMint, tokenAMint);
-      baseVaultAuthority = programAddresses.baseVaultAuthority;
-      tokenAVault = programAddresses.tokenBVault;
-      tokenBVault = programAddresses.tokenAVault;
-    }
+    let programAddresses = await this.getStrategyProgramAddresses(strategy, tokenMintA, tokenMintB);
+    let baseVaultAuthority = programAddresses.baseVaultAuthority;
+    let tokenAVault = programAddresses.tokenAVault;
+    let tokenBVault = programAddresses.tokenBVault;
 
     let lowerPrice: Decimal;
     let upperPrice: Decimal;

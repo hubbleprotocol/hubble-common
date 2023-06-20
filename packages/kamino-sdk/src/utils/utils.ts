@@ -68,6 +68,8 @@ export function numberToRebalanceType(rebalance_type: number): RebalanceTypeKind
     return new RebalanceType.Manual();
   } else if (rebalance_type == 1) {
     return new RebalanceType.PricePercentage();
+  } else if (rebalance_type == 2) {
+    return new RebalanceType.PricePercentageWithReset();
   } else {
     throw new Error(`Invalid rebalance type ${rebalance_type.toString()}`);
   }

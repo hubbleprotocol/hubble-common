@@ -16,7 +16,7 @@ import { UpdateRebalanceType } from '../src/kamino-client/types/StrategyConfigOp
 import { expect } from 'chai';
 import { WHIRLPOOL_PROGRAM_ID } from '../src/whirpools-client/programId';
 import { PROGRAM_ID as RAYDIUM_PROGRAM_ID } from '../src/raydium_client/programId';
-import { Manual, PricePercentage } from '../src/kamino-client/types/RebalanceType';
+import { Manual, PricePercentage, PricePercentageWithReset } from '../src/kamino-client/types/RebalanceType';
 
 const GlobalConfigMainnet = new PublicKey('GKnHiWh3RRrE1zsNzWxRkomymHc374TvJPSTv2wPeYdB');
 const KaminoProgramIdMainnet = new PublicKey('6LtLpnUFNByNXLyCoK9wA2MykKAmQNZKBdY8s47dehDc');
@@ -786,6 +786,147 @@ describe('Kamino strategy creation SDK Tests', () => {
 
     strategyData = await kamino.getStrategies([newStrategy.publicKey]);
     expect(strategyData[0]?.rebalanceType == Manual.discriminator);
+  });
+
+  //test create as PricePercentageWithreset -> Update to Manual -> move back to PricePercentageWithReset diff range
+  it.skip('create new custom USDC-USDH percentage with reset strategy -> change to manual -> change back to reset with range', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      GlobalConfigMainnet,
+      KaminoProgramIdMainnet,
+      WHIRLPOOL_PROGRAM_ID,
+      RAYDIUM_PROGRAM_ID
+    );
+
+    const newStrategy = Keypair.generate();
+    const newPosition = Keypair.generate();
+    const createRaydiumStrategyAccountIx = await kamino.createStrategyAccount(signer.publicKey, newStrategy.publicKey);
+
+    let lowerPriceBpsDifference = new Decimal(10.0);
+    let upperPriceBpsDifference = new Decimal(10.0);
+    let lowerPriceResetRange = new Decimal(5.0);
+    let upperPriceResetRange = new Decimal(5.0);
+
+    let buildNewStrategyIxs = await kamino.getBuildStrategyIxns(
+      'ORCA',
+      new Decimal(1),
+      newStrategy.publicKey,
+      newPosition.publicKey,
+      signer.publicKey,
+      new Decimal(PricePercentageWithReset.discriminator),
+      [lowerPriceBpsDifference, upperPriceBpsDifference, lowerPriceResetRange, upperPriceResetRange],
+      new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'),
+      new PublicKey('USDH1SM1ojwWUga67PGrgFWUHibbjqMvuMaDkRJTgkX')
+    );
+
+    let ixs: TransactionInstruction[] = [];
+    ixs.push(createRaydiumStrategyAccountIx);
+    ixs.push(buildNewStrategyIxs[0]);
+    const createStratTx = await kamino.getTransactionV2Message(signer.publicKey, ixs);
+    const createStratTransactionV0 = new VersionedTransaction(createStratTx);
+    createStratTransactionV0.sign([newStrategy, signer]);
+    //@ts-ignore
+    let txHash = await sendAndConfirmTransaction(kamino._connection, createStratTransactionV0);
+    console.log('create strategy tx hash', txHash);
+
+    let strategySetupIxs: TransactionInstruction[] = [];
+    buildNewStrategyIxs[1].slice(0, 4).map((ix) => strategySetupIxs.push(ix));
+    const setupStratTx = await kamino.getTransactionV2Message(signer.publicKey, strategySetupIxs);
+    const setupStratTransactionV0 = new VersionedTransaction(setupStratTx);
+    setupStratTransactionV0.sign([signer]);
+
+    //@ts-ignore
+    txHash = await sendAndConfirmTransaction(kamino._connection, setupStratTransactionV0);
+    console.log('setup strategy tx hash', txHash);
+
+    let strategySetupFeesIxs: TransactionInstruction[] = [];
+    buildNewStrategyIxs[1].slice(4).map((ix) => strategySetupFeesIxs.push(ix));
+    strategySetupFeesIxs.push(buildNewStrategyIxs[2]);
+    const setupStratFeesTx = await kamino.getTransactionV2Message(signer.publicKey, strategySetupFeesIxs);
+    const setupStratFeesTransactionV0 = new VersionedTransaction(setupStratFeesTx);
+    setupStratFeesTransactionV0.sign([signer]);
+    //@ts-ignore
+    txHash = await sendAndConfirmTransaction(kamino._connection, setupStratFeesTransactionV0);
+    console.log('setup strategy fees tx hash', txHash);
+
+    // verify strategy rebalance params
+    let strategyRebalanceParams = kamino.getStrategyRebalanceParams(newStrategy.publicKey);
+    expect(strategyRebalanceParams[0] == lowerPriceBpsDifference);
+    expect(strategyRebalanceParams[1] == upperPriceBpsDifference);
+    expect(strategyRebalanceParams[2] == lowerPriceResetRange);
+    expect(strategyRebalanceParams[3] == lowerPriceResetRange);
+
+    // open position
+    const openPositionIxn = buildNewStrategyIxs[3];
+    const openPositionMessage = await kamino.getTransactionV2Message(signer.publicKey, [openPositionIxn]);
+    const openPositionTx = new VersionedTransaction(openPositionMessage);
+    openPositionTx.sign([signer, newPosition]);
+
+    //@ts-ignore
+    const openPositionTxId = await sendAndConfirmTransaction(kamino._connection, openPositionTx);
+    console.log('openPositionTxId', openPositionTxId);
+
+    // update rebalance method to manual
+    await updateStrategyConfig(
+      connection,
+      signer,
+      newStrategy.publicKey,
+      new UpdateRebalanceType(),
+      new Decimal(Manual.discriminator)
+    );
+
+    let strategyData = await kamino.getStrategies([newStrategy.publicKey]);
+    expect(strategyData[0]?.rebalanceType == Manual.discriminator);
+
+    let manualLowerRange = new Decimal(0.95);
+    let manualUpperRange = new Decimal(1.01);
+    let updateRebalanceParamsIx = await kamino.getUpdateRebalancingParmsIxns(signer.publicKey, newStrategy.publicKey, [
+      manualLowerRange,
+      manualUpperRange,
+    ]);
+    let tx = createTransactionWithExtraBudget(signer.publicKey);
+    tx.add(updateRebalanceParamsIx);
+    let updateRebalanceParamsTxHash = await sendTransactionWithLogs(connection, tx, signer.publicKey, [signer]);
+    console.log('update Rebalance Params Tx Hash ', updateRebalanceParamsTxHash);
+
+    // verify strategy rebalance params
+    strategyRebalanceParams = kamino.getStrategyRebalanceParams(newStrategy.publicKey);
+    expect(strategyRebalanceParams[0] == manualLowerRange);
+    expect(strategyRebalanceParams[1] == manualUpperRange);
+
+    // update rebalance method to PricePercentageWithReset
+    await updateStrategyConfig(
+      connection,
+      signer,
+      newStrategy.publicKey,
+      new UpdateRebalanceType(),
+      new Decimal(PricePercentageWithReset.discriminator)
+    );
+
+    let newLowerPriceBpsDifference = new Decimal(15.0);
+    let newUpperPriceBpsDifference = new Decimal(15.0);
+    let newLowerPriceResetRange = new Decimal(10.0);
+    let newUpperPriceResetRange = new Decimal(10.0);
+    updateRebalanceParamsIx = await kamino.getUpdateRebalancingParmsIxns(signer.publicKey, newStrategy.publicKey, [
+      newLowerPriceBpsDifference,
+      newUpperPriceBpsDifference,
+      newLowerPriceResetRange,
+      newUpperPriceResetRange,
+    ]);
+    tx = createTransactionWithExtraBudget(signer.publicKey);
+    tx.add(updateRebalanceParamsIx);
+    updateRebalanceParamsTxHash = await sendTransactionWithLogs(connection, tx, signer.publicKey, [signer]);
+    console.log('update Rebalance Params Tx Hash to PricePercentageWithReset', updateRebalanceParamsTxHash);
+
+    strategyData = await kamino.getStrategies([newStrategy.publicKey]);
+    expect(strategyData[0]?.rebalanceType == PricePercentageWithReset.discriminator);
+
+    strategyRebalanceParams = kamino.getStrategyRebalanceParams(newStrategy.publicKey);
+    expect(strategyRebalanceParams[0] == newLowerPriceBpsDifference);
+    expect(strategyRebalanceParams[1] == newUpperPriceBpsDifference);
+    expect(strategyRebalanceParams[2] == newLowerPriceResetRange);
+    expect(strategyRebalanceParams[3] == newUpperPriceResetRange);
   });
 
   it.skip('create new custom USDC-USDH percentage strategy on existing whirlpool and open position', async () => {
