@@ -117,9 +117,6 @@ export class PersonalPositionState {
       return null;
     }
 
-    console.log('cretaker personalState', address.toString());
-    console.log('cretaker info.owner', info.owner.toString());
-    console.log('cretaker PROGRAM_ID', PROGRAM_ID.toString());
     if (!info.owner.equals(PROGRAM_ID)) {
       throw new Error("account doesn't belong to this program");
     }
