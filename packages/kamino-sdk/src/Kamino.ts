@@ -179,6 +179,7 @@ import {
 } from './utils/CreationParameters';
 import { getMintDecimals } from '@project-serum/serum/lib/market';
 import { DOLAR_BASED, PROPORTION_BASED } from './constants/deposit_method';
+import { JupService } from './services/JupService';
 export const KAMINO_IDL = KaminoIdl;
 
 export class Kamino {
@@ -192,6 +193,7 @@ export class Kamino {
   private readonly _kaminoProgramId: PublicKey;
   private readonly _orcaService: OrcaService;
   private readonly _raydiumService: RaydiumService;
+  private readonly _jupService: JupService;
 
   /**
    * Create a new instance of the Kamino SDK class.
@@ -231,6 +233,7 @@ export class Kamino {
     }
     this._orcaService = new OrcaService(connection, cluster, this._globalConfig);
     this._raydiumService = new RaydiumService(connection, cluster);
+    this._jupService = new JupService(connection, cluster);
   }
 
   getConnection = () => this._connection;
@@ -2943,6 +2946,70 @@ export class Kamino {
   getStrategyTokensRatio = async (strategy: PublicKey | StrategyWithAddress): Promise<Decimal> => {
     let totalHoldings = await this.getStrategyTokensHoldings(strategy);
     return totalHoldings.a.div(totalHoldings.b);
+  };
+
+  calculateAmountsToBeDepositedWithSwap = async (
+    strategy: PublicKey | StrategyWithAddress,
+    tokenAAmount: Decimal,
+    tokenBAmount: Decimal
+  ): Promise<[Decimal, Decimal, Decimal, Decimal]> => {
+    // 1. Get Jupiter price of B in A: P
+    // 2. Calculate total amount in single token: T = A + B*P
+    // 3. Get current orca pool ratio: R = A / B
+    // 4. (Ax + Bx) = T and B = A/R => (Ax + Ax/R) = T
+    // 5. Calculate token amounts based on orca rate  Ax = T * R  / (1 + R);
+    // 6. Calculate B amount (T - A) / P
+    const { strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
+    let tokenAMint = strategyState.tokenAMint;
+    let tokenBMint = strategyState.tokenBMint;
+    const _priceAInB = await this._jupService.getPrice(tokenAMint, tokenBMint);
+    const _priceBInA = await this._jupService.getPrice(tokenBMint, tokenAMint);
+
+    // if tokens has different decimals we need to use max decimals
+    // to make calculations correct
+    // calc decimals delta and then mul/div to add additional decimals to values
+    const decimalsDelta = strategyState.tokenAMintDecimals.toNumber() - strategyState.tokenBMintDecimals.toNumber();
+    const tokenAAddDecimals = decimalsDelta > 0 ? 0 : Math.abs(decimalsDelta);
+    const tokenBAddDecimals = decimalsDelta > 0 ? Math.abs(decimalsDelta) : 0;
+
+    // calculate total amount in tokenA
+    // multiply by decimals delta to round boths tokens to the same decimals
+    const singleTokenTotal = tokenAAmount
+      .mul(10 ** tokenAAddDecimals)
+      .add(tokenBAmount.mul(10 ** tokenBAddDecimals).mul(_priceBInA));
+
+    // simulate the amounts to be deposited if we deposit 100 A so we can see what should be the ratio between the tokens
+    let amountsToBeDeposited = await this.calculateAmountsToBeDeposited(strategy, new Decimal(100), new Decimal(0));
+
+    let ratio = amountsToBeDeposited[0]
+      .mul(10 ** tokenAAddDecimals)
+      .div(amountsToBeDeposited[1].mul(10 ** tokenBAddDecimals));
+
+    //sdk 'calculateAmounts' returns raw tokens values: [tokenA, tokenB]
+    // because we calculate ration for single token amount based on tokenA
+    // we need to convert tokenB to tokenA value
+    // orcaRatio = tokenA/(tokenB*priceBinA) = (tokenA/tokenB)/priceBinA
+    ratio = ratio.div(_priceBInA);
+
+    const requiredA = singleTokenTotal
+      .mul(ratio)
+      .div(ratio.add(1))
+      .div(10 ** tokenAAddDecimals);
+
+    // requiredB = (total - requiredA) / _priceBInA
+    const requiredB = singleTokenTotal
+      .minus(requiredA.mul(10 ** tokenAAddDecimals))
+      .div(10 ** tokenBAddDecimals)
+      .div(_priceBInA);
+
+    // > 0 => Buy, < 0 => Sell
+    let tokenASwapAmount = new Decimal(0);
+    let tokenBSwapAmount = new Decimal(0);
+
+    tokenASwapAmount = requiredA.sub(tokenAAmount);
+    tokenBSwapAmount = requiredB.sub(tokenBAmount);
+
+    return [requiredA.floor(), requiredB.floor(), tokenASwapAmount.floor(), tokenBSwapAmount.floor()];
   };
 
   calculateAmountsToBeDeposited = async (

@@ -10,11 +10,9 @@ import Decimal from 'decimal.js';
 import {
   AmmV3,
   AmmV3PoolInfo,
-  PoolInfoLayout,
   PositionInfoLayout,
   TickMath,
   SqrtPriceMath,
-  TickUtils,
 } from '@raydium-io/raydium-sdk';
 import { WhirlpoolAprApy } from './WhirlpoolAprApy';
 import { WhirlpoolStrategy } from '../kamino-client/accounts';
