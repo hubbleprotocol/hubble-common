@@ -30,7 +30,6 @@ export const USDCMintMainnet = new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEG
 export const USDHMintMainnet = new PublicKey('USDH1SM1ojwWUga67PGrgFWUHibbjqMvuMaDkRJTgkX');
 export const UsdcUsdhShadowStrategyMainnet = new PublicKey('E7K2S9qhypk9S1EaGKWaXyN9rP2RmPPmwHKWGQuVZHNm');
 export const SolUsdcShadowStrategyMainnet = new PublicKey('Cgb4iehuTNAgaafXF9Y9e8N3wFpcrqbHC2vvCoBdBJXY');
-export const RlbUsdcShadowStrategyMainnet = new PublicKey('GymZwgYmamLpUTL3eBKA4XXbCAVmZkSxGcny1AYwxGgx');
 
 // Seconds
 export const DEFAULT_MAX_PRICE_AGE = 60 * 3;
