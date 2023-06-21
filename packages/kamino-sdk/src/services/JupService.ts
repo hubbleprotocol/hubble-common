@@ -1,7 +1,5 @@
 import { Connection, PublicKey } from '@solana/web3.js';
 import { SolanaCluster } from '@hubbleprotocol/hubble-config';
-import { RouteInfo } from '@jup-ag/react-hook';
-import Decimal from 'decimal.js';
 import axios from 'axios';
 
 export type SwapTransactionsResponse = {
@@ -17,47 +15,6 @@ export class JupService {
   constructor(connection: Connection, cluster: SolanaCluster) {
     this._connection = connection;
     this._cluster = cluster;
-  }
-
-  async getSwapTransactions(
-    route: RouteInfo,
-    walletPublicKey: PublicKey,
-    wrapUnwrapSOL = true,
-    asLegacyTransaction?: boolean
-  ): Promise<SwapTransactionsResponse> {
-    const res = await axios.post('https://quote-api.jup.ag/v4/swap', {
-      // route from /quote api
-      route,
-      // user public key to be used for the swap
-      userPublicKey: walletPublicKey.toString(),
-      // auto wrap and unwrap SOL. default is true
-      wrapUnwrapSOL,
-      asLegacyTransaction,
-    });
-    return res.data;
-  }
-
-  async getBestRoute(
-    amount: Decimal,
-    inputMint: PublicKey,
-    outputMint: PublicKey,
-    slippage: number,
-    mode = 'ExactIn',
-    asLegacyTransaction?: boolean
-  ): Promise<RouteInfo> {
-    const params = {
-      inputMint: inputMint.toString(),
-      outputMint: outputMint.toString(),
-      amount: amount.ceil().toString(),
-      slippageBps: slippage * 100,
-      onlyDirectRoutes: false,
-      asLegacyTransaction,
-      mode,
-    };
-
-    const res = await axios.get('https://quote-api.jup.ag/v4/quote', { params });
-
-    return res.data.data[0] as RouteInfo;
   }
 
   async getPrice(inputMint: PublicKey | string, outputMint: PublicKey | string): Promise<number> {
