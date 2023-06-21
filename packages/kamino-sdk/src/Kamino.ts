@@ -2991,10 +2991,10 @@ export class Kamino {
       collToLamportsDecimal(new Decimal(100.0), tokenADecimals)
     );
 
-    // let orcaAmountA = orcaAmounts[0].div(10 ** tokenADecimals);
-    // let orcaAmountB = orcaAmounts[1].div(10 ** tokenBDecimals);
-    let orcaAmountA = orcaAmounts[0];
-    let orcaAmountB = orcaAmounts[1];
+    let orcaAmountA = orcaAmounts[0].div(10 ** tokenADecimals);
+    let orcaAmountB = orcaAmounts[1].div(10 ** tokenBDecimals);
+    // let orcaAmountA = orcaAmounts[0];
+    // let orcaAmountB = orcaAmounts[1];
     let ratio = orcaAmountA.div(orcaAmountB);
     console.log('raw ratio', ratio.toString());
     ratio = ratio.div(_priceBInA);
@@ -3009,17 +3009,22 @@ export class Kamino {
     let reqB = totalInA.sub(reqA).mul(_priceAInB);
     console.log('reqB', reqB.toString());
 
-    if (aDecimalsDelta > 0) {
-      reqB = reqB.mul(10 ** aDecimalsDelta);
-    }
+    // if (aDecimalsDelta > 0) {
+    //   reqB = reqB.mul(10 ** aDecimalsDelta);
+    // }
 
-    if (bDecimalsDelta > 0) {
-      reqA = reqA.mul(10 ** bDecimalsDelta);
-    }
+    // if (bDecimalsDelta > 0) {
+    //   reqA = reqA.mul(10 ** bDecimalsDelta);
+    // }
 
     console.log('reqA after scaling', reqA.toString());
     console.log('reqB after scaling', reqB.toString());
-    return [reqA, reqB, aAmount, bAmount];
+
+    let tokenASwapAmount = reqA.sub(tokenAAmount);
+    let tokenBSwapAmount = reqB.sub(tokenBAmount);
+    console.log('tokenASwapAmount', tokenASwapAmount.toString());
+    console.log('tokenBSwapAmount', tokenBSwapAmount.toString());
+    return [reqA, reqB, tokenASwapAmount, tokenBSwapAmount];
   };
 
   calculateAmountsToBeDepositedWithSwap2 = async (
@@ -3093,6 +3098,7 @@ export class Kamino {
     // we need to convert tokenB to tokenA value
     // orcaRatio = tokenA/(tokenB*priceBinA) = (tokenA/tokenB)/priceBinA
     _orcaRatio = _orcaRatio.div(_priceBInA);
+    console.log('final orca ratio', _orcaRatio.toString());
 
     const requiredA = singleTokenTotal
       .mul(_orcaRatio)
