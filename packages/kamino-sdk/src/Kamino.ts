@@ -2307,9 +2307,6 @@ export class Kamino {
 
   getStrategyRebalanceParams = async (strategy: PublicKey | StrategyWithAddress): Promise<number[]> => {
     const strategyState = await this.getStrategyStateIfNotFetched(strategy);
-    if (!strategyState) {
-      throw Error(`Could not fetch strategy state with pubkey ${strategy.toString()}`);
-    }
 
     let params = strategyState.strategy.rebalanceRaw.params.map((p) => new Decimal(p.toString()));
     return getStrategyRebalanceParams(params, numberToRebalanceType(strategyState.strategy.rebalanceType));
