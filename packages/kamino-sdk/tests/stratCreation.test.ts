@@ -9,17 +9,18 @@ import {
 import { Kamino, OrcaService, RaydiumService, sendTransactionWithLogs } from '../src';
 import Decimal from 'decimal.js';
 import { createTransactionWithExtraBudget } from '../src';
-import { updateStrategyConfig } from './utils';
+import {
+  GlobalConfigMainnet,
+  KaminoProgramIdMainnet,
+  SOLMintMainnet,
+  updateStrategyConfig,
+  USDCMintMainnet,
+} from './utils';
 import { UpdateRebalanceType } from '../src/kamino-client/types/StrategyConfigOption';
 import { expect } from 'chai';
 import { WHIRLPOOL_PROGRAM_ID } from '../src/whirpools-client/programId';
 import { PROGRAM_ID as RAYDIUM_PROGRAM_ID } from '../src/raydium_client/programId';
 import { Manual, PricePercentage, PricePercentageWithReset } from '../src/kamino-client/types/RebalanceType';
-
-const GlobalConfigMainnet = new PublicKey('GKnHiWh3RRrE1zsNzWxRkomymHc374TvJPSTv2wPeYdB');
-const KaminoProgramIdMainnet = new PublicKey('6LtLpnUFNByNXLyCoK9wA2MykKAmQNZKBdY8s47dehDc');
-const SOLMintMainnet = new PublicKey('So11111111111111111111111111111111111111112');
-const USDCMintMainnet = new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v');
 
 describe('Kamino strategy creation SDK Tests', () => {
   let connection: Connection;

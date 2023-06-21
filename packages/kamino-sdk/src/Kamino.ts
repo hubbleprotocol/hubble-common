@@ -62,6 +62,7 @@ import { PROGRAM_ID_CLI as WHIRLPOOL_PROGRAM_ID, setWhirlpoolsProgramId } from '
 import { Scope, ScopeToken, SupportedTokens } from '@hubbleprotocol/scope-sdk';
 import {
   batchFetch,
+  collToLamportsDecimal,
   createAssociatedTokenAccountInstruction,
   Dex,
   dexToNumber,
@@ -75,6 +76,7 @@ import {
   getReadOnlyWallet,
   getStrategyRebalanceParams,
   getUpdateStrategyConfigIx,
+  lamportsToNumberDecimal,
   LiquidityDistribution,
   numberToRebalanceType,
   RebalanceFieldInfo,
@@ -2948,59 +2950,162 @@ export class Kamino {
     return totalHoldings.a.div(totalHoldings.b);
   };
 
-  calculateAmountsToBeDepositedWithSwap = async (
+  calculateAmountsToBeDepositedWithSwapSilviu = async (
     strategy: PublicKey | StrategyWithAddress,
     tokenAAmount: Decimal,
     tokenBAmount: Decimal
   ): Promise<[Decimal, Decimal, Decimal, Decimal]> => {
-    // 1. Get Jupiter price of B in A: P
-    // 2. Calculate total amount in single token: T = A + B*P
-    // 3. Get current orca pool ratio: R = A / B
-    // 4. (Ax + Bx) = T and B = A/R => (Ax + Ax/R) = T
-    // 5. Calculate token amounts based on orca rate  Ax = T * R  / (1 + R);
-    // 6. Calculate B amount (T - A) / P
-
     const { strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
     let tokenAMint = strategyState.tokenAMint;
     let tokenBMint = strategyState.tokenBMint;
+
+    const _priceAInB = await this._jupService.getPrice(tokenAMint, tokenBMint);
     const _priceBInA = await this._jupService.getPrice(tokenBMint, tokenAMint);
+    console.log(
+      '_priceAInB',
+      _priceAInB,
+      _priceBInA,
+      'tokenAAmount',
+      tokenAAmount.toString(),
+      'tokenBAmount',
+      tokenBAmount.toString()
+    );
+
+    let tokenADecimals = strategyState.tokenAMintDecimals.toNumber();
+    let tokenBDecimals = strategyState.tokenBMintDecimals.toNumber();
+
+    let aAmount = tokenAAmount;
+    let bAmount = tokenBAmount;
+    let aDecimalsDelta = tokenADecimals - tokenBDecimals;
+    let bDecimalsDelta = tokenBDecimals - tokenADecimals;
+    // if (aDecimalsDelta > 0) {
+    //   bAmount = tokenBAmount.mul(10 ** aDecimalsDelta);
+    // }
+
+    // if (bDecimalsDelta > 0) {
+    //   aAmount = tokenAAmount.mul(10 ** bDecimalsDelta);
+    // }
+
+    let orcaAmounts = await this.calculateAmountsToBeDeposited(
+      strategy,
+      collToLamportsDecimal(new Decimal(100.0), tokenADecimals)
+    );
+
+    // let orcaAmountA = orcaAmounts[0].div(10 ** tokenADecimals);
+    // let orcaAmountB = orcaAmounts[1].div(10 ** tokenBDecimals);
+    let orcaAmountA = orcaAmounts[0];
+    let orcaAmountB = orcaAmounts[1];
+    let ratio = orcaAmountA.div(orcaAmountB);
+    console.log('raw ratio', ratio.toString());
+    ratio = ratio.div(_priceBInA);
+    console.log('ratio', ratio.toString());
+
+    let totalInA = aAmount.add(bAmount.mul(_priceBInA));
+    console.log('totalInA', totalInA.toString());
+
+    let reqA = totalInA.mul(ratio).div(ratio.add(1));
+    console.log('reqA', reqA.toString());
+
+    let reqB = totalInA.sub(reqA).mul(_priceAInB);
+    console.log('reqB', reqB.toString());
+
+    if (aDecimalsDelta > 0) {
+      reqB = reqB.mul(10 ** aDecimalsDelta);
+    }
+
+    if (bDecimalsDelta > 0) {
+      reqA = reqA.mul(10 ** bDecimalsDelta);
+    }
+
+    console.log('reqA after scaling', reqA.toString());
+    console.log('reqB after scaling', reqB.toString());
+    return [reqA, reqB, aAmount, bAmount];
+  };
+
+  calculateAmountsToBeDepositedWithSwap2 = async (
+    strategy: PublicKey | StrategyWithAddress,
+    tokenAAmount: Decimal,
+    tokenBAmount: Decimal
+  ): Promise<[Decimal, Decimal, Decimal, Decimal]> => {
+    const { strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
+    let tokenAMint = strategyState.tokenAMint;
+    let tokenBMint = strategyState.tokenBMint;
+
+    const _priceAInB = await this._jupService.getPrice(tokenAMint, tokenBMint);
+    const _priceBInA = await this._jupService.getPrice(tokenBMint, tokenAMint);
+    console.log(
+      '_priceAInB',
+      _priceAInB,
+      _priceBInA,
+      'tokenAAmount',
+      tokenAAmount.toString(),
+      'tokenBAmount',
+      tokenBAmount.toString()
+    );
+
+    let tokenADecimals = strategyState.tokenAMintDecimals.toNumber();
+    let tokenBDecimals = strategyState.tokenBMintDecimals.toNumber();
 
     // if tokens has different decimals we need to use max decimals
     // to make calculations correct
     // calc decimals delta and then mul/div to add additional decimals to values
-    const decimalsDelta = strategyState.tokenAMintDecimals.toNumber() - strategyState.tokenBMintDecimals.toNumber();
+    const decimalsDelta = tokenADecimals - tokenBDecimals;
     const tokenAAddDecimals = decimalsDelta > 0 ? 0 : Math.abs(decimalsDelta);
     const tokenBAddDecimals = decimalsDelta > 0 ? Math.abs(decimalsDelta) : 0;
+    console.log('tokenAAddDecimals', tokenAAddDecimals.toString());
+    console.log('tokenBAddDecimals', tokenBAddDecimals.toString());
 
     // calculate total amount in tokenA
     // multiply by decimals delta to round boths tokens to the same decimals
+    console.log('tokenBAmount', tokenBAmount.toString());
     const singleTokenTotal = tokenAAmount
       .mul(10 ** tokenAAddDecimals)
       .add(tokenBAmount.mul(10 ** tokenBAddDecimals).mul(_priceBInA));
 
-    // simulate the amounts to be deposited if we deposit 100 A so we can see what should be the ratio between the tokens
-    let amountsToBeDeposited = await this.calculateAmountsToBeDeposited(strategy, new Decimal(100), new Decimal(0));
+    console.log('singleTokenTotal', singleTokenTotal.toString());
+    console.log('_priceBInA', _priceBInA.toString());
+    console.log('okenBAmount.mul(10 ** tokenBAddDecimals)', tokenBAmount.mul(10 ** tokenBAddDecimals).toString());
+    let _orcaRatio: Decimal;
 
-    let ratio = amountsToBeDeposited[0]
+    // we pass 100 tokens to get the rate
+    let orcaAmounts: Decimal[] = [new Decimal(0), new Decimal(0)];
+
+    orcaAmounts = await this.calculateAmountsToBeDeposited(
+      strategy,
+      collToLamportsDecimal(new Decimal(100.0), tokenADecimals)
+    );
+
+    console.log('orcaAmounts', orcaAmounts[0].toString(), orcaAmounts[1].toString());
+
+    // orcaAmounts[0]/orcaAmount[1]
+    // prettier-ignore
+    _orcaRatio = orcaAmounts[0]
       .mul(10 ** tokenAAddDecimals)
-      .div(amountsToBeDeposited[1].mul(10 ** tokenBAddDecimals));
+      .div(orcaAmounts[1].mul(10 ** tokenBAddDecimals));
+    console.log('raw orca ratio', _orcaRatio.toString());
 
-    // sdk 'calculateAmounts' returns raw tokens values: [tokenA, tokenB]
-    // because we calculate ration for single token amount based on tokenA
+    if (!_orcaRatio) {
+      throw new Error('Orca ratio has not loaded');
+    }
+
+    // orca sdk 'calculateAmounts' returns raw tokens values: [tokenA, tokenB]
+    // because we calculate ratios for single token amount based on tokenA
     // we need to convert tokenB to tokenA value
     // orcaRatio = tokenA/(tokenB*priceBinA) = (tokenA/tokenB)/priceBinA
-    ratio = ratio.div(_priceBInA);
+    _orcaRatio = _orcaRatio.div(_priceBInA);
 
     const requiredA = singleTokenTotal
-      .mul(ratio)
-      .div(ratio.add(1))
+      .mul(_orcaRatio)
+      .div(_orcaRatio.add(1))
       .div(10 ** tokenAAddDecimals);
+    console.log('requiredA', requiredA.toString());
 
     // requiredB = (total - requiredA) / _priceBInA
     const requiredB = singleTokenTotal
       .minus(requiredA.mul(10 ** tokenAAddDecimals))
       .div(10 ** tokenBAddDecimals)
       .div(_priceBInA);
+    console.log('requiredB', requiredB.toString());
 
     // > 0 => Buy, < 0 => Sell
     let tokenASwapAmount = new Decimal(0);
@@ -3009,8 +3114,116 @@ export class Kamino {
     tokenASwapAmount = requiredA.sub(tokenAAmount);
     tokenBSwapAmount = requiredB.sub(tokenBAmount);
 
-    return [requiredA.floor(), requiredB.floor(), tokenASwapAmount.floor(), tokenBSwapAmount.floor()];
+    console.log(
+      'priceAinb',
+      _priceAInB,
+      'pricebina',
+      _priceBInA,
+      requiredA.floor().toString(),
+      requiredB.floor().toString(),
+      tokenASwapAmount.floor().toString(),
+      tokenBSwapAmount.floor().toString()
+    );
+
+    if (tokenBSwapAmount.lt(0)) {
+      tokenASwapAmount = new Decimal(_priceBInA).mul(tokenBSwapAmount.abs());
+    }
+    if (tokenASwapAmount.lt(0)) {
+      tokenBSwapAmount = new Decimal(_priceAInB).mul(tokenASwapAmount.abs());
+    }
+
+    return [requiredA, requiredB, tokenASwapAmount, tokenBSwapAmount];
   };
+
+  // calculateAmountsToBeDepositedWithSwap = async (
+  //   strategy: PublicKey | StrategyWithAddress,
+  //   tokenAAmount: Decimal,
+  //   tokenBAmount: Decimal
+  // ): Promise<[Decimal, Decimal, Decimal, Decimal]> => {
+  //   // 1. Get Jupiter price of B in A: P
+  //   // 2. Calculate total amount in single token: T = A + B*P
+  //   // 3. Get current orca pool ratio: R = A / B
+  //   // 4. (Ax + Bx) = T and B = A/R => (Ax + Ax/R) = T
+  //   // 5. Calculate token amounts based on orca rate  Ax = T * R  / (1 + R);
+  //   // 6. Calculate B amount (T - A) / P
+
+  //   const { strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
+  //   let tokenAMint = strategyState.tokenAMint;
+  //   let tokenBMint = strategyState.tokenBMint;
+  //   console.log('tokenAMint', tokenAMint.toString());
+  //   console.log('tokenBMint', tokenBMint.toString());
+  //   const _priceBInA = await this._jupService.getPrice(tokenBMint, tokenAMint);
+  //   console.log('priceBInA', _priceBInA);
+
+  //   // if tokens has different decimals we need to use max decimals
+  //   // to make calculations correct
+  //   // calc decimals delta and then mul/div to add additional decimals to values
+  //   console.log(' strategyState.tokenAMintDecimals.toNumber()', strategyState.tokenAMintDecimals.toNumber());
+  //   console.log(' strategyState.tokenBMintDecimals.toNumber()', strategyState.tokenBMintDecimals.toNumber());
+  //   const decimalsDelta = strategyState.tokenAMintDecimals.toNumber() - strategyState.tokenBMintDecimals.toNumber();
+  //   const tokenAAddDecimals = decimalsDelta > 0 ? 0 : Math.abs(decimalsDelta);
+  //   const tokenBAddDecimals = decimalsDelta > 0 ? Math.abs(decimalsDelta) : 0;
+  //   console.log('decimalsDelta', decimalsDelta);
+  //   console.log('tokenAAddDecimals', tokenAAddDecimals);
+  //   console.log('tokenBAddDecimals', tokenBAddDecimals);
+
+  //   // calculate total amount in tokenA
+  //   // multiply by decimals delta to round boths tokens to the same decimals
+  //   const singleTokenTotal = tokenAAmount
+  //     // .mul(10 ** strategyState.tokenAMintDecimals.toNumber())
+  //     .mul(10 ** tokenAAddDecimals)
+  //     .add(tokenBAmount.mul(10 ** tokenBAddDecimals).mul(_priceBInA));
+  //   console.log('singleTokenTotal', singleTokenTotal);
+
+  //   // simulate the amounts to be deposited if we deposit 100 A so we can see what should be the ratio between the tokens
+  //   let amountsToBeDeposited = await this.calculateAmountsToBeDeposited(
+  //     strategy,
+  //     collToLamportsDecimal(new Decimal(100.0), strategyState.tokenAMintDecimals.toNumber())
+  //   );
+  //   console.log('raw amountsToBeDeposited', amountsToBeDeposited);
+
+  //   let ratio = amountsToBeDeposited[0]
+  //     .mul(10 ** tokenAAddDecimals)
+  //     .div(amountsToBeDeposited[1].mul(10 ** tokenBAddDecimals));
+  //   console.log('initial desired ratio', ratio.toString());
+
+  //   // sdk 'calculateAmounts' returns raw tokens values: [tokenA, tokenB]
+  //   // because we calculate ration for single token amount based on tokenA
+  //   // we need to convert tokenB to tokenA value
+  //   // orcaRatio = tokenA/(tokenB*priceBinA) = (tokenA/tokenB)/priceBinA
+  //   ratio = ratio.div(_priceBInA);
+  //   console.log('desired ratio', ratio.toString());
+
+  //   let requiredA = singleTokenTotal
+  //     .mul(ratio)
+  //     .div(ratio.add(1))
+  //     .div(10 ** tokenAAddDecimals);
+
+  //   // requiredB = (total - requiredA) / _priceBInA
+  //   let requiredB = singleTokenTotal
+  //     .minus(requiredA.mul(10 ** tokenAAddDecimals))
+  //     .div(10 ** tokenBAddDecimals)
+  //     .div(_priceBInA);
+  //   console.log('requiredA', requiredA.toString());
+  //   console.log('requiredB', requiredB.toString());
+
+  //   // > 0 => Buy, < 0 => Sell
+  //   let tokenASwapAmount = new Decimal(0);
+  //   let tokenBSwapAmount = new Decimal(0);
+
+  //   // tokenASwapAmount = requiredA.sub(collToLamportsDecimal(tokenAAmount, strategyState.tokenAMintDecimals.toNumber()));
+  //   // tokenBSwapAmount = requiredB.sub(collToLamportsDecimal(tokenBAmount, strategyState.tokenBMintDecimals.toNumber()));
+
+  //   tokenASwapAmount = requiredA.sub(tokenAAmount);
+  //   tokenBSwapAmount = requiredB.sub(tokenBAmount);
+
+  //   // requiredA = lamportsToNumberDecimal(requiredA, strategyState.tokenAMintDecimals.toNumber());
+  //   // requiredB = lamportsToNumberDecimal(requiredB, strategyState.tokenBMintDecimals.toNumber());
+  //   // tokenASwapAmount = lamportsToNumberDecimal(tokenASwapAmount, strategyState.tokenAMintDecimals.toNumber());
+  //   // tokenBSwapAmount = lamportsToNumberDecimal(tokenBSwapAmount, strategyState.tokenBMintDecimals.toNumber());
+
+  //   return [requiredA, requiredB, tokenASwapAmount, tokenBSwapAmount];
+  // };
 
   calculateAmountsToBeDeposited = async (
     strategy: PublicKey | StrategyWithAddress,

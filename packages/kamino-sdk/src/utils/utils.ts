@@ -98,3 +98,13 @@ export async function getUpdateStrategyConfigIx(
 
   return updateStrategyConfig(args, accounts);
 }
+
+export function collToLamportsDecimal(amount: Decimal, decimals: number): Decimal {
+  let factor = Math.pow(10, decimals);
+  return amount.mul(factor);
+}
+
+export function lamportsToNumberDecimal(amount: Decimal.Value, decimals: number): Decimal {
+  const factor = 10 ** decimals;
+  return new Decimal(amount).div(factor);
+}

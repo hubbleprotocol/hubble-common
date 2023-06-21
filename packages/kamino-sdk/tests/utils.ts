@@ -10,6 +10,7 @@ import Decimal from 'decimal.js';
 import { CollateralInfos, GlobalConfig, WhirlpoolStrategy } from '../src/kamino-client/accounts';
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
+  collToLamportsDecimal,
   Dex,
   getAssociatedTokenAddress,
   getUpdateStrategyConfigIx,
@@ -21,6 +22,15 @@ import { getTickArrayPubkeysFromRangeRaydium } from './raydium_utils';
 import { getTickArrayPubkeysFromRangeOrca } from './orca_utils';
 import { TokenInstructions } from '@project-serum/serum';
 import { collateralTokenToNumber, CollateralToken } from './token_utils';
+
+export const GlobalConfigMainnet = new PublicKey('GKnHiWh3RRrE1zsNzWxRkomymHc374TvJPSTv2wPeYdB');
+export const KaminoProgramIdMainnet = new PublicKey('6LtLpnUFNByNXLyCoK9wA2MykKAmQNZKBdY8s47dehDc');
+export const SOLMintMainnet = new PublicKey('So11111111111111111111111111111111111111112');
+export const USDCMintMainnet = new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v');
+export const USDHMintMainnet = new PublicKey('USDH1SM1ojwWUga67PGrgFWUHibbjqMvuMaDkRJTgkX');
+export const UsdcUsdhShadowStrategyMainnet = new PublicKey('E7K2S9qhypk9S1EaGKWaXyN9rP2RmPPmwHKWGQuVZHNm');
+export const SolUsdcShadowStrategyMainnet = new PublicKey('Cgb4iehuTNAgaafXF9Y9e8N3wFpcrqbHC2vvCoBdBJXY');
+export const RlbUsdcShadowStrategyMainnet = new PublicKey('GymZwgYmamLpUTL3eBKA4XXbCAVmZkSxGcny1AYwxGgx');
 
 // Seconds
 export const DEFAULT_MAX_PRICE_AGE = 60 * 3;
@@ -336,11 +346,6 @@ async function createMintInstructions(
       mintAuthority: signer.publicKey,
     }),
   ];
-}
-
-export function collToLamportsDecimal(amount: Decimal, decimals: number): Decimal {
-  let factor = Math.pow(10, decimals);
-  return amount.mul(factor);
 }
 
 export type DeployedPool = {
