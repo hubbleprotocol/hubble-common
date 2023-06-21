@@ -1,10 +1,8 @@
 import {
-  Account,
   Connection,
   Keypair,
   PublicKey,
   sendAndConfirmTransaction,
-  Transaction,
   TransactionInstruction,
   VersionedTransaction,
 } from '@solana/web3.js';

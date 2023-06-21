@@ -2985,7 +2985,7 @@ export class Kamino {
       .mul(10 ** tokenAAddDecimals)
       .div(amountsToBeDeposited[1].mul(10 ** tokenBAddDecimals));
 
-    //sdk 'calculateAmounts' returns raw tokens values: [tokenA, tokenB]
+    // sdk 'calculateAmounts' returns raw tokens values: [tokenA, tokenB]
     // because we calculate ration for single token amount based on tokenA
     // we need to convert tokenB to tokenA value
     // orcaRatio = tokenA/(tokenB*priceBinA) = (tokenA/tokenB)/priceBinA
