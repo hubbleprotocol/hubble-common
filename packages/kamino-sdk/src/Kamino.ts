@@ -2959,10 +2959,10 @@ export class Kamino {
     // 4. (Ax + Bx) = T and B = A/R => (Ax + Ax/R) = T
     // 5. Calculate token amounts based on orca rate  Ax = T * R  / (1 + R);
     // 6. Calculate B amount (T - A) / P
+
     const { strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
     let tokenAMint = strategyState.tokenAMint;
     let tokenBMint = strategyState.tokenBMint;
-    const _priceAInB = await this._jupService.getPrice(tokenAMint, tokenBMint);
     const _priceBInA = await this._jupService.getPrice(tokenBMint, tokenAMint);
 
     // if tokens has different decimals we need to use max decimals
