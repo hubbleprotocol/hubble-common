@@ -17,55 +17,55 @@ describe('Kamino strategy creation SDK Tests', () => {
   const clusterUrl: string = 'https://api.mainnet-beta.solana.com';
   connection = new Connection(clusterUrl, 'processed');
 
-  // it('calculateAmountsToBeDepositedWithSwap for USDC-USDH pair, USDC provided only', async () => {
-  //   let kamino = new Kamino(
-  //     cluster,
-  //     connection,
-  //     GlobalConfigMainnet,
-  //     KaminoProgramIdMainnet,
-  //     WHIRLPOOL_PROGRAM_ID,
-  //     RAYDIUM_PROGRAM_ID
-  //   );
+  it('calculateAmountsToBeDepositedWithSwap for USDC-USDH pair, USDC provided only', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      GlobalConfigMainnet,
+      KaminoProgramIdMainnet,
+      WHIRLPOOL_PROGRAM_ID,
+      RAYDIUM_PROGRAM_ID
+    );
 
-  //   // tokenA is 0 because the strat is USDH-USDC
-  //   let calculatedAmountsWithSwap = await kamino.calculateAmountsToBeDepositedWithSwap2(
-  //     UsdcUsdhShadowStrategyMainnet,
-  //     ZERO,
-  //     new Decimal(100.0)
-  //   );
+    // tokenA is 0 because the strat is USDH-USDC
+    let calculatedAmountsWithSwap = await kamino.calculateAmountsToBeDepositedWithSwap(
+      UsdcUsdhShadowStrategyMainnet,
+      ZERO,
+      new Decimal(100.0)
+    );
 
-  //   console.log('calculatedAmountsWithSwap', calculatedAmountsWithSwap);
-  //   // verify that the total amount to be deposited matches the initial amount (as USDC is slightly bigger than USDH, we should get a total of tokens slightly bigger than what we input)
-  //   expect(calculatedAmountsWithSwap[0].add(calculatedAmountsWithSwap[1]).gt(new Decimal(100.0))).to.be.true;
-  //   expect(calculatedAmountsWithSwap[0].add(calculatedAmountsWithSwap[1]).lt(new Decimal(101.0))).to.be.true;
+    console.log('calculatedAmountsWithSwap', calculatedAmountsWithSwap);
+    // verify that the total amount to be deposited matches the initial amount (as USDC is slightly bigger than USDH, we should get a total of tokens slightly bigger than what we input)
+    expect(calculatedAmountsWithSwap[0].add(calculatedAmountsWithSwap[1]).gt(new Decimal(100.0))).to.be.true;
+    expect(calculatedAmountsWithSwap[0].add(calculatedAmountsWithSwap[1]).lt(new Decimal(101.0))).to.be.true;
 
-  //   // verify that given they have ±the same price, what amount to be swapped of USDC is very close to the amount of USDH to be bought
-  //   expect(calculatedAmountsWithSwap[2].add(calculatedAmountsWithSwap[3]).abs().lt(new Decimal(0.5))).to.be.true;
-  // });
+    // verify that given they have ±the same price, what amount to be swapped of USDC is very close to the amount of USDH to be bought
+    expect(calculatedAmountsWithSwap[2].add(calculatedAmountsWithSwap[3]).abs().lt(new Decimal(0.5))).to.be.true;
+  });
 
-  // it('calculateAmountsToBeDepositedWithSwap for USDC-USDH pair, too much USDH provided', async () => {
-  //   let kamino = new Kamino(
-  //     cluster,
-  //     connection,
-  //     GlobalConfigMainnet,
-  //     KaminoProgramIdMainnet,
-  //     WHIRLPOOL_PROGRAM_ID,
-  //     RAYDIUM_PROGRAM_ID
-  //   );
+  it('calculateAmountsToBeDepositedWithSwap for USDC-USDH pair, too much USDH provided', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      GlobalConfigMainnet,
+      KaminoProgramIdMainnet,
+      WHIRLPOOL_PROGRAM_ID,
+      RAYDIUM_PROGRAM_ID
+    );
 
-  //   let calculatedAmountsWithSwap = await kamino.calculateAmountsToBeDepositedWithSwap2(
-  //     UsdcUsdhShadowStrategyMainnet,
-  //     new Decimal(300.0),
-  //     new Decimal(200.0)
-  //   );
+    let calculatedAmountsWithSwap = await kamino.calculateAmountsToBeDepositedWithSwap(
+      UsdcUsdhShadowStrategyMainnet,
+      new Decimal(300.0),
+      new Decimal(200.0)
+    );
 
-  //   console.log('calculatedAmountsWithSwap', calculatedAmountsWithSwap);
-  //   // verify that the total amount to be deposited almost equals the initial amount (USDH is cheaper so we get less USDC)
-  //   expect(calculatedAmountsWithSwap[0].add(calculatedAmountsWithSwap[1]).gt(new Decimal(499.5))).to.be.true;
-  //   expect(calculatedAmountsWithSwap[0].add(calculatedAmountsWithSwap[1]).lt(new Decimal(500.0))).to.be.true;
-  //   // verify that given they have ±the same price, what amount to be swapped of USDC is equal to the amount of USDH to be bought (we have to sell some USDH more because it is the cheaper token)
-  //   expect(calculatedAmountsWithSwap[2].add(calculatedAmountsWithSwap[3]).abs().lt(new Decimal(0.5))).to.be.true;
-  // });
+    console.log('calculatedAmountsWithSwap', calculatedAmountsWithSwap);
+    // verify that the total amount to be deposited almost equals the initial amount (USDH is cheaper so we get less USDC)
+    expect(calculatedAmountsWithSwap[0].add(calculatedAmountsWithSwap[1]).gt(new Decimal(499.5))).to.be.true;
+    expect(calculatedAmountsWithSwap[0].add(calculatedAmountsWithSwap[1]).lt(new Decimal(500.0))).to.be.true;
+    // verify that given they have ±the same price, what amount to be swapped of USDC is equal to the amount of USDH to be bought (we have to sell some USDH more because it is the cheaper token)
+    expect(calculatedAmountsWithSwap[2].add(calculatedAmountsWithSwap[3]).abs().lt(new Decimal(0.5))).to.be.true;
+  });
 
   it('calculateAmountsToBeDepositedWithSwap for SOL-USDC pair, SOL provided only', async () => {
     let kamino = new Kamino(
@@ -78,7 +78,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     );
 
     // tokenA is 0 because the strat is USDH-USDC
-    let calculatedAmountsWithSwap = await kamino.calculateAmountsToBeDepositedWithSwapSilviu(
+    let calculatedAmountsWithSwap = await kamino.calculateAmountsToBeDepositedWithSwap(
       SolUsdcShadowStrategyMainnet,
       new Decimal(4.0),
       ZERO
@@ -98,13 +98,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     );
 
     // tokenA is 0 because the strat is USDH-USDC
-    let calculatedAmountsWithSwap = await kamino.calculateAmountsToBeDepositedWithSwapSilviu(
-      SolUsdcShadowStrategyMainnet,
-      ZERO,
-      new Decimal(8.0)
-    );
-
-    let calculatedAmouxntsWithSwap = await kamino.calculateAmountsToBeDepositedWithSwap2(
+    let calculatedAmountsWithSwap = await kamino.calculateAmountsToBeDepositedWithSwap(
       SolUsdcShadowStrategyMainnet,
       ZERO,
       new Decimal(8.0)
