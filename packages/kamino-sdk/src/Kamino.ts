@@ -179,6 +179,11 @@ import { getMintDecimals } from '@project-serum/serum/lib/market';
 import { Key } from 'readline';
 import { token } from '@project-serum/anchor/dist/cjs/utils';
 import { table } from 'console';
+import {
+  simulateManualPool,
+  simulatePercentagePool,
+  SimulationPercentagePoolParameters,
+} from './services/PoolSimulationService';
 export const KAMINO_IDL = KaminoIdl;
 
 export class Kamino {
@@ -2679,6 +2684,22 @@ export class Kamino {
       estimatedApy: new Decimal(0),
       estimatedVolume: new Decimal(0),
     };
+  };
+
+  getManualPoolSimulatedValues = async (params: {
+    pool: PublicKey;
+    priceLower: Decimal;
+    priceUpper: Decimal;
+    startDate: string;
+    endDate: string;
+  }) => {
+    const { pool, startDate, endDate, priceLower, priceUpper } = params;
+    return simulateManualPool({ poolAddress: pool, priceUpper, priceLower, depositDate: startDate, endDate });
+  };
+
+  getPercentagePoolSimulatedValues = async (params: SimulationPercentagePoolParameters) => {
+    const { resetRangeWidthPercLower = 1, resetRangeWidthPercUpper = 1, ...rest } = params;
+    return simulatePercentagePool({ resetRangeWidthPercLower, resetRangeWidthPercUpper, ...rest });
   };
 
   /**
