@@ -64,6 +64,7 @@ import {
   batchFetch,
   collToLamportsDecimal,
   createAssociatedTokenAccountInstruction,
+  DepositAmountsForSwap,
   Dex,
   dexToNumber,
   GenericPoolInfo,
@@ -2975,7 +2976,7 @@ export class Kamino {
     strategy: PublicKey | StrategyWithAddress,
     tokenAAmountUserDeposit: Decimal,
     tokenBAmountUserDeposit: Decimal
-  ): Promise<[Decimal, Decimal, Decimal, Decimal]> => {
+  ): Promise<DepositAmountsForSwap> => {
     const { strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
     let tokenAMint = strategyState.tokenAMint;
     let tokenBMint = strategyState.tokenBMint;
@@ -3002,13 +3003,20 @@ export class Kamino {
 
     let totalUserDepositInA = aAmount.add(bAmount.mul(priceBInA));
 
-    let reqA = totalUserDepositInA.mul(ratio).div(ratio.add(1));
-    let reqB = totalUserDepositInA.sub(reqA).mul(priceAInB);
+    let requiredAAmountToDeposit = totalUserDepositInA.mul(ratio).div(ratio.add(1));
+    let requiredBAmountToDeposit = totalUserDepositInA.sub(requiredAAmountToDeposit).mul(priceAInB);
 
-    let tokenAToSwapAmount = reqA.sub(tokenAAmountUserDeposit);
-    let tokenBToSwapAmount = reqB.sub(tokenBAmountUserDeposit);
+    let tokenAToSwapAmount = requiredAAmountToDeposit.sub(tokenAAmountUserDeposit);
+    let tokenBToSwapAmount = requiredBAmountToDeposit.sub(tokenBAmountUserDeposit);
 
-    return [reqA, reqB, tokenAToSwapAmount, tokenBToSwapAmount];
+    let depositAmountsForSwap: DepositAmountsForSwap = {
+      requiredAAmountToDeposit,
+      requiredBAmountToDeposit,
+      tokenAToSwapAmount,
+      tokenBToSwapAmount,
+    };
+
+    return depositAmountsForSwap;
   };
 
   calculateAmountsToBeDeposited = async (
