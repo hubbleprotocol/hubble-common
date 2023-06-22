@@ -48,7 +48,12 @@ describe('Kamino strategy creation SDK Tests', () => {
     ).to.be.true;
 
     // verify that given they have ±the same price, what amount to be swapped of USDC is very close to the amount of USDH to be bought
-    expect(calculatedAmountsWithSwap[2].add(calculatedAmountsWithSwap[3]).abs().lt(new Decimal(0.5))).to.be.true;
+    expect(
+      calculatedAmountsWithSwap.tokenAToSwapAmount
+        .add(calculatedAmountsWithSwap.tokenBToSwapAmount)
+        .abs()
+        .lt(new Decimal(0.5))
+    ).to.be.true;
   });
 
   it('calculateAmountsToBeDepositedWithSwap for USDC-USDH pair, too much USDH provided', async () => {
@@ -126,5 +131,66 @@ describe('Kamino strategy creation SDK Tests', () => {
     );
 
     console.log('calculatedAmountsWithSwap', calculatedAmountsWithSwap);
+  });
+
+  it('calculateAmountsToBeDepositedWithSwap for SOL-USDC pair, Price SOL/USDC 19', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      GlobalConfigMainnet,
+      KaminoProgramIdMainnet,
+      WHIRLPOOL_PROGRAM_ID,
+      RAYDIUM_PROGRAM_ID
+    );
+
+    let price = new Decimal(19.0);
+    // tokenA is 0 because the strat is USDH-USDC
+    let { requiredAAmountToDeposit, requiredBAmountToDeposit, tokenAToSwapAmount, tokenBToSwapAmount } =
+      await kamino.calculateAmountsToBeDepositedWithSwap(SolUsdcShadowStrategyMainnet, ZERO, new Decimal(8.0), price);
+
+    expect(requiredAAmountToDeposit.eq(tokenAToSwapAmount)).to.be.true;
+    expect(requiredBAmountToDeposit.add(tokenBToSwapAmount.mul(new Decimal(-1))).eq(new Decimal(8.0))).to.be.true;
+
+    let totalDepositValue = requiredAAmountToDeposit.mul(price).add(requiredBAmountToDeposit);
+    expect(totalDepositValue.lt(new Decimal(8))).to.be.true;
+    expect(totalDepositValue.gt(new Decimal(7.99))).to.be.true;
+  });
+
+  it('calculateAmountsToBeDepositedWithSwap for SOL-USDC pair, Price SOL/USDC 185.34, deposit both tokens in low amounts', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      GlobalConfigMainnet,
+      KaminoProgramIdMainnet,
+      WHIRLPOOL_PROGRAM_ID,
+      RAYDIUM_PROGRAM_ID
+    );
+
+    let price = new Decimal(185.34);
+    let solToDeposit = new Decimal(0.02);
+    let usdcToDeposit = new Decimal(1.5);
+    let { requiredAAmountToDeposit, requiredBAmountToDeposit, tokenAToSwapAmount, tokenBToSwapAmount } =
+      await kamino.calculateAmountsToBeDepositedWithSwap(
+        SolUsdcShadowStrategyMainnet,
+        solToDeposit,
+        usdcToDeposit,
+        price
+      );
+
+    console.log('requiredAAmountToDeposit', requiredAAmountToDeposit.toString());
+    console.log('requiredBAmountToDeposit', requiredBAmountToDeposit.toString());
+    console.log('tokenAToSwapAmount', tokenAToSwapAmount.toString());
+    console.log('tokenBToSwapAmount', tokenBToSwapAmount.toString());
+
+    let totalBUsed = requiredBAmountToDeposit.add(tokenBToSwapAmount.mul(new Decimal(-1)));
+    console.log('totalBUsed', totalBUsed.toString());
+    expect(requiredAAmountToDeposit.eq(tokenAToSwapAmount.add(solToDeposit))).to.be.true;
+    expect(totalBUsed.lt(usdcToDeposit)).to.be.true;
+    expect(totalBUsed.gt(usdcToDeposit.sub(new Decimal(0.00001)))).to.be.true;
+
+    let initialTotalValue = solToDeposit.mul(price).add(usdcToDeposit);
+    let totalDepositValue = requiredAAmountToDeposit.mul(price).add(requiredBAmountToDeposit);
+    expect(totalDepositValue.lt(initialTotalValue)).to.be.true;
+    expect(totalDepositValue.gt(initialTotalValue.sub(new Decimal(0.001)))).to.be.true;
   });
 });

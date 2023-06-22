@@ -2975,14 +2975,18 @@ export class Kamino {
   calculateAmountsToBeDepositedWithSwap = async (
     strategy: PublicKey | StrategyWithAddress,
     tokenAAmountUserDeposit: Decimal,
-    tokenBAmountUserDeposit: Decimal
+    tokenBAmountUserDeposit: Decimal,
+    priceAInB?: Decimal
   ): Promise<DepositAmountsForSwap> => {
     const { strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
     let tokenAMint = strategyState.tokenAMint;
     let tokenBMint = strategyState.tokenBMint;
 
-    const priceAInB = await this._jupService.getPrice(tokenAMint, tokenBMint);
-    const priceBInA = await this._jupService.getPrice(tokenBMint, tokenAMint);
+    if (!priceAInB) {
+      priceAInB = new Decimal(await this._jupService.getPrice(tokenAMint, tokenBMint));
+    }
+
+    const priceBInA = new Decimal(1).div(priceAInB);
 
     let tokenADecimals = strategyState.tokenAMintDecimals.toNumber();
     let tokenBDecimals = strategyState.tokenBMintDecimals.toNumber();
@@ -2995,8 +2999,8 @@ export class Kamino {
       collToLamportsDecimal(new Decimal(100.0), tokenADecimals)
     );
 
-    let orcaAmountA = aAmounts[0].div(new Decimal(10).pow(tokenADecimals));
-    let orcaAmountB = bAmounts[1].div(new Decimal(10).pow(tokenBDecimals));
+    let orcaAmountA = aAmounts.div(new Decimal(10).pow(tokenADecimals));
+    let orcaAmountB = bAmounts.div(new Decimal(10).pow(tokenBDecimals));
 
     let ratio = orcaAmountA.div(orcaAmountB);
     ratio = ratio.div(priceBInA);
