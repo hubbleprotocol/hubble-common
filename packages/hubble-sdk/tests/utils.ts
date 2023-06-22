@@ -22,7 +22,7 @@ export async function solAirdrop(
 }
 
 function collToLamportsDecimal(amount: Decimal, decimals: number): Decimal {
-  let factor = Math.pow(10, decimals);
+  let factor = new Decimal(10).pow(decimals);
   return amount.mul(factor);
 }
 

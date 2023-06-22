@@ -1,5 +1,5 @@
 import { PublicKey } from '@solana/web3.js';
-import { Manual, PricePercentage } from '../kamino-client/types/RebalanceType';
+import { Manual, PricePercentage, PricePercentageWithReset } from '../kamino-client/types/RebalanceType';
 import Decimal from 'decimal.js';
 import { Dex } from './utils';
 
@@ -33,6 +33,13 @@ export const ManualRebalanceMethod: RebalanceMethod = {
 export const PricePercentageRebalanceMethod: RebalanceMethod = {
   label: 'Price Percentage',
   value: PricePercentage.discriminator,
+  description:
+    'Optimize your portfolio for maximum returns with Kamino’s Automated Percentage Rebalancing strategy. Automatically adjust your allocation based on predetermined percentages for a balanced and risk-minimized portfolio.',
+};
+export const PricePercentageWithResetRangeRebalanceMethod: RebalanceMethod = {
+  label: 'Price Percentage With Reset Range',
+  value: PricePercentageWithReset.discriminator,
+  // todo: provide a better description
   description:
     'Optimize your portfolio for maximum returns with Kamino’s Automated Percentage Rebalancing strategy. Automatically adjust your allocation based on predetermined percentages for a balanced and risk-minimized portfolio.',
 };

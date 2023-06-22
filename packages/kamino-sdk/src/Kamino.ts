@@ -62,7 +62,9 @@ import { PROGRAM_ID_CLI as WHIRLPOOL_PROGRAM_ID, setWhirlpoolsProgramId } from '
 import { Scope, ScopeToken, SupportedTokens } from '@hubbleprotocol/scope-sdk';
 import {
   batchFetch,
+  collToLamportsDecimal,
   createAssociatedTokenAccountInstruction,
+  DepositAmountsForSwap,
   Dex,
   dexToNumber,
   GenericPoolInfo,
@@ -75,6 +77,7 @@ import {
   getReadOnlyWallet,
   getStrategyRebalanceParams,
   getUpdateStrategyConfigIx,
+  lamportsToNumberDecimal,
   LiquidityDistribution,
   numberToRebalanceType,
   RebalanceFieldInfo,
@@ -179,6 +182,7 @@ import {
 } from './utils/CreationParameters';
 import { getMintDecimals } from '@project-serum/serum/lib/market';
 import { DOLAR_BASED, PROPORTION_BASED } from './constants/deposit_method';
+import { JupService } from './services/JupService';
 import {
   simulateManualPool,
   simulatePercentagePool,
@@ -197,6 +201,7 @@ export class Kamino {
   private readonly _kaminoProgramId: PublicKey;
   private readonly _orcaService: OrcaService;
   private readonly _raydiumService: RaydiumService;
+  private readonly _jupService: JupService;
 
   /**
    * Create a new instance of the Kamino SDK class.
@@ -236,6 +241,7 @@ export class Kamino {
     }
     this._orcaService = new OrcaService(connection, cluster, this._globalConfig);
     this._raydiumService = new RaydiumService(connection, cluster);
+    this._jupService = new JupService(connection, cluster);
   }
 
   getConnection = () => this._connection;
@@ -2964,6 +2970,57 @@ export class Kamino {
   getStrategyTokensRatio = async (strategy: PublicKey | StrategyWithAddress): Promise<Decimal> => {
     let totalHoldings = await this.getStrategyTokensHoldings(strategy);
     return totalHoldings.a.div(totalHoldings.b);
+  };
+
+  calculateAmountsToBeDepositedWithSwap = async (
+    strategy: PublicKey | StrategyWithAddress,
+    tokenAAmountUserDeposit: Decimal,
+    tokenBAmountUserDeposit: Decimal,
+    priceAInB?: Decimal
+  ): Promise<DepositAmountsForSwap> => {
+    const { strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
+    let tokenAMint = strategyState.tokenAMint;
+    let tokenBMint = strategyState.tokenBMint;
+
+    if (!priceAInB) {
+      priceAInB = new Decimal(await this._jupService.getPrice(tokenAMint, tokenBMint));
+    }
+
+    const priceBInA = new Decimal(1).div(priceAInB);
+
+    let tokenADecimals = strategyState.tokenAMintDecimals.toNumber();
+    let tokenBDecimals = strategyState.tokenBMintDecimals.toNumber();
+
+    let aAmount = tokenAAmountUserDeposit;
+    let bAmount = tokenBAmountUserDeposit;
+
+    let [aAmounts, bAmounts] = await this.calculateAmountsToBeDeposited(
+      strategy,
+      collToLamportsDecimal(new Decimal(100.0), tokenADecimals)
+    );
+
+    let orcaAmountA = aAmounts.div(new Decimal(10).pow(tokenADecimals));
+    let orcaAmountB = bAmounts.div(new Decimal(10).pow(tokenBDecimals));
+
+    let ratio = orcaAmountA.div(orcaAmountB);
+    ratio = ratio.div(priceBInA);
+
+    let totalUserDepositInA = aAmount.add(bAmount.mul(priceBInA));
+
+    let requiredAAmountToDeposit = totalUserDepositInA.mul(ratio).div(ratio.add(1));
+    let requiredBAmountToDeposit = totalUserDepositInA.sub(requiredAAmountToDeposit).mul(priceAInB);
+
+    let tokenAToSwapAmount = requiredAAmountToDeposit.sub(tokenAAmountUserDeposit);
+    let tokenBToSwapAmount = requiredBAmountToDeposit.sub(tokenBAmountUserDeposit);
+
+    let depositAmountsForSwap: DepositAmountsForSwap = {
+      requiredAAmountToDeposit,
+      requiredBAmountToDeposit,
+      tokenAToSwapAmount,
+      tokenBToSwapAmount,
+    };
+
+    return depositAmountsForSwap;
   };
 
   calculateAmountsToBeDeposited = async (

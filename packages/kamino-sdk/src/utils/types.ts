@@ -182,3 +182,10 @@ export interface LiquidityForPrice {
   liquidity: Decimal;
   tickIndex: number;
 }
+
+export interface DepositAmountsForSwap {
+  requiredAAmountToDeposit: Decimal;
+  requiredBAmountToDeposit: Decimal;
+  tokenAToSwapAmount: Decimal;
+  tokenBToSwapAmount: Decimal;
+}
