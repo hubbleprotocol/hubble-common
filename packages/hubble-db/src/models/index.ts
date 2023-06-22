@@ -30,6 +30,7 @@ export * from './TradeEntity';
 export * from './TradeSourceEntity';
 export * from './StrategyMetricsEntity';
 export * from './TradePoolEntity';
+export * from './SimulatorPoolEntity';
 
 export const CLUSTER_TABLE: string = 'cluster';
 export const COLLATERAL_TABLE: string = 'collateral';
@@ -64,4 +65,5 @@ export const TRADE_AGGREGATOR_TABLE = 'trade_aggregator';
 export const TRADE_SOURCE_TABLE = 'trade_source';
 export const TRADE_POOL_TABLE = 'trade_pool';
 export const STRATEGY_METRICS_TABLE = 'strategy_metrics';
+export const SIMULATOR_POOL_TABLE = 'simulator_pool';
 export const API_SCHEMA: string = 'api';

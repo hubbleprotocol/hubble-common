@@ -10,6 +10,8 @@ import {
   updateStrategyConfig,
 } from '../kamino-client/instructions';
 
+export const RebalanceParamOffset = new Decimal(256);
+
 export function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -50,6 +52,11 @@ export function getStrategyRebalanceParams(params: Array<Decimal>, rebalance_typ
   } else if (rebalance_type.kind == RebalanceType.PricePercentage.kind) {
     buffer.writeUint16LE(params[0].toNumber());
     buffer.writeUint16LE(params[1].toNumber(), 2);
+  } else if (rebalance_type.kind == RebalanceType.PricePercentageWithReset.kind) {
+    buffer.writeUint16LE(params[0].toNumber());
+    buffer.writeUint16LE(params[1].toNumber(), 2);
+    buffer.writeUint16LE(params[2].toNumber(), 4);
+    buffer.writeUint16LE(params[3].toNumber(), 6);
   } else {
     throw 'Rebalance type not valid ' + rebalance_type;
   }
@@ -61,6 +68,8 @@ export function numberToRebalanceType(rebalance_type: number): RebalanceTypeKind
     return new RebalanceType.Manual();
   } else if (rebalance_type == 1) {
     return new RebalanceType.PricePercentage();
+  } else if (rebalance_type == 2) {
+    return new RebalanceType.PricePercentageWithReset();
   } else {
     throw new Error(`Invalid rebalance type ${rebalance_type.toString()}`);
   }
