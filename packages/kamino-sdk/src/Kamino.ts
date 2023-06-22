@@ -2952,42 +2952,42 @@ export class Kamino {
 
   calculateAmountsToBeDepositedWithSwap = async (
     strategy: PublicKey | StrategyWithAddress,
-    tokenAAmount: Decimal,
-    tokenBAmount: Decimal
+    tokenAAmountUserDeposit: Decimal,
+    tokenBAmountUserDeposit: Decimal
   ): Promise<[Decimal, Decimal, Decimal, Decimal]> => {
     const { strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
     let tokenAMint = strategyState.tokenAMint;
     let tokenBMint = strategyState.tokenBMint;
 
-    const _priceAInB = await this._jupService.getPrice(tokenAMint, tokenBMint);
-    const _priceBInA = await this._jupService.getPrice(tokenBMint, tokenAMint);
+    const priceAInB = await this._jupService.getPrice(tokenAMint, tokenBMint);
+    const priceBInA = await this._jupService.getPrice(tokenBMint, tokenAMint);
 
     let tokenADecimals = strategyState.tokenAMintDecimals.toNumber();
     let tokenBDecimals = strategyState.tokenBMintDecimals.toNumber();
 
-    let aAmount = tokenAAmount;
-    let bAmount = tokenBAmount;
+    let aAmount = tokenAAmountUserDeposit;
+    let bAmount = tokenBAmountUserDeposit;
 
-    let orcaAmounts = await this.calculateAmountsToBeDeposited(
+    let [aAmounts, bAmounts] = await this.calculateAmountsToBeDeposited(
       strategy,
       collToLamportsDecimal(new Decimal(100.0), tokenADecimals)
     );
 
-    let orcaAmountA = orcaAmounts[0].div(10 ** tokenADecimals);
-    let orcaAmountB = orcaAmounts[1].div(10 ** tokenBDecimals);
+    let orcaAmountA = aAmounts[0].div(new Decimal(10).pow(tokenADecimals));
+    let orcaAmountB = bAmounts[1].div(new Decimal(10).pow(tokenBDecimals));
 
     let ratio = orcaAmountA.div(orcaAmountB);
-    ratio = ratio.div(_priceBInA);
+    ratio = ratio.div(priceBInA);
 
-    let totalInA = aAmount.add(bAmount.mul(_priceBInA));
+    let totalUserDepositInA = aAmount.add(bAmount.mul(priceBInA));
 
-    let reqA = totalInA.mul(ratio).div(ratio.add(1));
-    let reqB = totalInA.sub(reqA).mul(_priceAInB);
+    let reqA = totalUserDepositInA.mul(ratio).div(ratio.add(1));
+    let reqB = totalUserDepositInA.sub(reqA).mul(priceAInB);
 
-    let tokenASwapAmount = reqA.sub(tokenAAmount);
-    let tokenBSwapAmount = reqB.sub(tokenBAmount);
+    let tokenAToSwapAmount = reqA.sub(tokenAAmountUserDeposit);
+    let tokenBToSwapAmount = reqB.sub(tokenBAmountUserDeposit);
 
-    return [reqA, reqB, tokenASwapAmount, tokenBSwapAmount];
+    return [reqA, reqB, tokenAToSwapAmount, tokenBToSwapAmount];
   };
 
   calculateAmountsToBeDeposited = async (

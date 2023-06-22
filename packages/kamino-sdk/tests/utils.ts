@@ -301,7 +301,7 @@ export async function getSolBalanceInLamports(provider: anchor.Provider, account
 }
 
 export function lamportsToCollDecimal(amount: Decimal, decimals: number): Decimal {
-  let factor = Math.pow(10, decimals);
+  let factor = new Decimal(10).pow(decimals);
   return amount.div(factor);
 }
 

@@ -100,11 +100,11 @@ export async function getUpdateStrategyConfigIx(
 }
 
 export function collToLamportsDecimal(amount: Decimal, decimals: number): Decimal {
-  let factor = Math.pow(10, decimals);
+  let factor = new Decimal(10).pow(decimals);
   return amount.mul(factor);
 }
 
 export function lamportsToNumberDecimal(amount: Decimal.Value, decimals: number): Decimal {
-  const factor = 10 ** decimals;
+  const factor = new Decimal(10).pow(decimals);
   return new Decimal(amount).div(factor);
 }
