@@ -45,7 +45,7 @@ export function getStrategyConfigValue(value: Decimal): number[] {
   return [...buffer];
 }
 
-export function getStrategyRebalanceParams(params: Array<Decimal>, rebalance_type: RebalanceTypeKind): number[] {
+export function buildStrategyRebalanceParams(params: Array<Decimal>, rebalance_type: RebalanceTypeKind): number[] {
   let buffer = Buffer.alloc(128);
   if (rebalance_type.kind == RebalanceType.Manual.kind) {
     // Manual has no params

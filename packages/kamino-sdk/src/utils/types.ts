@@ -2,6 +2,7 @@ import { PublicKey } from '@solana/web3.js';
 import { WhirlpoolStrategy } from '../kamino-client/accounts';
 import { Dex } from './utils';
 import Decimal from 'decimal.js';
+import { RebalanceTypeKind } from '../kamino-client/types';
 
 export type StrategyType = 'NON_PEGGED' | 'PEGGED' | 'STABLE';
 export type StrategyCreationStatus = 'IGNORED' | 'SHADOW' | 'LIVE' | 'DEPRECATED' | 'STAGING';
@@ -188,4 +189,17 @@ export interface DepositAmountsForSwap {
   requiredBAmountToDeposit: Decimal;
   tokenAToSwapAmount: Decimal;
   tokenBToSwapAmount: Decimal;
+}
+
+export interface RebalanceParamsAsPrices {
+  rebalanceType: RebalanceTypeKind;
+  rangePriceLower: Decimal;
+  rangePriceUpper: Decimal;
+  resetPriceLower?: Decimal;
+  resetPriceUpper?: Decimal;
+}
+
+export interface PositionRange {
+  lowerPrice: Decimal;
+  upperPrice: Decimal;
 }
