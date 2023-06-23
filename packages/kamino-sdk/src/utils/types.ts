@@ -191,6 +191,14 @@ export interface DepositAmountsForSwap {
   tokenBToSwapAmount: Decimal;
 }
 
+export interface RebalanceParams {
+  rebalanceType: RebalanceTypeKind;
+  lowerRangeBps: Decimal;
+  upperRangeBps: Decimal;
+  resetRangeLowerBps?: Decimal;
+  resetRangeUpperBps?: Decimal;
+}
+
 export interface RebalanceParamsAsPrices {
   rebalanceType: RebalanceTypeKind;
   rangePriceLower: Decimal;
