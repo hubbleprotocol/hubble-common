@@ -24,7 +24,7 @@ import {
   CollateralInfos,
 } from './kamino-client/accounts';
 import Decimal from 'decimal.js';
-import { Position, Whirlpool } from './whirpools-client';
+import { Position, Tick, Whirlpool } from './whirpools-client';
 import {
   AddLiquidityQuote,
   AddLiquidityQuoteParam,
@@ -75,9 +75,8 @@ import {
   getManualRebalanceFieldInfos,
   getPricePercentageRebalanceFieldInfos,
   getReadOnlyWallet,
-  getStrategyRebalanceParams,
+  buildStrategyRebalanceParams,
   getUpdateStrategyConfigIx,
-  lamportsToNumberDecimal,
   LiquidityDistribution,
   numberToRebalanceType,
   RebalanceFieldInfo,
@@ -88,6 +87,9 @@ import {
   strategyTypeToBase58,
   VaultParameters,
   ZERO,
+  PositionRange,
+  RebalanceParamsAsPrices,
+  RebalanceParams,
 } from './utils';
 import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import {
@@ -121,7 +123,7 @@ import BN from 'bn.js';
 import StrategyWithAddress from './models/StrategyWithAddress';
 import { Idl, Program, Provider } from '@project-serum/anchor';
 import { Rebalancing, Uninitialized } from './kamino-client/types/StrategyStatus';
-import { FRONTEND_KAMINO_STRATEGY_URL, METADATA_PROGRAM_ID, METADATA_UPDATE_AUTH } from './constants';
+import { FRONTEND_KAMINO_STRATEGY_URL, METADATA_PROGRAM_ID } from './constants';
 import {
   CollateralInfo,
   ExecutiveWithdrawActionKind,
@@ -134,7 +136,7 @@ import {
 import { Rebalance } from './kamino-client/types/ExecutiveWithdrawAction';
 import { AmmConfig, PersonalPositionState, PoolState } from './raydium_client';
 import { PROGRAM_ID as RAYDIUM_PROGRAM_ID, setRaydiumProgramId } from './raydium_client/programId';
-import { AmmV3, i32ToBytes, LiquidityMath, SqrtPriceMath, TickMath, TickUtils, Token } from '@raydium-io/raydium-sdk';
+import { AmmV3, i32ToBytes, LiquidityMath, SqrtPriceMath, TickMath, TickUtils } from '@raydium-io/raydium-sdk';
 
 import KaminoIdl from './kamino-client/kamino.json';
 import { OrcaService, RaydiumService, Whirlpool as OrcaPool, WhirlpoolAprApy } from './services';
@@ -188,6 +190,7 @@ import {
   simulatePercentagePool,
   SimulationPercentagePoolParameters,
 } from './services/PoolSimulationService';
+import { Manual, PricePercentage, PricePercentageWithReset } from './kamino-client/types/RebalanceType';
 export const KAMINO_IDL = KaminoIdl;
 
 export class Kamino {
@@ -1162,6 +1165,99 @@ export class Kamino {
   getStrategyTokenAccounts = async (strategy: PublicKey | StrategyWithAddress) => {
     const strategyState = await this.getStrategyStateIfNotFetched(strategy);
     return this.getShareTokenAccounts(strategyState.strategy.sharesMint);
+  };
+
+  /**
+   * Get strategy range in which liquidity is deposited
+   */
+  getStrategyRange = async (strategy: PublicKey | StrategyWithAddress): Promise<PositionRange> => {
+    const stratWithAddress = await this.getStrategyStateIfNotFetched(strategy);
+
+    if (stratWithAddress.strategy.strategyDex.toNumber() == dexToNumber('ORCA')) {
+      return this.getStrategyRangeOrca(strategy);
+    } else if (stratWithAddress.strategy.strategyDex.toNumber() == dexToNumber('RAYDIUM')) {
+      return this.getStrategyRangeRaydium(strategy);
+    } else {
+      throw Error(`Dex {stratWithAddress.strategy.strategyDex.toNumber()} not supported`);
+    }
+  };
+
+  getStrategyRangeOrca = async (strategy: PublicKey | StrategyWithAddress): Promise<PositionRange> => {
+    const { strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
+
+    return this.getPositionRangeOrca(
+      strategyState.position,
+      strategyState.tokenAMintDecimals.toNumber(),
+      strategyState.tokenBMintDecimals.toNumber()
+    );
+  };
+
+  getStrategyRangeRaydium = async (strategy: PublicKey | StrategyWithAddress): Promise<PositionRange> => {
+    const { strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
+
+    return this.getPositionRangeRaydium(
+      strategyState.position,
+      strategyState.tokenAMintDecimals.toNumber(),
+      strategyState.tokenBMintDecimals.toNumber()
+    );
+  };
+
+  getPositionRange = async (
+    dex: Dex,
+    position: PublicKey,
+    decimalsA: number,
+    decimalsB: number
+  ): Promise<PositionRange> => {
+    if (dex == 'ORCA') {
+      return this.getPositionRangeOrca(position, decimalsA, decimalsB);
+    } else if (dex == 'RAYDIUM') {
+      return this.getPositionRangeRaydium(position, decimalsA, decimalsB);
+    } else {
+      throw Error(`Unsupported dex ${dex}`);
+    }
+  };
+
+  getPositionRangeOrca = async (
+    positionPk: PublicKey,
+    decimalsA: number,
+    decimalsB: number
+  ): Promise<PositionRange> => {
+    let position = await Position.fetch(this._connection, positionPk);
+    if (!position) {
+      throw Error(`Could not find Orca position ${positionPk}`);
+    }
+    let lowerPrice = tickIndexToPrice(position.tickLowerIndex, decimalsA, decimalsB);
+    let upperPrice = tickIndexToPrice(position.tickUpperIndex, decimalsA, decimalsB);
+
+    let positionRange: PositionRange = { lowerPrice, upperPrice };
+
+    return positionRange;
+  };
+
+  getPositionRangeRaydium = async (
+    positionPk: PublicKey,
+    decimalsA: number,
+    decimalsB: number
+  ): Promise<PositionRange> => {
+    let position = await PersonalPositionState.fetch(this._connection, positionPk);
+    if (!position) {
+      throw Error(`Could not find Orca position ${positionPk}`);
+    }
+    let lowerPrice = sqrtPriceX64ToPrice(
+      SqrtPriceMath.getSqrtPriceX64FromTick(position.tickLowerIndex),
+      decimalsA,
+      decimalsB
+    );
+
+    let upperPrice = sqrtPriceX64ToPrice(
+      SqrtPriceMath.getSqrtPriceX64FromTick(position.tickUpperIndex),
+      decimalsA,
+      decimalsB
+    );
+
+    let positionRange: PositionRange = { lowerPrice, upperPrice };
+
+    return positionRange;
   };
 
   /**
@@ -2300,7 +2396,7 @@ export class Kamino {
       const { strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
       rebalanceType = numberToRebalanceType(strategyState.rebalanceType);
     }
-    const value = getStrategyRebalanceParams(rebalanceParams, rebalanceType);
+    const value = buildStrategyRebalanceParams(rebalanceParams, rebalanceType);
     let args: UpdateStrategyConfigArgs = {
       mode: StrategyConfigOption.UpdateRebalanceParams.discriminator,
       value,
@@ -2316,11 +2412,11 @@ export class Kamino {
     return updateStrategyConfig(args, accounts);
   };
 
-  getStrategyRebalanceParams = async (strategy: PublicKey | StrategyWithAddress): Promise<number[]> => {
+  buildStrategyRebalanceParams = async (strategy: PublicKey | StrategyWithAddress): Promise<number[]> => {
     const strategyState = await this.getStrategyStateIfNotFetched(strategy);
 
     let params = strategyState.strategy.rebalanceRaw.params.map((p) => new Decimal(p.toString()));
-    return getStrategyRebalanceParams(params, numberToRebalanceType(strategyState.strategy.rebalanceType));
+    return buildStrategyRebalanceParams(params, numberToRebalanceType(strategyState.strategy.rebalanceType));
   };
 
   /**
@@ -2421,7 +2517,12 @@ export class Kamino {
       rebalanceKind.kind == RebalanceType.PricePercentage.kind ||
       rebalanceKind.kind == RebalanceType.PricePercentageWithReset.kind
     ) {
-      let positionPrices = await this.getPriceRangePercentageBased(dex, pool, rebalanceParams[0], rebalanceParams[1]);
+      let positionPrices = await this.getPriceRangePercentageBasedFromPool(
+        dex,
+        pool,
+        rebalanceParams[0],
+        rebalanceParams[1]
+      );
       lowerPrice = positionPrices[0];
       upperPrice = positionPrices[1];
     } else {
@@ -2471,7 +2572,19 @@ export class Kamino {
     return [initStrategyIx, updateStrategyParamsIx, updateRebalanceParamsIx, openPositionIx];
   };
 
-  async getPriceRangePercentageBased(
+  async getCurrentPrice(strategy: PublicKey | StrategyWithAddress): Promise<Decimal> {
+    const strategyWithAddress = await this.getStrategyStateIfNotFetched(strategy);
+
+    if (strategyWithAddress.strategy.strategyDex.toNumber() == dexToNumber('ORCA')) {
+      return this.getOrcaPoolPrice(strategyWithAddress.strategy.pool);
+    } else if (strategyWithAddress.strategy.strategyDex.toNumber() == dexToNumber('RAYDIUM')) {
+      return this.getRaydiumPoolPrice(strategyWithAddress.strategy.pool);
+    } else {
+      throw new Error(`Strategy dex ${strategyWithAddress.strategy.strategyDex} is not supported`);
+    }
+  }
+
+  async getPriceRangePercentageBasedFromPool(
     dex: Dex,
     pool: PublicKey,
     lowerPriceBpsDifference: Decimal,
@@ -2486,9 +2599,79 @@ export class Kamino {
       throw new Error(`Invalid dex ${dex}`);
     }
 
+    return this.getPriceRangePercentageBasedFromPrice(poolPrice, lowerPriceBpsDifference, upperPriceBpsDifference);
+  }
+
+  /**
+   * Get the prices for rebalancing params (range and reset range, if strategy involves a reset range)
+   */
+  async getPricesFromRebalancingParams(strategy: PublicKey | StrategyWithAddress): Promise<RebalanceParamsAsPrices> {
+    const strategyWithAddress = await this.getStrategyStateIfNotFetched(strategy);
+    let currentPrice = await this.getCurrentPrice(strategyWithAddress);
+
+    let rebalanceKind = numberToRebalanceType(strategyWithAddress.strategy.rebalanceType);
+    if (rebalanceKind.kind === Manual.kind) {
+      let strategyRange = await this.getStrategyRange(strategyWithAddress);
+      let rebalanceParams: RebalanceParamsAsPrices = {
+        rebalanceType: new RebalanceType.Manual(),
+        rangePriceLower: strategyRange.lowerPrice,
+        rangePriceUpper: strategyRange.upperPrice,
+      };
+      return rebalanceParams;
+    } else if (rebalanceKind.kind === PricePercentage.kind) {
+      const rebalanceParams = await this.readPercentageRebalanceParams(strategyWithAddress);
+
+      let positionRange = this.getPriceRangePercentageBasedFromPrice(
+        currentPrice,
+        rebalanceParams.lowerRangeBps,
+        rebalanceParams.upperRangeBps
+      );
+
+      let rebalancePriceParams: RebalanceParamsAsPrices = {
+        rebalanceType: new RebalanceType.PricePercentage(),
+        rangePriceLower: positionRange[0],
+        rangePriceUpper: positionRange[1],
+      };
+      return rebalancePriceParams;
+    } else if (rebalanceKind.kind === PricePercentageWithReset.kind) {
+      const rebalanceParams = await this.readPercentageRebalanceParams(strategyWithAddress);
+      let positionRange = this.getPriceRangePercentageBasedFromPrice(
+        currentPrice,
+        rebalanceParams.lowerRangeBps,
+        rebalanceParams.upperRangeBps
+      );
+
+      if (!rebalanceParams.resetRangeLowerBps || !rebalanceParams.resetRangeUpperBps) {
+        throw new Error('Reset range not set');
+      }
+      let resetRange = this.getPriceRangePercentageBasedFromPrice(
+        currentPrice,
+        rebalanceParams.resetRangeLowerBps,
+        rebalanceParams.resetRangeUpperBps
+      );
+
+      let rebalancePriceParams: RebalanceParamsAsPrices = {
+        rebalanceType: new RebalanceType.PricePercentage(),
+        rangePriceLower: positionRange[0],
+        rangePriceUpper: positionRange[1],
+        resetPriceLower: resetRange[0],
+        resetPriceUpper: resetRange[1],
+      };
+
+      return rebalancePriceParams;
+    } else {
+      throw new Error(`Rebalance type ${rebalanceKind} is not supported`);
+    }
+  }
+
+  getPriceRangePercentageBasedFromPrice(
+    price: Decimal,
+    lowerPriceBpsDifference: Decimal,
+    upperPriceBpsDifference: Decimal
+  ): [Decimal, Decimal] {
     let fullBPSDecimal = new Decimal(FullBPS);
-    const lowerPrice = poolPrice.mul(fullBPSDecimal.sub(lowerPriceBpsDifference)).div(fullBPSDecimal);
-    const upperPrice = poolPrice.mul(fullBPSDecimal.add(upperPriceBpsDifference)).div(fullBPSDecimal);
+    const lowerPrice = price.mul(fullBPSDecimal.sub(lowerPriceBpsDifference)).div(fullBPSDecimal);
+    const upperPrice = price.mul(fullBPSDecimal.add(upperPriceBpsDifference)).div(fullBPSDecimal);
 
     return [lowerPrice, upperPrice];
   }
@@ -2812,32 +2995,44 @@ export class Kamino {
    * @returns list of decoded rebalancing params
    */
 
-  readPercentageRebalanceParams = (rebalanceType: RebalanceTypeKind, rebalanceParams: RebalanceRaw): Decimal[] => {
+  readPercentageRebalanceParams = async (strategy: PublicKey | StrategyWithAddress): Promise<RebalanceParams> => {
+    const strategyWithAddress = await this.getStrategyStateIfNotFetched(strategy);
+    let rebalanceType = numberToRebalanceType(strategyWithAddress.strategy.rebalanceType);
+
+    let rebalanceParams = strategyWithAddress.strategy.rebalanceRaw;
     // we represent the rebalance params as a vector of bytes and each param is represented over 2 bytes so when we read them we interpret the 2 bytes
     if (rebalanceType.kind == RebalanceType.Manual.kind) {
-      return [new Decimal(rebalanceParams.params[0]), new Decimal(rebalanceParams.params[1])];
+      throw new Error("Manual rebalance doesn't have params");
     } else if (rebalanceType.kind == RebalanceType.PricePercentage.kind) {
-      let lowerRangePercentage = new Decimal(rebalanceParams.params[0]).plus(
+      let lowerRangeBps = new Decimal(rebalanceParams.params[0]).plus(
         new Decimal(rebalanceParams.params[1]).mul(RebalanceParamOffset)
       );
-      let upperRangePercentage = new Decimal(rebalanceParams.params[2]).plus(
+      let upperRangeBps = new Decimal(rebalanceParams.params[2]).plus(
         new Decimal(rebalanceParams.params[3]).mul(RebalanceParamOffset)
       );
-      return [lowerRangePercentage, upperRangePercentage];
+
+      return { rebalanceType: new RebalanceType.PricePercentage(), lowerRangeBps, upperRangeBps };
     } else if (rebalanceType.kind == RebalanceType.PricePercentageWithReset.kind) {
-      let lowerRangePercentage = new Decimal(rebalanceParams.params[0]).plus(
+      let lowerRangeBps = new Decimal(rebalanceParams.params[0]).plus(
         new Decimal(rebalanceParams.params[1]).mul(RebalanceParamOffset)
       );
-      let upperRangePercentage = new Decimal(rebalanceParams.params[2]).plus(
+      let upperRangeBps = new Decimal(rebalanceParams.params[2]).plus(
         new Decimal(rebalanceParams.params[3]).mul(RebalanceParamOffset)
       );
-      let lowerResetRangePercentage = new Decimal(rebalanceParams.params[4]).plus(
+      let resetRangeLowerBps = new Decimal(rebalanceParams.params[4]).plus(
         new Decimal(rebalanceParams.params[5]).mul(RebalanceParamOffset)
       );
-      let upperResetRangePercentage = new Decimal(rebalanceParams.params[6]).plus(
+      let resetRangeUpperBps = new Decimal(rebalanceParams.params[6]).plus(
         new Decimal(rebalanceParams.params[7]).mul(RebalanceParamOffset)
       );
-      return [lowerRangePercentage, upperRangePercentage, lowerResetRangePercentage, upperResetRangePercentage];
+
+      return {
+        rebalanceType: new RebalanceType.PricePercentageWithReset(),
+        lowerRangeBps,
+        upperRangeBps,
+        resetRangeLowerBps,
+        resetRangeUpperBps,
+      };
     } else {
       throw new Error(`Invalid rebalance type ${rebalanceType}`);
     }
