@@ -2607,7 +2607,7 @@ export class Kamino {
    */
   async getPricesFromRebalancingParams(strategy: PublicKey | StrategyWithAddress): Promise<RebalanceParamsAsPrices> {
     const strategyWithAddress = await this.getStrategyStateIfNotFetched(strategy);
-    let currentPrice = this.getCurrentPrice(strategyWithAddress);
+    let currentPrice = await this.getCurrentPrice(strategyWithAddress);
 
     let rebalanceKind = numberToRebalanceType(strategyWithAddress.strategy.rebalanceType);
     if (rebalanceKind.kind === Manual.kind) {
@@ -2619,9 +2619,46 @@ export class Kamino {
       };
       return rebalanceParams;
     } else if (rebalanceKind.kind === PricePercentage.kind) {
-      
-      let range = this.getPriceRangePercentageBasedFromPrice(currentPrice, );
+      const rebalanceParams = await this.readPercentageRebalanceParams(strategyWithAddress);
+
+      let positionRange = this.getPriceRangePercentageBasedFromPrice(
+        currentPrice,
+        rebalanceParams.lowerRangeBps,
+        rebalanceParams.upperRangeBps
+      );
+
+      let rebalancePriceParams: RebalanceParamsAsPrices = {
+        rebalanceType: new RebalanceType.PricePercentage(),
+        rangePriceLower: positionRange[0],
+        rangePriceUpper: positionRange[1],
+      };
+      return rebalancePriceParams;
     } else if (rebalanceKind.kind === PricePercentageWithReset.kind) {
+      const rebalanceParams = await this.readPercentageRebalanceParams(strategyWithAddress);
+      let positionRange = this.getPriceRangePercentageBasedFromPrice(
+        currentPrice,
+        rebalanceParams.lowerRangeBps,
+        rebalanceParams.upperRangeBps
+      );
+
+      if (!rebalanceParams.resetRangeLowerBps || !rebalanceParams.resetRangeUpperBps) {
+        throw new Error('Reset range not set');
+      }
+      let resetRange = this.getPriceRangePercentageBasedFromPrice(
+        currentPrice,
+        rebalanceParams.resetRangeLowerBps,
+        rebalanceParams.resetRangeUpperBps
+      );
+
+      let rebalancePriceParams: RebalanceParamsAsPrices = {
+        rebalanceType: new RebalanceType.PricePercentage(),
+        rangePriceLower: positionRange[0],
+        rangePriceUpper: positionRange[1],
+        resetPriceLower: resetRange[0],
+        resetPriceUpper: resetRange[1],
+      };
+
+      return rebalancePriceParams;
     } else {
       throw new Error(`Rebalance type ${rebalanceKind} is not supported`);
     }
