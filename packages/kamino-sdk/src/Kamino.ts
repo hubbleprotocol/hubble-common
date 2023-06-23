@@ -1168,7 +1168,7 @@ export class Kamino {
   };
 
   /**
-   * Get strategy range in which it deposits liquidity
+   * Get strategy range in which liquidity is deposited
    */
   getStrategyRange = async (strategy: PublicKey | StrategyWithAddress): Promise<PositionRange> => {
     const stratWithAddress = await this.getStrategyStateIfNotFetched(strategy);
@@ -2603,7 +2603,7 @@ export class Kamino {
   }
 
   /**
-   * Get a list of rebalancing params
+   * Get the prices for rebalancing params (range and reset range, if strategy involves a reset range)
    */
   async getPricesFromRebalancingParams(strategy: PublicKey | StrategyWithAddress): Promise<RebalanceParamsAsPrices> {
     const strategyWithAddress = await this.getStrategyStateIfNotFetched(strategy);
