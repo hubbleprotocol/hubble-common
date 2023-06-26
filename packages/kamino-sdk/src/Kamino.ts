@@ -2611,6 +2611,13 @@ export class Kamino {
 
     let rebalanceKind = numberToRebalanceType(strategyWithAddress.strategy.rebalanceType);
     if (rebalanceKind.kind === Manual.kind) {
+      if (strategyWithAddress.strategy.position === PublicKey.default) {
+        return {
+          rebalanceType: new RebalanceType.Manual(),
+          rangePriceLower: ZERO,
+          rangePriceUpper: ZERO,
+        };
+      }
       let strategyRange = await this.getStrategyRange(strategyWithAddress);
       let rebalanceParams: RebalanceParamsAsPrices = {
         rebalanceType: new RebalanceType.Manual(),
