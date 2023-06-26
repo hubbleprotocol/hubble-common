@@ -2698,17 +2698,17 @@ export class Kamino {
   }
 
   async getRaydiumPoolPrice(pool: PublicKey): Promise<Decimal> {
-    const poolInfo = (
-      await AmmV3.fetchMultiplePoolInfos({
-        connection: this._connection,
-        // @ts-ignore
-        poolKeys: [pool],
-        batchRequest: true,
-        chainTime: new Date().getTime() / 1000,
-      })
-    )[pool.toString()].state;
+    const poolState = await PoolState.fetch(this._connection, pool);
+    if (!poolState) {
+      throw new Error(`Raydium poolState ${pool.toString()} is not found`);
+    }
 
-    return poolInfo.currentPrice;
+    let price = SqrtPriceMath.sqrtPriceX64ToPrice(
+      poolState.sqrtPriceX64,
+      poolState.mintDecimals0,
+      poolState.mintDecimals1
+    );
+    return price;
   }
 
   async getGenericPoolInfo(dex: Dex, pool: PublicKey): Promise<GenericPoolInfo> {
