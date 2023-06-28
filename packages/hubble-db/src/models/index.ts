@@ -32,6 +32,9 @@ export * from './StrategyMetricsEntity';
 export * from './TradePoolEntity';
 export * from './SimulatorPoolEntity';
 export * from './MetricsSourceEntity';
+export * from './KlendMarketEntity';
+export * from './KlendObligationEntity';
+export * from './KlendReserveEntity';
 
 export const CLUSTER_TABLE: string = 'cluster';
 export const COLLATERAL_TABLE: string = 'collateral';
@@ -68,4 +71,7 @@ export const TRADE_POOL_TABLE = 'trade_pool';
 export const STRATEGY_METRICS_TABLE = 'strategy_metrics';
 export const SIMULATOR_POOL_TABLE = 'simulator_pool';
 export const METRICS_SOURCE_TABLE = 'metrics_source';
+export const KLEND_MARKET_TABLE = 'klend_market';
+export const KLEND_RESERVE_TABLE = 'klend_reserve';
+export const KLEND_OBLIGATION_TABLE = 'klend_obligation';
 export const API_SCHEMA: string = 'api';
