@@ -33,8 +33,11 @@ export * from './TradePoolEntity';
 export * from './SimulatorPoolEntity';
 export * from './MetricsSourceEntity';
 export * from './KlendMarketEntity';
+export * from './KlendMarketStateEntity';
 export * from './KlendObligationEntity';
+export * from './KLendObligationStateEntity';
 export * from './KlendReserveEntity';
+export * from './KlendReserveStateEntity';
 
 export const CLUSTER_TABLE: string = 'cluster';
 export const COLLATERAL_TABLE: string = 'collateral';
