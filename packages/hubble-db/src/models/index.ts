@@ -77,4 +77,7 @@ export const METRICS_SOURCE_TABLE = 'metrics_source';
 export const KLEND_MARKET_TABLE = 'klend_market';
 export const KLEND_RESERVE_TABLE = 'klend_reserve';
 export const KLEND_OBLIGATION_TABLE = 'klend_obligation';
+export const KLEND_MARKET_STATE_TABLE = 'klend_market_state';
+export const KLEND_RESERVE_STATE_TABLE = 'klend_reserve_state';
+export const KLEND_OBLIGATION_STATE_TABLE = 'klend_obligation_state';
 export const API_SCHEMA: string = 'api';
