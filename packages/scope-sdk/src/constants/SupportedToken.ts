@@ -88,5 +88,7 @@ export const SupportedTokens = [
   'IOTTwap',
   'NANA',
   'NANATwap',
+  'STEP',
+  'STEPTwap',
 ] as const;
 export type SupportedToken = (typeof SupportedTokens)[number];
