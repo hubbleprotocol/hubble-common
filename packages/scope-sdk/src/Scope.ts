@@ -102,6 +102,8 @@ export class Scope {
     { id: 89, pair: 'IOTTwap/HNT', name: 'IOTTwap', price: new Decimal(0), nonUsdPairId: 85 },
     { id: 90, pair: 'NANA/USD', name: 'NANA', price: new Decimal(0) },
     { id: 91, pair: 'NANATwap/USD', name: 'NANATwap', price: new Decimal(0) },
+    { id: 92, pair: 'STEP/USD', name: 'STEP', price: new Decimal(0) },
+    { id: 93, pair: 'STEPTwap/USD', name: 'STEPTwap', price: new Decimal(0) },
   ];
 
   /**
