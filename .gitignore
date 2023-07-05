@@ -196,3 +196,5 @@ packages/kamino-sdk/deps/kamino.so
 packages/kamino-sdk/deps/metaplex.so
 packages/kamino-sdk/deps/scope.so
 packages/kamino-sdk/deps/whirlpool.so
+.DS_Store
+

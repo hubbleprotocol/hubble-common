@@ -1,14 +1,14 @@
-import { PublicKey, SystemProgram, TransactionInstruction } from '@solana/web3.js';
-import { WhirlpoolStrategy } from '../kamino-client/accounts';
-import { WHIRLPOOL_PROGRAM_ID } from '../whirpools-client/programId';
-import { PROGRAM_ID as RAYDIUM_PROGRAM_ID } from '../raydium_client/programId';
-import Decimal from 'decimal.js';
-import { RebalanceType, RebalanceTypeKind, StrategyConfigOptionKind } from '../kamino-client/types';
+import { PublicKey, SystemProgram, TransactionInstruction } from "@solana/web3.js";
+import { WhirlpoolStrategy } from "../kamino-client/accounts";
+import { WHIRLPOOL_PROGRAM_ID } from "../whirpools-client/programId";
+import { PROGRAM_ID as RAYDIUM_PROGRAM_ID } from "../raydium_client/programId";
+import Decimal from "decimal.js";
+import { RebalanceType, RebalanceTypeKind, StrategyConfigOptionKind } from "../kamino-client/types";
 import {
   UpdateStrategyConfigAccounts,
   UpdateStrategyConfigArgs,
-  updateStrategyConfig,
-} from '../kamino-client/instructions';
+  updateStrategyConfig
+} from "../kamino-client/instructions";
 
 export const RebalanceParamOffset = new Decimal(256);
 
@@ -29,10 +29,19 @@ export function dexToNumber(dex: Dex): number {
   throw new Error(`Unknown DEX ${dex}`);
 }
 
+export function numberToDex(num: number): Dex {
+  const dex = Dex[num];
+
+  if (!dex) {
+    throw new Error(`Unknown DEX ${num}`);
+  }
+  return dex;
+}
+
 export function getDexProgramId(strategyState: WhirlpoolStrategy): PublicKey {
-  if (strategyState.strategyDex.toNumber() == dexToNumber('ORCA')) {
+  if (strategyState.strategyDex.toNumber() == dexToNumber("ORCA")) {
     return WHIRLPOOL_PROGRAM_ID;
-  } else if (strategyState.strategyDex.toNumber() == dexToNumber('RAYDIUM')) {
+  } else if (strategyState.strategyDex.toNumber() == dexToNumber("RAYDIUM")) {
     return RAYDIUM_PROGRAM_ID;
   } else {
     throw Error(`Invalid DEX ${strategyState.strategyDex.toString()}`);
@@ -58,7 +67,7 @@ export function buildStrategyRebalanceParams(params: Array<Decimal>, rebalance_t
     buffer.writeUint16LE(params[2].toNumber(), 4);
     buffer.writeUint16LE(params[3].toNumber(), 6);
   } else {
-    throw 'Rebalance type not valid ' + rebalance_type;
+    throw "Rebalance type not valid " + rebalance_type;
   }
   return [...buffer];
 }
@@ -85,7 +94,7 @@ export async function getUpdateStrategyConfigIx(
 ): Promise<TransactionInstruction> {
   let args: UpdateStrategyConfigArgs = {
     mode: mode.discriminator,
-    value: getStrategyConfigValue(amount),
+    value: getStrategyConfigValue(amount)
   };
 
   let accounts: UpdateStrategyConfigAccounts = {
@@ -93,7 +102,7 @@ export async function getUpdateStrategyConfigIx(
     newAccount,
     globalConfig,
     strategy,
-    systemProgram: SystemProgram.programId,
+    systemProgram: SystemProgram.programId
   };
 
   return updateStrategyConfig(args, accounts);
