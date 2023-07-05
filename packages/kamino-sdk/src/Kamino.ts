@@ -90,6 +90,7 @@ import {
   PositionRange,
   RebalanceParamsAsPrices,
   RebalanceParams,
+  numberToDex,
 } from './utils';
 import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import {
@@ -3064,6 +3065,7 @@ export class Kamino {
           shareMint: strategy.strategy.sharesMint,
           strategy: strategy.address,
           sharesAmount: new Decimal(accountData.parsed.info.tokenAmount.uiAmountString),
+          strategyDex: numberToDex(strategy.strategy.strategyDex.toNumber()),
         });
       }
     }

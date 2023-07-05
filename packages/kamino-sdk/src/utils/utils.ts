@@ -29,6 +29,15 @@ export function dexToNumber(dex: Dex): number {
   throw new Error(`Unknown DEX ${dex}`);
 }
 
+export function numberToDex(num: number): Dex {
+  const dex = Dex[num];
+
+  if (!dex) {
+    throw new Error(`Unknown DEX ${num}`);
+  }
+  return dex;
+}
+
 export function getDexProgramId(strategyState: WhirlpoolStrategy): PublicKey {
   if (strategyState.strategyDex.toNumber() == dexToNumber('ORCA')) {
     return WHIRLPOOL_PROGRAM_ID;
