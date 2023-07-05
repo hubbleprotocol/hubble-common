@@ -89,8 +89,9 @@ import {
   ZERO,
   PositionRange,
   RebalanceParamsAsPrices,
-  RebalanceParams, numberToDex
-} from "./utils";
+  RebalanceParams,
+  numberToDex,
+} from './utils';
 import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import {
   collectFeesAndRewards,
