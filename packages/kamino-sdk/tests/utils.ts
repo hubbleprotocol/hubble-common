@@ -268,8 +268,6 @@ export async function setupAta(
   return ata;
 }
 
-
-
 export async function createAtaInstruction(
   owner: PublicKey,
   tokenMintAddress: PublicKey,
