@@ -1001,8 +1001,8 @@ describe('Kamino SDK Tests', () => {
     );
 
     let filters: StrategiesFilters = {
-      strategyType: undefined,
-      strategyCreationStatus: undefined,
+      strategyType: [],
+      strategyCreationStatus: [],
     };
     let strats = await kamino.getAllStrategiesWithFilters(filters);
     expect(strats.length).to.be.eq(2);
@@ -1019,8 +1019,8 @@ describe('Kamino SDK Tests', () => {
     );
 
     let filters: StrategiesFilters = {
-      strategyType: 'STABLE',
-      strategyCreationStatus: undefined,
+      strategyType: ['STABLE'],
+      strategyCreationStatus: []
     };
     let strats = await kamino.getAllStrategiesWithFilters(filters);
     console.log('strats.length', strats.length);
@@ -1038,8 +1038,8 @@ describe('Kamino SDK Tests', () => {
     );
 
     let filters: StrategiesFilters = {
-      strategyType: undefined,
-      strategyCreationStatus: 'IGNORED',
+      strategyType: [],
+      strategyCreationStatus: ['IGNORED'],
     };
     let strats = await kamino.getAllStrategiesWithFilters(filters);
     expect(strats.length).to.be.eq(2);
@@ -1056,8 +1056,8 @@ describe('Kamino SDK Tests', () => {
     );
 
     let filters: StrategiesFilters = {
-      strategyType: 'NON_PEGGED',
-      strategyCreationStatus: undefined,
+      strategyType: ['NON_PEGGED'],
+      strategyCreationStatus: []
     };
     let strats = await kamino.getAllStrategiesWithFilters(filters);
     expect(strats.length).to.be.eq(2);
@@ -1074,8 +1074,8 @@ describe('Kamino SDK Tests', () => {
     );
 
     let filters: StrategiesFilters = {
-      strategyType: undefined,
-      strategyCreationStatus: 'IGNORED',
+      strategyType: [],
+      strategyCreationStatus: ['IGNORED'],
     };
     let strats = await kamino.getAllStrategiesWithFilters(filters);
     expect(strats.length).to.be.eq(2);
@@ -1094,7 +1094,7 @@ describe('Kamino SDK Tests', () => {
     expect(strats.length).to.be.eq(1);
 
     // assert there is a strategy with creation status LIVE
-    filters.strategyCreationStatus = 'LIVE';
+    filters.strategyCreationStatus = ['LIVE'];
     strats = await kamino.getAllStrategiesWithFilters(filters);
     expect(strats.length).to.be.eq(1);
   });
@@ -1110,8 +1110,8 @@ describe('Kamino SDK Tests', () => {
     );
 
     let filters: StrategiesFilters = {
-      strategyType: 'NON_PEGGED',
-      strategyCreationStatus: undefined,
+      strategyType: ['NON_PEGGED'],
+      strategyCreationStatus: [],
     };
     let strats = await kamino.getAllStrategiesWithFilters(filters);
     expect(strats.length).to.be.eq(2);
@@ -1124,7 +1124,7 @@ describe('Kamino SDK Tests', () => {
     expect(strats.length).to.be.eq(1);
 
     // assert there is one strat that is STABLE
-    filters.strategyType = 'STABLE';
+    filters.strategyType = ['STABLE'];
     strats = await kamino.getAllStrategiesWithFilters(filters);
     expect(strats.length).to.be.eq(1);
   });
