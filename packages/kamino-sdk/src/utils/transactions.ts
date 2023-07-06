@@ -98,10 +98,10 @@ export function removeBudgetAndAtaIxns(ixns: TransactionInstruction[], mints: st
 }
 
 // filters null values from array and make typescript happy
-export function notEmpty<TValue>(value: TValue | null | undefined): value is TValue {
-  if (value === null || value === undefined) {
-    return false;
-  }
+// export function notEmpty<TValue>(value: TValue | null | undefined): value is TValue {
+//   if (value === null || value === undefined) {
+//     return false;
+//   }
 
-  return true;
-}
+//   return true;
+// }

@@ -204,7 +204,6 @@ import {
   decodeSerializedTransaction,
   getAtasWithCreateIxnsIfMissing,
   getComputeBudgetAndPriorityFeeIxns,
-  notEmpty,
   removeBudgetAndAtaIxns,
 } from './utils/transactions';
 import { RouteInfo } from '@jup-ag/core';
@@ -1881,7 +1880,8 @@ export class Kamino {
     //    clearedCleanUpTx,
     //  ].filter(notEmpty);
 
-    let allJupIxs = [...clearedSwapSetupIxs, ...clearedSwapIxs, ...clearedCleanupIxns].filter(notEmpty);
+    let allJupIxs = [...clearedSwapSetupIxs, ...clearedSwapIxs, ...clearedCleanupIxns];
+    //.filter(notEmpty);
 
     return allJupIxs;
   };
