@@ -3008,6 +3008,10 @@ export class Kamino {
    */
 
   readPercentageRebalanceParams = async (strategy: PublicKey | StrategyWithAddress): Promise<RebalanceParams> => {
+    return this.readRebalanceParams(strategy);
+  };
+
+  readRebalanceParams = async (strategy: PublicKey | StrategyWithAddress): Promise<RebalanceParams> => {
     const strategyWithAddress = await this.getStrategyStateIfNotFetched(strategy);
     let rebalanceType = numberToRebalanceType(strategyWithAddress.strategy.rebalanceType);
 
@@ -3796,7 +3800,7 @@ export class Kamino {
           };
 
           let accounts: UpdateRewardMappingAccounts = {
-            adminAuthority: strategyOwner,
+            payer: strategyOwner,
             globalConfig: strategyState.globalConfig,
             strategy: strategy,
             pool: strategyState.pool,
@@ -3833,7 +3837,7 @@ export class Kamino {
           };
 
           let accounts: UpdateRewardMappingAccounts = {
-            adminAuthority: strategyOwner,
+            payer: strategyOwner,
             globalConfig: strategyState.globalConfig,
             strategy: strategy,
             pool: strategyState.pool,

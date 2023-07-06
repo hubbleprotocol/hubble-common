@@ -1,6 +1,8 @@
-import { Connection, PublicKey } from '@solana/web3.js';
+import { Connection, PublicKey, Transaction, TransactionMessage, VersionedTransaction } from '@solana/web3.js';
+import { RouteInfo } from '@jup-ag/react-hook';
 import { SolanaCluster } from '@hubbleprotocol/hubble-config';
 import axios from 'axios';
+import Decimal from 'decimal.js';
 
 export type SwapTransactionsResponse = {
   setupTransaction: string | undefined;
@@ -17,6 +19,47 @@ export class JupService {
     this._cluster = cluster;
   }
 
+  static getSwapTransactions = async (
+    route: RouteInfo,
+    walletPublicKey: PublicKey,
+    wrapUnwrapSOL = true,
+    asLegacyTransaction?: boolean
+  ): Promise<SwapTransactionsResponse> => {
+    const res = await axios.post('https://quote-api.jup.ag/v4/swap', {
+      // route from /quote api
+      route,
+      // user public key to be used for the swap
+      userPublicKey: walletPublicKey.toString(),
+      // auto wrap and unwrap SOL. default is true
+      wrapUnwrapSOL,
+      asLegacyTransaction,
+    });
+    return res.data;
+  };
+
+  static getBestRoute = async (
+    amount: Decimal,
+    inputMint: PublicKey,
+    outputMint: PublicKey,
+    slippage: number,
+    mode = 'ExactIn',
+    asLegacyTransaction?: boolean
+  ): Promise<RouteInfo> => {
+    const params = {
+      inputMint: inputMint.toString(),
+      outputMint: outputMint.toString(),
+      amount: amount.ceil().toString(),
+      slippageBps: slippage * 100,
+      onlyDirectRoutes: false,
+      asLegacyTransaction,
+      mode,
+    };
+
+    const res = await axios.get('https://quote-api.jup.ag/v4/quote', { params });
+
+    return res.data.data[0] as RouteInfo;
+  };
+
   async getPrice(inputMint: PublicKey | string, outputMint: PublicKey | string): Promise<number> {
     const params = {
       ids: inputMint.toString(),
@@ -32,4 +75,49 @@ export class JupService {
     const res = await axios.get('https://quote-api.jup.ag/v4/price', { params });
     return res.data.data[inputMint.toString()].price;
   }
+
+  static buildTransactionsFromSerialized = (serializedTransactions: Array<string | undefined>): Transaction[] => {
+    return serializedTransactions.filter(Boolean).map((tx) => {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      return Transaction.from(Buffer.from(tx!, 'base64'));
+    });
+  };
+
+  static deserealizeVersionedTransactions = async (
+    connection: Connection,
+    serializedTransactions: Array<string | undefined>
+  ) => {
+    const filtered = serializedTransactions.filter(Boolean);
+    const result: TransactionMessage[] = [];
+    let lookupTablesAddresses: PublicKey[] = [];
+
+    for (let i = 0; i < filtered.length; i++) {
+      const tx = filtered[i];
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      // safe to use as it is filtered above at 120 line
+      const buffer = Buffer.from(tx!, 'base64');
+
+      const versionedTx = VersionedTransaction.deserialize(buffer);
+      const { addressTableLookups } = versionedTx.message;
+      lookupTablesAddresses = [...lookupTablesAddresses, ...addressTableLookups.map((item) => item.accountKey)];
+
+      const lookupTableAccountsRequests = addressTableLookups.map((item) => {
+        return JupService.getLookupTableAccount(connection, item.accountKey);
+      });
+
+      const lookupTableAccounts = await Promise.all(lookupTableAccountsRequests);
+
+      const decompiledMessage = TransactionMessage.decompile(versionedTx.message, {
+        // @ts-ignore
+        addressLookupTableAccounts: lookupTableAccounts,
+      });
+      result.push(decompiledMessage);
+    }
+
+    return { deserealized: result, lookupTablesAddresses };
+  };
+
+  static getLookupTableAccount = async (connection: Connection, address: string | PublicKey) => {
+    return connection.getAddressLookupTable(new PublicKey(address)).then((res) => res.value);
+  };
 }
