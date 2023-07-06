@@ -22,6 +22,7 @@ import { getTickArrayPubkeysFromRangeRaydium } from './raydium_utils';
 import { getTickArrayPubkeysFromRangeOrca } from './orca_utils';
 import { TokenInstructions } from '@project-serum/serum';
 import { collateralTokenToNumber, CollateralToken } from './token_utils';
+import { checkIfAccountExists } from '../src/utils/transactions';
 
 export const GlobalConfigMainnet = new PublicKey('GKnHiWh3RRrE1zsNzWxRkomymHc374TvJPSTv2wPeYdB');
 export const KaminoProgramIdMainnet = new PublicKey('6LtLpnUFNByNXLyCoK9wA2MykKAmQNZKBdY8s47dehDc');
@@ -267,9 +268,7 @@ export async function setupAta(
   return ata;
 }
 
-export async function checkIfAccountExists(connection: Connection, account: PublicKey): Promise<boolean> {
-  return (await connection.getAccountInfo(account)) != null;
-}
+
 
 export async function createAtaInstruction(
   owner: PublicKey,

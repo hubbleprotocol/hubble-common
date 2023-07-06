@@ -92,6 +92,7 @@ import {
   RebalanceParams,
   numberToDex,
   TokensBalances,
+  isSOLMint,
 } from './utils';
 import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import {
@@ -114,6 +115,9 @@ import {
   openLiquidityPosition,
   OpenLiquidityPositionAccounts,
   OpenLiquidityPositionArgs,
+  singleTokenDepositAndInvestWithMin,
+  SingleTokenDepositAndInvestWithMinAccounts,
+  SingleTokenDepositAndInvestWithMinArgs,
   updateRewardMapping,
   UpdateRewardMappingAccounts,
   UpdateRewardMappingArgs,
@@ -144,7 +148,7 @@ import { PROGRAM_ID as RAYDIUM_PROGRAM_ID, setRaydiumProgramId } from './raydium
 import { AmmV3, i32ToBytes, LiquidityMath, SqrtPriceMath, TickMath, TickUtils } from '@raydium-io/raydium-sdk';
 
 import KaminoIdl from './kamino-client/kamino.json';
-import { OrcaService, RaydiumService, Whirlpool as OrcaPool, WhirlpoolAprApy } from './services';
+import { OrcaService, RaydiumService, Whirlpool as OrcaPool, WhirlpoolAprApy, TokenB } from './services';
 import {
   getAddLiquidityQuote,
   InternalAddLiquidityQuote,
@@ -196,6 +200,14 @@ import {
   SimulationPercentagePoolParameters,
 } from './services/PoolSimulationService';
 import { Manual, PricePercentage, PricePercentageWithReset } from './kamino-client/types/RebalanceType';
+import {
+  decodeSerializedTransaction,
+  getAtasWithCreateIxnsIfMissing,
+  getComputeBudgetAndPriorityFeeIxns,
+  notEmpty,
+  removeBudgetAndAtaIxns,
+} from './utils/transactions';
+import { RouteInfo } from '@jup-ag/react-hook';
 export const KAMINO_IDL = KaminoIdl;
 
 export class Kamino {
@@ -1614,27 +1626,275 @@ export class Kamino {
     return depositAndInvest(depositArgs, depositAccounts);
   };
 
-  singleSidedDeposit = async (
+  singleSidedDepositTokenA = async (
     strategy: PublicKey | StrategyWithAddress,
-    amountA: Decimal,
-    amountB: Decimal,
-    owner: PublicKey
-  ) => {
-    if (amountA.lessThanOrEqualTo(0) || amountB.lessThanOrEqualTo(0)) {
-      throw Error('Token A or B amount cant be lower than or equal to 0.');
+    amount: Decimal,
+    owner: PublicKey,
+    initialUserTokenBalances?: TokensBalances
+  ): Promise<TransactionInstruction[]> => {
+    const strategyWithAddress = await this.getStrategyStateIfNotFetched(strategy);
+
+    let userTokenBalances = await this.getInitialUserTokenBalances(
+      owner,
+      strategyWithAddress.strategy.tokenAMint,
+      strategyWithAddress.strategy.tokenBMint,
+      initialUserTokenBalances
+    );
+
+    if (!userTokenBalances.a || !userTokenBalances.b) {
+      throw Error('Error reading user token balances');
     }
-    const { strategy: strategyState, address: _ } = await this.getStrategyStateIfNotFetched(strategy);
+    let tokenAMinPostDepositBalance = userTokenBalances.a.sub(amount);
+
+    return this.getSingleSidedDepositIxs(strategyWithAddress, tokenAMinPostDepositBalance, userTokenBalances.b, owner);
+  };
+
+  singleSidedDepositTokenB = async (
+    strategy: PublicKey | StrategyWithAddress,
+    amount: Decimal,
+    owner: PublicKey,
+    initialUserTokenBalances?: TokensBalances
+  ): Promise<TransactionInstruction[]> => {
+    const strategyWithAddress = await this.getStrategyStateIfNotFetched(strategy);
+
+    let userTokenBalances = await this.getInitialUserTokenBalances(
+      owner,
+      strategyWithAddress.strategy.tokenAMint,
+      strategyWithAddress.strategy.tokenBMint,
+      initialUserTokenBalances
+    );
+
+    if (!userTokenBalances.a || !userTokenBalances.b) {
+      throw Error('Error reading user token balances');
+    }
+    let tokenBMinPostDepositBalance = userTokenBalances.b.sub(amount);
+
+    return this.getSingleSidedDepositIxs(strategyWithAddress, userTokenBalances.a, tokenBMinPostDepositBalance, owner);
+  };
+
+  private getInitialUserTokenBalances = async (
+    owner: PublicKey,
+    tokenAMint: PublicKey,
+    tokenBMint: PublicKey,
+    initialUserTokenBalances?: TokensBalances
+  ): Promise<TokensBalances> => {
+    let initialUserTokenABalance = new Decimal(0);
+    let initialUserTokenBBalance = new Decimal(0);
+
+    if (initialUserTokenBalances?.a) {
+      initialUserTokenABalance = initialUserTokenBalances.a;
+    } else {
+      const [tokenAAta] = await getAssociatedTokenAddressAndData(this._connection, tokenAMint, owner);
+      initialUserTokenABalance = await this.getTokenAccountBalance(tokenAAta);
+    }
+
+    if (initialUserTokenBalances?.b) {
+      initialUserTokenBBalance = initialUserTokenBalances.b;
+    } else {
+      const [tokenBAta] = await getAssociatedTokenAddressAndData(this._connection, tokenBMint, owner);
+
+      initialUserTokenBBalance = await this.getTokenAccountBalance(tokenBAta);
+    }
+
+    return { a: initialUserTokenABalance, b: initialUserTokenBBalance };
+  };
+
+  getSingleSidedDepositIxs = async (
+    strategy: PublicKey | StrategyWithAddress,
+    tokenAMinPostDepositBalance: Decimal,
+    tokenBMinPostDepositBalance: Decimal,
+    owner: PublicKey
+  ): Promise<TransactionInstruction[]> => {
+    if (tokenAMinPostDepositBalance.lessThan(0) || tokenBMinPostDepositBalance.lessThan(0)) {
+      throw Error('Token A or B post deposit amount cant be lower than 0.');
+    }
+    const strategyWithAddress = await this.getStrategyStateIfNotFetched(strategy);
+    const strategyState = strategyWithAddress.strategy;
+
+    let checkExpectedVaultsBalancesIx = await this.getCheckExpectedVaultsBalancesIx(strategyWithAddress, owner);
+
+    let poolProgram = getDexProgramId(strategyState);
+    const globalConfig = await GlobalConfig.fetch(this._connection, strategyState.globalConfig);
+    if (!globalConfig) {
+      throw Error(`Could not fetch global config with pubkey ${strategyState.globalConfig.toString()}`);
+    }
+
+    const { treasuryFeeTokenAVault, treasuryFeeTokenBVault } = this.getTreasuryFeeVaultPDAs(
+      strategyState.tokenAMint,
+      strategyState.tokenBMint
+    );
+
+    const [sharesAta] = await getAssociatedTokenAddressAndData(this._connection, strategyState.sharesMint, owner);
+    const [tokenAAta] = await getAssociatedTokenAddressAndData(this._connection, strategyState.tokenAMint, owner);
+    const [tokenBAta] = await getAssociatedTokenAddressAndData(this._connection, strategyState.tokenBMint, owner);
+
+    const lamportsA = tokenAMinPostDepositBalance.mul(new Decimal(10).pow(strategyState.tokenAMintDecimals.toString()));
+    const lamportsB = tokenBMinPostDepositBalance.mul(new Decimal(10).pow(strategyState.tokenBMintDecimals.toString()));
+
+    const args: SingleTokenDepositAndInvestWithMinArgs = {
+      tokenAMinPostDepositBalance: new BN(lamportsA.floor().toString()),
+      tokenBMinPostDepositBalance: new BN(lamportsB.floor().toString()),
+    };
+
+    const accounts: SingleTokenDepositAndInvestWithMinAccounts = {
+      user: owner,
+      strategy: strategyWithAddress.address,
+      globalConfig: strategyState.globalConfig,
+      pool: strategyState.pool,
+      position: strategyState.position,
+      tokenAVault: strategyState.tokenAVault,
+      tokenBVault: strategyState.tokenBVault,
+      baseVaultAuthority: strategyState.baseVaultAuthority,
+      treasuryFeeTokenAVault,
+      treasuryFeeTokenBVault,
+      tokenAAta,
+      tokenBAta,
+      tokenAMint: strategyState.tokenAMint,
+      tokenBMint: strategyState.tokenBMint,
+      userSharesAta: sharesAta,
+      sharesMint: strategyState.sharesMint,
+      sharesMintAuthority: strategyState.sharesMintAuthority,
+      scopePrices: strategyState.scopePrices,
+      tokenInfos: globalConfig.tokenInfos,
+      systemProgram: SystemProgram.programId,
+      associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+      tokenProgram: TOKEN_PROGRAM_ID,
+      instructionSysvarAccount: SYSVAR_INSTRUCTIONS_PUBKEY,
+      raydiumProtocolPositionOrBaseVaultAuthority: strategyState.raydiumProtocolPositionOrBaseVaultAuthority,
+      positionTokenAccount: strategyState.positionTokenAccount,
+      poolTokenVaultA: strategyState.poolTokenVaultA,
+      poolTokenVaultB: strategyState.poolTokenVaultB,
+      tickArrayLower: strategyState.tickArrayLower,
+      tickArrayUpper: strategyState.tickArrayUpper,
+      poolProgram: poolProgram,
+    };
+
+    let singleSidedDepositIx = singleTokenDepositAndInvestWithMin(args, accounts);
+
+    let result = [checkExpectedVaultsBalancesIx, singleSidedDepositIx];
+    return result;
+  };
+
+  getJupSwapIxs = async (
+    input: DepositAmountsForSwap,
+    tokenAMint: PublicKey,
+    tokenBMint: PublicKey,
+    owner: PublicKey,
+    useOnlyLegacyTransaction: boolean
+  ): Promise<TransactionInstruction[]> => {
+    let jupiterBestRoute: RouteInfo;
+    let jupiterSwapTransactionIndex = 0;
+    if (input.tokenAToSwapAmount.gt(ZERO)) {
+      jupiterBestRoute = await JupService.getBestRoute(
+        input.tokenAToSwapAmount,
+        tokenAMint,
+        tokenBMint,
+        5,
+        'ExactIn',
+        useOnlyLegacyTransaction
+      );
+    } else {
+      jupiterBestRoute = await JupService.getBestRoute(
+        input.tokenAToSwapAmount,
+        tokenAMint,
+        tokenBMint,
+        5,
+        'ExactIn',
+        useOnlyLegacyTransaction
+      );
+    }
+
+    const createAtasIxns = await getAtasWithCreateIxnsIfMissing(
+      this._connection,
+      [tokenAMint, tokenBMint].filter((mint) => !isSOLMint(mint)),
+      owner
+    );
+
+    const {
+      setupTransaction,
+      swapTransaction,
+      cleanupTransaction,
+    }: {
+      setupTransaction: string | undefined;
+      swapTransaction: string;
+      cleanupTransaction: string | undefined;
+    } = await JupService.getSwapTransactions(jupiterBestRoute, owner, false, true);
+
+    // remove budget and atas ixns from jup transaction because we manage it ourself
+    const decodedSetupTx = decodeSerializedTransaction(setupTransaction);
+    let clearedSwapSetupIxs: TransactionInstruction[] = [];
+    if (decodedSetupTx) {
+      clearedSwapSetupIxs = removeBudgetAndAtaIxns(decodedSetupTx.instructions, [
+        tokenAMint.toString(),
+        tokenBMint.toString(),
+      ]);
+    }
+    //  const clearedSetupTx =
+    //    (createAtasIxns && createAtasIxns.length) || decodedSetupTx ? new Transaction() : undefined;
+    //  // build setup transaction from creates atas and jupiter setup ixns
+    //  if (clearedSetupTx) {
+    //    clearedSetupTx.add(...getComputeBudgetAndPriorityFeeIxns(200_000), ...createAtasIxns);
+    //    if (decodedSetupTx) {
+    //      clearedSetupTx.add(
+    //        ...removeBudgetAndAtaIxns(decodedSetupTx.instructions, [tokenAMint.toString(), tokenBMint.toString()])
+    //      );
+    //    }
+    //  }
+
+    //  if (clearedSetupTx) {
+    //    jupiterSwapTransactionIndex = 1;
+    //  }
+
+    // remove budget and atas ixns from jup transaction because we manage it ourself
+    const decodedCleanupTx = decodeSerializedTransaction(cleanupTransaction);
+    let clearedCleanupIxns: TransactionInstruction[] = [];
+    if (decodedCleanupTx) {
+      clearedCleanupIxns = removeBudgetAndAtaIxns(decodedCleanupTx.instructions, [
+        tokenAMint.toString(),
+        tokenBMint.toString(),
+      ]);
+    }
+    //  const clearedCleanUpTx = decodedCleanupTx ? new Transaction() : undefined;
+    //  if (decodedCleanupTx && clearedCleanUpTx) {
+    //    clearedCleanUpTx.add(
+    //      ...getComputeBudgetAndPriorityFeeIxns(200_000),
+    //      ...removeBudgetAndAtaIxns(decodedCleanupTx.instructions, [tokenAMint.toString(), tokenBMint.toString()])
+    //    );
+    //  }
+
+    let clearedSwapIxs = [
+      ...getComputeBudgetAndPriorityFeeIxns(1_400_000),
+      ...removeBudgetAndAtaIxns(decodeSerializedTransaction(swapTransaction)!.instructions, [
+        tokenAMint.toString(),
+        tokenBMint.toString(),
+      ]),
+    ];
+    //  let jupiterSwapTransactions = [
+    //    clearedSetupTx,
+    //    new Transaction().add(
+    //      ...getComputeBudgetAndPriorityFeeIxns(1_400_000),
+    //      ...removeBudgetAndAtaIxns(decodeSerializedTransaction(swapTransaction)!.instructions, [
+    //        tokenAMint.toString(),
+    //        tokenBMint.toString(),
+    //      ])
+    //    ),
+    //    clearedCleanUpTx,
+    //  ].filter(notEmpty);
+
+    let allJupIxs = [...clearedSwapSetupIxs, ...clearedSwapIxs, ...clearedCleanupIxns].filter(notEmpty);
+
+    return allJupIxs;
   };
 
   getCheckExpectedVaultsBalancesIx = async (
     strategy: PublicKey | StrategyWithAddress,
-    expectedTokensBalances: TokensBalances,
-    user: PublicKey
+    user: PublicKey,
+    expectedTokensBalances?: TokensBalances
   ) => {
     const { strategy: strategyState, address: _ } = await this.getStrategyStateIfNotFetched(strategy);
 
-    let expectedABalance = expectedTokensBalances.a || (await this.getTokenAccountBalance(strategyState.tokenAVault));
-    let expectedBBalance = expectedTokensBalances.b || (await this.getTokenAccountBalance(strategyState.tokenBVault));
+    let expectedABalance = expectedTokensBalances?.a || (await this.getTokenAccountBalance(strategyState.tokenAVault));
+    let expectedBBalance = expectedTokensBalances?.b || (await this.getTokenAccountBalance(strategyState.tokenBVault));
 
     const args: CheckExpectedVaultsBalancesArgs = {
       tokenAAtaBalance: new BN(expectedABalance.toString()),
@@ -2827,7 +3087,7 @@ export class Kamino {
     lookupTable: PublicKey,
     strategy: PublicKey | StrategyWithAddress
   ): Promise<TransactionInstruction> => {
-    const { strategy: strategyState, address} = await this.getStrategyStateIfNotFetched(strategy);
+    const { strategy: strategyState, address } = await this.getStrategyStateIfNotFetched(strategy);
     if (!strategyState) {
       throw Error(`Could not fetch strategy state with pubkey ${strategy.toString()}`);
     }

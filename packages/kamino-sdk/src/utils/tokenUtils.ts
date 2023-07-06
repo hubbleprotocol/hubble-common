@@ -20,6 +20,8 @@ import { CollateralInfo } from '../kamino-client/types';
 export const ASSOCIATED_TOKEN_PROGRAM_ID = new PublicKey('ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL');
 export const TOKEN_PROGRAM_ID = new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA');
 
+export const SOL_MINTS = ['So11111111111111111111111111111111111111111', 'So11111111111111111111111111111111111111112'];
+
 export async function getAssociatedTokenAddressAndData(
   connection: Connection,
   mint: PublicKey,
@@ -180,3 +182,8 @@ export function getPriceLowerUpper(
 export function getTokenNameFromCollateralInfo(collateralInfo: CollateralInfo) {
   return String.fromCharCode(...collateralInfo.name.filter((x) => x > 0));
 }
+
+export const isSOLMint = (mint: PublicKey | string): boolean => {
+  const _mint = new PublicKey(mint).toString();
+  return SOL_MINTS.filter((m) => m === _mint).length > 0;
+};
