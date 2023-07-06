@@ -1,8 +1,8 @@
 import { Connection, PublicKey, Transaction, TransactionMessage, VersionedTransaction } from '@solana/web3.js';
-import { RouteInfo } from '@jup-ag/react-hook';
 import { SolanaCluster } from '@hubbleprotocol/hubble-config';
 import axios from 'axios';
 import Decimal from 'decimal.js';
+import { RouteInfo } from '@jup-ag/core';
 
 export type SwapTransactionsResponse = {
   setupTransaction: string | undefined;

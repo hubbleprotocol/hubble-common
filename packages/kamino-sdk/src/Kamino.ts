@@ -1713,6 +1713,8 @@ export class Kamino {
 
     let checkExpectedVaultsBalancesIx = await this.getCheckExpectedVaultsBalancesIx(strategyWithAddress, owner);
 
+    
+
     let poolProgram = getDexProgramId(strategyState);
     const globalConfig = await GlobalConfig.fetch(this._connection, strategyState.globalConfig);
     if (!globalConfig) {
