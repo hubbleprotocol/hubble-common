@@ -207,7 +207,7 @@ import {
   notEmpty,
   removeBudgetAndAtaIxns,
 } from './utils/transactions';
-import { RouteInfo } from '@jup-ag/react-hook';
+import { RouteInfo } from '@jup-ag/core';
 export const KAMINO_IDL = KaminoIdl;
 
 export class Kamino {
@@ -1712,8 +1712,6 @@ export class Kamino {
     const strategyState = strategyWithAddress.strategy;
 
     let checkExpectedVaultsBalancesIx = await this.getCheckExpectedVaultsBalancesIx(strategyWithAddress, owner);
-
-    
 
     let poolProgram = getDexProgramId(strategyState);
     const globalConfig = await GlobalConfig.fetch(this._connection, strategyState.globalConfig);
