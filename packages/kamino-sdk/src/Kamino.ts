@@ -577,7 +577,6 @@ export class Kamino {
       dataSize: 4064,
     });
 
-
     if (strategyFilters.strategyCreationStatus) {
       for (const status of strategyFilters.strategyCreationStatus) {
         filters.push({
@@ -607,7 +606,6 @@ export class Kamino {
       return res;
     });
   };
-
 
   /**
    * Get a Kamino whirlpool strategy by its public key address
@@ -3057,7 +3055,10 @@ export class Kamino {
    * @param wallet user wallet address
    * @returns list of kamino strategy positions
    */
-  getUserPositions = async (wallet: PublicKey, strategyFilters: StrategiesFilters = { strategyCreationStatus: ['LIVE'] }): Promise<KaminoPosition[]> => {
+  getUserPositions = async (
+    wallet: PublicKey,
+    strategyFilters: StrategiesFilters = { strategyCreationStatus: ['LIVE'] }
+  ): Promise<KaminoPosition[]> => {
     const userTokenAccounts = await this.getAllTokenAccounts(wallet);
     const liveStrategies = await this.getAllStrategiesWithFilters(strategyFilters);
     const positions: KaminoPosition[] = [];

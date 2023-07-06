@@ -1020,7 +1020,7 @@ describe('Kamino SDK Tests', () => {
 
     let filters: StrategiesFilters = {
       strategyType: ['STABLE'],
-      strategyCreationStatus: []
+      strategyCreationStatus: [],
     };
     let strats = await kamino.getAllStrategiesWithFilters(filters);
     console.log('strats.length', strats.length);
@@ -1057,7 +1057,7 @@ describe('Kamino SDK Tests', () => {
 
     let filters: StrategiesFilters = {
       strategyType: ['NON_PEGGED'],
-      strategyCreationStatus: []
+      strategyCreationStatus: [],
     };
     let strats = await kamino.getAllStrategiesWithFilters(filters);
     expect(strats.length).to.be.eq(2);
