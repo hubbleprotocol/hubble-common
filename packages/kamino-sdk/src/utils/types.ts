@@ -211,3 +211,8 @@ export interface PositionRange {
   lowerPrice: Decimal;
   upperPrice: Decimal;
 }
+
+export interface TokensBalances {
+  a?: Decimal;
+  b?: Decimal;
+}

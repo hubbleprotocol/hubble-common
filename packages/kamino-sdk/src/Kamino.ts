@@ -91,9 +91,13 @@ import {
   RebalanceParamsAsPrices,
   RebalanceParams,
   numberToDex,
+  TokensBalances,
 } from './utils';
 import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import {
+  checkExpectedVaultsBalances,
+  CheckExpectedVaultsBalancesAccounts,
+  CheckExpectedVaultsBalancesArgs,
   collectFeesAndRewards,
   CollectFeesAndRewardsAccounts,
   depositAndInvest,
@@ -1539,14 +1543,7 @@ export class Kamino {
     }
     const strategyState = await this.getStrategyStateIfNotFetched(strategy);
 
-    let poolProgram = PublicKey.default;
-    if (strategyState.strategy.strategyDex.toNumber() == dexToNumber('ORCA')) {
-      poolProgram = WHIRLPOOL_PROGRAM_ID;
-    } else if (strategyState.strategy.strategyDex.toNumber() == dexToNumber('RAYDIUM')) {
-      poolProgram = RAYDIUM_PROGRAM_ID;
-    } else {
-      throw new Error(`Invaid dex ${strategyState.strategy.strategyDex}`);
-    }
+    let poolProgram = getDexProgramId(strategyState.strategy);
     const globalConfig = await GlobalConfig.fetch(this._connection, strategyState.strategy.globalConfig);
     if (!globalConfig) {
       throw Error(`Could not fetch global config with pubkey ${strategyState.strategy.globalConfig.toString()}`);
@@ -1615,6 +1612,45 @@ export class Kamino {
     };
 
     return depositAndInvest(depositArgs, depositAccounts);
+  };
+
+  singleSidedDeposit = async (
+    strategy: PublicKey | StrategyWithAddress,
+    amountA: Decimal,
+    amountB: Decimal,
+    owner: PublicKey
+  ) => {
+    if (amountA.lessThanOrEqualTo(0) || amountB.lessThanOrEqualTo(0)) {
+      throw Error('Token A or B amount cant be lower than or equal to 0.');
+    }
+    const { strategy: strategyState, address: _ } = await this.getStrategyStateIfNotFetched(strategy);
+  };
+
+  getCheckExpectedVaultsBalancesIx = async (
+    strategy: PublicKey | StrategyWithAddress,
+    expectedTokensBalances: TokensBalances,
+    user: PublicKey
+  ) => {
+    const { strategy: strategyState, address: _ } = await this.getStrategyStateIfNotFetched(strategy);
+
+    let expectedABalance = expectedTokensBalances.a || (await this.getTokenAccountBalance(strategyState.tokenAVault));
+    let expectedBBalance = expectedTokensBalances.b || (await this.getTokenAccountBalance(strategyState.tokenBVault));
+
+    const args: CheckExpectedVaultsBalancesArgs = {
+      tokenAAtaBalance: new BN(expectedABalance.toString()),
+      tokenBAtaBalance: new BN(expectedBBalance.toString()),
+    };
+
+    const [tokenAAta] = await getAssociatedTokenAddressAndData(this._connection, strategyState.tokenAMint, user);
+    const [tokenBAta] = await getAssociatedTokenAddressAndData(this._connection, strategyState.tokenBMint, user);
+
+    const accounts: CheckExpectedVaultsBalancesAccounts = {
+      user,
+      tokenAAta,
+      tokenBAta,
+    };
+
+    return checkExpectedVaultsBalances(args, accounts);
   };
 
   /**
@@ -2283,10 +2319,7 @@ export class Kamino {
       action: action.discriminator,
     };
 
-    let programId = WHIRLPOOL_PROGRAM_ID;
-    if (strategyState.strategyDex.toNumber() == dexToNumber('RAYDIUM')) {
-      programId = RAYDIUM_PROGRAM_ID;
-    }
+    let programId = getDexProgramId(strategyState);
 
     const accounts: ExecutiveWithdrawAccounts = {
       adminAuthority: strategyState.adminAuthority,
@@ -2361,10 +2394,7 @@ export class Kamino {
       throw Error(`Could not fetch global config with pubkey ${strategyState.globalConfig.toString()}`);
     }
 
-    let programId = WHIRLPOOL_PROGRAM_ID;
-    if (strategyState.strategyDex.toNumber() == dexToNumber('RAYDIUM')) {
-      programId = RAYDIUM_PROGRAM_ID;
-    }
+    let programId = getDexProgramId(strategyState);
 
     const accounts: InvestAccounts = {
       position: strategyState.position,
@@ -2797,35 +2827,30 @@ export class Kamino {
     lookupTable: PublicKey,
     strategy: PublicKey | StrategyWithAddress
   ): Promise<TransactionInstruction> => {
-    const strategyState = await this.getStrategyStateIfNotFetched(strategy);
+    const { strategy: strategyState, address} = await this.getStrategyStateIfNotFetched(strategy);
     if (!strategyState) {
       throw Error(`Could not fetch strategy state with pubkey ${strategy.toString()}`);
     }
-    let programId = PublicKey.default;
-    if (strategyState.strategy.strategyDex.toNumber() === dexToNumber('RAYDIUM')) {
-      programId = RAYDIUM_PROGRAM_ID;
-    } else {
-      programId = WHIRLPOOL_PROGRAM_ID;
-    }
+    let programId = getDexProgramId(strategyState);
 
     let accountsToBeInserted: PublicKey[] = [
-      strategyState.address,
-      strategyState.strategy.adminAuthority,
-      strategyState.strategy.baseVaultAuthority,
-      strategyState.strategy.pool,
-      strategyState.strategy.tokenAMint,
-      strategyState.strategy.tokenBMint,
-      strategyState.strategy.tokenAVault,
-      strategyState.strategy.tokenBVault,
-      strategyState.strategy.poolTokenVaultA,
-      strategyState.strategy.poolTokenVaultB,
-      strategyState.strategy.tokenAMint,
-      strategyState.strategy.raydiumProtocolPositionOrBaseVaultAuthority,
-      strategyState.strategy.raydiumPoolConfigOrBaseVaultAuthority,
-      strategyState.strategy.tickArrayLower,
-      strategyState.strategy.tickArrayUpper,
-      strategyState.strategy.positionMint,
-      strategyState.strategy.positionTokenAccount,
+      address,
+      strategyState.adminAuthority,
+      strategyState.baseVaultAuthority,
+      strategyState.pool,
+      strategyState.tokenAMint,
+      strategyState.tokenBMint,
+      strategyState.tokenAVault,
+      strategyState.tokenBVault,
+      strategyState.poolTokenVaultA,
+      strategyState.poolTokenVaultB,
+      strategyState.tokenAMint,
+      strategyState.raydiumProtocolPositionOrBaseVaultAuthority,
+      strategyState.raydiumPoolConfigOrBaseVaultAuthority,
+      strategyState.tickArrayLower,
+      strategyState.tickArrayUpper,
+      strategyState.positionMint,
+      strategyState.positionTokenAccount,
       SYSVAR_RENT_PUBKEY,
       TOKEN_PROGRAM_ID,
       ASSOCIATED_TOKEN_PROGRAM_ID,
