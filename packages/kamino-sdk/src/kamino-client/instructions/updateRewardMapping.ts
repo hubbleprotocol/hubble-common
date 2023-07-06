@@ -10,7 +10,7 @@ export interface UpdateRewardMappingArgs {
 }
 
 export interface UpdateRewardMappingAccounts {
-  adminAuthority: PublicKey
+  payer: PublicKey
   strategy: PublicKey
   globalConfig: PublicKey
   pool: PublicKey
@@ -33,7 +33,7 @@ export function updateRewardMapping(
   accounts: UpdateRewardMappingAccounts
 ) {
   const keys: Array<AccountMeta> = [
-    { pubkey: accounts.adminAuthority, isSigner: true, isWritable: true },
+    { pubkey: accounts.payer, isSigner: true, isWritable: true },
     { pubkey: accounts.strategy, isSigner: false, isWritable: true },
     { pubkey: accounts.globalConfig, isSigner: false, isWritable: false },
     { pubkey: accounts.pool, isSigner: false, isWritable: false },

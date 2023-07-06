@@ -95,6 +95,29 @@ export class Rebalancing {
   }
 }
 
+export interface NoPositionJSON {
+  kind: "NoPosition"
+}
+
+export class NoPosition {
+  static readonly discriminator = 4
+  static readonly kind = "NoPosition"
+  readonly discriminator = 4
+  readonly kind = "NoPosition"
+
+  toJSON(): NoPositionJSON {
+    return {
+      kind: "NoPosition",
+    }
+  }
+
+  toEncodable() {
+    return {
+      NoPosition: {},
+    }
+  }
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function fromDecoded(obj: any): types.StrategyStatusKind {
   if (typeof obj !== "object") {
@@ -112,6 +135,9 @@ export function fromDecoded(obj: any): types.StrategyStatusKind {
   }
   if ("Rebalancing" in obj) {
     return new Rebalancing()
+  }
+  if ("NoPosition" in obj) {
+    return new NoPosition()
   }
 
   throw new Error("Invalid enum object")
@@ -133,6 +159,9 @@ export function fromJSON(
     case "Rebalancing": {
       return new Rebalancing()
     }
+    case "NoPosition": {
+      return new NoPosition()
+    }
   }
 }
 
@@ -142,6 +171,7 @@ export function layout(property?: string) {
     borsh.struct([], "Active"),
     borsh.struct([], "Frozen"),
     borsh.struct([], "Rebalancing"),
+    borsh.struct([], "NoPosition"),
   ])
   if (property !== undefined) {
     return ret.replicate(property)

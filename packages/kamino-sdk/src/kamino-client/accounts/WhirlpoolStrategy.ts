@@ -388,7 +388,7 @@ export class WhirlpoolStrategy {
     borsh.u8("rebalanceType"),
     borsh.array(borsh.u8(), 6, "padding0"),
     types.RebalanceRaw.layout("rebalanceRaw"),
-    borsh.array(borsh.u8(), 8, "padding1"),
+    borsh.array(borsh.u8(), 7, "padding1"),
     borsh.u64("tokenAFeesFromRewardsCumulative"),
     borsh.u64("tokenBFeesFromRewardsCumulative"),
     borsh.publicKey("strategyLookupTable"),
