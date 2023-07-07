@@ -47,7 +47,7 @@
     "@solana/wallet-adapter-base": "^0.9.20",
     "axios": "^1.2.6",
     "bn.js": "^5.2.1",
-    "@jup-ag/core": "=1.0.0-beta.22"
+    "@jup-ag/core": "=3.0.0-beta.18"
   },
   "peerDependencies": {
     "@solana/web3.js": "~1.73.0",

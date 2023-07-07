@@ -1712,6 +1712,27 @@ export class Kamino {
 
     let checkExpectedVaultsBalancesIx = await this.getCheckExpectedVaultsBalancesIx(strategyWithAddress, owner);
 
+    const [sharesAta] = await getAssociatedTokenAddressAndData(this._connection, strategyState.sharesMint, owner);
+    const [tokenAAta] = await getAssociatedTokenAddressAndData(this._connection, strategyState.tokenAMint, owner);
+    const [tokenBAta] = await getAssociatedTokenAddressAndData(this._connection, strategyState.tokenBMint, owner);
+
+    let aToDeposit = (await this.getTokenAccountBalance(tokenAAta)).sub(tokenAMinPostDepositBalance);
+    let bToDeposit = (await this.getTokenAccountBalance(tokenBAta)).sub(tokenBMinPostDepositBalance);
+
+    let amountsToDepositWithSwap = await this.calculateAmountsToBeDepositedWithSwap(
+      strategyWithAddress,
+      aToDeposit,
+      bToDeposit
+    );
+
+    let jupSwapIxs = await this.getJupSwapIxs(
+      amountsToDepositWithSwap,
+      strategyState.tokenAMint,
+      strategyState.tokenBMint,
+      owner,
+      true
+    );
+
     let poolProgram = getDexProgramId(strategyState);
     const globalConfig = await GlobalConfig.fetch(this._connection, strategyState.globalConfig);
     if (!globalConfig) {
@@ -1722,10 +1743,6 @@ export class Kamino {
       strategyState.tokenAMint,
       strategyState.tokenBMint
     );
-
-    const [sharesAta] = await getAssociatedTokenAddressAndData(this._connection, strategyState.sharesMint, owner);
-    const [tokenAAta] = await getAssociatedTokenAddressAndData(this._connection, strategyState.tokenAMint, owner);
-    const [tokenBAta] = await getAssociatedTokenAddressAndData(this._connection, strategyState.tokenBMint, owner);
 
     const lamportsA = tokenAMinPostDepositBalance.mul(new Decimal(10).pow(strategyState.tokenAMintDecimals.toString()));
     const lamportsB = tokenBMinPostDepositBalance.mul(new Decimal(10).pow(strategyState.tokenBMintDecimals.toString()));
