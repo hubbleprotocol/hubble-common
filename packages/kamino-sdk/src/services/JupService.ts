@@ -37,6 +37,7 @@ export class JupService {
     return res.data;
   };
 
+  // the amounts has to be in lamports
   static getBestRoute = async (
     amount: Decimal,
     inputMint: PublicKey,

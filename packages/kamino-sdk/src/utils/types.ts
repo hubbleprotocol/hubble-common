@@ -1,6 +1,6 @@
 import { PublicKey } from '@solana/web3.js';
 import { WhirlpoolStrategy } from '../kamino-client/accounts';
-import { Dex } from './utils';
+import { Dex, collToLamportsDecimal } from './utils';
 import Decimal from 'decimal.js';
 import { RebalanceTypeKind } from '../kamino-client/types';
 
@@ -189,6 +189,19 @@ export interface DepositAmountsForSwap {
   requiredBAmountToDeposit: Decimal;
   tokenAToSwapAmount: Decimal;
   tokenBToSwapAmount: Decimal;
+}
+
+export function depositAmountsForSwapToLamports(
+  depositAmounts: DepositAmountsForSwap,
+  tokenADecimals: number,
+  tokenBDecimals: number
+): DepositAmountsForSwap {
+  return {
+    requiredAAmountToDeposit: collToLamportsDecimal(depositAmounts.requiredAAmountToDeposit, tokenADecimals),
+    requiredBAmountToDeposit: collToLamportsDecimal(depositAmounts.requiredBAmountToDeposit, tokenBDecimals),
+    tokenAToSwapAmount: collToLamportsDecimal(depositAmounts.tokenAToSwapAmount, tokenADecimals),
+    tokenBToSwapAmount: collToLamportsDecimal(depositAmounts.tokenBToSwapAmount, tokenBDecimals),
+  };
 }
 
 export interface RebalanceParams {

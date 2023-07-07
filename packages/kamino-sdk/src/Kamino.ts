@@ -93,6 +93,7 @@ import {
   numberToDex,
   TokensBalances,
   isSOLMint,
+  depositAmountsForSwapToLamports,
 } from './utils';
 import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import {
@@ -201,6 +202,7 @@ import {
 } from './services/PoolSimulationService';
 import { Manual, PricePercentage, PricePercentageWithReset } from './kamino-client/types/RebalanceType';
 import {
+  checkIfAccountExists,
   decodeSerializedTransaction,
   getAtasWithCreateIxnsIfMissing,
   getComputeBudgetAndPriorityFeeIxns,
@@ -970,6 +972,16 @@ export class Kamino {
     return new Decimal(tokenAccountBalance.value.uiAmountString!);
   };
 
+  // getTokenAccountBalanceOrZero return 0 if the token balance is not initialized
+  private getTokenAccountBalanceOrZero = async (tokenAccount: PublicKey): Promise<Decimal> => {
+    let tokenAccountExists = await checkIfAccountExists(this._connection, tokenAccount);
+    if (tokenAccountExists) {
+      return await this.getTokenAccountBalance(tokenAccount);
+    } else {
+      return new Decimal(0);
+    }
+  };
+
   private getStrategyBalances = async (strategy: WhirlpoolStrategy, scopePrices?: ScopeToken[]) => {
     const collateralInfos = await this.getCollateralInfos();
     if (strategy.strategyDex.toNumber() == dexToNumber('ORCA')) {
@@ -1684,7 +1696,13 @@ export class Kamino {
       initialUserTokenABalance = initialUserTokenBalances.a;
     } else {
       const [tokenAAta] = await getAssociatedTokenAddressAndData(this._connection, tokenAMint, owner);
-      initialUserTokenABalance = await this.getTokenAccountBalance(tokenAAta);
+
+      let ataExists = await checkIfAccountExists(this._connection, tokenAAta);
+      if (!ataExists) {
+        initialUserTokenABalance = new Decimal(0);
+      } else {
+        initialUserTokenABalance = await this.getTokenAccountBalance(tokenAAta);
+      }
     }
 
     if (initialUserTokenBalances?.b) {
@@ -1692,7 +1710,12 @@ export class Kamino {
     } else {
       const [tokenBAta] = await getAssociatedTokenAddressAndData(this._connection, tokenBMint, owner);
 
-      initialUserTokenBBalance = await this.getTokenAccountBalance(tokenBAta);
+      let ataExists = await checkIfAccountExists(this._connection, tokenBAta);
+      if (!ataExists) {
+        initialUserTokenABalance = new Decimal(0);
+      } else {
+        initialUserTokenBBalance = await this.getTokenAccountBalance(tokenBAta);
+      }
     }
 
     return { a: initialUserTokenABalance, b: initialUserTokenBBalance };
@@ -1716,21 +1739,33 @@ export class Kamino {
     const [tokenAAta] = await getAssociatedTokenAddressAndData(this._connection, strategyState.tokenAMint, owner);
     const [tokenBAta] = await getAssociatedTokenAddressAndData(this._connection, strategyState.tokenBMint, owner);
 
-    let aToDeposit = (await this.getTokenAccountBalance(tokenAAta)).sub(tokenAMinPostDepositBalance);
-    let bToDeposit = (await this.getTokenAccountBalance(tokenBAta)).sub(tokenBMinPostDepositBalance);
+    let aToDeposit = (await this.getTokenAccountBalanceOrZero(tokenAAta)).sub(tokenAMinPostDepositBalance);
+    let bToDeposit = (await this.getTokenAccountBalanceOrZero(tokenBAta)).sub(tokenBMinPostDepositBalance);
+
+    if (aToDeposit.lessThan(0) || bToDeposit.lessThan(0)) {
+      throw Error(
+        `Token A or B to deposit amount cannot be lower than 0; aToDeposit=${aToDeposit.toString()} bToDeposit=${bToDeposit.toString()}`
+      );
+    }
 
     let amountsToDepositWithSwap = await this.calculateAmountsToBeDepositedWithSwap(
       strategyWithAddress,
       aToDeposit,
       bToDeposit
     );
+    let amountsToDepositWithSwapLamports = depositAmountsForSwapToLamports(
+      amountsToDepositWithSwap,
+      strategyState.tokenAMintDecimals.toNumber(),
+      strategyState.tokenBMintDecimals.toNumber()
+    );
+    console.log('amountsToDepositWithSwap', amountsToDepositWithSwap);
 
     let jupSwapIxs = await this.getJupSwapIxs(
-      amountsToDepositWithSwap,
+      amountsToDepositWithSwapLamports,
       strategyState.tokenAMint,
       strategyState.tokenBMint,
       owner,
-      true
+      false
     );
 
     let poolProgram = getDexProgramId(strategyState);
@@ -1787,7 +1822,9 @@ export class Kamino {
 
     let singleSidedDepositIx = singleTokenDepositAndInvestWithMin(args, accounts);
 
-    let result = [checkExpectedVaultsBalancesIx, singleSidedDepositIx];
+    let result = [...jupSwapIxs];
+
+    // let result = [checkExpectedVaultsBalancesIx, ...jupSwapIxs, singleSidedDepositIx];
     return result;
   };
 
@@ -1799,22 +1836,26 @@ export class Kamino {
     useOnlyLegacyTransaction: boolean
   ): Promise<TransactionInstruction[]> => {
     let jupiterBestRoute: RouteInfo;
+    console.log("input input.tokenAToSwapAmoun", input.tokenAToSwapAmount.toString());
+    console.log("input input.tokenBToSwapAmount", input.tokenBToSwapAmount.toString());
     let jupiterSwapTransactionIndex = 0;
     if (input.tokenAToSwapAmount.gt(ZERO)) {
       jupiterBestRoute = await JupService.getBestRoute(
         input.tokenAToSwapAmount,
+        // new Decimal(100),
         tokenAMint,
         tokenBMint,
-        5,
+        50,
         'ExactIn',
         useOnlyLegacyTransaction
       );
     } else {
       jupiterBestRoute = await JupService.getBestRoute(
-        input.tokenAToSwapAmount,
-        tokenAMint,
+        input.tokenBToSwapAmount,
+        // new Decimal(100),
         tokenBMint,
-        5,
+        tokenAMint,
+        50,
         'ExactIn',
         useOnlyLegacyTransaction
       );
@@ -1880,6 +1921,7 @@ export class Kamino {
 
     let clearedSwapIxs = [
       ...getComputeBudgetAndPriorityFeeIxns(1_400_000),
+      ...createAtasIxns,
       ...removeBudgetAndAtaIxns(decodeSerializedTransaction(swapTransaction)!.instructions, [
         tokenAMint.toString(),
         tokenBMint.toString(),
@@ -1910,16 +1952,29 @@ export class Kamino {
   ) => {
     const { strategy: strategyState, address: _ } = await this.getStrategyStateIfNotFetched(strategy);
 
-    let expectedABalance = expectedTokensBalances?.a || (await this.getTokenAccountBalance(strategyState.tokenAVault));
-    let expectedBBalance = expectedTokensBalances?.b || (await this.getTokenAccountBalance(strategyState.tokenBVault));
-
-    const args: CheckExpectedVaultsBalancesArgs = {
-      tokenAAtaBalance: new BN(expectedABalance.toString()),
-      tokenBAtaBalance: new BN(expectedBBalance.toString()),
-    };
-
     const [tokenAAta] = await getAssociatedTokenAddressAndData(this._connection, strategyState.tokenAMint, user);
     const [tokenBAta] = await getAssociatedTokenAddressAndData(this._connection, strategyState.tokenBMint, user);
+
+    let expectedABalance: Decimal;
+    if (expectedTokensBalances && expectedTokensBalances.a) {
+      expectedABalance = expectedTokensBalances.a;
+    } else {
+      expectedABalance = await this.getTokenAccountBalanceOrZero(tokenAAta);
+    }
+
+    let expectedBBalance: Decimal;
+    if (expectedTokensBalances && expectedTokensBalances.b) {
+      expectedBBalance = expectedTokensBalances.b;
+    } else {
+      expectedBBalance = await this.getTokenAccountBalanceOrZero(tokenBAta);
+    }
+
+    let expectedALamports = collToLamportsDecimal(expectedABalance, strategyState.tokenAMintDecimals.toNumber());
+    let expectedBLamports = collToLamportsDecimal(expectedBBalance, strategyState.tokenBMintDecimals.toNumber());
+    const args: CheckExpectedVaultsBalancesArgs = {
+      tokenAAtaBalance: new BN(expectedALamports.toString()),
+      tokenBAtaBalance: new BN(expectedBLamports.toString()),
+    };
 
     const accounts: CheckExpectedVaultsBalancesAccounts = {
       user,

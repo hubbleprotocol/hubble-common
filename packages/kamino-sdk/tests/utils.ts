@@ -11,9 +11,11 @@ import { CollateralInfos, GlobalConfig, WhirlpoolStrategy } from '../src/kamino-
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
   collToLamportsDecimal,
+  DepositAmountsForSwap,
   Dex,
   getAssociatedTokenAddress,
   getUpdateStrategyConfigIx,
+  isSOLMint,
   sendTransactionWithLogs,
   sleep,
   TOKEN_PROGRAM_ID,
@@ -22,7 +24,8 @@ import { getTickArrayPubkeysFromRangeRaydium } from './raydium_utils';
 import { getTickArrayPubkeysFromRangeOrca } from './orca_utils';
 import { TokenInstructions } from '@project-serum/serum';
 import { collateralTokenToNumber, CollateralToken } from './token_utils';
-import { checkIfAccountExists } from '../src/utils/transactions';
+import { checkIfAccountExists, getAtasWithCreateIxnsIfMissing } from '../src/utils/transactions';
+import { FullBPS } from '../src/utils/CreationParameters';
 
 export const GlobalConfigMainnet = new PublicKey('GKnHiWh3RRrE1zsNzWxRkomymHc374TvJPSTv2wPeYdB');
 export const KaminoProgramIdMainnet = new PublicKey('6LtLpnUFNByNXLyCoK9wA2MykKAmQNZKBdY8s47dehDc');
@@ -235,19 +238,57 @@ export async function mintTo(
   amount: number
 ) {
   console.log(`mintTo ${tokenAccount.toString()} mint ${mintPubkey.toString()} amount ${amount}`);
-  const tx = new Transaction().add(
-    Token.createMintToInstruction(
-      TOKEN_PROGRAM_ID, // always TOKEN_PROGRAM_ID
-      mintPubkey, // mint
-      tokenAccount, // receiver (sholud be a token account)
-      signer.publicKey, // mint authority
-      [], // only multisig account will use. leave it empty now.
-      amount // amount. if your decimals is 8, you mint 10^8 for 1 token.
-    )
-  );
+  let mintToIx = getMintToIx(signer, mintPubkey, tokenAccount, amount);
+
+  const tx = new Transaction().add(mintToIx);
 
   let res = await sendTransactionWithLogs(connection, tx, signer.publicKey, [signer]);
   console.log(`token ${mintPubkey.toString()} mint to ATA ${tokenAccount.toString()} tx hash: ${res}`);
+}
+
+export function getMintToIx(
+  signer: Keypair,
+  mintPubkey: PublicKey,
+  tokenAccount: PublicKey,
+  amount: number
+): TransactionInstruction {
+  let ix = Token.createMintToInstruction(
+    TOKEN_PROGRAM_ID, // always TOKEN_PROGRAM_ID
+    mintPubkey, // mint
+    tokenAccount, // receiver (sholud be a token account)
+    signer.publicKey, // mint authority
+    [], // only multisig account will use. leave it empty now.
+    amount // amount. if your decimals is 8, you mint 10^8 for 1 token.
+  );
+
+  return ix;
+}
+// berry pot sa iti folosesc laptopul 30 min? ca incep sa cred ca e de la mac ce nu merge, si
+
+export function getBurnFromIx(
+  signer: Keypair,
+  mintPubkey: PublicKey,
+  tokenAccount: PublicKey,
+  amount: number
+): TransactionInstruction {
+  console.log(`bunFrom ${tokenAccount.toString()} mint ${mintPubkey.toString()} amount ${amount}`);
+  let ix = Token.createBurnInstruction(TOKEN_PROGRAM_ID, mintPubkey, tokenAccount, signer.publicKey, [], amount);
+
+  return ix;
+}
+
+export async function burnFrom(
+  connection: Connection,
+  signer: Keypair,
+  mintPubkey: PublicKey,
+  tokenAccount: PublicKey,
+  amount: number
+) {
+  console.log(`bunFrom ${tokenAccount.toString()} mint ${mintPubkey.toString()} amount ${amount}`);
+  let ix = getBurnFromIx(signer, mintPubkey, tokenAccount, amount);
+  let tx = new Transaction().add(ix);
+  let res = await sendTransactionWithLogs(connection, tx, signer.publicKey, [signer]);
+  console.log(`token ${mintPubkey.toString()} burn from ATA ${tokenAccount.toString()} tx hash: ${res}`);
 }
 
 export async function setupAta(
@@ -467,3 +508,31 @@ export function getCollInfoEncodedChain(token: number): Uint8Array {
   let encodedChain = u16ArrayToU8Array(Uint16Array.from(chain));
   return encodedChain;
 }
+
+// export async function getLocalSwapIxs(
+//   input: DepositAmountsForSwap,
+//   tokenAMint: PublicKey,
+//   tokenBMint: PublicKey,
+//   owner: PublicKey
+// ): Promise<TransactionInstruction[]> {
+//   // create atas if not exist
+//   const createAtasIxns = await getAtasWithCreateIxnsIfMissing(
+//     this._connection,
+//     [tokenAMint, tokenBMint].filter((mint) => !isSOLMint(mint)),
+//     owner
+//   );
+// }
+
+// async function getSwapAToBWithSlippageBPSIxs(
+//   input: DepositAmountsForSwap,
+//   tokenAMint: PublicKey,
+//   tokenBMint: PublicKey,
+//   slippage: Decimal,
+//   owner: PublicKey
+// ) {
+//   let tokenBAta = getAssociatedTokenAddress(owner, tokenAMint);
+//   let bToRecieve = input.tokenBToSwapAmount.mul(new Decimal(FullBPS).sub(slippage)).div(FullBPS);
+//   let x = getMintToIx(owner, tokenBMint, tokenBAta, bToRecieve.());
+// }
+
+// async function getSwapBToAWithSlippageBPSIxs(input: DepositAmountsForSwap, slippage: Decimal) {}
