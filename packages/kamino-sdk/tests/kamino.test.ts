@@ -9,12 +9,14 @@ import {
 } from '@solana/web3.js';
 import {
   createAddExtraComputeUnitsTransaction,
+  DepositAmountsForSwap,
   Dex,
   getReadOnlyWallet,
   Kamino,
   sendTransactionWithLogs,
   sleep,
   StrategiesFilters,
+  SwapperIxBuilder,
   TokenAmounts,
   ZERO,
 } from '../src';
@@ -1341,6 +1343,14 @@ describe('Kamino SDK Tests', () => {
       usdhAirdropAmount
     );
 
+    let swapper: SwapperIxBuilder = (
+      input: DepositAmountsForSwap,
+      tokenAMint: PublicKey,
+      tokenBMint: PublicKey,
+      user: PublicKey,
+      slippageBps: Decimal
+    ) => getLocalSwapIxs(input, tokenAMint, tokenBMint, user, slippageBps, signer.publicKey);
+
     let usdcDeposit = new Decimal(10.0);
     let singleSidedDepositIxs = await kamino.getSingleSidedDepositIxs(
       fixtures.newOrcaStrategy,
@@ -1348,9 +1358,8 @@ describe('Kamino SDK Tests', () => {
       usdhAirdropAmount,
       user.owner.publicKey,
       new Decimal(0),
-      getLocalSwapIxs,
-      new Decimal(1.0), // this doesn't have to be provided on mainnet, as it reads the price from Jup
-      signer.publicKey
+      swapper,
+      new Decimal(1.0) // this doesn't have to be provided on mainnet, as it reads the price from Jup
     );
 
     const increaseBudgetIx = createAddExtraComputeUnitsTransaction(signer.publicKey, 1_000_000);

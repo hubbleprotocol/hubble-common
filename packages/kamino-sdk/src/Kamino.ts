@@ -211,6 +211,16 @@ import {
 import { RouteInfo } from '@jup-ag/core';
 export const KAMINO_IDL = KaminoIdl;
 
+export interface SwapperIxBuilder {
+  (
+    input: DepositAmountsForSwap,
+    tokenAMint: PublicKey,
+    tokenBMint: PublicKey,
+    owner: PublicKey,
+    slippage: Decimal
+  ): Promise<TransactionInstruction[]>;
+}
+
 export class Kamino {
   private readonly _cluster: SolanaCluster;
   private readonly _connection: Connection;
@@ -1658,12 +1668,21 @@ export class Kamino {
     }
     let tokenAMinPostDepositBalance = userTokenBalances.a.sub(amount);
 
+    let swapper: SwapperIxBuilder = (
+      input: DepositAmountsForSwap,
+      tokenAMint: PublicKey,
+      tokenBMint: PublicKey,
+      user: PublicKey,
+      slippageBps: Decimal
+    ) => this.getJupSwapIxs(input, tokenAMint, tokenBMint, user, slippageBps, false);
+
     return this.getSingleSidedDepositIxs(
       strategyWithAddress,
       tokenAMinPostDepositBalance,
       userTokenBalances.b,
       owner,
-      slippage
+      slippage,
+      swapper
     );
   };
 
@@ -1688,12 +1707,21 @@ export class Kamino {
     }
     let tokenBMinPostDepositBalance = userTokenBalances.b.sub(amount);
 
+    let swapper: SwapperIxBuilder = (
+      input: DepositAmountsForSwap,
+      tokenAMint: PublicKey,
+      tokenBMint: PublicKey,
+      user: PublicKey,
+      slippageBps: Decimal
+    ) => this.getJupSwapIxs(input, tokenAMint, tokenBMint, user, slippageBps, false);
+
     return this.getSingleSidedDepositIxs(
       strategyWithAddress,
       userTokenBalances.a,
       tokenBMinPostDepositBalance,
       owner,
-      slippage
+      slippage,
+      swapper
     );
   };
 
@@ -1741,26 +1769,8 @@ export class Kamino {
     tokenBMinPostDepositBalance: Decimal,
     owner: PublicKey,
     swapSlippage: Decimal,
-    swapIxsBuilder:
-      | ((
-          input: DepositAmountsForSwap,
-          tokenAMint: PublicKey,
-          tokenBMint: PublicKey,
-          owner: PublicKey,
-          slippage: Decimal,
-          useOnlyLegacyTransaction: boolean
-        ) => Promise<TransactionInstruction[]>)
-      | ((
-          input: DepositAmountsForSwap,
-          tokenAMint: PublicKey,
-          tokenBMint: PublicKey,
-          owner: PublicKey,
-          slippage: Decimal,
-          useOnlyLegacyTransaction: boolean,
-          mintAuthority?: PublicKey
-        ) => Promise<TransactionInstruction[]>) = this.getJupSwapIxs,
-    priceAInB?: Decimal, // not mandatory as it will be fetched from Jupyter
-    mintAuthority?: PublicKey // needed only for localnet/devnet
+    swapIxsBuilder: SwapperIxBuilder,
+    priceAInB?: Decimal // not mandatory as it will be fetched from Jupyter
   ): Promise<TransactionInstruction[]> => {
     if (tokenAMinPostDepositBalance.lessThan(0) || tokenBMinPostDepositBalance.lessThan(0)) {
       throw Error('Token A or B post deposit amount cant be lower than 0.');
@@ -1801,9 +1811,7 @@ export class Kamino {
       strategyState.tokenAMint,
       strategyState.tokenBMint,
       owner,
-      swapSlippage,
-      false,
-      mintAuthority
+      swapSlippage
     );
 
     let poolProgram = getDexProgramId(strategyState);

@@ -518,7 +518,6 @@ export async function getLocalSwapIxs(
   tokenBMint: PublicKey,
   user: PublicKey,
   slippageBps: Decimal,
-  _useOnlyLegacyTransaction: boolean, // not used, just for compatibility with getJupSwapIxs,
   mintAuthority?: PublicKey
 ): Promise<TransactionInstruction[]> {
   // create atas if not exist
