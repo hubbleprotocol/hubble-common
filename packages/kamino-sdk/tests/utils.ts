@@ -262,9 +262,11 @@ export function getMintToIx(
     amount // amount. if your decimals is 8, you mint 10^8 for 1 token.
   );
 
+  console.log('mint mintPubkey', mintPubkey.toString());
+  console.log('mint tokenAccount', tokenAccount.toString());
+
   return ix;
 }
-// berry pot sa iti folosesc laptopul 30 min? ca incep sa cred ca e de la mac ce nu merge, si
 
 export function getBurnFromIx(
   signer: PublicKey,
@@ -305,7 +307,7 @@ export async function setupAta(
     let wallet = new anchor.Wallet(payer);
     const provider = new anchor.Provider(connection, wallet, anchor.Provider.defaultOptions());
     let res = await provider.connection.sendTransaction(tx, [user]);
-    console.log(`setup ATA for ${tokenMintAddress.toString()} tx hash ${res}`);
+    console.log(`setup ATA=${ata.toString()} for ${tokenMintAddress.toString()} tx hash ${res}`);
   }
   return ata;
 }
@@ -514,24 +516,29 @@ export async function getLocalSwapIxs(
   input: DepositAmountsForSwap,
   tokenAMint: PublicKey,
   tokenBMint: PublicKey,
+  user: PublicKey,
   slippageBps: Decimal,
-  owner: PublicKey
+  _useOnlyLegacyTransaction: boolean, // not used, just for compatibility with getJupSwapIxs,
+  mintAuthority?: PublicKey
 ): Promise<TransactionInstruction[]> {
   // create atas if not exist
-  const createAtasIxns = await getAtasWithCreateIxnsIfMissing(
-    this._connection,
-    [tokenAMint, tokenBMint].filter((mint) => !isSOLMint(mint)),
-    owner
-  );
+  // const createAtasIxns = await getAtasWithCreateIxnsIfMissing(
+  //   this._connection,
+  //   [tokenAMint, tokenBMint].filter((mint) => !isSOLMint(mint)),
+  //   owner
+  // );
+
+  let mintAuth = mintAuthority ? mintAuthority : user;
 
   let swapIxs: TransactionInstruction[] = [];
   if (input.tokenAToSwapAmount.lt(ZERO)) {
-    swapIxs = await getSwapAToBWithSlippageBPSIxs(input, tokenAMint, tokenBMint, slippageBps, owner);
+    swapIxs = await getSwapAToBWithSlippageBPSIxs(input, tokenAMint, tokenBMint, slippageBps, user, mintAuth);
   } else {
-    swapIxs = await getSwapBToAWithSlippageBPSIxs(input, tokenAMint, tokenBMint, slippageBps, owner);
+    swapIxs = await getSwapBToAWithSlippageBPSIxs(input, tokenAMint, tokenBMint, slippageBps, user, mintAuth);
   }
 
-  return [...createAtasIxns, ...swapIxs];
+  return [...swapIxs];
+  // return [...createAtasIxns, ...swapIxs];
 }
 
 async function getSwapAToBWithSlippageBPSIxs(
@@ -539,13 +546,18 @@ async function getSwapAToBWithSlippageBPSIxs(
   tokenAMint: PublicKey,
   tokenBMint: PublicKey,
   slippageBps: Decimal,
-  owner: PublicKey
+  user: PublicKey,
+  mintAuthority: PublicKey
 ): Promise<TransactionInstruction[]> {
-  let tokenAAta = await getAssociatedTokenAddress(owner, tokenAMint);
-  let tokenBAta = await getAssociatedTokenAddress(owner, tokenBMint);
+  // multiply the tokens to swap by -1 to get the positive sign because we represent as negative numbers what we have to sell
+  let tokensToBurn = -input.tokenAToSwapAmount.toNumber();
+
+  let tokenAAta = await getAssociatedTokenAddress(tokenAMint, user);
+  let tokenBAta = await getAssociatedTokenAddress(tokenBMint, user);
+
   let bToRecieve = input.tokenBToSwapAmount.mul(new Decimal(FullBPS).sub(slippageBps)).div(FullBPS);
-  let mintToIx = getMintToIx(owner, tokenBMint, tokenBAta, bToRecieve.toNumber());
-  let burnFromIx = getBurnFromIx(owner, tokenAMint, tokenAAta, input.tokenAToSwapAmount.toNumber());
+  let mintToIx = getMintToIx(mintAuthority, tokenBMint, tokenBAta, bToRecieve.toNumber());
+  let burnFromIx = getBurnFromIx(user, tokenAMint, tokenAAta, tokensToBurn);
 
   return [mintToIx, burnFromIx];
 }
@@ -555,14 +567,18 @@ async function getSwapBToAWithSlippageBPSIxs(
   tokenAMint: PublicKey,
   tokenBMint: PublicKey,
   slippage: Decimal,
-  owner: PublicKey
+  owner: PublicKey,
+  mintAuthority: PublicKey
 ) {
-  let tokenAAta = await getAssociatedTokenAddress(owner, tokenAMint);
-  let tokenBAta = await getAssociatedTokenAddress(owner, tokenBMint);
+  // multiply the tokens to swap by -1 to get the positive sign because we represent as negative numbers what we have to sell
+  let tokensToBurn = -input.tokenBToSwapAmount.toNumber();
+
+  let tokenAAta = await getAssociatedTokenAddress(tokenAMint, owner);
+  let tokenBAta = await getAssociatedTokenAddress(tokenBMint, owner);
 
   let aToRecieve = input.tokenAToSwapAmount.mul(new Decimal(FullBPS).sub(slippage)).div(FullBPS);
-  let mintToIx = getMintToIx(owner, tokenAMint, tokenAAta, aToRecieve.toNumber());
-  let burnFromIx = getBurnFromIx(owner, tokenBMint, tokenBAta, input.tokenBToSwapAmount.toNumber());
+  let mintToIx = getMintToIx(mintAuthority, tokenAMint, tokenAAta, aToRecieve.toNumber());
+  let burnFromIx = getBurnFromIx(owner, tokenBMint, tokenBAta, tokensToBurn);
 
   return [mintToIx, burnFromIx];
 }

@@ -1641,6 +1641,7 @@ export class Kamino {
     strategy: PublicKey | StrategyWithAddress,
     amount: Decimal,
     owner: PublicKey,
+    slippage: Decimal,
     initialUserTokenBalances?: TokensBalances
   ): Promise<TransactionInstruction[]> => {
     const strategyWithAddress = await this.getStrategyStateIfNotFetched(strategy);
@@ -1657,13 +1658,20 @@ export class Kamino {
     }
     let tokenAMinPostDepositBalance = userTokenBalances.a.sub(amount);
 
-    return this.getSingleSidedDepositIxs(strategyWithAddress, tokenAMinPostDepositBalance, userTokenBalances.b, owner);
+    return this.getSingleSidedDepositIxs(
+      strategyWithAddress,
+      tokenAMinPostDepositBalance,
+      userTokenBalances.b,
+      owner,
+      slippage
+    );
   };
 
   singleSidedDepositTokenB = async (
     strategy: PublicKey | StrategyWithAddress,
     amount: Decimal,
     owner: PublicKey,
+    slippage: Decimal,
     initialUserTokenBalances?: TokensBalances
   ): Promise<TransactionInstruction[]> => {
     const strategyWithAddress = await this.getStrategyStateIfNotFetched(strategy);
@@ -1680,7 +1688,13 @@ export class Kamino {
     }
     let tokenBMinPostDepositBalance = userTokenBalances.b.sub(amount);
 
-    return this.getSingleSidedDepositIxs(strategyWithAddress, userTokenBalances.a, tokenBMinPostDepositBalance, owner);
+    return this.getSingleSidedDepositIxs(
+      strategyWithAddress,
+      userTokenBalances.a,
+      tokenBMinPostDepositBalance,
+      owner,
+      slippage
+    );
   };
 
   private getInitialUserTokenBalances = async (
@@ -1726,8 +1740,27 @@ export class Kamino {
     tokenAMinPostDepositBalance: Decimal,
     tokenBMinPostDepositBalance: Decimal,
     owner: PublicKey,
-    
-    priceAInB?: Decimal
+    swapSlippage: Decimal,
+    swapIxsBuilder:
+      | ((
+          input: DepositAmountsForSwap,
+          tokenAMint: PublicKey,
+          tokenBMint: PublicKey,
+          owner: PublicKey,
+          slippage: Decimal,
+          useOnlyLegacyTransaction: boolean
+        ) => Promise<TransactionInstruction[]>)
+      | ((
+          input: DepositAmountsForSwap,
+          tokenAMint: PublicKey,
+          tokenBMint: PublicKey,
+          owner: PublicKey,
+          slippage: Decimal,
+          useOnlyLegacyTransaction: boolean,
+          mintAuthority?: PublicKey
+        ) => Promise<TransactionInstruction[]>) = this.getJupSwapIxs,
+    priceAInB?: Decimal, // not mandatory as it will be fetched from Jupyter
+    mintAuthority?: PublicKey // needed only for localnet/devnet
   ): Promise<TransactionInstruction[]> => {
     if (tokenAMinPostDepositBalance.lessThan(0) || tokenBMinPostDepositBalance.lessThan(0)) {
       throw Error('Token A or B post deposit amount cant be lower than 0.');
@@ -1763,12 +1796,14 @@ export class Kamino {
     );
     console.log('amountsToDepositWithSwap', amountsToDepositWithSwap);
 
-    let jupSwapIxs = await this.getJupSwapIxs(
+    let jupSwapIxs = await swapIxsBuilder(
       amountsToDepositWithSwapLamports,
       strategyState.tokenAMint,
       strategyState.tokenBMint,
       owner,
-      false
+      swapSlippage,
+      false,
+      mintAuthority
     );
 
     let poolProgram = getDexProgramId(strategyState);
@@ -1825,9 +1860,9 @@ export class Kamino {
 
     let singleSidedDepositIx = singleTokenDepositAndInvestWithMin(args, accounts);
 
-    let result = [...jupSwapIxs];
+    // let result = [...jupSwapIxs];
 
-    // let result = [checkExpectedVaultsBalancesIx, ...jupSwapIxs, singleSidedDepositIx];
+    let result = [checkExpectedVaultsBalancesIx, ...jupSwapIxs, singleSidedDepositIx];
     return result;
   };
 
@@ -1836,6 +1871,7 @@ export class Kamino {
     tokenAMint: PublicKey,
     tokenBMint: PublicKey,
     owner: PublicKey,
+    slippage: Decimal,
     useOnlyLegacyTransaction: boolean
   ): Promise<TransactionInstruction[]> => {
     let jupiterBestRoute: RouteInfo;
@@ -1845,20 +1881,18 @@ export class Kamino {
     if (input.tokenAToSwapAmount.gt(ZERO)) {
       jupiterBestRoute = await JupService.getBestRoute(
         input.tokenAToSwapAmount,
-        // new Decimal(100),
         tokenAMint,
         tokenBMint,
-        50,
+        slippage.toNumber(),
         'ExactIn',
         useOnlyLegacyTransaction
       );
     } else {
       jupiterBestRoute = await JupService.getBestRoute(
         input.tokenBToSwapAmount,
-        // new Decimal(100),
         tokenBMint,
         tokenAMint,
-        50,
+        slippage.toNumber(),
         'ExactIn',
         useOnlyLegacyTransaction
       );
