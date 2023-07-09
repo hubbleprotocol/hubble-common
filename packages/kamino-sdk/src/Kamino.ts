@@ -1725,7 +1725,9 @@ export class Kamino {
     strategy: PublicKey | StrategyWithAddress,
     tokenAMinPostDepositBalance: Decimal,
     tokenBMinPostDepositBalance: Decimal,
-    owner: PublicKey
+    owner: PublicKey,
+    
+    priceAInB?: Decimal
   ): Promise<TransactionInstruction[]> => {
     if (tokenAMinPostDepositBalance.lessThan(0) || tokenBMinPostDepositBalance.lessThan(0)) {
       throw Error('Token A or B post deposit amount cant be lower than 0.');
@@ -1751,7 +1753,8 @@ export class Kamino {
     let amountsToDepositWithSwap = await this.calculateAmountsToBeDepositedWithSwap(
       strategyWithAddress,
       aToDeposit,
-      bToDeposit
+      bToDeposit,
+      priceAInB
     );
     let amountsToDepositWithSwapLamports = depositAmountsForSwapToLamports(
       amountsToDepositWithSwap,
@@ -1836,8 +1839,8 @@ export class Kamino {
     useOnlyLegacyTransaction: boolean
   ): Promise<TransactionInstruction[]> => {
     let jupiterBestRoute: RouteInfo;
-    console.log("input input.tokenAToSwapAmoun", input.tokenAToSwapAmount.toString());
-    console.log("input input.tokenBToSwapAmount", input.tokenBToSwapAmount.toString());
+    console.log('input input.tokenAToSwapAmoun', input.tokenAToSwapAmount.toString());
+    console.log('input input.tokenBToSwapAmount', input.tokenBToSwapAmount.toString());
     let jupiterSwapTransactionIndex = 0;
     if (input.tokenAToSwapAmount.gt(ZERO)) {
       jupiterBestRoute = await JupService.getBestRoute(
