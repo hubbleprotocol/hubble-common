@@ -30,7 +30,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     );
 
     let filters: StrategiesFilters = {
-      strategyCreationStatus: ['IGNORED'],
+      strategyCreationStatus: 'IGNORED',
       isCommunity: true,
     };
 
