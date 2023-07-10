@@ -2636,9 +2636,35 @@ export class Kamino {
       let stateBuffer = Buffer.from(strategyWithAddress.strategy.rebalanceRaw.state);
       let lowerRangePrice = readBigUint128LE(stateBuffer, 0);
       let upperRangePrice = readBigUint128LE(stateBuffer, 16);
+      let resetPriceLower = SqrtPriceMath.sqrtPriceX64ToPrice(
+        new BN(lowerRangePrice.toString()),
+        strategyWithAddress.strategy.tokenAMintDecimals.toNumber(),
+        strategyWithAddress.strategy.tokenBMintDecimals.toNumber()
+      );
+      let resetPriceUpper = SqrtPriceMath.sqrtPriceX64ToPrice(
+        new BN(upperRangePrice.toString()),
+        strategyWithAddress.strategy.tokenAMintDecimals.toNumber(),
+        strategyWithAddress.strategy.tokenBMintDecimals.toNumber()
+      );
+      console.log(
+        'lowerRangePrice',
+        SqrtPriceMath.sqrtPriceX64ToPrice(
+          new BN(lowerRangePrice.toString()),
+          strategyWithAddress.strategy.tokenAMintDecimals.toNumber(),
+          strategyWithAddress.strategy.tokenBMintDecimals.toNumber()
+        )
+      );
+      console.log(
+        'upperRangePrice',
+        SqrtPriceMath.sqrtPriceX64ToPrice(
+          new BN(upperRangePrice.toString()),
+          strategyWithAddress.strategy.tokenAMintDecimals.toNumber(),
+          strategyWithAddress.strategy.tokenBMintDecimals.toNumber()
+        )
+      );
 
-      result.resetPriceLower = new Decimal(lowerRangePrice.toString());
-      result.resetPriceUpper = new Decimal(upperRangePrice.toString());
+      result.resetPriceLower = resetPriceLower;
+      result.resetPriceUpper = resetPriceUpper;
     }
 
     return result;
