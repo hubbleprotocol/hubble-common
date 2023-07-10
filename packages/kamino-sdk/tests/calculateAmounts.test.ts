@@ -1,5 +1,5 @@
 import { Connection } from '@solana/web3.js';
-import { Kamino, ZERO } from '../src';
+import { Kamino, StrategiesFilters, ZERO } from '../src';
 import {
   GlobalConfigMainnet,
   KaminoProgramIdMainnet,
@@ -16,6 +16,31 @@ describe('Kamino strategy creation SDK Tests', () => {
   const cluster = 'mainnet-beta';
   const clusterUrl: string = 'https://api.mainnet-beta.solana.com';
   connection = new Connection(clusterUrl, 'processed');
+
+  it('FilterStrats strategies based on status', async () => {
+    console.log('test');
+
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      GlobalConfigMainnet,
+      KaminoProgramIdMainnet,
+      WHIRLPOOL_PROGRAM_ID,
+      RAYDIUM_PROGRAM_ID
+    );
+
+    let filters: StrategiesFilters = {
+      strategyCreationStatus: 'IGNORED',
+      isCommunity: true,
+    };
+
+    let res = await kamino.getAllStrategiesWithFilters(filters);
+    for (let strat of res) {
+      console.log('Strat', strat.address.toString(), strat.strategy.isCommunity, strat.strategy.creationStatus);
+      expect(strat.strategy.isCommunity).to.be.equal(1);
+      expect(strat.strategy.creationStatus).to.be.equal(0);
+    }
+  });
 
   it('calculateAmountsToBeDepositedWithSwap for USDC-USDH pair, USDC provided only', async () => {
     let kamino = new Kamino(

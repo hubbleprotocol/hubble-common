@@ -8,8 +8,9 @@ export type StrategyType = 'NON_PEGGED' | 'PEGGED' | 'STABLE';
 export type StrategyCreationStatus = 'IGNORED' | 'SHADOW' | 'LIVE' | 'DEPRECATED' | 'STAGING';
 
 export type StrategiesFilters = {
-  strategyType?: StrategyType[];
-  strategyCreationStatus?: StrategyCreationStatus[];
+  strategyType?: StrategyType;
+  strategyCreationStatus?: StrategyCreationStatus;
+  isCommunity?: boolean;
 };
 
 export function strategyTypeToBase58(strategyType: StrategyType): string {
