@@ -1780,6 +1780,13 @@ export class Kamino {
     const [tokenAAta] = await getAssociatedTokenAddressAndData(this._connection, strategyState.tokenAMint, owner);
     const [tokenBAta] = await getAssociatedTokenAddressAndData(this._connection, strategyState.tokenBMint, owner);
 
+    // if sharesAta doesn't exist create it
+    let createSharesAtaIx: TransactionInstruction | undefined = undefined;
+    let sharesAtaExists = await checkIfAccountExists(this._connection, sharesAta);
+    if (!sharesAtaExists) {
+      createSharesAtaIx = createAssociatedTokenAccountInstruction(owner, sharesAta, owner, strategyState.sharesMint);
+    }
+
     let aToDeposit = (await this.getTokenAccountBalanceOrZero(tokenAAta)).sub(tokenAMinPostDepositBalance);
     let bToDeposit = (await this.getTokenAccountBalanceOrZero(tokenBAta)).sub(tokenBMinPostDepositBalance);
 
@@ -1867,9 +1874,11 @@ export class Kamino {
 
     let singleSidedDepositIx = singleTokenDepositAndInvestWithMin(args, accounts);
 
-    // let result = [...jupSwapIxs];
-
-    let result = [checkExpectedVaultsBalancesIx, ...jupSwapIxs, singleSidedDepositIx];
+    let result: TransactionInstruction[] = [];
+    if (createSharesAtaIx) {
+      result.push(createSharesAtaIx);
+    }
+    result = result.concat([checkExpectedVaultsBalancesIx, ...jupSwapIxs, singleSidedDepositIx]);
     return result;
   };
 

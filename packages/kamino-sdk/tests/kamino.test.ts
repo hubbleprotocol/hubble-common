@@ -533,6 +533,94 @@ describe('Kamino SDK Tests', () => {
     console.log(txHash);
   });
 
+  it('single sided deposit only token A on Orca', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      fixtures.globalConfig,
+      fixtures.kaminoProgramId,
+      WHIRLPOOL_PROGRAM_ID,
+      LOCAL_RAYDIUM_PROGRAM_ID
+    );
+
+    const strategyState = (await kamino.getStrategyByAddress(fixtures.newOrcaStrategy))!;
+
+    const initialStrategyUsers = await kamino.getStrategyHolders(fixtures.newOrcaStrategy);
+
+    const solAirdropAmount = new Decimal(1);
+    const usdcAirdropAmount = new Decimal(100);
+    const usdhAirdropAmount = new Decimal(0);
+
+    let user = await createUser(
+      connection,
+      signer,
+      fixtures.newOrcaStrategy,
+      solAirdropAmount,
+      usdcAirdropAmount,
+      usdhAirdropAmount
+    );
+
+    let usdcDeposit = new Decimal(10.0);
+
+    let amountsToDepositWithSwap = await kamino.calculateAmountsToBeDepositedWithSwap(
+      fixtures.newOrcaStrategy,
+      usdcDeposit,
+      ZERO,
+      new Decimal(1.0)
+    );
+
+    let amountsToDepositWithSwapLamports = depositAmountsForSwapToLamports(
+      amountsToDepositWithSwap,
+      strategyState.tokenAMintDecimals.toNumber(),
+      strategyState.tokenBMintDecimals.toNumber()
+    );
+
+    let localSwapsIxs = await getLocalSwapIxs(
+      amountsToDepositWithSwapLamports,
+      strategyState.tokenAMint,
+      strategyState.tokenBMint,
+      user.owner.publicKey,
+      ZERO,
+      signer.publicKey
+    );
+
+    let singleSidedDepositIxs = await kamino.getSingleSidedDepositIxs(
+      fixtures.newOrcaStrategy,
+      usdcAirdropAmount.sub(usdcDeposit),
+      usdhAirdropAmount,
+      user.owner.publicKey,
+      new Decimal(0),
+      localSwapsIxs,
+      new Decimal(1.0) // this doesn't have to be provided on mainnet, as it reads the price from Jup
+    );
+
+    const increaseBudgetIx = createAddExtraComputeUnitsTransaction(signer.publicKey, 1_000_000);
+
+    const tx = await kamino.getTransactionV2Message(
+      signer.publicKey,
+      [increaseBudgetIx, ...singleSidedDepositIxs],
+      [strategyState.strategyLookupTable]
+    );
+    let openPositionTxV0 = new VersionedTransaction(tx);
+    openPositionTxV0.sign([signer, user.owner]);
+
+    //@ts-ignore
+    let myHash = await sendAndConfirmTransaction(kamino._connection, openPositionTxV0);
+    console.log('single sided deposit tx hash', myHash);
+
+    const strategy = await kamino.getStrategyByAddress(fixtures.newOrcaStrategy);
+    expect(strategy).to.not.be.null;
+    const accounts = await kamino.getStrategyHolders(fixtures.newOrcaStrategy);
+    expect(accounts.length).to.be.eq(initialStrategyUsers.length + 1);
+
+    // @ts-ignore
+    let tokenALeft = await kamino._connection.getTokenAccountBalance(user.tokenAAta);
+    // @ts-ignore
+    let tokenBLeft = await kamino._connection.getTokenAccountBalance(user.tokenBAta);
+    expect(tokenALeft.value.uiAmount?.toString()).to.be.eq(new Decimal(90).toString());
+    expect(tokenBLeft.value.uiAmount?.toString()).to.be.eq(new Decimal(0).toString());
+  });
+
   it('should withdraw shares from a Raydium strategy', async () => {
     let kamino = new Kamino(
       cluster,
@@ -1317,93 +1405,6 @@ describe('Kamino SDK Tests', () => {
 
     expect(tokens[0].toString()).to.be.eq(new Decimal(10).toString());
     expect(tokens[1].toString()).to.be.eq(new Decimal(25).toString());
-  });
-
-  it('single sided deposit only token A on Orca', async () => {
-    let kamino = new Kamino(
-      cluster,
-      connection,
-      fixtures.globalConfig,
-      fixtures.kaminoProgramId,
-      WHIRLPOOL_PROGRAM_ID,
-      LOCAL_RAYDIUM_PROGRAM_ID
-    );
-
-    const strategyState = (await kamino.getStrategyByAddress(fixtures.newOrcaStrategy))!;
-
-    const solAirdropAmount = new Decimal(1);
-    const usdcAirdropAmount = new Decimal(100);
-    const usdhAirdropAmount = new Decimal(0);
-
-    let user = await createUser(
-      connection,
-      signer,
-      fixtures.newOrcaStrategy,
-      solAirdropAmount,
-      usdcAirdropAmount,
-      usdhAirdropAmount
-    );
-
-    let usdcDeposit = new Decimal(10.0);
-
-    let amountsToDepositWithSwap = await kamino.calculateAmountsToBeDepositedWithSwap(
-      fixtures.newOrcaStrategy,
-      usdcDeposit,
-      ZERO,
-      new Decimal(1.0)
-    );
-
-    let amountsToDepositWithSwapLamports = depositAmountsForSwapToLamports(
-      amountsToDepositWithSwap,
-      strategyState.tokenAMintDecimals.toNumber(),
-      strategyState.tokenBMintDecimals.toNumber()
-    );
-
-    let localSwapsIxs = await getLocalSwapIxs(
-      amountsToDepositWithSwapLamports,
-      strategyState.tokenAMint,
-      strategyState.tokenBMint,
-      user.owner.publicKey,
-      ZERO,
-      signer.publicKey
-    );
-
-    let singleSidedDepositIxs = await kamino.getSingleSidedDepositIxs(
-      fixtures.newOrcaStrategy,
-      usdcAirdropAmount.sub(usdcDeposit),
-      usdhAirdropAmount,
-      user.owner.publicKey,
-      new Decimal(0),
-      localSwapsIxs,
-      new Decimal(1.0) // this doesn't have to be provided on mainnet, as it reads the price from Jup
-    );
-
-    const increaseBudgetIx = createAddExtraComputeUnitsTransaction(signer.publicKey, 1_000_000);
-
-    const tx = await kamino.getTransactionV2Message(
-      signer.publicKey,
-      [increaseBudgetIx, ...singleSidedDepositIxs],
-      [strategyState.strategyLookupTable]
-    );
-    let openPositionTxV0 = new VersionedTransaction(tx);
-    openPositionTxV0.sign([signer, user.owner]);
-
-    console.log('opening raydium position in rebalancing');
-    //@ts-ignore
-    let myHash = await sendAndConfirmTransaction(kamino._connection, openPositionTxV0);
-    console.log('open position tx hash', myHash);
-
-    const strategy = await kamino.getStrategyByAddress(fixtures.newOrcaStrategy);
-    expect(strategy).to.not.be.null;
-    const accounts = await kamino.getStrategyHolders(fixtures.newOrcaStrategy);
-    expect(accounts.length).to.be.eq(1);
-
-    // @ts-ignore
-    let tokenALeft = await kamino._connection.getTokenAccountBalance(user.tokenAAta);
-    // @ts-ignore
-    let tokenBLeft = await kamino._connection.getTokenAccountBalance(user.tokenBAta);
-    expect(tokenALeft.value.uiAmount?.toString()).to.be.eq(new Decimal(90).toString());
-    expect(tokenBLeft.value.uiAmount?.toString()).to.be.eq(new Decimal(0).toString());
   });
 });
 

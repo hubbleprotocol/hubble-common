@@ -1113,7 +1113,7 @@ describe('Kamino strategy creation SDK Tests', () => {
         strategy,
         amountToDeposit,
         signer.publicKey,
-        new Decimal(0),
+        new Decimal(50),
         undefined
       );
     } else {
@@ -1121,11 +1121,12 @@ describe('Kamino strategy creation SDK Tests', () => {
         strategy,
         amountToDeposit,
         signer.publicKey,
-        new Decimal(0),
+        new Decimal(50),
         undefined
       );
     }
 
+    console.log('singleSidedDepositIxs', singleSidedDepositIxs.length);
     const singleSidedDepositMessage = await kamino.getTransactionV2Message(signer.publicKey, singleSidedDepositIxs);
     const singleSidedDepositTx = new VersionedTransaction(singleSidedDepositMessage);
     singleSidedDepositTx.sign([signer]);
