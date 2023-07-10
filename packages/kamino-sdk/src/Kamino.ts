@@ -2613,10 +2613,6 @@ export class Kamino {
    */
   async getPricesFromRebalancingParams(strategy: PublicKey | StrategyWithAddress): Promise<RebalanceParamsAsPrices> {
     const strategyWithAddress = await this.getStrategyStateIfNotFetched(strategy);
-    let currentPrice = await this.getCurrentPrice(strategyWithAddress);
-    let paramsBuffer = Buffer.from(strategyWithAddress.strategy.rebalanceRaw.params);
-    let stateBuffer = Buffer.from(strategyWithAddress.strategy.rebalanceRaw.state);
-
     let rebalanceKind = numberToRebalanceType(strategyWithAddress.strategy.rebalanceType);
 
     let result: RebalanceParamsAsPrices = {
@@ -2645,22 +2641,6 @@ export class Kamino {
         new BN(upperRangePrice.toString()),
         strategyWithAddress.strategy.tokenAMintDecimals.toNumber(),
         strategyWithAddress.strategy.tokenBMintDecimals.toNumber()
-      );
-      console.log(
-        'lowerRangePrice',
-        SqrtPriceMath.sqrtPriceX64ToPrice(
-          new BN(lowerRangePrice.toString()),
-          strategyWithAddress.strategy.tokenAMintDecimals.toNumber(),
-          strategyWithAddress.strategy.tokenBMintDecimals.toNumber()
-        )
-      );
-      console.log(
-        'upperRangePrice',
-        SqrtPriceMath.sqrtPriceX64ToPrice(
-          new BN(upperRangePrice.toString()),
-          strategyWithAddress.strategy.tokenAMintDecimals.toNumber(),
-          strategyWithAddress.strategy.tokenBMintDecimals.toNumber()
-        )
       );
 
       result.resetPriceLower = resetPriceLower;
