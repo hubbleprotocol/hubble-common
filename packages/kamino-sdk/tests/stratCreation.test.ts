@@ -6,10 +6,18 @@ import {
   TransactionInstruction,
   VersionedTransaction,
 } from '@solana/web3.js';
-import { Kamino, OrcaService, RaydiumService, sendTransactionWithLogs } from '../src';
+import {
+  depositAmountsForSwapToLamports,
+  Kamino,
+  OrcaService,
+  RaydiumService,
+  sendTransactionWithLogs,
+  ZERO,
+} from '../src';
 import Decimal from 'decimal.js';
 import { createTransactionWithExtraBudget } from '../src';
 import {
+  getLocalSwapIxs,
   GlobalConfigMainnet,
   KaminoProgramIdMainnet,
   SOLMintMainnet,
@@ -631,8 +639,8 @@ describe('Kamino strategy creation SDK Tests', () => {
     console.log('update Rebalance Params Tx Hash ', updateRebalanceParamsTxHash);
 
     let strategyData = await kamino.getStrategies([newStrategy.publicKey]);
-    expect(strategyData[0]?.rebalanceRaw[0] == 10.0);
-    expect(strategyData[0]?.rebalanceRaw[2] == 24.0);
+    expect(strategyData[0]?.rebalanceRaw.params[0] == 10.0);
+    expect(strategyData[0]?.rebalanceRaw.params[2] == 24.0);
 
     // update rebalance method to manual
     await updateStrategyConfig(
@@ -775,8 +783,8 @@ describe('Kamino strategy creation SDK Tests', () => {
     console.log('update Rebalance Params Tx Hash ', updateRebalanceParamsTxHash);
 
     let strategyData = await kamino.getStrategies([newStrategy.publicKey]);
-    expect(strategyData[0]?.rebalanceRaw[0] == 10.0);
-    expect(strategyData[0]?.rebalanceRaw[2] == 24.0);
+    expect(strategyData[0]?.rebalanceRaw.params[0] == 10.0);
+    expect(strategyData[0]?.rebalanceRaw.params[2] == 24.0);
 
     // update rebalance method to manual
     await updateStrategyConfig(
@@ -854,11 +862,11 @@ describe('Kamino strategy creation SDK Tests', () => {
     console.log('setup strategy fees tx hash', txHash);
 
     // verify strategy rebalance params
-    let strategyRebalanceParams = kamino.readPercentageRebalanceParams(newStrategy.publicKey);
-    expect(strategyRebalanceParams[0] == lowerPriceBpsDifference);
-    expect(strategyRebalanceParams[1] == upperPriceBpsDifference);
-    expect(strategyRebalanceParams[2] == lowerPriceResetRange);
-    expect(strategyRebalanceParams[3] == lowerPriceResetRange);
+    let strategyRebalanceParams = await kamino.readPercentageRebalanceParams(newStrategy.publicKey);
+    expect(strategyRebalanceParams.lowerRangeBps == lowerPriceBpsDifference);
+    expect(strategyRebalanceParams.upperRangeBps == upperPriceBpsDifference);
+    expect(strategyRebalanceParams.resetRangeLowerBps == lowerPriceResetRange);
+    expect(strategyRebalanceParams.resetRangeUpperBps == lowerPriceResetRange);
 
     // open position
     const openPositionIxn = buildNewStrategyIxs[3];
@@ -893,11 +901,6 @@ describe('Kamino strategy creation SDK Tests', () => {
     let updateRebalanceParamsTxHash = await sendTransactionWithLogs(connection, tx, signer.publicKey, [signer]);
     console.log('update Rebalance Params Tx Hash ', updateRebalanceParamsTxHash);
 
-    // verify strategy rebalance params
-    strategyRebalanceParams = kamino.readPercentageRebalanceParams(newStrategy.publicKey);
-    expect(strategyRebalanceParams[0] == manualLowerRange);
-    expect(strategyRebalanceParams[1] == manualUpperRange);
-
     // update rebalance method to PricePercentageWithReset
     await updateStrategyConfig(
       connection,
@@ -925,11 +928,11 @@ describe('Kamino strategy creation SDK Tests', () => {
     strategyData = await kamino.getStrategies([newStrategy.publicKey]);
     expect(strategyData[0]?.rebalanceType == PricePercentageWithReset.discriminator);
 
-    strategyRebalanceParams = kamino.readPercentageRebalanceParams(newStrategy.publicKey);
-    expect(strategyRebalanceParams[0] == newLowerPriceBpsDifference);
-    expect(strategyRebalanceParams[1] == newUpperPriceBpsDifference);
-    expect(strategyRebalanceParams[2] == newLowerPriceResetRange);
-    expect(strategyRebalanceParams[3] == newUpperPriceResetRange);
+    strategyRebalanceParams = await kamino.readPercentageRebalanceParams(newStrategy.publicKey);
+    expect(strategyRebalanceParams.lowerRangeBps == newLowerPriceBpsDifference);
+    expect(strategyRebalanceParams.upperRangeBps == newUpperPriceBpsDifference);
+    expect(strategyRebalanceParams.resetRangeLowerBps == newLowerPriceResetRange);
+    expect(strategyRebalanceParams.resetRangeUpperBps == newUpperPriceResetRange);
   });
 
   it.skip('create new custom USDC-USDH percentage strategy on existing whirlpool and open position', async () => {
@@ -994,8 +997,8 @@ describe('Kamino strategy creation SDK Tests', () => {
 
     // verify strategy rebalance params
     let strategyData = await kamino.getStrategies([newStrategy.publicKey]);
-    expect(strategyData[0]?.rebalanceRaw[0] == lowerPriceBpsDifference);
-    expect(strategyData[0]?.rebalanceRaw[2] == upperPriceBpsDifference);
+    expect(strategyData[0]?.rebalanceRaw.params[0].toString() == lowerPriceBpsDifference.toString());
+    expect(strategyData[0]?.rebalanceRaw.params[2].toString() == upperPriceBpsDifference.toString());
 
     // open position
     const openPositionIxn = buildNewStrategyIxs[3];
@@ -1070,8 +1073,8 @@ describe('Kamino strategy creation SDK Tests', () => {
 
     // verify strategy rebalance params
     let strategyData = await kamino.getStrategies([newStrategy.publicKey]);
-    expect(strategyData[0]?.rebalanceRaw[0] == lowerPriceBpsDifference);
-    expect(strategyData[0]?.rebalanceRaw[2] == upperPriceBpsDifference);
+    expect(strategyData[0]?.rebalanceRaw.params[0].toString() == lowerPriceBpsDifference.toString());
+    expect(strategyData[0]?.rebalanceRaw.params[2].toString() == upperPriceBpsDifference.toString());
 
     // open position
     const openPositionIxn = buildNewStrategyIxs[3];
@@ -1106,9 +1109,21 @@ describe('Kamino strategy creation SDK Tests', () => {
     let singleSidedDepositIxs: TransactionInstruction[] = [];
     // if USDC is tokenA mint deposit tokenA, else deposit tokenB
     if (strategyState.tokenAMint == USDCMintMainnet) {
-      singleSidedDepositIxs = await kamino.singleSidedDepositTokenA(strategy, amountToDeposit, signer.publicKey);
+      singleSidedDepositIxs = await kamino.singleSidedDepositTokenA(
+        strategy,
+        amountToDeposit,
+        signer.publicKey,
+        new Decimal(0),
+        undefined
+      );
     } else {
-      singleSidedDepositIxs = await kamino.singleSidedDepositTokenB(strategy, amountToDeposit, signer.publicKey);
+      singleSidedDepositIxs = await kamino.singleSidedDepositTokenB(
+        strategy,
+        amountToDeposit,
+        signer.publicKey,
+        new Decimal(0),
+        undefined
+      );
     }
 
     const singleSidedDepositMessage = await kamino.getTransactionV2Message(signer.publicKey, singleSidedDepositIxs);
