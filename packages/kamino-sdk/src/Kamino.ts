@@ -1769,7 +1769,7 @@ export class Kamino {
     tokenBMinPostDepositBalance: Decimal,
     owner: PublicKey,
     swapSlippage: Decimal,
-    swapIxsBuilder: SwapperIxBuilder,
+    swapInstructions?: TransactionInstruction[], // if not provided Jupyter instructions 
     priceAInB?: Decimal // not mandatory as it will be fetched from Jupyter
   ): Promise<TransactionInstruction[]> => {
     if (tokenAMinPostDepositBalance.lessThan(0) || tokenBMinPostDepositBalance.lessThan(0)) {
