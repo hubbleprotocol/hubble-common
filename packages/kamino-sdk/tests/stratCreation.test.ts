@@ -627,8 +627,8 @@ describe('Kamino strategy creation SDK Tests', () => {
     console.log('update Rebalance Params Tx Hash ', updateRebalanceParamsTxHash);
 
     let strategyData = await kamino.getStrategies([newStrategy.publicKey]);
-    expect(strategyData[0]?.rebalanceRaw[0] == 10.0);
-    expect(strategyData[0]?.rebalanceRaw[2] == 24.0);
+    expect(strategyData[0]?.rebalanceRaw.params[0] == 10.0);
+    expect(strategyData[0]?.rebalanceRaw.params[2] == 24.0);
 
     // update rebalance method to manual
     await updateStrategyConfig(
@@ -771,8 +771,8 @@ describe('Kamino strategy creation SDK Tests', () => {
     console.log('update Rebalance Params Tx Hash ', updateRebalanceParamsTxHash);
 
     let strategyData = await kamino.getStrategies([newStrategy.publicKey]);
-    expect(strategyData[0]?.rebalanceRaw[0] == 10.0);
-    expect(strategyData[0]?.rebalanceRaw[2] == 24.0);
+    expect(strategyData[0]?.rebalanceRaw.params[0] == 10.0);
+    expect(strategyData[0]?.rebalanceRaw.params[2] == 24.0);
 
     // update rebalance method to manual
     await updateStrategyConfig(
@@ -850,11 +850,11 @@ describe('Kamino strategy creation SDK Tests', () => {
     console.log('setup strategy fees tx hash', txHash);
 
     // verify strategy rebalance params
-    let strategyRebalanceParams = kamino.getStrategyRebalanceParams(newStrategy.publicKey);
-    expect(strategyRebalanceParams[0] == lowerPriceBpsDifference);
-    expect(strategyRebalanceParams[1] == upperPriceBpsDifference);
-    expect(strategyRebalanceParams[2] == lowerPriceResetRange);
-    expect(strategyRebalanceParams[3] == lowerPriceResetRange);
+    let strategyRebalanceParams = await kamino.readPercentageRebalanceParams(newStrategy.publicKey);
+    expect(strategyRebalanceParams.lowerRangeBps == lowerPriceBpsDifference);
+    expect(strategyRebalanceParams.upperRangeBps == upperPriceBpsDifference);
+    expect(strategyRebalanceParams.resetRangeLowerBps == lowerPriceResetRange);
+    expect(strategyRebalanceParams.resetRangeUpperBps == lowerPriceResetRange);
 
     // open position
     const openPositionIxn = buildNewStrategyIxs[3];
@@ -890,9 +890,9 @@ describe('Kamino strategy creation SDK Tests', () => {
     console.log('update Rebalance Params Tx Hash ', updateRebalanceParamsTxHash);
 
     // verify strategy rebalance params
-    strategyRebalanceParams = kamino.getStrategyRebalanceParams(newStrategy.publicKey);
-    expect(strategyRebalanceParams[0] == manualLowerRange);
-    expect(strategyRebalanceParams[1] == manualUpperRange);
+    strategyRebalanceParams = await kamino.readStrategyRebalanceParams(newStrategy.publicKey);
+    expect(strategyRebalanceParams.lowerRangeBps == manualLowerRange);
+    expect(strategyRebalanceParams.upperRangeBps == manualUpperRange);
 
     // update rebalance method to PricePercentageWithReset
     await updateStrategyConfig(
@@ -921,11 +921,11 @@ describe('Kamino strategy creation SDK Tests', () => {
     strategyData = await kamino.getStrategies([newStrategy.publicKey]);
     expect(strategyData[0]?.rebalanceType == PricePercentageWithReset.discriminator);
 
-    strategyRebalanceParams = kamino.getStrategyRebalanceParams(newStrategy.publicKey);
-    expect(strategyRebalanceParams[0] == newLowerPriceBpsDifference);
-    expect(strategyRebalanceParams[1] == newUpperPriceBpsDifference);
-    expect(strategyRebalanceParams[2] == newLowerPriceResetRange);
-    expect(strategyRebalanceParams[3] == newUpperPriceResetRange);
+    strategyRebalanceParams = await kamino.readStrategyRebalanceParams(newStrategy.publicKey);
+    expect(strategyRebalanceParams.lowerRangeBps == newLowerPriceBpsDifference);
+    expect(strategyRebalanceParams.upperRangeBps == newUpperPriceBpsDifference);
+    expect(strategyRebalanceParams.resetRangeLowerBps == newLowerPriceResetRange);
+    expect(strategyRebalanceParams.resetRangeUpperBps == newUpperPriceResetRange);
   });
 
   it.skip('create new custom USDC-USDH percentage strategy on existing whirlpool and open position', async () => {
@@ -990,8 +990,8 @@ describe('Kamino strategy creation SDK Tests', () => {
 
     // verify strategy rebalance params
     let strategyData = await kamino.getStrategies([newStrategy.publicKey]);
-    expect(strategyData[0]?.rebalanceRaw[0] == lowerPriceBpsDifference);
-    expect(strategyData[0]?.rebalanceRaw[2] == upperPriceBpsDifference);
+    expect(strategyData[0]?.rebalanceRaw.params[0].toString() == lowerPriceBpsDifference.toString());
+    expect(strategyData[0]?.rebalanceRaw.params[2].toString() == upperPriceBpsDifference.toString());
 
     // open position
     const openPositionIxn = buildNewStrategyIxs[3];
@@ -1066,8 +1066,8 @@ describe('Kamino strategy creation SDK Tests', () => {
 
     // verify strategy rebalance params
     let strategyData = await kamino.getStrategies([newStrategy.publicKey]);
-    expect(strategyData[0]?.rebalanceRaw[0] == lowerPriceBpsDifference);
-    expect(strategyData[0]?.rebalanceRaw[2] == upperPriceBpsDifference);
+    expect(strategyData[0]?.rebalanceRaw.params[0].toString() == lowerPriceBpsDifference.toString());
+    expect(strategyData[0]?.rebalanceRaw.params[2].toString() == upperPriceBpsDifference.toString());
 
     // open position
     const openPositionIxn = buildNewStrategyIxs[3];
