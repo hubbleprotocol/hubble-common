@@ -598,6 +598,16 @@ export class Kamino {
       }
     }
 
+    if (strategyFilters.isCommunity !== undefined && strategyFilters.isCommunity !== null) {
+      let value = strategyFilters.isCommunity === false ? '1' : '2';
+      filters.push({
+        memcmp: {
+          bytes: value,
+          offset: 1664,
+        },
+      });
+    }
+
     return (await this._kaminoProgram.account.whirlpoolStrategy.all(filters)).map((x) => {
       const res: StrategyWithAddress = {
         strategy: new WhirlpoolStrategy(x.account as WhirlpoolStrategyFields),

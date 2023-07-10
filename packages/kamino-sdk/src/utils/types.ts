@@ -10,6 +10,7 @@ export type StrategyCreationStatus = 'IGNORED' | 'SHADOW' | 'LIVE' | 'DEPRECATED
 export type StrategiesFilters = {
   strategyType?: StrategyType[];
   strategyCreationStatus?: StrategyCreationStatus[];
+  isCommunity?: boolean;
 };
 
 export function strategyTypeToBase58(strategyType: StrategyType): string {
