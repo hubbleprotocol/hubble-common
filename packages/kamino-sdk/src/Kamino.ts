@@ -578,24 +578,30 @@ export class Kamino {
     });
 
     if (strategyFilters.strategyCreationStatus) {
-      for (const status of strategyFilters.strategyCreationStatus) {
-        filters.push({
-          memcmp: {
-            bytes: strategyCreationStatusToBase58(status),
-            offset: 1625,
-          },
-        });
-      }
+      filters.push({
+        memcmp: {
+          bytes: strategyCreationStatusToBase58(strategyFilters.strategyCreationStatus),
+          offset: 1625,
+        },
+      });
     }
     if (strategyFilters.strategyType) {
-      for (const type of strategyFilters.strategyType) {
-        filters.push({
-          memcmp: {
-            bytes: strategyTypeToBase58(type).toString(),
-            offset: 1120,
-          },
-        });
-      }
+      filters.push({
+        memcmp: {
+          bytes: strategyTypeToBase58(strategyFilters.strategyType).toString(),
+          offset: 1120,
+        },
+      });
+    }
+
+    if (strategyFilters.isCommunity !== undefined && strategyFilters.isCommunity !== null) {
+      let value = strategyFilters.isCommunity === false ? '1' : '2';
+      filters.push({
+        memcmp: {
+          bytes: value,
+          offset: 1664,
+        },
+      });
     }
 
     return (await this._kaminoProgram.account.whirlpoolStrategy.all(filters)).map((x) => {
@@ -998,7 +1004,7 @@ export class Kamino {
    * @param tokenMint token mint pubkey
    */
   getTotalTokensInStrategies = async (tokenMint: PublicKey | string): Promise<TotalStrategyVaultTokens> => {
-    const strategies = await this.getStrategiesShareData({ strategyCreationStatus: ['LIVE'] });
+    const strategies = await this.getStrategiesShareData({ strategyCreationStatus: 'LIVE' });
     let totalTokenAmount = new Decimal(0);
     const vaults: StrategyVaultTokens[] = [];
     for (const { strategy, address, shareData } of strategies) {
@@ -3053,11 +3059,12 @@ export class Kamino {
   /**
    * Get a list of user's Kamino strategy positions
    * @param wallet user wallet address
+   * @param strategyFilters
    * @returns list of kamino strategy positions
    */
   getUserPositions = async (
     wallet: PublicKey,
-    strategyFilters: StrategiesFilters = { strategyCreationStatus: ['LIVE'] }
+    strategyFilters: StrategiesFilters = { strategyCreationStatus: 'LIVE' }
   ): Promise<KaminoPosition[]> => {
     const userTokenAccounts = await this.getAllTokenAccounts(wallet);
     const liveStrategies = await this.getAllStrategiesWithFilters(strategyFilters);
