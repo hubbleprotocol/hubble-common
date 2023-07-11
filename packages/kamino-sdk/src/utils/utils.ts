@@ -117,3 +117,7 @@ export function lamportsToNumberDecimal(amount: Decimal.Value, decimals: number)
   const factor = new Decimal(10).pow(decimals);
   return new Decimal(amount).div(factor);
 }
+
+export function readBigUint128LE(buffer: Buffer, offset: number): bigint {
+  return buffer.readBigUint64LE(offset) + (buffer.readBigUint64LE(offset + 8) << BigInt(64));
+}

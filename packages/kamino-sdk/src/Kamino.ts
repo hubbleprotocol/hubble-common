@@ -91,6 +91,7 @@ import {
   RebalanceParamsAsPrices,
   RebalanceParams,
   numberToDex,
+  readBigUint128LE,
 } from './utils';
 import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import {
@@ -2618,68 +2619,41 @@ export class Kamino {
    */
   async getPricesFromRebalancingParams(strategy: PublicKey | StrategyWithAddress): Promise<RebalanceParamsAsPrices> {
     const strategyWithAddress = await this.getStrategyStateIfNotFetched(strategy);
-    let currentPrice = await this.getCurrentPrice(strategyWithAddress);
-
     let rebalanceKind = numberToRebalanceType(strategyWithAddress.strategy.rebalanceType);
-    if (rebalanceKind.kind === Manual.kind) {
-      if (strategyWithAddress.strategy.position.toString() === PublicKey.default.toString()) {
-        return {
-          rebalanceType: new RebalanceType.Manual(),
-          rangePriceLower: ZERO,
-          rangePriceUpper: ZERO,
-        };
-      }
-      let strategyRange = await this.getStrategyRange(strategyWithAddress);
-      let rebalanceParams: RebalanceParamsAsPrices = {
-        rebalanceType: new RebalanceType.Manual(),
-        rangePriceLower: strategyRange.lowerPrice,
-        rangePriceUpper: strategyRange.upperPrice,
-      };
-      return rebalanceParams;
-    } else if (rebalanceKind.kind === PricePercentage.kind) {
-      const rebalanceParams = await this.readPercentageRebalanceParams(strategyWithAddress);
 
-      let positionRange = this.getPriceRangePercentageBasedFromPrice(
-        currentPrice,
-        rebalanceParams.lowerRangeBps,
-        rebalanceParams.upperRangeBps
-      );
+    let result: RebalanceParamsAsPrices = {
+      rebalanceType: rebalanceKind,
+      rangePriceLower: ZERO,
+      rangePriceUpper: ZERO,
+    };
 
-      let rebalancePriceParams: RebalanceParamsAsPrices = {
-        rebalanceType: new RebalanceType.PricePercentage(),
-        rangePriceLower: positionRange[0],
-        rangePriceUpper: positionRange[1],
-      };
-      return rebalancePriceParams;
-    } else if (rebalanceKind.kind === PricePercentageWithReset.kind) {
-      const rebalanceParams = await this.readPercentageRebalanceParams(strategyWithAddress);
-      let positionRange = this.getPriceRangePercentageBasedFromPrice(
-        currentPrice,
-        rebalanceParams.lowerRangeBps,
-        rebalanceParams.upperRangeBps
-      );
-
-      if (!rebalanceParams.resetRangeLowerBps || !rebalanceParams.resetRangeUpperBps) {
-        throw new Error('Reset range not set');
-      }
-      let resetRange = this.getPriceRangePercentageBasedFromPrice(
-        currentPrice,
-        rebalanceParams.resetRangeLowerBps,
-        rebalanceParams.resetRangeUpperBps
-      );
-
-      let rebalancePriceParams: RebalanceParamsAsPrices = {
-        rebalanceType: new RebalanceType.PricePercentage(),
-        rangePriceLower: positionRange[0],
-        rangePriceUpper: positionRange[1],
-        resetPriceLower: resetRange[0],
-        resetPriceUpper: resetRange[1],
-      };
-
-      return rebalancePriceParams;
-    } else {
-      throw new Error(`Rebalance type ${rebalanceKind} is not supported`);
+    // read the current price range or 0 if not exist
+    if (strategyWithAddress.strategy.position.toString() !== PublicKey.default.toString()) {
+      let positionRange = await this.getStrategyRange(strategyWithAddress);
+      result.rangePriceLower = positionRange.lowerPrice;
+      result.rangePriceUpper = positionRange.upperPrice;
     }
+
+    if (rebalanceKind.kind === PricePercentageWithReset.kind) {
+      let stateBuffer = Buffer.from(strategyWithAddress.strategy.rebalanceRaw.state);
+      let lowerResetSqrtPrice = readBigUint128LE(stateBuffer, 0);
+      let upperResetSqrtPrice = readBigUint128LE(stateBuffer, 16);
+      let resetPriceLower = SqrtPriceMath.sqrtPriceX64ToPrice(
+        new BN(lowerResetSqrtPrice.toString()),
+        strategyWithAddress.strategy.tokenAMintDecimals.toNumber(),
+        strategyWithAddress.strategy.tokenBMintDecimals.toNumber()
+      );
+      let resetPriceUpper = SqrtPriceMath.sqrtPriceX64ToPrice(
+        new BN(upperResetSqrtPrice.toString()),
+        strategyWithAddress.strategy.tokenAMintDecimals.toNumber(),
+        strategyWithAddress.strategy.tokenBMintDecimals.toNumber()
+      );
+
+      result.resetPriceLower = resetPriceLower;
+      result.resetPriceUpper = resetPriceUpper;
+    }
+
+    return result;
   }
 
   getPriceRangePercentageBasedFromPrice(
@@ -3054,6 +3028,10 @@ export class Kamino {
     } else {
       throw new Error(`Invalid rebalance type ${rebalanceType}`);
     }
+  };
+
+  readStrategyRebalanceParams = async (strategy: PublicKey | StrategyWithAddress): Promise<RebalanceParams> => {
+    return this.readPercentageRebalanceParams(strategy);
   };
 
   /**
