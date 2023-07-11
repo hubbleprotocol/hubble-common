@@ -584,6 +584,7 @@ describe('Kamino SDK Tests', () => {
       signer.publicKey
     );
 
+    // @ts-ignore
     let singleSidedDepositIxs = await kamino.getSingleSidedDepositIxs(
       fixtures.newOrcaStrategy,
       usdcAirdropAmount.sub(usdcDeposit),

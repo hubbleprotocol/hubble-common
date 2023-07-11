@@ -93,7 +93,6 @@ import {
   numberToDex,
   TokensBalances,
   isSOLMint,
-  depositAmountsForSwapToLamports,
   readBigUint128LE,
 } from './utils';
 import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID } from '@solana/spl-token';
@@ -150,7 +149,7 @@ import { PROGRAM_ID as RAYDIUM_PROGRAM_ID, setRaydiumProgramId } from './raydium
 import { AmmV3, i32ToBytes, LiquidityMath, SqrtPriceMath, TickMath, TickUtils } from '@raydium-io/raydium-sdk';
 
 import KaminoIdl from './kamino-client/kamino.json';
-import { OrcaService, RaydiumService, Whirlpool as OrcaPool, WhirlpoolAprApy, TokenB } from './services';
+import { OrcaService, RaydiumService, Whirlpool as OrcaPool, WhirlpoolAprApy } from './services';
 import {
   getAddLiquidityQuote,
   InternalAddLiquidityQuote,
@@ -211,16 +210,6 @@ import {
 } from './utils/transactions';
 import { RouteInfo } from '@jup-ag/core';
 export const KAMINO_IDL = KaminoIdl;
-
-export interface SwapperIxBuilder {
-  (
-    input: DepositAmountsForSwap,
-    tokenAMint: PublicKey,
-    tokenBMint: PublicKey,
-    owner: PublicKey,
-    slippage: Decimal
-  ): Promise<TransactionInstruction[]>;
-}
 
 export class Kamino {
   private readonly _cluster: SolanaCluster;
@@ -1676,11 +1665,9 @@ export class Kamino {
       throw Error('Error reading user token balances');
     }
     let tokenAMinPostDepositBalance = userTokenBalances.a.sub(amount);
-    console.log('singleSidedDepositTokenA tokenAMinPostDepositBalance', tokenAMinPostDepositBalance.toString());
 
     return this.getSingleSidedDepositIxs(
       strategyWithAddress,
-      // tokenAMinPostDepositBalance
       collToLamportsDecimal(tokenAMinPostDepositBalance, strategyWithAddress.strategy.tokenAMintDecimals.toNumber()),
       collToLamportsDecimal(userTokenBalances.b, strategyWithAddress.strategy.tokenBMintDecimals.toNumber()),
       owner,
@@ -1712,10 +1699,6 @@ export class Kamino {
       throw Error('Error reading user token balances');
     }
     let tokenBMinPostDepositBalance = userTokenBalances.b.sub(amount);
-    console.log('singleSidedDepositTokenA tokenBMinPostDepositBalance', tokenBMinPostDepositBalance.toString());
-
-    console.log('userTokenBalances.a', userTokenBalances.a.toString());
-    console.log('userTokenBalances.b', userTokenBalances.b.toString());
 
     return this.getSingleSidedDepositIxs(
       strategyWithAddress,
@@ -1766,16 +1749,16 @@ export class Kamino {
     return { a: initialUserTokenABalance, b: initialUserTokenBBalance };
   };
 
-  getSingleSidedDepositIxs = async (
+  private getSingleSidedDepositIxs = async (
     strategy: PublicKey | StrategyWithAddress,
-    tokenAMinPostDepositBalance: Decimal,
-    tokenBMinPostDepositBalance: Decimal,
+    tokenAMinPostDepositBalanceLamports: Decimal,
+    tokenBMinPostDepositBalanceLamports: Decimal,
     owner: PublicKey,
     swapSlippage: Decimal,
     swapInstructions?: TransactionInstruction[], // if not provided use Jupyter swap instructions
     priceAInB?: Decimal // not mandatory as it will be fetched from Jupyter
   ): Promise<TransactionInstruction[]> => {
-    if (tokenAMinPostDepositBalance.lessThan(0) || tokenBMinPostDepositBalance.lessThan(0)) {
+    if (tokenAMinPostDepositBalanceLamports.lessThan(0) || tokenBMinPostDepositBalanceLamports.lessThan(0)) {
       throw Error('Token A or B post deposit amount cant be lower than 0.');
     }
     const strategyWithAddress = await this.getStrategyStateIfNotFetched(strategy);
@@ -1787,9 +1770,7 @@ export class Kamino {
     const [tokenAAta] = await getAssociatedTokenAddressAndData(this._connection, strategyState.tokenAMint, owner);
     const [tokenBAta] = await getAssociatedTokenAddressAndData(this._connection, strategyState.tokenBMint, owner);
 
-    let initialABalance = await this.getTokenAccountBalance(tokenAAta);
-
-    // if sharesAta doesn't exist create it
+    // if sharesAta doesn't exist create it; for tokenA and tokenB they will be created by Jupyter swap if needed
     let createSharesAtaIx: TransactionInstruction | undefined = undefined;
     let sharesAtaExists = await checkIfAccountExists(this._connection, sharesAta);
     if (!sharesAtaExists) {
@@ -1799,11 +1780,11 @@ export class Kamino {
     let aToDeposit = collToLamportsDecimal(
       await this.getTokenAccountBalanceOrZero(tokenAAta),
       strategyState.tokenAMintDecimals.toNumber()
-    ).sub(tokenAMinPostDepositBalance);
+    ).sub(tokenAMinPostDepositBalanceLamports);
     let bToDeposit = collToLamportsDecimal(
       await this.getTokenAccountBalanceOrZero(tokenBAta),
       strategyState.tokenBMintDecimals.toNumber()
-    ).sub(tokenBMinPostDepositBalance);
+    ).sub(tokenBMinPostDepositBalanceLamports);
 
     if (aToDeposit.lessThan(0) || bToDeposit.lessThan(0)) {
       throw Error(
