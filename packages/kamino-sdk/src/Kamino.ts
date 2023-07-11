@@ -1787,6 +1787,8 @@ export class Kamino {
     const [tokenAAta] = await getAssociatedTokenAddressAndData(this._connection, strategyState.tokenAMint, owner);
     const [tokenBAta] = await getAssociatedTokenAddressAndData(this._connection, strategyState.tokenBMint, owner);
 
+    let initialABalance = await this.getTokenAccountBalance(tokenAAta);
+
     // if sharesAta doesn't exist create it
     let createSharesAtaIx: TransactionInstruction | undefined = undefined;
     let sharesAtaExists = await checkIfAccountExists(this._connection, sharesAta);
@@ -1802,8 +1804,6 @@ export class Kamino {
       await this.getTokenAccountBalanceOrZero(tokenBAta),
       strategyState.tokenBMintDecimals.toNumber()
     ).sub(tokenBMinPostDepositBalance);
-    console.log('aToDeposit', aToDeposit.toString());
-    console.log('bToDeposit', bToDeposit.toString());
 
     if (aToDeposit.lessThan(0) || bToDeposit.lessThan(0)) {
       throw Error(
@@ -1817,16 +1817,10 @@ export class Kamino {
       bToDeposit,
       priceAInB
     );
-    // let amountsToDepositWithSwapLamports = depositAmountsForSwapToLamports(
-    //   amountsToDepositWithSwap,
-    //   strategyState.tokenAMintDecimals.toNumber(),
-    //   strategyState.tokenBMintDecimals.toNumber()
-    // );
 
     let jupSwapIxs = swapInstructions
       ? swapInstructions
       : await this.getJupSwapIxs(
-          // amountsToDepositWithSwapLamports
           amountsToDepositWithSwap,
           strategyState.tokenAMint,
           strategyState.tokenBMint,
@@ -1846,19 +1840,10 @@ export class Kamino {
       strategyState.tokenBMint
     );
 
-    const lamportsA = tokenAMinPostDepositBalance.mul(new Decimal(10).pow(strategyState.tokenAMintDecimals.toString()));
-    const lamportsB = tokenBMinPostDepositBalance.mul(new Decimal(10).pow(strategyState.tokenBMintDecimals.toString()));
-    console.log('tokenAMinPostDepositBalance', tokenAMinPostDepositBalance.toString());
-    console.log('tokenBMinPostDepositBalance', tokenBMinPostDepositBalance.toString());
-
     const args: SingleTokenDepositAndInvestWithMinArgs = {
-      // tokenAMinPostDepositBalance: new BN(lamportsA.floor().toString()),
-      // tokenBMinPostDepositBalance: new BN(lamportsB.floor().toString()),
-      // tokenAMinPostDepositBalance: new BN(tokenAMinPostDepositBalance.floor().sub(new Decimal(1000000)).toString()),
       tokenAMinPostDepositBalance: new BN(tokenAMinPostDepositBalance.floor().toString()),
       tokenBMinPostDepositBalance: new BN(tokenBMinPostDepositBalance.floor().toString()),
     };
-    console.log('tokenAMinPostDepositBalance.floor().toString()', tokenAMinPostDepositBalance.floor().toString());
 
     const accounts: SingleTokenDepositAndInvestWithMinAccounts = {
       user: owner,
@@ -1912,10 +1897,7 @@ export class Kamino {
     useOnlyLegacyTransaction: boolean
   ): Promise<TransactionInstruction[]> => {
     let jupiterBestRoute: RouteInfo;
-    console.log('input input.tokenAToSwapAmoun', input.tokenAToSwapAmount.toString());
-    console.log('input input.tokenBToSwapAmount', input.tokenBToSwapAmount.toString());
-    let jupiterSwapTransactionIndex = 0;
-    if (input.tokenAToSwapAmount.gt(ZERO)) {
+    if (input.tokenAToSwapAmount.lt(ZERO)) {
       jupiterBestRoute = await JupService.getBestRoute(
         input.tokenAToSwapAmount,
         tokenAMint,

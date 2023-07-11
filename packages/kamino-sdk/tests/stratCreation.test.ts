@@ -40,11 +40,7 @@ describe('Kamino strategy creation SDK Tests', () => {
   connection = new Connection(clusterUrl, 'processed');
 
   // use your private key here
-  const signerPrivateKey = [
-    178, 65, 98, 152, 172, 223, 56, 136, 242, 32, 177, 181, 183, 67, 173, 24, 65, 117, 155, 205, 15, 234, 161, 244, 50,
-    68, 101, 44, 121, 17, 172, 226, 252, 121, 151, 204, 91, 236, 195, 244, 71, 187, 116, 212, 30, 169, 243, 124, 216,
-    184, 28, 167, 65, 210, 113, 11, 177, 219, 79, 127, 243, 194, 2, 2,
-  ];
+  const signerPrivateKey = [];
   const signer = Keypair.fromSecretKey(Uint8Array.from(signerPrivateKey));
 
   it.skip('get pools for Raydium SOL-USDC pair', async () => {
@@ -962,7 +958,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     console.log('openPositionTxId', openPositionTxId);
   });
 
-  it('test read rebalance params from existent percentageWithReset strategy', async () => {
+  it.skip('test read rebalance params from existent percentageWithReset strategy', async () => {
     let kamino = new Kamino(
       cluster,
       connection,
@@ -1129,7 +1125,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     console.log('openPositionTxId', openPositionTxId);
   });
 
-  it('one click single sided deposit USDC in USDH-USDC', async () => {
+  it.skip('one click single sided deposit USDC in USDH-USDC', async () => {
     let kamino = new Kamino(
       cluster,
       connection,
@@ -1150,41 +1146,23 @@ describe('Kamino strategy creation SDK Tests', () => {
 
     let singleSidedDepositIxs: TransactionInstruction[] = [];
     // if USDC is tokenA mint deposit tokenA, else deposit tokenB
-    // if (strategyState.tokenAMint == USDCMintMainnet) {
-    //   singleSidedDepositIxs = await kamino.singleSidedDepositTokenA(
-    //     strategy,
-    //     amountToDeposit,
-    //     signer.publicKey,
-    //     new Decimal(15),
-    //     undefined
-    //   );
-    // } else {
-    //   singleSidedDepositIxs = await kamino.singleSidedDepositTokenB(
-    //     strategy,
-    //     amountToDeposit,
-    //     signer.publicKey,
-    //     new Decimal(15),
-    //     undefined
-    //   );
-    // }
-
-    const tokenAAta = await getAssociatedTokenAddress(strategyState.tokenAMint, signer.publicKey);
-
-    const tokenBAta = await getAssociatedTokenAddress(strategyState.tokenBMint, signer.publicKey);
-
-    //@ts-ignore
-    let initialTokenABalance = await kamino.getTokenAccountBalance(tokenAAta);
-    //@ts-ignore
-    let initialTokenBBalance = await kamino.getTokenAccountBalance(tokenBAta);
-    let expectedBRemaining = initialTokenBBalance.sub(amountToDeposit);
-
-    singleSidedDepositIxs = await kamino.getSingleSidedDepositIxs(
-      strategy,
-      collToLamportsDecimal(initialTokenABalance, strategyState.tokenAMintDecimals.toNumber()),
-      collToLamportsDecimal(expectedBRemaining, strategyState.tokenBMintDecimals.toNumber()),
-      signer.publicKey,
-      new Decimal(10)
-    );
+    if (strategyState.tokenAMint == USDCMintMainnet) {
+      singleSidedDepositIxs = await kamino.singleSidedDepositTokenA(
+        strategy,
+        amountToDeposit,
+        signer.publicKey,
+        new Decimal(15),
+        undefined
+      );
+    } else {
+      singleSidedDepositIxs = await kamino.singleSidedDepositTokenB(
+        strategy,
+        amountToDeposit,
+        signer.publicKey,
+        new Decimal(15),
+        undefined
+      );
+    }
 
     console.log('singleSidedDepositIxs', singleSidedDepositIxs.length);
     const singleSidedDepositMessage = await kamino.getTransactionV2Message(signer.publicKey, singleSidedDepositIxs);
@@ -1194,7 +1172,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     try {
       //@ts-ignore
       const depositTxId = await sendAndConfirmTransaction(kamino._connection, singleSidedDepositTx);
-      console.log('openPositionTxId', depositTxId);
+      console.log('singleSidedDepoxit tx hash', depositTxId);
     } catch (e) {
       console.log(e);
     }
