@@ -2630,15 +2630,15 @@ export class Kamino {
 
     if (rebalanceKind.kind === PricePercentageWithReset.kind) {
       let stateBuffer = Buffer.from(strategyWithAddress.strategy.rebalanceRaw.state);
-      let lowerRangePrice = readBigUint128LE(stateBuffer, 0);
-      let upperRangePrice = readBigUint128LE(stateBuffer, 16);
+      let lowerResetSqrtPrice = readBigUint128LE(stateBuffer, 0);
+      let upperResetSqrtPrice = readBigUint128LE(stateBuffer, 16);
       let resetPriceLower = SqrtPriceMath.sqrtPriceX64ToPrice(
-        new BN(lowerRangePrice.toString()),
+        new BN(lowerResetSqrtPrice.toString()),
         strategyWithAddress.strategy.tokenAMintDecimals.toNumber(),
         strategyWithAddress.strategy.tokenBMintDecimals.toNumber()
       );
       let resetPriceUpper = SqrtPriceMath.sqrtPriceX64ToPrice(
-        new BN(upperRangePrice.toString()),
+        new BN(upperResetSqrtPrice.toString()),
         strategyWithAddress.strategy.tokenAMintDecimals.toNumber(),
         strategyWithAddress.strategy.tokenBMintDecimals.toNumber()
       );
