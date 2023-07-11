@@ -820,7 +820,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     let lowerPriceBpsDifference = new Decimal(10.0);
     let upperPriceBpsDifference = new Decimal(10.0);
     let lowerPriceResetRange = new Decimal(5.0);
-    let upperPriceResetRange = new Decimal(5.0);
+    let upperPriceResetRange = new Decimal(30.0);
 
     let buildNewStrategyIxs = await kamino.getBuildStrategyIxns(
       'ORCA',
@@ -881,13 +881,19 @@ describe('Kamino strategy creation SDK Tests', () => {
     const openPositionTxId = await sendAndConfirmTransaction(kamino._connection, openPositionTx);
     console.log('openPositionTxId', openPositionTxId);
 
-    // update rebalance method to manual
-    await updateStrategyConfig(
+    // read prices
+    let pricesRebalanceParams = await kamino.getPricesFromRebalancingParams(newStrategy.publicKey);
+    console.log('pricesRebalanceParams', pricesRebalanceParams);
+  });
+
+  it.skip('test read rebalance params from existent percentageWithReset strategy', async () => {
+    let kamino = new Kamino(
+      cluster,
       connection,
-      signer,
-      newStrategy.publicKey,
-      new UpdateRebalanceType(),
-      new Decimal(Manual.discriminator)
+      GlobalConfigMainnet,
+      KaminoProgramIdMainnet,
+      WHIRLPOOL_PROGRAM_ID,
+      RAYDIUM_PROGRAM_ID
     );
 
     let strategyData = await kamino.getStrategies([newStrategy.publicKey]);
@@ -936,6 +942,9 @@ describe('Kamino strategy creation SDK Tests', () => {
     expect(strategyRebalanceParams.upperRangeBps == newUpperPriceBpsDifference);
     expect(strategyRebalanceParams.resetRangeLowerBps == newLowerPriceResetRange);
     expect(strategyRebalanceParams.resetRangeUpperBps == newUpperPriceResetRange);
+    let strat = new PublicKey('8RsjvJ9VoLNJb5veXzbyc7DKqvPG296oY2BsPnuxPTQ2');
+    let pricesRebalanceParams = await kamino.getPricesFromRebalancingParams(strat);
+    console.log('pricesRebalanceParams', pricesRebalanceParams);
   });
 
   it.skip('create new custom USDC-USDH percentage strategy on existing whirlpool and open position', async () => {
