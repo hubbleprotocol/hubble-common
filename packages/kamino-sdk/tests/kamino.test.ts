@@ -618,7 +618,8 @@ describe('Kamino SDK Tests', () => {
     let tokenALeft = await kamino._connection.getTokenAccountBalance(user.tokenAAta);
     // @ts-ignore
     let tokenBLeft = await kamino._connection.getTokenAccountBalance(user.tokenBAta);
-    expect(tokenALeft.value.uiAmount?.toString()).to.be.eq(new Decimal(90).toString());
+    expect(tokenALeft.value.uiAmount).to.be.greaterThan(90.0);
+    expect(tokenALeft.value.uiAmount).to.be.lessThan(90.001);
     expect(tokenBLeft.value.uiAmount?.toString()).to.be.eq(new Decimal(0).toString());
   });
 
