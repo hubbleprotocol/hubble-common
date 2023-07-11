@@ -1675,11 +1675,13 @@ export class Kamino {
       throw Error('Error reading user token balances');
     }
     let tokenAMinPostDepositBalance = userTokenBalances.a.sub(amount);
+    console.log('singleSidedDepositTokenA tokenAMinPostDepositBalance', tokenAMinPostDepositBalance.toString());
 
     return this.getSingleSidedDepositIxs(
       strategyWithAddress,
-      tokenAMinPostDepositBalance,
-      userTokenBalances.b,
+      // tokenAMinPostDepositBalance
+      collToLamportsDecimal(tokenAMinPostDepositBalance, strategyWithAddress.strategy.tokenAMintDecimals.toNumber()),
+      collToLamportsDecimal(userTokenBalances.b, strategyWithAddress.strategy.tokenBMintDecimals.toNumber()),
       owner,
       slippage,
       swapInstructions,
@@ -1709,11 +1711,15 @@ export class Kamino {
       throw Error('Error reading user token balances');
     }
     let tokenBMinPostDepositBalance = userTokenBalances.b.sub(amount);
+    console.log('singleSidedDepositTokenA tokenBMinPostDepositBalance', tokenBMinPostDepositBalance.toString());
+
+    console.log('userTokenBalances.a', userTokenBalances.a.toString());
+    console.log('userTokenBalances.b', userTokenBalances.b.toString());
 
     return this.getSingleSidedDepositIxs(
       strategyWithAddress,
-      userTokenBalances.a,
-      tokenBMinPostDepositBalance,
+      collToLamportsDecimal(userTokenBalances.a, strategyWithAddress.strategy.tokenAMintDecimals.toNumber()),
+      collToLamportsDecimal(tokenBMinPostDepositBalance, strategyWithAddress.strategy.tokenBMintDecimals.toNumber()),
       owner,
       slippage,
       swapInstructions,
@@ -1787,8 +1793,16 @@ export class Kamino {
       createSharesAtaIx = createAssociatedTokenAccountInstruction(owner, sharesAta, owner, strategyState.sharesMint);
     }
 
-    let aToDeposit = (await this.getTokenAccountBalanceOrZero(tokenAAta)).sub(tokenAMinPostDepositBalance);
-    let bToDeposit = (await this.getTokenAccountBalanceOrZero(tokenBAta)).sub(tokenBMinPostDepositBalance);
+    let aToDeposit = collToLamportsDecimal(
+      await this.getTokenAccountBalanceOrZero(tokenAAta),
+      strategyState.tokenAMintDecimals.toNumber()
+    ).sub(tokenAMinPostDepositBalance);
+    let bToDeposit = collToLamportsDecimal(
+      await this.getTokenAccountBalanceOrZero(tokenBAta),
+      strategyState.tokenBMintDecimals.toNumber()
+    ).sub(tokenBMinPostDepositBalance);
+    console.log('aToDeposit', aToDeposit.toString());
+    console.log('bToDeposit', bToDeposit.toString());
 
     if (aToDeposit.lessThan(0) || bToDeposit.lessThan(0)) {
       throw Error(
@@ -1802,22 +1816,22 @@ export class Kamino {
       bToDeposit,
       priceAInB
     );
-    let amountsToDepositWithSwapLamports = depositAmountsForSwapToLamports(
-      amountsToDepositWithSwap,
-      strategyState.tokenAMintDecimals.toNumber(),
-      strategyState.tokenBMintDecimals.toNumber()
-    );
-    console.log('amountsToDepositWithSwap', amountsToDepositWithSwap);
+    // let amountsToDepositWithSwapLamports = depositAmountsForSwapToLamports(
+    //   amountsToDepositWithSwap,
+    //   strategyState.tokenAMintDecimals.toNumber(),
+    //   strategyState.tokenBMintDecimals.toNumber()
+    // );
 
     let jupSwapIxs = swapInstructions
       ? swapInstructions
       : await this.getJupSwapIxs(
-          amountsToDepositWithSwapLamports,
+          // amountsToDepositWithSwapLamports
+          amountsToDepositWithSwap,
           strategyState.tokenAMint,
           strategyState.tokenBMint,
           owner,
           swapSlippage,
-          false
+          true
         );
 
     let poolProgram = getDexProgramId(strategyState);
@@ -1833,11 +1847,17 @@ export class Kamino {
 
     const lamportsA = tokenAMinPostDepositBalance.mul(new Decimal(10).pow(strategyState.tokenAMintDecimals.toString()));
     const lamportsB = tokenBMinPostDepositBalance.mul(new Decimal(10).pow(strategyState.tokenBMintDecimals.toString()));
+    console.log('tokenAMinPostDepositBalance', tokenAMinPostDepositBalance.toString());
+    console.log('tokenBMinPostDepositBalance', tokenBMinPostDepositBalance.toString());
 
     const args: SingleTokenDepositAndInvestWithMinArgs = {
-      tokenAMinPostDepositBalance: new BN(lamportsA.floor().toString()),
-      tokenBMinPostDepositBalance: new BN(lamportsB.floor().toString()),
+      // tokenAMinPostDepositBalance: new BN(lamportsA.floor().toString()),
+      // tokenBMinPostDepositBalance: new BN(lamportsB.floor().toString()),
+      // tokenAMinPostDepositBalance: new BN(tokenAMinPostDepositBalance.floor().sub(new Decimal(1000000)).toString()),
+      tokenAMinPostDepositBalance: new BN(tokenAMinPostDepositBalance.floor().toString()),
+      tokenBMinPostDepositBalance: new BN(tokenBMinPostDepositBalance.floor().toString()),
     };
+    console.log('tokenAMinPostDepositBalance.floor().toString()', tokenAMinPostDepositBalance.floor().toString());
 
     const accounts: SingleTokenDepositAndInvestWithMinAccounts = {
       user: owner,

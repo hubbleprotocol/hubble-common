@@ -7,7 +7,9 @@ import {
   VersionedTransaction,
 } from '@solana/web3.js';
 import {
+  collToLamportsDecimal,
   depositAmountsForSwapToLamports,
+  getAssociatedTokenAddressAndData,
   Kamino,
   OrcaService,
   RaydiumService,
@@ -29,6 +31,7 @@ import { expect } from 'chai';
 import { WHIRLPOOL_PROGRAM_ID } from '../src/whirpools-client/programId';
 import { PROGRAM_ID as RAYDIUM_PROGRAM_ID } from '../src/raydium_client/programId';
 import { Manual, PricePercentage, PricePercentageWithReset } from '../src/kamino-client/types/RebalanceType';
+import { getAssociatedTokenAddress } from '../dist';
 
 describe('Kamino strategy creation SDK Tests', () => {
   let connection: Connection;
@@ -1108,23 +1111,41 @@ describe('Kamino strategy creation SDK Tests', () => {
 
     let singleSidedDepositIxs: TransactionInstruction[] = [];
     // if USDC is tokenA mint deposit tokenA, else deposit tokenB
-    if (strategyState.tokenAMint == USDCMintMainnet) {
-      singleSidedDepositIxs = await kamino.singleSidedDepositTokenA(
-        strategy,
-        amountToDeposit,
-        signer.publicKey,
-        new Decimal(50),
-        undefined
-      );
-    } else {
-      singleSidedDepositIxs = await kamino.singleSidedDepositTokenB(
-        strategy,
-        amountToDeposit,
-        signer.publicKey,
-        new Decimal(50),
-        undefined
-      );
-    }
+    // if (strategyState.tokenAMint == USDCMintMainnet) {
+    //   singleSidedDepositIxs = await kamino.singleSidedDepositTokenA(
+    //     strategy,
+    //     amountToDeposit,
+    //     signer.publicKey,
+    //     new Decimal(15),
+    //     undefined
+    //   );
+    // } else {
+    //   singleSidedDepositIxs = await kamino.singleSidedDepositTokenB(
+    //     strategy,
+    //     amountToDeposit,
+    //     signer.publicKey,
+    //     new Decimal(15),
+    //     undefined
+    //   );
+    // }
+
+    const tokenAAta = await getAssociatedTokenAddress(strategyState.tokenAMint, signer.publicKey);
+
+    const tokenBAta = await getAssociatedTokenAddress(strategyState.tokenBMint, signer.publicKey);
+
+    //@ts-ignore
+    let initialTokenABalance = await kamino.getTokenAccountBalance(tokenAAta);
+    //@ts-ignore
+    let initialTokenBBalance = await kamino.getTokenAccountBalance(tokenBAta);
+    let expectedBRemaining = initialTokenBBalance.sub(amountToDeposit);
+
+    singleSidedDepositIxs = await kamino.getSingleSidedDepositIxs(
+      strategy,
+      collToLamportsDecimal(initialTokenABalance, strategyState.tokenAMintDecimals.toNumber()),
+      collToLamportsDecimal(expectedBRemaining, strategyState.tokenBMintDecimals.toNumber()),
+      signer.publicKey,
+      new Decimal(10)
+    );
 
     console.log('singleSidedDepositIxs', singleSidedDepositIxs.length);
     const singleSidedDepositMessage = await kamino.getTransactionV2Message(signer.publicKey, singleSidedDepositIxs);
