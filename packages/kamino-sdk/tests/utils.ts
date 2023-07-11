@@ -271,7 +271,7 @@ export function getBurnFromIx(
   tokenAccount: PublicKey,
   amount: number
 ): TransactionInstruction {
-  console.log(`bunFrom ${tokenAccount.toString()} mint ${mintPubkey.toString()} amount ${amount}`);
+  console.log(`burnFrom ${tokenAccount.toString()} mint ${mintPubkey.toString()} amount ${amount}`);
   let ix = Token.createBurnInstruction(TOKEN_PROGRAM_ID, mintPubkey, tokenAccount, signer, [], amount);
 
   return ix;
@@ -284,7 +284,7 @@ export async function burnFrom(
   tokenAccount: PublicKey,
   amount: number
 ) {
-  console.log(`bunFrom ${tokenAccount.toString()} mint ${mintPubkey.toString()} amount ${amount}`);
+  console.log(`burnFrom ${tokenAccount.toString()} mint ${mintPubkey.toString()} amount ${amount}`);
   let ix = getBurnFromIx(signer.publicKey, mintPubkey, tokenAccount, amount);
   let tx = new Transaction().add(ix);
   let res = await sendTransactionWithLogs(connection, tx, signer.publicKey, [signer]);

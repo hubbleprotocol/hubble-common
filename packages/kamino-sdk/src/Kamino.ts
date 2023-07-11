@@ -1649,8 +1649,8 @@ export class Kamino {
     amount: Decimal,
     owner: PublicKey,
     slippage: Decimal,
+    swapIxsBuilder?: SwapperIxBuilder,
     initialUserTokenBalances?: TokensBalances,
-    swapInstructions?: TransactionInstruction[],
     priceAInB?: Decimal
   ): Promise<TransactionInstruction[]> => {
     const strategyWithAddress = await this.getStrategyStateIfNotFetched(strategy);
@@ -1667,13 +1667,15 @@ export class Kamino {
     }
     let tokenAMinPostDepositBalance = userTokenBalances.a.sub(amount);
 
-    let swapper: SwapperIxBuilder = (
-      input: DepositAmountsForSwap,
-      tokenAMint: PublicKey,
-      tokenBMint: PublicKey,
-      user: PublicKey,
-      slippageBps: Decimal
-    ) => this.getJupSwapIxs(input, tokenAMint, tokenBMint, user, slippageBps, false);
+    let swapper: SwapperIxBuilder = swapIxsBuilder
+      ? swapIxsBuilder
+      : (
+          input: DepositAmountsForSwap,
+          tokenAMint: PublicKey,
+          tokenBMint: PublicKey,
+          user: PublicKey,
+          slippageBps: Decimal
+        ) => this.getJupSwapIxs(input, tokenAMint, tokenBMint, user, slippageBps, false);
 
     return this.getSingleSidedDepositIxs(
       strategyWithAddress,
@@ -1691,8 +1693,8 @@ export class Kamino {
     amount: Decimal,
     owner: PublicKey,
     slippage: Decimal,
+    swapIxsBuilder?: SwapperIxBuilder,
     initialUserTokenBalances?: TokensBalances,
-    swapInstructions?: TransactionInstruction[],
     priceAInB?: Decimal
   ): Promise<TransactionInstruction[]> => {
     const strategyWithAddress = await this.getStrategyStateIfNotFetched(strategy);
@@ -1709,13 +1711,15 @@ export class Kamino {
     }
     let tokenBMinPostDepositBalance = userTokenBalances.b.sub(amount);
 
-    let swapper: SwapperIxBuilder = (
-      input: DepositAmountsForSwap,
-      tokenAMint: PublicKey,
-      tokenBMint: PublicKey,
-      user: PublicKey,
-      slippageBps: Decimal
-    ) => this.getJupSwapIxs(input, tokenAMint, tokenBMint, user, slippageBps, false);
+    let swapper: SwapperIxBuilder = swapIxsBuilder
+      ? swapIxsBuilder
+      : (
+          input: DepositAmountsForSwap,
+          tokenAMint: PublicKey,
+          tokenBMint: PublicKey,
+          user: PublicKey,
+          slippageBps: Decimal
+        ) => this.getJupSwapIxs(input, tokenAMint, tokenBMint, user, slippageBps, false);
 
     return this.getSingleSidedDepositIxs(
       strategyWithAddress,
@@ -1815,6 +1819,7 @@ export class Kamino {
       bToDeposit,
       priceAInB
     );
+    console.log('amountsToDepositWithSwap', amountsToDepositWithSwap);
 
     let jupSwapIxs = await swapIxsBuilder(
       amountsToDepositWithSwap,
@@ -1837,7 +1842,7 @@ export class Kamino {
 
     const args: SingleTokenDepositAndInvestWithMinArgs = {
       tokenAMinPostDepositBalance: new BN(tokenAMinPostDepositBalanceLamports.floor().toString()),
-      tokenBMinPostDepositBalance: new BN(tokenAMinPostDepositBalanceLamports.floor().toString()),
+      tokenBMinPostDepositBalance: new BN(tokenBMinPostDepositBalanceLamports.floor().toString()),
     };
 
     const accounts: SingleTokenDepositAndInvestWithMinAccounts = {
