@@ -1822,8 +1822,8 @@ export class Kamino {
     );
 
     const args: SingleTokenDepositAndInvestWithMinArgs = {
-      tokenAMinPostDepositBalance: new BN(tokenAMinPostDepositBalance.floor().toString()),
-      tokenBMinPostDepositBalance: new BN(tokenBMinPostDepositBalance.floor().toString()),
+      tokenAMinPostDepositBalance: new BN(tokenAMinPostDepositBalanceLamports.floor().toString()),
+      tokenBMinPostDepositBalance: new BN(tokenAMinPostDepositBalanceLamports.floor().toString()),
     };
 
     const accounts: SingleTokenDepositAndInvestWithMinAccounts = {
@@ -1923,21 +1923,6 @@ export class Kamino {
         tokenBMint.toString(),
       ]);
     }
-    //  const clearedSetupTx =
-    //    (createAtasIxns && createAtasIxns.length) || decodedSetupTx ? new Transaction() : undefined;
-    //  // build setup transaction from creates atas and jupiter setup ixns
-    //  if (clearedSetupTx) {
-    //    clearedSetupTx.add(...getComputeBudgetAndPriorityFeeIxns(200_000), ...createAtasIxns);
-    //    if (decodedSetupTx) {
-    //      clearedSetupTx.add(
-    //        ...removeBudgetAndAtaIxns(decodedSetupTx.instructions, [tokenAMint.toString(), tokenBMint.toString()])
-    //      );
-    //    }
-    //  }
-
-    //  if (clearedSetupTx) {
-    //    jupiterSwapTransactionIndex = 1;
-    //  }
 
     // remove budget and atas ixns from jup transaction because we manage it ourself
     const decodedCleanupTx = decodeSerializedTransaction(cleanupTransaction);
@@ -1948,13 +1933,6 @@ export class Kamino {
         tokenBMint.toString(),
       ]);
     }
-    //  const clearedCleanUpTx = decodedCleanupTx ? new Transaction() : undefined;
-    //  if (decodedCleanupTx && clearedCleanUpTx) {
-    //    clearedCleanUpTx.add(
-    //      ...getComputeBudgetAndPriorityFeeIxns(200_000),
-    //      ...removeBudgetAndAtaIxns(decodedCleanupTx.instructions, [tokenAMint.toString(), tokenBMint.toString()])
-    //    );
-    //  }
 
     let clearedSwapIxs = [
       ...getComputeBudgetAndPriorityFeeIxns(1_400_000),
@@ -1964,20 +1942,8 @@ export class Kamino {
         tokenBMint.toString(),
       ]),
     ];
-    //  let jupiterSwapTransactions = [
-    //    clearedSetupTx,
-    //    new Transaction().add(
-    //      ...getComputeBudgetAndPriorityFeeIxns(1_400_000),
-    //      ...removeBudgetAndAtaIxns(decodeSerializedTransaction(swapTransaction)!.instructions, [
-    //        tokenAMint.toString(),
-    //        tokenBMint.toString(),
-    //      ])
-    //    ),
-    //    clearedCleanUpTx,
-    //  ].filter(notEmpty);
 
     let allJupIxs = [...clearedSwapSetupIxs, ...clearedSwapIxs, ...clearedCleanupIxns];
-    //.filter(notEmpty);
 
     return allJupIxs;
   };

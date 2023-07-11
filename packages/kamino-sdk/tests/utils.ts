@@ -262,9 +262,6 @@ export function getMintToIx(
     amount // amount. if your decimals is 8, you mint 10^8 for 1 token.
   );
 
-  console.log('mint mintPubkey', mintPubkey.toString());
-  console.log('mint tokenAccount', tokenAccount.toString());
-
   return ix;
 }
 
@@ -291,7 +288,6 @@ export async function burnFrom(
   let ix = getBurnFromIx(signer.publicKey, mintPubkey, tokenAccount, amount);
   let tx = new Transaction().add(ix);
   let res = await sendTransactionWithLogs(connection, tx, signer.publicKey, [signer]);
-  console.log(`token ${mintPubkey.toString()} burn from ATA ${tokenAccount.toString()} tx hash: ${res}`);
 }
 
 export async function setupAta(
@@ -520,13 +516,6 @@ export async function getLocalSwapIxs(
   slippageBps: Decimal,
   mintAuthority?: PublicKey
 ): Promise<TransactionInstruction[]> {
-  // create atas if not exist
-  // const createAtasIxns = await getAtasWithCreateIxnsIfMissing(
-  //   this._connection,
-  //   [tokenAMint, tokenBMint].filter((mint) => !isSOLMint(mint)),
-  //   owner
-  // );
-
   let mintAuth = mintAuthority ? mintAuthority : user;
 
   let swapIxs: TransactionInstruction[] = [];
@@ -537,7 +526,6 @@ export async function getLocalSwapIxs(
   }
 
   return [...swapIxs];
-  // return [...createAtasIxns, ...swapIxs];
 }
 
 async function getSwapAToBWithSlippageBPSIxs(

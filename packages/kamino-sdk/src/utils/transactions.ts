@@ -2,7 +2,6 @@ import { ComputeBudgetProgram, Connection, PublicKey, Transaction, TransactionIn
 import Decimal from 'decimal.js';
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
-  TOKEN_PROGRAM_ID,
   createAssociatedTokenAccountInstruction,
   getAssociatedTokenAddress,
 } from './tokenUtils';
@@ -55,23 +54,6 @@ export const getAtasWithCreateIxnsIfMissing = async (
     (ix) => ix !== undefined
   ) as TransactionInstruction[];
 
-  //   const atas = result.map((res) => res.ata);
-  //   const createAtasIxns = result.reduce((sum, item) => {
-  //     sum = sum.concat(item?.createIxns);
-  //     return sum;
-  //   }, [] as TransactionInstruction[]);
-
-  //   const closeAtasIxns: TransactionInstruction[] = result.reduce((sum, item) => {
-  //     sum = sum.concat(item.closeIxns);
-  //     return sum;
-  //   }, [] as TransactionInstruction[]);
-
-  //   return {
-  //     atas,
-  //     createAtasIxns,
-  //     closeAtasIxns,
-  //   };
-
   return result;
 };
 
@@ -96,12 +78,3 @@ export function removeBudgetAndAtaIxns(ixns: TransactionInstruction[], mints: st
     return true;
   });
 }
-
-// filters null values from array and make typescript happy
-// export function notEmpty<TValue>(value: TValue | null | undefined): value is TValue {
-//   if (value === null || value === undefined) {
-//     return false;
-//   }
-
-//   return true;
-// }
