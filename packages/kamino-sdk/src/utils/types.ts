@@ -1,4 +1,4 @@
-import { PublicKey } from '@solana/web3.js';
+import { PublicKey, TransactionInstruction } from '@solana/web3.js';
 import { WhirlpoolStrategy } from '../kamino-client/accounts';
 import { Dex, collToLamportsDecimal } from './utils';
 import Decimal from 'decimal.js';
@@ -229,4 +229,14 @@ export interface PositionRange {
 export interface TokensBalances {
   a?: Decimal;
   b?: Decimal;
+}
+
+export interface SwapperIxBuilder {
+  (
+    input: DepositAmountsForSwap,
+    tokenAMint: PublicKey,
+    tokenBMint: PublicKey,
+    owner: PublicKey,
+    slippage: Decimal
+  ): Promise<TransactionInstruction[]>;
 }

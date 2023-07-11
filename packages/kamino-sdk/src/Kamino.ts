@@ -94,6 +94,7 @@ import {
   TokensBalances,
   isSOLMint,
   readBigUint128LE,
+  SwapperIxBuilder,
 } from './utils';
 import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import {
@@ -1666,13 +1667,21 @@ export class Kamino {
     }
     let tokenAMinPostDepositBalance = userTokenBalances.a.sub(amount);
 
+    let swapper: SwapperIxBuilder = (
+      input: DepositAmountsForSwap,
+      tokenAMint: PublicKey,
+      tokenBMint: PublicKey,
+      user: PublicKey,
+      slippageBps: Decimal
+    ) => this.getJupSwapIxs(input, tokenAMint, tokenBMint, user, slippageBps, false);
+
     return this.getSingleSidedDepositIxs(
       strategyWithAddress,
       collToLamportsDecimal(tokenAMinPostDepositBalance, strategyWithAddress.strategy.tokenAMintDecimals.toNumber()),
       collToLamportsDecimal(userTokenBalances.b, strategyWithAddress.strategy.tokenBMintDecimals.toNumber()),
       owner,
       slippage,
-      swapInstructions,
+      swapper,
       priceAInB
     );
   };
@@ -1700,13 +1709,21 @@ export class Kamino {
     }
     let tokenBMinPostDepositBalance = userTokenBalances.b.sub(amount);
 
+    let swapper: SwapperIxBuilder = (
+      input: DepositAmountsForSwap,
+      tokenAMint: PublicKey,
+      tokenBMint: PublicKey,
+      user: PublicKey,
+      slippageBps: Decimal
+    ) => this.getJupSwapIxs(input, tokenAMint, tokenBMint, user, slippageBps, false);
+
     return this.getSingleSidedDepositIxs(
       strategyWithAddress,
       collToLamportsDecimal(userTokenBalances.a, strategyWithAddress.strategy.tokenAMintDecimals.toNumber()),
       collToLamportsDecimal(tokenBMinPostDepositBalance, strategyWithAddress.strategy.tokenBMintDecimals.toNumber()),
       owner,
       slippage,
-      swapInstructions,
+      swapper,
       priceAInB
     );
   };
@@ -1755,7 +1772,7 @@ export class Kamino {
     tokenBMinPostDepositBalanceLamports: Decimal,
     owner: PublicKey,
     swapSlippage: Decimal,
-    swapInstructions?: TransactionInstruction[], // if not provided use Jupyter swap instructions
+    swapIxsBuilder: SwapperIxBuilder,
     priceAInB?: Decimal // not mandatory as it will be fetched from Jupyter
   ): Promise<TransactionInstruction[]> => {
     if (tokenAMinPostDepositBalanceLamports.lessThan(0) || tokenBMinPostDepositBalanceLamports.lessThan(0)) {
@@ -1799,16 +1816,13 @@ export class Kamino {
       priceAInB
     );
 
-    let jupSwapIxs = swapInstructions
-      ? swapInstructions
-      : await this.getJupSwapIxs(
-          amountsToDepositWithSwap,
-          strategyState.tokenAMint,
-          strategyState.tokenBMint,
-          owner,
-          swapSlippage,
-          true
-        );
+    let jupSwapIxs = await swapIxsBuilder(
+      amountsToDepositWithSwap,
+      strategyState.tokenAMint,
+      strategyState.tokenBMint,
+      owner,
+      swapSlippage
+    );
 
     let poolProgram = getDexProgramId(strategyState);
     const globalConfig = await GlobalConfig.fetch(this._connection, strategyState.globalConfig);

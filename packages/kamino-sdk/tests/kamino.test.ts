@@ -569,20 +569,13 @@ describe('Kamino SDK Tests', () => {
       new Decimal(1.0)
     );
 
-    let amountsToDepositWithSwapLamports = depositAmountsForSwapToLamports(
-      amountsToDepositWithSwap,
-      strategyState.tokenAMintDecimals.toNumber(),
-      strategyState.tokenBMintDecimals.toNumber()
-    );
-
-    let localSwapsIxs = await getLocalSwapIxs(
-      amountsToDepositWithSwapLamports,
-      strategyState.tokenAMint,
-      strategyState.tokenBMint,
-      user.owner.publicKey,
-      ZERO,
-      signer.publicKey
-    );
+    let swapper: SwapperIxBuilder = (
+      input: DepositAmountsForSwap,
+      tokenAMint: PublicKey,
+      tokenBMint: PublicKey,
+      user: PublicKey,
+      slippageBps: Decimal
+    ) => getLocalSwapIxs(input, tokenAMint, tokenBMint, user, slippageBps, signer.publicKey);
 
     // @ts-ignore
     let singleSidedDepositIxs = await kamino.getSingleSidedDepositIxs(
@@ -591,7 +584,7 @@ describe('Kamino SDK Tests', () => {
       usdhAirdropAmount,
       user.owner.publicKey,
       new Decimal(0),
-      localSwapsIxs,
+      swapper,
       new Decimal(1.0) // this doesn't have to be provided on mainnet, as it reads the price from Jup
     );
 
