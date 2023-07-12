@@ -30,7 +30,7 @@ export const ManualRebalanceMethod: RebalanceMethod = {
   value: Manual.discriminator,
   descriptionShort: 'Market make with no rebalancing',
   description:
-    'Description: Liquidity is provided to a specified range width, with no rebalancing performed in any price scenario, thus no impermanent loss is via range adjustment. Asymmetric range widths are supported eg. 50% below price, and 500% above. Learn More',
+    'Liquidity is provided to a specified range width, with no rebalancing performed in any price scenario, thus no impermanent loss is via range adjustment. Asymmetric range widths are supported eg. 50% below price, and 500% above',
 };
 export const PricePercentageRebalanceMethod: RebalanceMethod = {
   label: 'Tracker',
