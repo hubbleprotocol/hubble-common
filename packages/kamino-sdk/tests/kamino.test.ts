@@ -669,7 +669,6 @@ describe('Kamino SDK Tests', () => {
       slippageBps: Decimal
     ) => getLocalSwapIxs(input, tokenAMint, tokenBMint, user, slippageBps, signer.publicKey);
 
-   
     let { instructions: singleSidedDepositIxs, lookupTablesAddresses: _lookupTables } =
       // @ts-ignore
       await kamino.getSingleSidedDepositIxs(
