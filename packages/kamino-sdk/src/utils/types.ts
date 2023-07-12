@@ -240,3 +240,9 @@ export interface SwapperIxBuilder {
     slippage: Decimal
   ): Promise<[TransactionInstruction[], PublicKey[]]>;
 }
+
+export interface CreateAta {
+  ata: PublicKey;
+  createIxns: TransactionInstruction[];
+  closeIxns: TransactionInstruction[];
+}

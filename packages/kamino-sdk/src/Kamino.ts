@@ -95,6 +95,7 @@ import {
   isSOLMint,
   readBigUint128LE,
   SwapperIxBuilder,
+  CreateAta,
 } from './utils';
 import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import {
@@ -204,6 +205,7 @@ import {
 import { Manual, PricePercentage, PricePercentageWithReset } from './kamino-client/types/RebalanceType';
 import {
   checkIfAccountExists,
+  createWsolAtaIfMissing,
   decodeSerializedTransaction,
   getAtasWithCreateIxnsIfMissing,
   getComputeBudgetAndPriorityFeeIxns,
@@ -1804,6 +1806,23 @@ export class Kamino {
     if (!sharesAtaExists) {
       createSharesAtaIx = createAssociatedTokenAccountInstruction(owner, sharesAta, owner, strategyState.sharesMint);
     }
+    const createAtasIxns = await getAtasWithCreateIxnsIfMissing(
+      this._connection,
+      [strategyState.tokenAMint, strategyState.tokenBMint].filter((mint) => !isSOLMint(mint)),
+      owner
+    );
+
+    let createWSolAtaIxns: CreateAta | undefined;
+    if (isSOLMint(strategyState.tokenAMint)) {
+      createWSolAtaIxns = await createWsolAtaIfMissing(this._connection, new Decimal(0), owner);
+      createAtasIxns.push(...createWSolAtaIxns.createIxns);
+    }
+
+    if (isSOLMint(strategyState.tokenBMint)) {
+      // let amount =
+      createWSolAtaIxns = await createWsolAtaIfMissing(this._connection, new Decimal(0), owner);
+      createAtasIxns.push(...createWSolAtaIxns.createIxns);
+    }
 
     let aToDeposit = collToLamportsDecimal(
       await this.getTokenAccountBalanceOrZero(tokenAAta),
@@ -1893,6 +1912,10 @@ export class Kamino {
     if (createSharesAtaIx) {
       result.push(createSharesAtaIx);
     }
+    result.push(...createAtasIxns);
+    if (createWSolAtaIxns) {
+      result.push(...createWSolAtaIxns.createIxns);
+    };
     result = result.concat([checkExpectedVaultsBalancesIx, ...jupSwapIxs, singleSidedDepositIx]);
     return [result, lookupTableAddresses];
   };
@@ -1926,11 +1949,23 @@ export class Kamino {
       );
     }
 
-    const createAtasIxns = await getAtasWithCreateIxnsIfMissing(
-      this._connection,
-      [tokenAMint, tokenBMint].filter((mint) => !isSOLMint(mint)),
-      owner
-    );
+    // const createAtasIxns = await getAtasWithCreateIxnsIfMissing(
+    //   this._connection,
+    //   [tokenAMint, tokenBMint].filter((mint) => !isSOLMint(mint)),
+    //   owner
+    // );
+
+    // let createWSolAtaIxns: CreateAta | undefined;
+    // if (isSOLMint(tokenAMint)) {
+    //   createWSolAtaIxns = await createWsolAtaIfMissing(this._connection, new Decimal(0), owner);
+    //   createAtasIxns.push(...createWSolAtaIxns.createIxns);
+    // }
+
+    // if (isSOLMint(tokenBMint)) {
+    //   // let amount =
+    //   createWSolAtaIxns = await createWsolAtaIfMissing(this._connection, new Decimal(0), owner);
+    //   createAtasIxns.push(...createWSolAtaIxns.createIxns);
+    // }
 
     const {
       setupTransaction,
@@ -1965,9 +2000,8 @@ export class Kamino {
     let { deserealized: deserializedTransaction, lookupTablesAddresses } =
       await JupService.deserealizeVersionedTransactions(this._connection, [swapTransaction]);
 
-    console.log('lookupTablesAddresses insinde inside', JSON.stringify(lookupTablesAddresses));
     let clearedSwapIxs = [
-      ...createAtasIxns,
+      // ...createAtasIxns,
       ...removeBudgetAndAtaIxns(deserializedTransaction[0].instructions, [
         tokenAMint.toString(),
         tokenBMint.toString(),

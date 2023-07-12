@@ -570,7 +570,7 @@ describe('Kamino SDK Tests', () => {
     ) => getLocalSwapIxs(input, tokenAMint, tokenBMint, user, slippageBps, signer.publicKey);
 
     // @ts-ignore
-    let singleSidedDepositIxs = await kamino.getSingleSidedDepositIxs(
+    let [singleSidedDepositIxs, _lookupTables] = await kamino.getSingleSidedDepositIxs(
       fixtures.newOrcaStrategy,
       usdcAirdropAmount.sub(usdcDeposit),
       usdhAirdropAmount,

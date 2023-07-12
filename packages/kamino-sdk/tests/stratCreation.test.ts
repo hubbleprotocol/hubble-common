@@ -30,7 +30,11 @@ describe('Kamino strategy creation SDK Tests', () => {
   connection = new Connection(clusterUrl, 'processed');
 
   // use your private key here
-  const signerPrivateKey = [];
+  const signerPrivateKey = [
+    178, 65, 98, 152, 172, 223, 56, 136, 242, 32, 177, 181, 183, 67, 173, 24, 65, 117, 155, 205, 15, 234, 161, 244, 50,
+    68, 101, 44, 121, 17, 172, 226, 252, 121, 151, 204, 91, 236, 195, 244, 71, 187, 116, 212, 30, 169, 243, 124, 216,
+    184, 28, 167, 65, 210, 113, 11, 177, 219, 79, 127, 243, 194, 2, 2,
+  ];
   const signer = Keypair.fromSecretKey(Uint8Array.from(signerPrivateKey));
 
   it.skip('get pools for Raydium SOL-USDC pair', async () => {
@@ -1059,16 +1063,17 @@ describe('Kamino strategy creation SDK Tests', () => {
     let amountToDeposit = new Decimal(1.0);
 
     let singleSidedDepositIxs: TransactionInstruction[] = [];
+    let lookupTables: PublicKey[] = [];
     // if USDC is tokenA mint deposit tokenA, else deposit tokenB
     if (strategyState.tokenAMint == USDCMintMainnet) {
-      singleSidedDepositIxs = await kamino.singleSidedDepositTokenA(
+      [singleSidedDepositIxs, lookupTables] = await kamino.singleSidedDepositTokenA(
         strategy,
         amountToDeposit,
         signer.publicKey,
         new Decimal(15)
       );
     } else {
-      singleSidedDepositIxs = await kamino.singleSidedDepositTokenB(
+      [singleSidedDepositIxs, lookupTables] = await kamino.singleSidedDepositTokenB(
         strategy,
         amountToDeposit,
         signer.publicKey,
@@ -1077,7 +1082,10 @@ describe('Kamino strategy creation SDK Tests', () => {
     }
 
     console.log('singleSidedDepositIxs', singleSidedDepositIxs.length);
-    const singleSidedDepositMessage = await kamino.getTransactionV2Message(signer.publicKey, singleSidedDepositIxs);
+    const singleSidedDepositMessage = await kamino.getTransactionV2Message(signer.publicKey, singleSidedDepositIxs, [
+      ...lookupTables,
+      MAINNET_GLOBAL_LOOKUP_TABLE,
+    ]);
     const singleSidedDepositTx = new VersionedTransaction(singleSidedDepositMessage);
     singleSidedDepositTx.sign([signer]);
 
@@ -1090,7 +1098,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     }
   });
 
-  it.skip('one click single sided deposit SOL in SOL-USDC', async () => {
+  it('one click single sided deposit SOL in SOL-USDC', async () => {
     let kamino = new Kamino(
       cluster,
       connection,
@@ -1110,27 +1118,27 @@ describe('Kamino strategy creation SDK Tests', () => {
     let amountToDeposit = new Decimal(1.0);
 
     let singleSidedDepositIxs: TransactionInstruction[] = [];
+    let lookupTables: PublicKey[] = [];
     // if USDC is tokenA mint deposit tokenA, else deposit tokenB
     if (strategyState.tokenAMint == SOLMintMainnet) {
-      singleSidedDepositIxs = await kamino.singleSidedDepositTokenA(
+      [singleSidedDepositIxs, lookupTables] = await kamino.singleSidedDepositTokenA(
         strategy,
         amountToDeposit,
         signer.publicKey,
-        new Decimal(50),
-        undefined
+        new Decimal(50)
       );
     } else {
-      singleSidedDepositIxs = await kamino.singleSidedDepositTokenB(
+      [singleSidedDepositIxs, lookupTables] = await kamino.singleSidedDepositTokenB(
         strategy,
         amountToDeposit,
         signer.publicKey,
-        new Decimal(50),
-        undefined
+        new Decimal(50)
       );
     }
 
     console.log('singleSidedDepositIxs', singleSidedDepositIxs.length);
     const singleSidedDepositMessage = await kamino.getTransactionV2Message(signer.publicKey, singleSidedDepositIxs, [
+      ...lookupTables,
       MAINNET_GLOBAL_LOOKUP_TABLE,
     ]);
     const singleSidedDepositTx = new VersionedTransaction(singleSidedDepositMessage);

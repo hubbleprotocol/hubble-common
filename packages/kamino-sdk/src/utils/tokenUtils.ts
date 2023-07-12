@@ -21,6 +21,7 @@ export const ASSOCIATED_TOKEN_PROGRAM_ID = new PublicKey('ATokenGPvbdGVxr1b2hvZb
 export const TOKEN_PROGRAM_ID = new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA');
 
 export const SOL_MINTS = ['So11111111111111111111111111111111111111111', 'So11111111111111111111111111111111111111112'];
+export const DECIMALS_SOL = 9;
 
 export async function getAssociatedTokenAddressAndData(
   connection: Connection,

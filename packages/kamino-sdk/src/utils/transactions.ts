@@ -1,10 +1,23 @@
-import { ComputeBudgetProgram, Connection, PublicKey, Transaction, TransactionInstruction } from '@solana/web3.js';
+import {
+  AccountInfo,
+  ComputeBudgetProgram,
+  Connection,
+  PublicKey,
+  SystemProgram,
+  Transaction,
+  TransactionInstruction,
+} from '@solana/web3.js';
 import Decimal from 'decimal.js';
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
+  DECIMALS_SOL,
   createAssociatedTokenAccountInstruction,
   getAssociatedTokenAddress,
+  isSOLMint,
 } from './tokenUtils';
+import { NATIVE_MINT, Token, TOKEN_PROGRAM_ID } from '@solana/spl-token';
+import { collToLamportsDecimal } from './utils';
+import { CreateAta } from './types';
 
 export const decodeSerializedTransaction = (tx: string | undefined) => {
   if (!tx) {
@@ -57,6 +70,115 @@ export const getAtasWithCreateIxnsIfMissing = async (
   return result;
 };
 
+// export const getWsolAtasWithCreateIxnsIfMissing = async (
+//   connection: Connection,
+//   mints: PublicKey[],
+//   owner: PublicKey
+// ) => {
+//   const requests = mints.filter((mint) => isSOLMint(mint));
+//   let result = requests.map((x) => {
+//     createWsolAtaIfMissing(connection, )
+//   });
+// };
+
+export const createWsolAtaIfMissing = async (
+  connection: Connection,
+  amount: Decimal,
+  owner: PublicKey,
+  method: 'deposit' | 'withdraw' = 'deposit'
+): Promise<CreateAta> => {
+  const createIxns: TransactionInstruction[] = [];
+  const closeIxns: TransactionInstruction[] = [];
+
+  const wsolAta: PublicKey = await Token.getAssociatedTokenAddress(
+    ASSOCIATED_TOKEN_PROGRAM_ID,
+    TOKEN_PROGRAM_ID,
+    NATIVE_MINT,
+    owner
+  );
+
+  const solDeposit = amount.toNumber();
+  const wsolAtaAccountInfo: AccountInfo<Buffer> | null = await connection.getAccountInfo(wsolAta);
+
+  // This checks if we need to create it
+  if (isWsolInfoInvalid(wsolAtaAccountInfo)) {
+    console.log('Creating WSOL Account');
+    createIxns.push(
+      Token.createAssociatedTokenAccountInstruction(
+        ASSOCIATED_TOKEN_PROGRAM_ID,
+        TOKEN_PROGRAM_ID,
+        NATIVE_MINT,
+        wsolAta,
+        owner,
+        owner
+      )
+    );
+  }
+
+  let uiAmount = 0;
+  try {
+    if (wsolAtaAccountInfo != null) {
+      const tokenBalance = await findAtaBalance(connection, wsolAta);
+      uiAmount = tokenBalance === null ? 0 : tokenBalance;
+      console.log('uiAmount', uiAmount);
+    }
+  } catch (err) {
+    console.log('Err Token Balance', err);
+  }
+
+  if (solDeposit !== null && solDeposit > uiAmount && method === 'deposit') {
+    console.log('Wrapping SOL', solDeposit);
+    createIxns.push(
+      SystemProgram.transfer({
+        fromPubkey: owner,
+        toPubkey: wsolAta,
+        lamports: BigInt(
+          collToLamportsDecimal(new Decimal(solDeposit - uiAmount), DECIMALS_SOL)
+            .floor()
+            .toString()
+        ),
+      })
+    );
+  }
+
+  if (createIxns.length > 0) {
+    createIxns.push(
+      // Sync Native instruction. @solana/spl-token will release it soon. Here use the raw instruction temporally.
+      new TransactionInstruction({
+        keys: [
+          {
+            pubkey: wsolAta,
+            isSigner: false,
+            isWritable: true,
+          },
+        ],
+        data: Buffer.from(new Uint8Array([17])),
+        programId: TOKEN_PROGRAM_ID,
+      })
+    );
+  }
+
+  closeIxns.push(
+    Token.createCloseAccountInstruction(TOKEN_PROGRAM_ID, wsolAta, new PublicKey(owner), new PublicKey(owner), [])
+  );
+
+  return {
+    ata: wsolAta,
+    createIxns,
+    closeIxns,
+  };
+};
+
+export const isWsolInfoInvalid = (wsolAtaAccountInfo: any): boolean => {
+  const res =
+    wsolAtaAccountInfo === null ||
+    (wsolAtaAccountInfo !== null &&
+      wsolAtaAccountInfo.data.length === 0 &&
+      wsolAtaAccountInfo.owner.toString() === '11111111111111111111111111111111');
+
+  return res;
+};
+
 export async function checkIfAccountExists(connection: Connection, account: PublicKey): Promise<boolean> {
   return (await connection.getAccountInfo(account)) != null;
 }
@@ -78,3 +200,11 @@ export function removeBudgetAndAtaIxns(ixns: TransactionInstruction[], mints: st
     return true;
   });
 }
+
+export const findAtaBalance = async (connection: Connection, ata: PublicKey): Promise<number | null> => {
+  const res = await connection.getTokenAccountBalance(ata);
+  if (res && res.value) {
+    return res.value.uiAmount;
+  }
+  return null;
+};

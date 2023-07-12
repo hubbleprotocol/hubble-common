@@ -515,7 +515,7 @@ export async function getLocalSwapIxs(
   user: PublicKey,
   slippageBps: Decimal,
   mintAuthority?: PublicKey
-): Promise<TransactionInstruction[]> {
+): Promise<[TransactionInstruction[], PublicKey[]]> {
   let mintAuth = mintAuthority ? mintAuthority : user;
 
   let swapIxs: TransactionInstruction[] = [];
@@ -525,7 +525,7 @@ export async function getLocalSwapIxs(
     swapIxs = await getSwapBToAWithSlippageBPSIxs(input, tokenAMint, tokenBMint, slippageBps, user, mintAuth);
   }
 
-  return [...swapIxs];
+  return [swapIxs, []];
 }
 
 async function getSwapAToBWithSlippageBPSIxs(
