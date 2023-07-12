@@ -30,14 +30,14 @@ export const ManualRebalanceMethod: RebalanceMethod = {
   value: Manual.discriminator,
   descriptionShort: 'Market make with no rebalancing',
   description:
-    'Description: Liquidity is provided to a specified range width, with no rebalancing performed in any price scenario, thus no impermanent loss is via range adjustment. Asymmetric range widths are supported eg. 50% below price, and 500% above. Learn More'
+    'Description: Liquidity is provided to a specified range width, with no rebalancing performed in any price scenario, thus no impermanent loss is via range adjustment. Asymmetric range widths are supported eg. 50% below price, and 500% above. Learn More',
 };
 export const PricePercentageRebalanceMethod: RebalanceMethod = {
   label: 'Tracker',
   value: PricePercentage.discriminator,
   descriptionShort: 'Maximize trading fee capture',
   description:
-  'Liquidity is provided to a specified range width, with rebalancing performed to the initial token ratio should the price move beyond a specified percentage in either direction. Asymmetric range widths are supported eg. 50% below price, and 500% above'
+    'Liquidity is provided to a specified range width, with rebalancing performed to the initial token ratio should the price move beyond a specified percentage in either direction. Asymmetric range widths are supported eg. 50% below price, and 500% above',
 };
 export const PricePercentageWithResetRangeRebalanceMethod: RebalanceMethod = {
   label: 'Price Percentage With Reset Range',
