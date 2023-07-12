@@ -70,17 +70,6 @@ export const getAtasWithCreateIxnsIfMissing = async (
   return result;
 };
 
-// export const getWsolAtasWithCreateIxnsIfMissing = async (
-//   connection: Connection,
-//   mints: PublicKey[],
-//   owner: PublicKey
-// ) => {
-//   const requests = mints.filter((mint) => isSOLMint(mint));
-//   let result = requests.map((x) => {
-//     createWsolAtaIfMissing(connection, )
-//   });
-// };
-
 export const createWsolAtaIfMissing = async (
   connection: Connection,
   amount: Decimal,
@@ -96,14 +85,12 @@ export const createWsolAtaIfMissing = async (
     NATIVE_MINT,
     owner
   );
-  console.log('wsolAta', wsolAta.toString());
 
   const solDeposit = amount.toNumber();
   const wsolAtaAccountInfo: AccountInfo<Buffer> | null = await connection.getAccountInfo(wsolAta);
 
   // This checks if we need to create it
   if (isWsolInfoInvalid(wsolAtaAccountInfo)) {
-    console.log('Creating WSOL Account');
     createIxns.push(
       Token.createAssociatedTokenAccountInstruction(
         ASSOCIATED_TOKEN_PROGRAM_ID,
@@ -121,14 +108,12 @@ export const createWsolAtaIfMissing = async (
     if (wsolAtaAccountInfo != null) {
       const tokenBalance = await findAtaBalance(connection, wsolAta);
       uiAmount = tokenBalance === null ? 0 : tokenBalance;
-      console.log('uiAmount', uiAmount);
     }
   } catch (err) {
     console.log('Err Token Balance', err);
   }
 
   if (solDeposit !== null && solDeposit > uiAmount && method === 'deposit') {
-    console.log('Wrapping SOL', solDeposit);
     createIxns.push(
       SystemProgram.transfer({
         fromPubkey: owner,

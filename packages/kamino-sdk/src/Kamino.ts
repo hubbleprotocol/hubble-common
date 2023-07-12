@@ -1827,11 +1827,6 @@ export class Kamino {
     const tokenAAta = await getAssociatedTokenAddress(strategyState.tokenAMint, owner);
     const tokenBAta = await getAssociatedTokenAddress(strategyState.tokenBMint, owner);
 
-    // let createSharesAtaIx: TransactionInstruction | undefined = undefined;
-    // let sharesAtaExists = await checkIfAccountExists(this._connection, sharesAta);
-    // if (!sharesAtaExists) {
-    //   createSharesAtaIx = createAssociatedTokenAccountInstruction(owner, sharesAta, owner, strategyState.sharesMint);
-    // }
     const createAtasIxns = await getAtasWithCreateIxnsIfMissing(
       this._connection,
       [strategyState.tokenAMint, strategyState.tokenBMint, strategyState.sharesMint].filter((mint) => !isSOLMint(mint)),
@@ -3644,13 +3639,9 @@ export class Kamino {
 
     const priceBInA = new Decimal(1).div(priceAInB);
 
-    console.log('priceAInB', priceAInB);
-
     let tokenADecimals = strategyState.tokenAMintDecimals.toNumber();
     let tokenBDecimals = strategyState.tokenBMintDecimals.toNumber();
     let tokenADecimalsDiff = tokenADecimals - tokenBDecimals;
-    console.log('calculateAmountsToBeDepositedWithSwap tokenADecimals', tokenADecimals);
-    console.log('calculateAmountsToBeDepositedWithSwap tokenBDecimals', tokenBDecimals);
 
     let aAmount = tokenAAmountUserDeposit;
     let bAmount = tokenBAmountUserDeposit;
@@ -3663,23 +3654,14 @@ export class Kamino {
     let orcaAmountA = aAmounts.div(new Decimal(10).pow(tokenADecimals));
     let orcaAmountB = bAmounts.div(new Decimal(10).pow(tokenBDecimals));
 
-    console.log('orcaAmountA', orcaAmountA.toString());
-    console.log('orcaAmountB', orcaAmountB.toString());
-
     let ratio = orcaAmountA.div(orcaAmountB);
     ratio = ratio.div(priceBInA);
 
     let totalUserDepositInA = aAmount.add(bAmount.mul(priceBInA));
-    console.log('totalUserDepositInA', totalUserDepositInA);
 
     let requiredAAmountToDeposit = totalUserDepositInA.mul(ratio).div(ratio.add(1));
     let requiredBAmountToDeposit = totalUserDepositInA.sub(requiredAAmountToDeposit).mul(priceAInB);
     requiredBAmountToDeposit = requiredBAmountToDeposit.div(new Decimal(10).pow(tokenADecimalsDiff));
-    console.log('requiredAAmountToDeposit', requiredAAmountToDeposit.toString());
-    console.log('requiredBAmountToDeposit', requiredBAmountToDeposit.toString());
-
-    console.log('tokenAAmountUserDeposit', tokenAAmountUserDeposit.toString());
-    console.log('tokenBAmountUserDeposit', tokenBAmountUserDeposit.toString());
 
     let tokenAToSwapAmount = requiredAAmountToDeposit.sub(tokenAAmountUserDeposit);
     let tokenBToSwapAmount = requiredBAmountToDeposit.sub(
