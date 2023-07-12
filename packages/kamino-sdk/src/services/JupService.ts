@@ -3,6 +3,7 @@ import { SolanaCluster } from '@hubbleprotocol/hubble-config';
 import axios from 'axios';
 import Decimal from 'decimal.js';
 import { RouteInfo } from '@jup-ag/core';
+import { DeserializedVersionedTransaction } from '../utils';
 
 export type SwapTransactionsResponse = {
   setupTransaction: string | undefined;
@@ -87,7 +88,7 @@ export class JupService {
   static deserealizeVersionedTransactions = async (
     connection: Connection,
     serializedTransactions: Array<string | undefined>
-  ) => {
+  ): Promise<DeserializedVersionedTransaction> => {
     const filtered = serializedTransactions.filter(Boolean);
     const result: TransactionMessage[] = [];
     let lookupTablesAddresses: PublicKey[] = [];
@@ -115,7 +116,7 @@ export class JupService {
       result.push(decompiledMessage);
     }
 
-    return { deserealized: result, lookupTablesAddresses };
+    return { txMessage: result, lookupTablesAddresses };
   };
 
   static getLookupTableAccount = async (connection: Connection, address: string | PublicKey) => {

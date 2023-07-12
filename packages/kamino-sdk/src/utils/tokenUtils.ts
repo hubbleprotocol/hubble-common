@@ -188,3 +188,4 @@ export const isSOLMint = (mint: PublicKey | string): boolean => {
   const _mint = new PublicKey(mint).toString();
   return SOL_MINTS.filter((m) => m === _mint).length > 0;
 };
+

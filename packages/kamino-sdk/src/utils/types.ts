@@ -1,4 +1,4 @@
-import { PublicKey, TransactionInstruction } from '@solana/web3.js';
+import { PublicKey, TransactionInstruction, TransactionMessage } from '@solana/web3.js';
 import { WhirlpoolStrategy } from '../kamino-client/accounts';
 import { Dex, collToLamportsDecimal } from './utils';
 import Decimal from 'decimal.js';
@@ -245,4 +245,9 @@ export interface CreateAta {
   ata: PublicKey;
   createIxns: TransactionInstruction[];
   closeIxns: TransactionInstruction[];
+}
+
+export interface DeserializedVersionedTransaction {
+  txMessage: TransactionMessage[];
+  lookupTablesAddresses: PublicKey[];
 }

@@ -1657,13 +1657,6 @@ export class Kamino {
     initialUserTokenBalances?: TokensBalances,
     priceAInB?: Decimal
   ): Promise<[TransactionInstruction[], PublicKey[]]> => {
-    console.log(
-      'singleSidedDepositTokenA',
-      strategy.toString(),
-      amount.toString(),
-      owner.toString(),
-      slippage.toString()
-    );
     const strategyWithAddress = await this.getStrategyStateIfNotFetched(strategy);
 
     let userTokenBalances = await this.getInitialUserTokenBalances(
@@ -1691,8 +1684,6 @@ export class Kamino {
       throw Error('Error reading user token balances');
     }
     let tokenAMinPostDepositBalance = userTokenBalances.a.sub(amount);
-    console.log('userTokenBalances.a', userTokenBalances.a.toString());
-    console.log('userTokenBalances.b', userTokenBalances.b.toString());
 
     let swapper: SwapperIxBuilder = swapIxsBuilder
       ? swapIxsBuilder
@@ -1811,8 +1802,6 @@ export class Kamino {
 
     let realTokenAMinPostDepositBalanceLamports = tokenAMinPostDepositBalanceLamports;
     let realTokenBMinPostDepositBalanceLamports = tokenBMinPostDepositBalanceLamports;
-    console.log('tokenAMinPostDepositBalanceLamports', tokenAMinPostDepositBalanceLamports.toString());
-    console.log('tokenBMinPostDepositBalanceLamports', tokenBMinPostDepositBalanceLamports.toString());
     if (
       (tokenAMinPostDepositBalanceLamports.lessThan(0) && !isSOLMint(strategyState.tokenAMint)) ||
       (tokenBMinPostDepositBalanceLamports.lessThan(0) && !isSOLMint(strategyState.tokenBMint))
@@ -1820,31 +1809,23 @@ export class Kamino {
       throw Error('Token A or B post deposit amount cant be lower than 0.');
     }
 
-    let solBalanceInLamports = await this._connection.getBalance(owner);
-    console.log('solBalance', solBalanceInLamports.toString());
+    const sharesAta = await getAssociatedTokenAddress(strategyState.sharesMint, owner);
+    const tokenAAta = await getAssociatedTokenAddress(strategyState.tokenAMint, owner);
+    const tokenBAta = await getAssociatedTokenAddress(strategyState.tokenBMint, owner);
 
-    const [sharesAta] = await getAssociatedTokenAddressAndData(this._connection, strategyState.sharesMint, owner);
-    const [tokenAAta] = await getAssociatedTokenAddressAndData(this._connection, strategyState.tokenAMint, owner);
-    const [tokenBAta] = await getAssociatedTokenAddressAndData(this._connection, strategyState.tokenBMint, owner);
-    console.log('tokenAAta', tokenAAta.toString());
-    console.log('tokenBAta', tokenBAta.toString());
-
-    // if sharesAta doesn't exist create it; for tokenA and tokenB they will be created by Jupyter swap if needed
-    let createSharesAtaIx: TransactionInstruction | undefined = undefined;
-    let sharesAtaExists = await checkIfAccountExists(this._connection, sharesAta);
-    if (!sharesAtaExists) {
-      createSharesAtaIx = createAssociatedTokenAccountInstruction(owner, sharesAta, owner, strategyState.sharesMint);
-    }
+    // let createSharesAtaIx: TransactionInstruction | undefined = undefined;
+    // let sharesAtaExists = await checkIfAccountExists(this._connection, sharesAta);
+    // if (!sharesAtaExists) {
+    //   createSharesAtaIx = createAssociatedTokenAccountInstruction(owner, sharesAta, owner, strategyState.sharesMint);
+    // }
     const createAtasIxns = await getAtasWithCreateIxnsIfMissing(
       this._connection,
-      [strategyState.tokenAMint, strategyState.tokenBMint].filter((mint) => !isSOLMint(mint)),
+      [strategyState.tokenAMint, strategyState.tokenBMint, strategyState.sharesMint].filter((mint) => !isSOLMint(mint)),
       owner
     );
 
     let tokenAAtaBalance = await this.getTokenAccountBalanceOrZero(tokenAAta);
     let tokenBAtaBalance = await this.getTokenAccountBalanceOrZero(tokenBAta);
-    console.log('tokenAAtaBalance', tokenAAtaBalance.toString());
-    console.log('tokenAAtaBalance', tokenAAtaBalance.toString());
     let aToDeposit = collToLamportsDecimal(tokenAAtaBalance, strategyState.tokenAMintDecimals.toNumber()).sub(
       tokenAMinPostDepositBalanceLamports
     );
@@ -1853,49 +1834,53 @@ export class Kamino {
     );
 
     let cleanupIxs: TransactionInstruction[] = [];
-    let createWSolAtaIxns: CreateAta | undefined;
+
     if (isSOLMint(strategyState.tokenAMint)) {
+      // read how much SOL the user has and calculate the amount to deposit and balance based on it
       let availableSol = new Decimal(await this._connection.getBalance(owner));
       let solToDepsit = availableSol.sub(tokenAMinPostDepositBalanceLamports);
-      console.log('solToDepsit in if', solToDepsit.toString());
+
       aToDeposit = solToDepsit;
       tokenAAtaBalance = lamportsToNumberDecimal(solToDepsit, DECIMALS_SOL);
 
-      createWSolAtaIxns = await createWsolAtaIfMissing(
+      let createWSolAtaIxns = await createWsolAtaIfMissing(
         this._connection,
         new Decimal(lamportsToNumberDecimal(solToDepsit, DECIMALS_SOL)),
         owner
       );
 
+      // if the wSOL ata is not created, expect to have 0 remaining after the deposit
       let wSolAtaExists = await checkIfAccountExists(this._connection, createWSolAtaIxns.ata);
       if (!wSolAtaExists) {
         realTokenAMinPostDepositBalanceLamports = new Decimal(0);
       }
+
       createAtasIxns.push(...createWSolAtaIxns.createIxns);
       cleanupIxs.push(...createWSolAtaIxns.closeIxns);
     }
 
     if (isSOLMint(strategyState.tokenBMint)) {
       let availableSol = new Decimal(await this._connection.getBalance(owner));
-      let solToDepsit = availableSol.sub(tokenAMinPostDepositBalanceLamports);
+      let solToDepsit = availableSol.sub(tokenBMinPostDepositBalanceLamports);
+
       bToDeposit = solToDepsit;
       tokenBAtaBalance = lamportsToNumberDecimal(solToDepsit, DECIMALS_SOL);
 
-      createWSolAtaIxns = await createWsolAtaIfMissing(
+      let createWSolAtaIxns = await createWsolAtaIfMissing(
         this._connection,
         new Decimal(lamportsToNumberDecimal(solToDepsit, DECIMALS_SOL)),
         owner
       );
+
       let wSolAtaExists = await checkIfAccountExists(this._connection, createWSolAtaIxns.ata);
       if (!wSolAtaExists) {
         realTokenBMinPostDepositBalanceLamports = new Decimal(0);
       }
+
       createAtasIxns.push(...createWSolAtaIxns.createIxns);
       cleanupIxs.push(...createWSolAtaIxns.closeIxns);
     }
 
-    console.log('in check tokenAAtaBalance', tokenAAtaBalance.toString());
-    console.log('in check tokenBAtaBalance', tokenBAtaBalance.toString());
     let checkExpectedVaultsBalancesIx = await this.getCheckExpectedVaultsBalancesIx(strategyWithAddress, owner, {
       a: tokenAAtaBalance,
       b: tokenBAtaBalance,
@@ -1913,7 +1898,6 @@ export class Kamino {
       bToDeposit,
       priceAInB
     );
-    console.log('amountsToDepositWithSwap', JSON.stringify(amountsToDepositWithSwap));
 
     let [jupSwapIxs, lookupTableAddresses] = await swapIxsBuilder(
       amountsToDepositWithSwap,
@@ -1922,8 +1906,6 @@ export class Kamino {
       owner,
       swapSlippage
     );
-
-    console.log('lookupTableAddresses inside', JSON.stringify(lookupTableAddresses));
 
     let poolProgram = getDexProgramId(strategyState);
     const globalConfig = await GlobalConfig.fetch(this._connection, strategyState.globalConfig);
@@ -1936,8 +1918,6 @@ export class Kamino {
       strategyState.tokenBMint
     );
 
-    console.log('tokenAMinPostDepositBalanceLamports', tokenAMinPostDepositBalanceLamports.toString());
-    console.log('tokenBMinPostDepositBalanceLamports', tokenBMinPostDepositBalanceLamports.toString());
     const args: SingleTokenDepositAndInvestWithMinArgs = {
       tokenAMinPostDepositBalance: new BN(realTokenAMinPostDepositBalanceLamports.floor().toString()),
       tokenBMinPostDepositBalance: new BN(realTokenBMinPostDepositBalanceLamports.floor().toString()),
@@ -1979,10 +1959,6 @@ export class Kamino {
     let singleSidedDepositIx = singleTokenDepositAndInvestWithMin(args, accounts);
 
     let result: TransactionInstruction[] = [];
-
-    if (createSharesAtaIx) {
-      result.push(createSharesAtaIx);
-    }
     result.push(...createAtasIxns);
 
     result = result.concat([checkExpectedVaultsBalancesIx, ...jupSwapIxs, singleSidedDepositIx, ...cleanupIxs]);
@@ -2018,24 +1994,6 @@ export class Kamino {
       );
     }
 
-    // const createAtasIxns = await getAtasWithCreateIxnsIfMissing(
-    //   this._connection,
-    //   [tokenAMint, tokenBMint].filter((mint) => !isSOLMint(mint)),
-    //   owner
-    // );
-
-    // let createWSolAtaIxns: CreateAta | undefined;
-    // if (isSOLMint(tokenAMint)) {
-    //   createWSolAtaIxns = await createWsolAtaIfMissing(this._connection, new Decimal(0), owner);
-    //   createAtasIxns.push(...createWSolAtaIxns.createIxns);
-    // }
-
-    // if (isSOLMint(tokenBMint)) {
-    //   // let amount =
-    //   createWSolAtaIxns = await createWsolAtaIfMissing(this._connection, new Decimal(0), owner);
-    //   createAtasIxns.push(...createWSolAtaIxns.createIxns);
-    // }
-
     const {
       setupTransaction,
       swapTransaction,
@@ -2066,15 +2024,12 @@ export class Kamino {
       ]);
     }
 
-    let { deserealized: deserializedTransaction, lookupTablesAddresses } =
-      await JupService.deserealizeVersionedTransactions(this._connection, [swapTransaction]);
+    let { txMessage, lookupTablesAddresses } = await JupService.deserealizeVersionedTransactions(this._connection, [
+      swapTransaction,
+    ]);
 
     let clearedSwapIxs = [
-      // ...createAtasIxns,
-      ...removeBudgetAndAtaIxns(deserializedTransaction[0].instructions, [
-        tokenAMint.toString(),
-        tokenBMint.toString(),
-      ]),
+      ...removeBudgetAndAtaIxns(txMessage[0].instructions, [tokenAMint.toString(), tokenBMint.toString()]),
     ];
 
     let allJupIxs = [...clearedSwapSetupIxs, ...clearedSwapIxs, ...clearedCleanupIxns];
