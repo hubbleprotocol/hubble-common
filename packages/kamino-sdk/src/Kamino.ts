@@ -1954,7 +1954,6 @@ export class Kamino {
     }
 
     let clearedSwapIxs = [
-      ...getComputeBudgetAndPriorityFeeIxns(1_400_000),
       ...createAtasIxns,
       ...removeBudgetAndAtaIxns(decodeSerializedTransaction(swapTransaction)!.instructions, [
         tokenAMint.toString(),
