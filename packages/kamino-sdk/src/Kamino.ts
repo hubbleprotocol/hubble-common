@@ -24,7 +24,7 @@ import {
   CollateralInfos,
 } from './kamino-client/accounts';
 import Decimal from 'decimal.js';
-import { Position, Tick, Whirlpool } from './whirpools-client';
+import { Position, Whirlpool } from './whirpools-client';
 import {
   AddLiquidityQuote,
   AddLiquidityQuoteParam,
@@ -95,7 +95,6 @@ import {
   isSOLMint,
   readBigUint128LE,
   SwapperIxBuilder,
-  CreateAta,
   lamportsToNumberDecimal,
   DECIMALS_SOL,
 } from './utils';
@@ -141,7 +140,6 @@ import { FRONTEND_KAMINO_STRATEGY_URL, METADATA_PROGRAM_ID } from './constants';
 import {
   CollateralInfo,
   ExecutiveWithdrawActionKind,
-  RebalanceRaw,
   RebalanceType,
   RebalanceTypeKind,
   StrategyConfigOption,
@@ -210,7 +208,6 @@ import {
   createWsolAtaIfMissing,
   decodeSerializedTransaction,
   getAtasWithCreateIxnsIfMissing,
-  getComputeBudgetAndPriorityFeeIxns,
   removeBudgetAndAtaIxns,
 } from './utils/transactions';
 import { RouteInfo } from '@jup-ag/core';
@@ -1723,6 +1720,20 @@ export class Kamino {
       strategyWithAddress.strategy.tokenBMint,
       initialUserTokenBalances
     );
+
+    if (isSOLMint(strategyWithAddress.strategy.tokenAMint)) {
+      userTokenBalances.a = lamportsToNumberDecimal(
+        new Decimal(await this._connection.getBalance(owner)),
+        DECIMALS_SOL
+      );
+    }
+
+    if (isSOLMint(strategyWithAddress.strategy.tokenBMint)) {
+      userTokenBalances.b = lamportsToNumberDecimal(
+        new Decimal(await this._connection.getBalance(owner)),
+        DECIMALS_SOL
+      );
+    }
 
     if (!userTokenBalances.a || !userTokenBalances.b) {
       throw Error('Error reading user token balances');
