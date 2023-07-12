@@ -96,6 +96,7 @@ export const createWsolAtaIfMissing = async (
     NATIVE_MINT,
     owner
   );
+  console.log('wsolAta', wsolAta.toString());
 
   const solDeposit = amount.toNumber();
   const wsolAtaAccountInfo: AccountInfo<Buffer> | null = await connection.getAccountInfo(wsolAta);

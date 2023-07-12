@@ -96,6 +96,8 @@ import {
   readBigUint128LE,
   SwapperIxBuilder,
   CreateAta,
+  lamportsToNumberDecimal,
+  DECIMALS_SOL,
 } from './utils';
 import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import {
@@ -1671,10 +1673,26 @@ export class Kamino {
       initialUserTokenBalances
     );
 
+    if (isSOLMint(strategyWithAddress.strategy.tokenAMint)) {
+      userTokenBalances.a = lamportsToNumberDecimal(
+        new Decimal(await this._connection.getBalance(owner)),
+        DECIMALS_SOL
+      );
+    }
+
+    if (isSOLMint(strategyWithAddress.strategy.tokenBMint)) {
+      userTokenBalances.b = lamportsToNumberDecimal(
+        new Decimal(await this._connection.getBalance(owner)),
+        DECIMALS_SOL
+      );
+    }
+
     if (!userTokenBalances.a || !userTokenBalances.b) {
       throw Error('Error reading user token balances');
     }
     let tokenAMinPostDepositBalance = userTokenBalances.a.sub(amount);
+    console.log('userTokenBalances.a', userTokenBalances.a.toString());
+    console.log('userTokenBalances.b', userTokenBalances.b.toString());
 
     let swapper: SwapperIxBuilder = swapIxsBuilder
       ? swapIxsBuilder
@@ -1788,17 +1806,28 @@ export class Kamino {
     swapIxsBuilder: SwapperIxBuilder,
     priceAInB?: Decimal // not mandatory as it will be fetched from Jupyter
   ): Promise<[TransactionInstruction[], PublicKey[]]> => {
-    if (tokenAMinPostDepositBalanceLamports.lessThan(0) || tokenBMinPostDepositBalanceLamports.lessThan(0)) {
-      throw Error('Token A or B post deposit amount cant be lower than 0.');
-    }
     const strategyWithAddress = await this.getStrategyStateIfNotFetched(strategy);
     const strategyState = strategyWithAddress.strategy;
 
-    let checkExpectedVaultsBalancesIx = await this.getCheckExpectedVaultsBalancesIx(strategyWithAddress, owner);
+    let realTokenAMinPostDepositBalanceLamports = tokenAMinPostDepositBalanceLamports;
+    let realTokenBMinPostDepositBalanceLamports = tokenBMinPostDepositBalanceLamports;
+    console.log('tokenAMinPostDepositBalanceLamports', tokenAMinPostDepositBalanceLamports.toString());
+    console.log('tokenBMinPostDepositBalanceLamports', tokenBMinPostDepositBalanceLamports.toString());
+    if (
+      (tokenAMinPostDepositBalanceLamports.lessThan(0) && !isSOLMint(strategyState.tokenAMint)) ||
+      (tokenBMinPostDepositBalanceLamports.lessThan(0) && !isSOLMint(strategyState.tokenBMint))
+    ) {
+      throw Error('Token A or B post deposit amount cant be lower than 0.');
+    }
+
+    let solBalanceInLamports = await this._connection.getBalance(owner);
+    console.log('solBalance', solBalanceInLamports.toString());
 
     const [sharesAta] = await getAssociatedTokenAddressAndData(this._connection, strategyState.sharesMint, owner);
     const [tokenAAta] = await getAssociatedTokenAddressAndData(this._connection, strategyState.tokenAMint, owner);
     const [tokenBAta] = await getAssociatedTokenAddressAndData(this._connection, strategyState.tokenBMint, owner);
+    console.log('tokenAAta', tokenAAta.toString());
+    console.log('tokenBAta', tokenBAta.toString());
 
     // if sharesAta doesn't exist create it; for tokenA and tokenB they will be created by Jupyter swap if needed
     let createSharesAtaIx: TransactionInstruction | undefined = undefined;
@@ -1812,26 +1841,65 @@ export class Kamino {
       owner
     );
 
+    let tokenAAtaBalance = await this.getTokenAccountBalanceOrZero(tokenAAta);
+    let tokenBAtaBalance = await this.getTokenAccountBalanceOrZero(tokenBAta);
+    console.log('tokenAAtaBalance', tokenAAtaBalance.toString());
+    console.log('tokenAAtaBalance', tokenAAtaBalance.toString());
+    let aToDeposit = collToLamportsDecimal(tokenAAtaBalance, strategyState.tokenAMintDecimals.toNumber()).sub(
+      tokenAMinPostDepositBalanceLamports
+    );
+    let bToDeposit = collToLamportsDecimal(tokenBAtaBalance, strategyState.tokenBMintDecimals.toNumber()).sub(
+      tokenBMinPostDepositBalanceLamports
+    );
+
+    let cleanupIxs: TransactionInstruction[] = [];
     let createWSolAtaIxns: CreateAta | undefined;
     if (isSOLMint(strategyState.tokenAMint)) {
-      createWSolAtaIxns = await createWsolAtaIfMissing(this._connection, new Decimal(0), owner);
+      let availableSol = new Decimal(await this._connection.getBalance(owner));
+      let solToDepsit = availableSol.sub(tokenAMinPostDepositBalanceLamports);
+      console.log('solToDepsit in if', solToDepsit.toString());
+      aToDeposit = solToDepsit;
+      tokenAAtaBalance = lamportsToNumberDecimal(solToDepsit, DECIMALS_SOL);
+
+      createWSolAtaIxns = await createWsolAtaIfMissing(
+        this._connection,
+        new Decimal(lamportsToNumberDecimal(solToDepsit, DECIMALS_SOL)),
+        owner
+      );
+
+      let wSolAtaExists = await checkIfAccountExists(this._connection, createWSolAtaIxns.ata);
+      if (!wSolAtaExists) {
+        realTokenAMinPostDepositBalanceLamports = new Decimal(0);
+      }
       createAtasIxns.push(...createWSolAtaIxns.createIxns);
+      cleanupIxs.push(...createWSolAtaIxns.closeIxns);
     }
 
     if (isSOLMint(strategyState.tokenBMint)) {
-      // let amount =
-      createWSolAtaIxns = await createWsolAtaIfMissing(this._connection, new Decimal(0), owner);
+      let availableSol = new Decimal(await this._connection.getBalance(owner));
+      let solToDepsit = availableSol.sub(tokenAMinPostDepositBalanceLamports);
+      bToDeposit = solToDepsit;
+      tokenBAtaBalance = lamportsToNumberDecimal(solToDepsit, DECIMALS_SOL);
+
+      createWSolAtaIxns = await createWsolAtaIfMissing(
+        this._connection,
+        new Decimal(lamportsToNumberDecimal(solToDepsit, DECIMALS_SOL)),
+        owner
+      );
+      let wSolAtaExists = await checkIfAccountExists(this._connection, createWSolAtaIxns.ata);
+      if (!wSolAtaExists) {
+        realTokenBMinPostDepositBalanceLamports = new Decimal(0);
+      }
       createAtasIxns.push(...createWSolAtaIxns.createIxns);
+      cleanupIxs.push(...createWSolAtaIxns.closeIxns);
     }
 
-    let aToDeposit = collToLamportsDecimal(
-      await this.getTokenAccountBalanceOrZero(tokenAAta),
-      strategyState.tokenAMintDecimals.toNumber()
-    ).sub(tokenAMinPostDepositBalanceLamports);
-    let bToDeposit = collToLamportsDecimal(
-      await this.getTokenAccountBalanceOrZero(tokenBAta),
-      strategyState.tokenBMintDecimals.toNumber()
-    ).sub(tokenBMinPostDepositBalanceLamports);
+    console.log('in check tokenAAtaBalance', tokenAAtaBalance.toString());
+    console.log('in check tokenBAtaBalance', tokenBAtaBalance.toString());
+    let checkExpectedVaultsBalancesIx = await this.getCheckExpectedVaultsBalancesIx(strategyWithAddress, owner, {
+      a: tokenAAtaBalance,
+      b: tokenBAtaBalance,
+    });
 
     if (aToDeposit.lessThan(0) || bToDeposit.lessThan(0)) {
       throw Error(
@@ -1868,9 +1936,11 @@ export class Kamino {
       strategyState.tokenBMint
     );
 
+    console.log('tokenAMinPostDepositBalanceLamports', tokenAMinPostDepositBalanceLamports.toString());
+    console.log('tokenBMinPostDepositBalanceLamports', tokenBMinPostDepositBalanceLamports.toString());
     const args: SingleTokenDepositAndInvestWithMinArgs = {
-      tokenAMinPostDepositBalance: new BN(tokenAMinPostDepositBalanceLamports.floor().toString()),
-      tokenBMinPostDepositBalance: new BN(tokenBMinPostDepositBalanceLamports.floor().toString()),
+      tokenAMinPostDepositBalance: new BN(realTokenAMinPostDepositBalanceLamports.floor().toString()),
+      tokenBMinPostDepositBalance: new BN(realTokenBMinPostDepositBalanceLamports.floor().toString()),
     };
 
     const accounts: SingleTokenDepositAndInvestWithMinAccounts = {
@@ -1909,14 +1979,13 @@ export class Kamino {
     let singleSidedDepositIx = singleTokenDepositAndInvestWithMin(args, accounts);
 
     let result: TransactionInstruction[] = [];
+
     if (createSharesAtaIx) {
       result.push(createSharesAtaIx);
     }
     result.push(...createAtasIxns);
-    if (createWSolAtaIxns) {
-      result.push(...createWSolAtaIxns.createIxns);
-    };
-    result = result.concat([checkExpectedVaultsBalancesIx, ...jupSwapIxs, singleSidedDepositIx]);
+
+    result = result.concat([checkExpectedVaultsBalancesIx, ...jupSwapIxs, singleSidedDepositIx, ...cleanupIxs]);
     return [result, lookupTableAddresses];
   };
 
@@ -3610,6 +3679,9 @@ export class Kamino {
 
     let tokenADecimals = strategyState.tokenAMintDecimals.toNumber();
     let tokenBDecimals = strategyState.tokenBMintDecimals.toNumber();
+    let tokenADecimalsDiff = tokenADecimals - tokenBDecimals;
+    console.log('calculateAmountsToBeDepositedWithSwap tokenADecimals', tokenADecimals);
+    console.log('calculateAmountsToBeDepositedWithSwap tokenBDecimals', tokenBDecimals);
 
     let aAmount = tokenAAmountUserDeposit;
     let bAmount = tokenBAmountUserDeposit;
@@ -3622,16 +3694,28 @@ export class Kamino {
     let orcaAmountA = aAmounts.div(new Decimal(10).pow(tokenADecimals));
     let orcaAmountB = bAmounts.div(new Decimal(10).pow(tokenBDecimals));
 
+    console.log('orcaAmountA', orcaAmountA.toString());
+    console.log('orcaAmountB', orcaAmountB.toString());
+
     let ratio = orcaAmountA.div(orcaAmountB);
     ratio = ratio.div(priceBInA);
 
     let totalUserDepositInA = aAmount.add(bAmount.mul(priceBInA));
+    console.log('totalUserDepositInA', totalUserDepositInA);
 
     let requiredAAmountToDeposit = totalUserDepositInA.mul(ratio).div(ratio.add(1));
     let requiredBAmountToDeposit = totalUserDepositInA.sub(requiredAAmountToDeposit).mul(priceAInB);
+    requiredBAmountToDeposit = requiredBAmountToDeposit.div(new Decimal(10).pow(tokenADecimalsDiff));
+    console.log('requiredAAmountToDeposit', requiredAAmountToDeposit.toString());
+    console.log('requiredBAmountToDeposit', requiredBAmountToDeposit.toString());
+
+    console.log('tokenAAmountUserDeposit', tokenAAmountUserDeposit.toString());
+    console.log('tokenBAmountUserDeposit', tokenBAmountUserDeposit.toString());
 
     let tokenAToSwapAmount = requiredAAmountToDeposit.sub(tokenAAmountUserDeposit);
-    let tokenBToSwapAmount = requiredBAmountToDeposit.sub(tokenBAmountUserDeposit);
+    let tokenBToSwapAmount = requiredBAmountToDeposit.sub(
+      tokenBAmountUserDeposit.div(new Decimal(10).pow(tokenADecimalsDiff))
+    );
 
     let depositAmountsForSwap: DepositAmountsForSwap = {
       requiredAAmountToDeposit,
@@ -3639,8 +3723,6 @@ export class Kamino {
       tokenAToSwapAmount,
       tokenBToSwapAmount,
     };
-
-    console.log('depositAmountsForSwap', JSON.stringify(depositAmountsForSwap));
 
     return depositAmountsForSwap;
   };

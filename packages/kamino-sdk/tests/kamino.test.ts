@@ -56,6 +56,7 @@ import { WHIRLPOOL_PROGRAM_ID } from '../src/whirpools-client/programId';
 import * as ed25519 from 'tweetnacl-ts';
 import { Provider } from '@project-serum/anchor';
 import { ScopeMints } from '@hubbleprotocol/scope-sdk';
+import { createWsolAtaIfMissing } from '../src/utils/transactions';
 
 export const LOCAL_RAYDIUM_PROGRAM_ID = new PublicKey('devi51mZmdwUJGU9hjN27vEz64Gps7uUefqxg27EAtH');
 export const USDH_SCOPE_CHAIN_ID = BigInt(12);
@@ -532,6 +533,105 @@ describe('Kamino SDK Tests', () => {
   //   });
   //   console.log(txHash);
   // });
+
+  it.skip('create wSOL ata', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      fixtures.globalConfig,
+      fixtures.kaminoProgramId,
+      WHIRLPOOL_PROGRAM_ID,
+      LOCAL_RAYDIUM_PROGRAM_ID
+    );
+
+    const solAirdropAmount = new Decimal(1);
+    const usdcAirdropAmount = new Decimal(100);
+    const usdhAirdropAmount = new Decimal(0);
+
+    let user = await createUser(
+      connection,
+      signer,
+      fixtures.newOrcaStrategy,
+      solAirdropAmount,
+      usdcAirdropAmount,
+      usdhAirdropAmount
+    );
+
+    // @ts-ignore
+    let createWSolAtaIxns = await createWsolAtaIfMissing(kamino._connection, new Decimal(0.9), user.owner.publicKey);
+
+    const singleSidedDepositMessage = await kamino.getTransactionV2Message(
+      user.owner.publicKey,
+      createWSolAtaIxns.createIxns
+    );
+    const singleSidedDepositTx = new VersionedTransaction(singleSidedDepositMessage);
+    singleSidedDepositTx.sign([user.owner]);
+
+    try {
+      //@ts-ignore
+      const depositTxId = await sendAndConfirmTransaction(kamino._connection, singleSidedDepositTx);
+      console.log('singleSidedDepoxit tx hash', depositTxId);
+    } catch (e) {
+      console.log(e);
+    }
+
+    //@ts-ignore
+    let balance = await kamino.getTokenAccountBalance(createWSolAtaIxns.ata);
+    console.log('balance', balance.toString());
+
+    const closeAtaMessage = await kamino.getTransactionV2Message(user.owner.publicKey, createWSolAtaIxns.closeIxns);
+    const closeAtaMessageTx = new VersionedTransaction(closeAtaMessage);
+    closeAtaMessageTx.sign([user.owner]);
+    try {
+      //@ts-ignore
+      const depositTxId = await sendAndConfirmTransaction(kamino._connection, closeAtaMessageTx);
+      console.log('closeAtaMessageTx tx hash', depositTxId);
+    } catch (e) {
+      console.log(e);
+    }
+  });
+
+  it('create wSOL ata atomic', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      fixtures.globalConfig,
+      fixtures.kaminoProgramId,
+      WHIRLPOOL_PROGRAM_ID,
+      LOCAL_RAYDIUM_PROGRAM_ID
+    );
+
+    const solAirdropAmount = new Decimal(1);
+    const usdcAirdropAmount = new Decimal(100);
+    const usdhAirdropAmount = new Decimal(0);
+
+    let user = await createUser(
+      connection,
+      signer,
+      fixtures.newOrcaStrategy,
+      solAirdropAmount,
+      usdcAirdropAmount,
+      usdhAirdropAmount
+    );
+
+    // @ts-ignore
+    let createWSolAtaIxns = await createWsolAtaIfMissing(kamino._connection, new Decimal(0.9), user.owner.publicKey);
+
+    const singleSidedDepositMessage = await kamino.getTransactionV2Message(user.owner.publicKey, [
+      ...createWSolAtaIxns.createIxns,
+      ...createWSolAtaIxns.closeIxns,
+    ]);
+    const singleSidedDepositTx = new VersionedTransaction(singleSidedDepositMessage);
+    singleSidedDepositTx.sign([user.owner]);
+
+    try {
+      //@ts-ignore
+      const depositTxId = await sendAndConfirmTransaction(kamino._connection, singleSidedDepositTx);
+      console.log('singleSidedDepoxit tx hash', depositTxId);
+    } catch (e) {
+      console.log(e);
+    }
+  });
 
   it('single sided deposit only token A on Orca', async () => {
     let kamino = new Kamino(
