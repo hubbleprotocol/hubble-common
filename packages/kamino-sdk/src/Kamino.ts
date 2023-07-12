@@ -1652,7 +1652,14 @@ export class Kamino {
     swapIxsBuilder?: SwapperIxBuilder,
     initialUserTokenBalances?: TokensBalances,
     priceAInB?: Decimal
-  ): Promise<TransactionInstruction[]> => {
+  ): Promise<[TransactionInstruction[], PublicKey[]]> => {
+    console.log(
+      'singleSidedDepositTokenA',
+      strategy.toString(),
+      amount.toString(),
+      owner.toString(),
+      slippage.toString()
+    );
     const strategyWithAddress = await this.getStrategyStateIfNotFetched(strategy);
 
     let userTokenBalances = await this.getInitialUserTokenBalances(
@@ -1696,7 +1703,7 @@ export class Kamino {
     swapIxsBuilder?: SwapperIxBuilder,
     initialUserTokenBalances?: TokensBalances,
     priceAInB?: Decimal
-  ): Promise<TransactionInstruction[]> => {
+  ): Promise<[TransactionInstruction[], PublicKey[]]> => {
     const strategyWithAddress = await this.getStrategyStateIfNotFetched(strategy);
 
     let userTokenBalances = await this.getInitialUserTokenBalances(
@@ -1778,7 +1785,7 @@ export class Kamino {
     swapSlippage: Decimal,
     swapIxsBuilder: SwapperIxBuilder,
     priceAInB?: Decimal // not mandatory as it will be fetched from Jupyter
-  ): Promise<TransactionInstruction[]> => {
+  ): Promise<[TransactionInstruction[], PublicKey[]]> => {
     if (tokenAMinPostDepositBalanceLamports.lessThan(0) || tokenBMinPostDepositBalanceLamports.lessThan(0)) {
       throw Error('Token A or B post deposit amount cant be lower than 0.');
     }
@@ -1819,15 +1826,17 @@ export class Kamino {
       bToDeposit,
       priceAInB
     );
-    console.log('amountsToDepositWithSwap', amountsToDepositWithSwap);
+    console.log('amountsToDepositWithSwap', JSON.stringify(amountsToDepositWithSwap));
 
-    let jupSwapIxs = await swapIxsBuilder(
+    let [jupSwapIxs, lookupTableAddresses] = await swapIxsBuilder(
       amountsToDepositWithSwap,
       strategyState.tokenAMint,
       strategyState.tokenBMint,
       owner,
       swapSlippage
     );
+
+    console.log('lookupTableAddresses inside', JSON.stringify(lookupTableAddresses));
 
     let poolProgram = getDexProgramId(strategyState);
     const globalConfig = await GlobalConfig.fetch(this._connection, strategyState.globalConfig);
@@ -1885,7 +1894,7 @@ export class Kamino {
       result.push(createSharesAtaIx);
     }
     result = result.concat([checkExpectedVaultsBalancesIx, ...jupSwapIxs, singleSidedDepositIx]);
-    return result;
+    return [result, lookupTableAddresses];
   };
 
   getJupSwapIxs = async (
@@ -1895,7 +1904,7 @@ export class Kamino {
     owner: PublicKey,
     slippage: Decimal,
     useOnlyLegacyTransaction: boolean
-  ): Promise<TransactionInstruction[]> => {
+  ): Promise<[TransactionInstruction[], PublicKey[]]> => {
     let jupiterBestRoute: RouteInfo;
     if (input.tokenAToSwapAmount.lt(ZERO)) {
       jupiterBestRoute = await JupService.getBestRoute(
@@ -1931,7 +1940,7 @@ export class Kamino {
       setupTransaction: string | undefined;
       swapTransaction: string;
       cleanupTransaction: string | undefined;
-    } = await JupService.getSwapTransactions(jupiterBestRoute, owner, false, true);
+    } = await JupService.getSwapTransactions(jupiterBestRoute, owner, false, false);
 
     // remove budget and atas ixns from jup transaction because we manage it ourself
     const decodedSetupTx = decodeSerializedTransaction(setupTransaction);
@@ -1953,9 +1962,13 @@ export class Kamino {
       ]);
     }
 
+    let { deserealized: deserializedTransaction, lookupTablesAddresses } =
+      await JupService.deserealizeVersionedTransactions(this._connection, [swapTransaction]);
+
+    console.log('lookupTablesAddresses insinde inside', JSON.stringify(lookupTablesAddresses));
     let clearedSwapIxs = [
       ...createAtasIxns,
-      ...removeBudgetAndAtaIxns(decodeSerializedTransaction(swapTransaction)!.instructions, [
+      ...removeBudgetAndAtaIxns(deserializedTransaction[0].instructions, [
         tokenAMint.toString(),
         tokenBMint.toString(),
       ]),
@@ -1963,7 +1976,7 @@ export class Kamino {
 
     let allJupIxs = [...clearedSwapSetupIxs, ...clearedSwapIxs, ...clearedCleanupIxns];
 
-    return allJupIxs;
+    return [allJupIxs, lookupTablesAddresses];
   };
 
   getCheckExpectedVaultsBalancesIx = async (
@@ -3559,6 +3572,8 @@ export class Kamino {
 
     const priceBInA = new Decimal(1).div(priceAInB);
 
+    console.log('priceAInB', priceAInB);
+
     let tokenADecimals = strategyState.tokenAMintDecimals.toNumber();
     let tokenBDecimals = strategyState.tokenBMintDecimals.toNumber();
 
@@ -3590,6 +3605,8 @@ export class Kamino {
       tokenAToSwapAmount,
       tokenBToSwapAmount,
     };
+
+    console.log('depositAmountsForSwap', JSON.stringify(depositAmountsForSwap));
 
     return depositAmountsForSwap;
   };
