@@ -1067,22 +1067,25 @@ describe('Kamino strategy creation SDK Tests', () => {
     let lookupTables: PublicKey[] = [];
     // if USDC is tokenA mint deposit tokenA, else deposit tokenB
     if (strategyState.tokenAMint == USDCMintMainnet) {
-      [singleSidedDepositIxs, lookupTables] = await kamino.singleSidedDepositTokenA(
+      let { instructions, lookupTablesAddresses } = await kamino.singleSidedDepositTokenA(
         strategy,
         amountToDeposit,
         signer.publicKey,
         new Decimal(15)
       );
+      singleSidedDepositIxs = instructions;
+      lookupTables = lookupTablesAddresses;
     } else {
-      [singleSidedDepositIxs, lookupTables] = await kamino.singleSidedDepositTokenB(
+      let { instructions, lookupTablesAddresses } = await kamino.singleSidedDepositTokenB(
         strategy,
         amountToDeposit,
         signer.publicKey,
         new Decimal(15)
       );
+      singleSidedDepositIxs = instructions;
+      lookupTables = lookupTablesAddresses;
     }
 
-    console.log('singleSidedDepositIxs', singleSidedDepositIxs.length);
     const singleSidedDepositMessage = await kamino.getTransactionV2Message(signer.publicKey, singleSidedDepositIxs, [
       ...lookupTables,
       MAINNET_GLOBAL_LOOKUP_TABLE,
@@ -1122,22 +1125,25 @@ describe('Kamino strategy creation SDK Tests', () => {
     let lookupTables: PublicKey[] = [];
     // if USDC is tokenA mint deposit tokenA, else deposit tokenB
     if (strategyState.tokenAMint.toString() === USDCMintMainnet.toString()) {
-      [singleSidedDepositIxs, lookupTables] = await kamino.singleSidedDepositTokenA(
+      let { instructions, lookupTablesAddresses } = await kamino.singleSidedDepositTokenA(
         strategy,
         amountToDeposit,
         signer.publicKey,
         new Decimal(50)
       );
+      singleSidedDepositIxs = instructions;
+      lookupTables = lookupTablesAddresses;
     } else {
-      [singleSidedDepositIxs, lookupTables] = await kamino.singleSidedDepositTokenB(
+      let { instructions, lookupTablesAddresses } = await kamino.singleSidedDepositTokenB(
         strategy,
         amountToDeposit,
         signer.publicKey,
         new Decimal(50)
       );
+      singleSidedDepositIxs = instructions;
+      lookupTables = lookupTablesAddresses;
     }
 
-    console.log('singleSidedDepositIxs', singleSidedDepositIxs.length);
     const singleSidedDepositMessage = await kamino.getTransactionV2Message(
       signer.publicKey,
       [...getComputeBudgetAndPriorityFeeIxns(1_400_000), ...singleSidedDepositIxs],
@@ -1178,19 +1184,23 @@ describe('Kamino strategy creation SDK Tests', () => {
     let lookupTables: PublicKey[] = [];
     // if USDC is tokenA mint deposit tokenA, else deposit tokenB
     if (strategyState.tokenAMint.toString() === SOLMintMainnet.toString()) {
-      [singleSidedDepositIxs, lookupTables] = await kamino.singleSidedDepositTokenA(
+      let { instructions, lookupTablesAddresses } = await kamino.singleSidedDepositTokenA(
         strategy,
         amountToDeposit,
         signer.publicKey,
         new Decimal(50)
       );
+      singleSidedDepositIxs = instructions;
+      lookupTables = lookupTablesAddresses;
     } else {
-      [singleSidedDepositIxs, lookupTables] = await kamino.singleSidedDepositTokenB(
+      let { instructions, lookupTablesAddresses } = await kamino.singleSidedDepositTokenB(
         strategy,
         amountToDeposit,
         signer.publicKey,
         new Decimal(50)
       );
+      singleSidedDepositIxs = instructions;
+      lookupTables = lookupTablesAddresses;
     }
 
     const singleSidedDepositMessage = await kamino.getTransactionV2Message(
@@ -1223,17 +1233,14 @@ describe('Kamino strategy creation SDK Tests', () => {
     //@ts-ignore
     let createWSolAtaIxns = await createWsolAtaIfMissing(kamino._connection, new Decimal(0), signer.publicKey);
 
-    const singleSidedDepositMessage = await kamino.getTransactionV2Message(
-      signer.publicKey,
-      createWSolAtaIxns.createIxns
-    );
-    const singleSidedDepositTx = new VersionedTransaction(singleSidedDepositMessage);
-    singleSidedDepositTx.sign([signer]);
+    const createwSolAtaMessage = await kamino.getTransactionV2Message(signer.publicKey, createWSolAtaIxns.createIxns);
+    const createwSolAtaTx = new VersionedTransaction(createwSolAtaMessage);
+    createwSolAtaTx.sign([signer]);
 
     try {
       //@ts-ignore
-      const depositTxId = await sendAndConfirmTransaction(kamino._connection, singleSidedDepositTx);
-      console.log('singleSidedDepoxit tx hash', depositTxId);
+      const createwSolAtaTxHash = await sendAndConfirmTransaction(kamino._connection, createwSolAtaTx);
+      console.log('singleSidedDepoxit tx hash', createwSolAtaTxHash);
     } catch (e) {
       console.log(e);
     }

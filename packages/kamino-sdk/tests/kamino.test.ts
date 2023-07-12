@@ -617,17 +617,17 @@ describe('Kamino SDK Tests', () => {
     // @ts-ignore
     let createWSolAtaIxns = await createWsolAtaIfMissing(kamino._connection, new Decimal(0.9), user.owner.publicKey);
 
-    const singleSidedDepositMessage = await kamino.getTransactionV2Message(user.owner.publicKey, [
+    const createwSolAtaMessage = await kamino.getTransactionV2Message(user.owner.publicKey, [
       ...createWSolAtaIxns.createIxns,
       ...createWSolAtaIxns.closeIxns,
     ]);
-    const singleSidedDepositTx = new VersionedTransaction(singleSidedDepositMessage);
-    singleSidedDepositTx.sign([user.owner]);
+    const createwSolAtaTx = new VersionedTransaction(createwSolAtaMessage);
+    createwSolAtaTx.sign([user.owner]);
 
     try {
       //@ts-ignore
-      const depositTxId = await sendAndConfirmTransaction(kamino._connection, singleSidedDepositTx);
-      console.log('singleSidedDepoxit tx hash', depositTxId);
+      const createwSolAtaTxId = await sendAndConfirmTransaction(kamino._connection, createwSolAtaTx);
+      console.log('createwSolAta tx hash', createwSolAtaTxId);
     } catch (e) {
       console.log(e);
     }
@@ -687,11 +687,11 @@ describe('Kamino SDK Tests', () => {
       [increaseBudgetIx, ...singleSidedDepositIxs],
       [strategyState.strategyLookupTable]
     );
-    let openPositionTxV0 = new VersionedTransaction(tx);
-    openPositionTxV0.sign([signer, user.owner]);
+    let singleSidedDepositTx = new VersionedTransaction(tx);
+    singleSidedDepositTx.sign([signer, user.owner]);
 
     //@ts-ignore
-    let myHash = await sendAndConfirmTransaction(kamino._connection, openPositionTxV0);
+    let myHash = await sendAndConfirmTransaction(kamino._connection, singleSidedDepositTx);
     console.log('single sided deposit tx hash', myHash);
 
     const strategy = await kamino.getStrategyByAddress(fixtures.newOrcaStrategy);
@@ -703,7 +703,7 @@ describe('Kamino SDK Tests', () => {
     let tokenALeft = await kamino._connection.getTokenAccountBalance(user.tokenAAta);
     // @ts-ignore
     let tokenBLeft = await kamino._connection.getTokenAccountBalance(user.tokenBAta);
-    console.log('new Decimal(tokenALeft.value.amount)', new Decimal(tokenALeft.value.amount).toString());
+
     expect(new Decimal(tokenALeft.value.amount).greaterThanOrEqualTo(new Decimal(90.0))).to.be.true;
     expect(new Decimal(tokenALeft.value.amount).lessThan(new Decimal(90.001))).to.be.true;
     expect(tokenBLeft.value.uiAmount).to.be.greaterThanOrEqual(0);

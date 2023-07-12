@@ -251,3 +251,8 @@ export interface DeserializedVersionedTransaction {
   txMessage: TransactionMessage[];
   lookupTablesAddresses: PublicKey[];
 }
+
+export interface InstructionsWithLookupTables {
+  instructions: TransactionInstruction[];
+  lookupTablesAddresses: PublicKey[];
+}

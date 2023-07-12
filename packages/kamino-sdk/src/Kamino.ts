@@ -97,6 +97,7 @@ import {
   SwapperIxBuilder,
   lamportsToNumberDecimal,
   DECIMALS_SOL,
+  InstructionsWithLookupTables,
 } from './utils';
 import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import {
@@ -1647,13 +1648,13 @@ export class Kamino {
 
   singleSidedDepositTokenA = async (
     strategy: PublicKey | StrategyWithAddress,
-    amount: Decimal,
+    amountToDeposit: Decimal,
     owner: PublicKey,
     slippage: Decimal,
     swapIxsBuilder?: SwapperIxBuilder,
     initialUserTokenBalances?: TokensBalances,
     priceAInB?: Decimal
-  ): Promise<[TransactionInstruction[], PublicKey[]]> => {
+  ): Promise<InstructionsWithLookupTables> => {
     const strategyWithAddress = await this.getStrategyStateIfNotFetched(strategy);
 
     let userTokenBalances = await this.getInitialUserTokenBalances(
@@ -1663,6 +1664,7 @@ export class Kamino {
       initialUserTokenBalances
     );
 
+    // if any of the tokens is SOL, we need to read how much SOL the user has, not how much wSOL which is what getInitialUserTokenBalances returns
     if (isSOLMint(strategyWithAddress.strategy.tokenAMint)) {
       userTokenBalances.a = lamportsToNumberDecimal(
         new Decimal(await this._connection.getBalance(owner)),
@@ -1680,7 +1682,7 @@ export class Kamino {
     if (!userTokenBalances.a || !userTokenBalances.b) {
       throw Error('Error reading user token balances');
     }
-    let tokenAMinPostDepositBalance = userTokenBalances.a.sub(amount);
+    let tokenAMinPostDepositBalance = userTokenBalances.a.sub(amountToDeposit);
 
     let swapper: SwapperIxBuilder = swapIxsBuilder
       ? swapIxsBuilder
@@ -1705,13 +1707,13 @@ export class Kamino {
 
   singleSidedDepositTokenB = async (
     strategy: PublicKey | StrategyWithAddress,
-    amount: Decimal,
+    amountToDeposit: Decimal,
     owner: PublicKey,
     slippage: Decimal,
     swapIxsBuilder?: SwapperIxBuilder,
     initialUserTokenBalances?: TokensBalances,
     priceAInB?: Decimal
-  ): Promise<[TransactionInstruction[], PublicKey[]]> => {
+  ): Promise<InstructionsWithLookupTables> => {
     const strategyWithAddress = await this.getStrategyStateIfNotFetched(strategy);
 
     let userTokenBalances = await this.getInitialUserTokenBalances(
@@ -1721,6 +1723,7 @@ export class Kamino {
       initialUserTokenBalances
     );
 
+    // if any of the tokens is SOL, we need to read how much SOL the user has, not how much wSOL which is what getInitialUserTokenBalances returns
     if (isSOLMint(strategyWithAddress.strategy.tokenAMint)) {
       userTokenBalances.a = lamportsToNumberDecimal(
         new Decimal(await this._connection.getBalance(owner)),
@@ -1738,7 +1741,7 @@ export class Kamino {
     if (!userTokenBalances.a || !userTokenBalances.b) {
       throw Error('Error reading user token balances');
     }
-    let tokenBMinPostDepositBalance = userTokenBalances.b.sub(amount);
+    let tokenBMinPostDepositBalance = userTokenBalances.b.sub(amountToDeposit);
 
     let swapper: SwapperIxBuilder = swapIxsBuilder
       ? swapIxsBuilder
@@ -1807,7 +1810,7 @@ export class Kamino {
     swapSlippage: Decimal,
     swapIxsBuilder: SwapperIxBuilder,
     priceAInB?: Decimal // not mandatory as it will be fetched from Jupyter
-  ): Promise<[TransactionInstruction[], PublicKey[]]> => {
+  ): Promise<InstructionsWithLookupTables> => {
     const strategyWithAddress = await this.getStrategyStateIfNotFetched(strategy);
     const strategyState = strategyWithAddress.strategy;
 
@@ -1910,7 +1913,7 @@ export class Kamino {
       priceAInB
     );
 
-    let [jupSwapIxs, lookupTableAddresses] = await swapIxsBuilder(
+    let [jupSwapIxs, lookupTablesAddresses] = await swapIxsBuilder(
       amountsToDepositWithSwap,
       strategyState.tokenAMint,
       strategyState.tokenBMint,
@@ -1973,7 +1976,7 @@ export class Kamino {
     result.push(...createAtasIxns);
 
     result = result.concat([checkExpectedVaultsBalancesIx, ...jupSwapIxs, singleSidedDepositIx, ...cleanupIxs]);
-    return [result, lookupTableAddresses];
+    return { instructions: result, lookupTablesAddresses };
   };
 
   getJupSwapIxs = async (
