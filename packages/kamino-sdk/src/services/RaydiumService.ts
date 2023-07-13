@@ -65,7 +65,6 @@ export class RaydiumService {
 
     raydiumLiqDistribution.data.forEach((entry) => {
       let tickIndex = priceToTickIndexWithRounding(entry.price);
-      console.log(`price: ${entry.price}, tickIndex: ${tickIndex}}`);
       if ((lowestTick && tickIndex < lowestTick) || (highestTick && tickIndex > highestTick)) {
         return;
       }
