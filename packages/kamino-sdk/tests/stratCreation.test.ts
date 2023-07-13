@@ -676,6 +676,15 @@ describe('Kamino strategy creation SDK Tests', () => {
     console.log('raydium liquidityDistribution', liquidityDistribution);
   });
 
+  it('get raydium positions for live pool', async () => {
+    let raydiumService = new RaydiumService(connection, cluster);
+    let liquidityDistribution = await raydiumService.getRaydiumPoolLiquidityDistribution(
+      new PublicKey('61R1ndXxvsWXXkWSyNkCxnzwd3zUNB8Q2ibmkiLPC8ht')
+    );
+
+    console.log('raydium liquidityDistribution', liquidityDistribution);
+  });
+
   it.skip('get orca pool liquidity distribution', async () => {
     let orcaService = new OrcaService(connection, cluster, GlobalConfigMainnet);
     let liquidityDistribution = await orcaService.getWhirlpoolLiquidityDistribution(
