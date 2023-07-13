@@ -682,9 +682,6 @@ describe('Kamino strategy creation SDK Tests', () => {
       new PublicKey('61R1ndXxvsWXXkWSyNkCxnzwd3zUNB8Q2ibmkiLPC8ht')
     );
 
-    let x = liquidityDistribution.distribution.map((x) => {
-      x.liquidity.toString(), x.price.toString();
-    });
     console.log('raydium liquidityDistribution', liquidityDistribution);
   });
 
