@@ -92,6 +92,7 @@ import {
   RebalanceParams,
   numberToDex,
   readBigUint128LE,
+  RAYDIUM_DEVNET_PROGRAM_ID,
 } from './utils';
 import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import {
@@ -243,6 +244,10 @@ export class Kamino {
     }
     if (raydiumProgramId) {
       setRaydiumProgramId(raydiumProgramId);
+    } else {
+      if (cluster == 'devnet') {
+        setRaydiumProgramId(RAYDIUM_DEVNET_PROGRAM_ID);
+      }
     }
     this._orcaService = new OrcaService(connection, cluster, this._globalConfig);
     this._raydiumService = new RaydiumService(connection, cluster);

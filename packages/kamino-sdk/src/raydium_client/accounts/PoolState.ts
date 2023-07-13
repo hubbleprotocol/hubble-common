@@ -310,7 +310,6 @@ export class PoolState {
 
   static async fetchMultiple(c: Connection, addresses: PublicKey[]): Promise<Array<PoolState | null>> {
     const infos = await c.getMultipleAccountsInfo(addresses);
-
     return infos.map((info) => {
       if (info === null) {
         return null;

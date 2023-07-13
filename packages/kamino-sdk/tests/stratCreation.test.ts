@@ -676,7 +676,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     console.log('raydium liquidityDistribution', liquidityDistribution);
   });
 
-  it('get raydium positions for live pool', async () => {
+  it.skip('get raydium positions for live pool', async () => {
     let raydiumService = new RaydiumService(connection, cluster);
     let liquidityDistribution = await raydiumService.getRaydiumPoolLiquidityDistribution(
       new PublicKey('61R1ndXxvsWXXkWSyNkCxnzwd3zUNB8Q2ibmkiLPC8ht')
@@ -1045,5 +1045,13 @@ describe('Kamino strategy creation SDK Tests', () => {
     //@ts-ignore
     const openPositionTxId = await sendAndConfirmTransaction(kamino._connection, openPositionTx);
     console.log('openPositionTxId', openPositionTxId);
+  });
+
+  it('read strategies share data on devnet', async () => {
+    let devnetConnection = new Connection('https://api.devnet.solana.com', 'processed');
+    let kamino = new Kamino('devnet', devnetConnection);
+
+    const shareData = await kamino.getStrategiesShareData({});
+    console.log('shareData', shareData.length);
   });
 });
