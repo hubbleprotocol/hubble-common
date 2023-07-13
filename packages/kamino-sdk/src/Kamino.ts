@@ -3683,6 +3683,7 @@ export class Kamino {
     tokenAAmount?: Decimal,
     tokenBAmount?: Decimal
   ): Promise<[Decimal, Decimal]> => {
+    console.log('calculateAmountsToBeDeposited', tokenAAmount, tokenBAmount);
     const { strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
     if (strategyState.shareCalculationMethod === DOLAR_BASED) {
       return this.calculateDepostAmountsDollarBased(strategy, tokenAAmount, tokenBAmount);
@@ -3743,6 +3744,7 @@ export class Kamino {
     tokenAAmount?: Decimal,
     tokenBAmount?: Decimal
   ): Promise<[Decimal, Decimal]> => {
+    console.log('calculateDepostAmountsDollarBased', tokenAAmount, tokenBAmount);
     const { strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
     const dex = Number(strategyState.strategyDex);
     const isOrca = dexToNumber('ORCA') === dex;
@@ -3852,19 +3854,52 @@ export class Kamino {
     if (!poolState) {
       throw new Error(`poolState ${strategyState.pool.toString()} is not found`);
     }
-    const primaryTokenAmount = tokenAAmount || tokenBAmount;
-    const secondaryTokenAmount = tokenAAmount ? tokenBAmount : tokenAAmount;
 
-    const { amountA, amountB } = LiquidityMath.getAmountsFromLiquidity(
-      poolState.sqrtPriceX64,
-      SqrtPriceMath.getSqrtPriceX64FromTick(position.tickLowerIndex),
-      SqrtPriceMath.getSqrtPriceX64FromTick(position.tickUpperIndex),
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      new BN(primaryTokenAmount!.plus(secondaryTokenAmount || 0)!.toString()), // safe to use ! here because we check in the beginning that at least one of the amounts are not undefined;
-      true
-    );
+    if (tokenAAmount && tokenBAmount && tokenAAmount.gt(0) && tokenBAmount.gt(0)) {
+      const liquidity = LiquidityMath.getLiquidityFromTokenAmounts(
+        poolState.sqrtPriceX64,
+        SqrtPriceMath.getSqrtPriceX64FromTick(position.tickLowerIndex),
+        SqrtPriceMath.getSqrtPriceX64FromTick(position.tickUpperIndex),
+        new BN(tokenAAmount.toString()),
+        new BN(tokenBAmount.toString())
+      );
 
-    return [new Decimal(amountA.toString()), new Decimal(amountB.toString())];
+      const { amountA, amountB } = LiquidityMath.getAmountsFromLiquidity(
+        poolState.sqrtPriceX64,
+        SqrtPriceMath.getSqrtPriceX64FromTick(position.tickLowerIndex),
+        SqrtPriceMath.getSqrtPriceX64FromTick(position.tickUpperIndex),
+        liquidity,
+        true
+      );
+
+      return [new Decimal(amountA.toString()), new Decimal(amountB.toString())];
+    } else {
+      const primaryTokenAmount = tokenAAmount || tokenBAmount;
+      const secondaryTokenAmount = tokenAAmount ? tokenBAmount : tokenAAmount;
+
+      const { amountA, amountB } = LiquidityMath.getAmountsFromLiquidity(
+        poolState.sqrtPriceX64,
+        SqrtPriceMath.getSqrtPriceX64FromTick(position.tickLowerIndex),
+        SqrtPriceMath.getSqrtPriceX64FromTick(position.tickUpperIndex),
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        new BN(primaryTokenAmount!.plus(secondaryTokenAmount || 0)!.toString()), // safe to use ! here because we check in the beginning that at least one of the amounts are not undefined;
+        true
+      );
+
+      const amountADecimal = new Decimal(amountA.toString());
+      const amountBDecimal = new Decimal(amountB.toString());
+      const ratio = amountADecimal.div(amountBDecimal);
+      if (tokenAAmount === undefined || tokenAAmount.eq(ZERO)) {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        return [tokenBAmount!.mul(ratio), tokenBAmount!];
+      }
+
+      if (tokenBAmount === undefined || tokenBAmount.eq(ZERO)) {
+        return [tokenAAmount, tokenAAmount.div(ratio)];
+      }
+    }
+
+    return [new Decimal(0), new Decimal(0)];
   };
 
   /**
