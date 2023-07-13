@@ -4,6 +4,8 @@ import { Dex, collToLamportsDecimal } from './utils';
 import Decimal from 'decimal.js';
 import { RebalanceTypeKind } from '../kamino-client/types';
 
+export const RAYDIUM_DEVNET_PROGRAM_ID = new PublicKey('devi51mZmdwUJGU9hjN27vEz64Gps7uUefqxg27EAtH');
+
 export type StrategyType = 'NON_PEGGED' | 'PEGGED' | 'STABLE';
 export type StrategyCreationStatus = 'IGNORED' | 'SHADOW' | 'LIVE' | 'DEPRECATED' | 'STAGING';
 

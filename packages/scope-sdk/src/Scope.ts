@@ -76,6 +76,7 @@ export class Scope {
     { id: 62, pair: 'USDCEma/USD', name: 'USDCEma', price: new Decimal(0) },
     { id: 63, pair: 'USDTEma/USD', name: 'USDTEma', price: new Decimal(0) },
     { id: 65, pair: 'DAIEma/USD', name: 'DAIEma', price: new Decimal(0) },
+    { id: 66, pair: 'wstETHEma/USD', name: 'wstETHEma', price: new Decimal(0) },
     { id: 67, pair: 'DUSTTwap/USD', name: 'DUSTTwap', price: new Decimal(0) },
     { id: 68, pair: 'BONK/USD', name: 'BONK', price: new Decimal(0) },
     { id: 69, pair: 'BONKTwap/USD', name: 'BONKTwap', price: new Decimal(0) },

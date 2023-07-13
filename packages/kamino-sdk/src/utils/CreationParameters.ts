@@ -21,20 +21,23 @@ export const DefaultDex: Dex = 'ORCA';
 export interface RebalanceMethod {
   label: String;
   value: number;
+  descriptionShort?: string;
   description?: string;
 }
 
 export const ManualRebalanceMethod: RebalanceMethod = {
-  label: 'Manual',
+  label: 'Fixed Ranges',
   value: Manual.discriminator,
+  descriptionShort: 'Market make with no rebalancing',
   description:
-    'With Kamino’s Manual Price Range Selection strategy, you have full control over the price range at which your orders are placed. This strategy allows you to set your own price range and adjust it as needed, giving you greater flexibility and customization in your market-making efforts.',
+    'Liquidity is provided to a specified range width, with no rebalancing performed in any price scenario, thus no impermanent loss is via range adjustment. Asymmetric range widths are supported eg. 50% below price, and 500% above',
 };
 export const PricePercentageRebalanceMethod: RebalanceMethod = {
-  label: 'Price Percentage',
+  label: 'Tracker',
   value: PricePercentage.discriminator,
+  descriptionShort: 'Maximize trading fee capture',
   description:
-    'Optimize your portfolio for maximum returns with Kamino’s Automated Percentage Rebalancing strategy. Automatically adjust your allocation based on predetermined percentages for a balanced and risk-minimized portfolio.',
+    'Liquidity is provided to a specified range width, with rebalancing performed to the initial token ratio should the price move beyond a specified percentage in either direction. Asymmetric range widths are supported eg. 50% below price, and 500% above',
 };
 export const PricePercentageWithResetRangeRebalanceMethod: RebalanceMethod = {
   label: 'Price Percentage With Reset Range',

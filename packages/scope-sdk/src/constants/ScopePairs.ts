@@ -63,6 +63,7 @@ export const ScopePairs = [
   'USDCEma/USD',
   'USDTEma/USD',
   'DAIEma/USD',
+  'wstETHEma/USD',
   'DUSTTwap/USD',
   'BONK/USD',
   'BONKTwap/USD',
