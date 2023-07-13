@@ -1046,4 +1046,12 @@ describe('Kamino strategy creation SDK Tests', () => {
     const openPositionTxId = await sendAndConfirmTransaction(kamino._connection, openPositionTx);
     console.log('openPositionTxId', openPositionTxId);
   });
+
+  it('read strategies share data on devnet', async () => {
+    let devnetConnection = new Connection('https://api.devnet.solana.com', 'processed');
+    let kamino = new Kamino('devnet', devnetConnection);
+
+    const shareData = await kamino.getStrategiesShareData({});
+    console.log('shareData', shareData.length);
+  });
 });
