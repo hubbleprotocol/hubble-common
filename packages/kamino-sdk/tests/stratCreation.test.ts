@@ -1249,6 +1249,8 @@ describe('Kamino strategy creation SDK Tests', () => {
     } catch (e) {
       console.log(e);
     }
+  });
+
   it('read strategies share data on devnet', async () => {
     let devnetConnection = new Connection('https://api.devnet.solana.com', 'processed');
     let kamino = new Kamino('devnet', devnetConnection);

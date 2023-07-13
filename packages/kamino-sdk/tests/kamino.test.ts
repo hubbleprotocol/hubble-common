@@ -816,7 +816,6 @@ describe('Kamino SDK Tests', () => {
     });
 
     let withdrawTx = createTransactionWithExtraBudget(user.owner.publicKey);
-
     const withdrawIxns = await kamino.withdrawAllShares(strategyWithAddress, user.owner.publicKey);
     if (withdrawIxns) {
       tx.add(...withdrawIxns);
