@@ -21,6 +21,7 @@ import {
 import axios from 'axios';
 import { FullPercentage } from '../utils/CreationParameters';
 import { PROGRAM_ID as RAYDIUM_PROGRAM_ID } from '../raydium_client/programId';
+import { priceToTickIndexWithRounding } from '../utils/raydium';
 
 export class RaydiumService {
   private readonly _connection: Connection;
@@ -63,12 +64,8 @@ export class RaydiumService {
     };
 
     raydiumLiqDistribution.data.forEach((entry) => {
-      let tickIndex = TickMath.getTickWithPriceAndTickspacing(
-        new Decimal(entry.price),
-        poolState.tickSpacing,
-        poolState.mintDecimals0,
-        poolState.mintDecimals1
-      );
+      let tickIndex = priceToTickIndexWithRounding(entry.price);
+      console.log(`price: ${entry.price}, tickIndex: ${tickIndex}}`);
       if ((lowestTick && tickIndex < lowestTick) || (highestTick && tickIndex > highestTick)) {
         return;
       }
