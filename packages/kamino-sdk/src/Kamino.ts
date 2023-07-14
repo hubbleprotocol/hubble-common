@@ -3683,7 +3683,7 @@ export class Kamino {
     tokenAAmount?: Decimal,
     tokenBAmount?: Decimal
   ): Promise<[Decimal, Decimal]> => {
-    console.log('calculateAmountsToBeDeposited', tokenAAmount, tokenBAmount);
+    console.log('calculateAmountsToBeDeposited', tokenAAmount?.toString(), tokenBAmount?.toString());
     const { strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
     if (strategyState.shareCalculationMethod === DOLAR_BASED) {
       return this.calculateDepostAmountsDollarBased(strategy, tokenAAmount, tokenBAmount);
@@ -3744,7 +3744,7 @@ export class Kamino {
     tokenAAmount?: Decimal,
     tokenBAmount?: Decimal
   ): Promise<[Decimal, Decimal]> => {
-    console.log('calculateDepostAmountsDollarBased', tokenAAmount, tokenBAmount);
+    console.log('calculateDepostAmountsDollarBased', tokenAAmount?.toString(), tokenBAmount?.toString());
     const { strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
     const dex = Number(strategyState.strategyDex);
     const isOrca = dexToNumber('ORCA') === dex;
