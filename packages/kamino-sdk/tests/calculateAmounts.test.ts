@@ -17,9 +17,7 @@ describe('Kamino strategy creation SDK Tests', () => {
   const clusterUrl: string = 'https://api.mainnet-beta.solana.com';
   connection = new Connection(clusterUrl, 'processed');
 
-  it('Calculate Mainnet Raydium ratio', async () => {
-    console.log('test');
-
+  it.skip('Calculate Mainnet Raydium ratio', async () => {
     let kamino = new Kamino(
       cluster,
       connection,
@@ -38,9 +36,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     console.log('Res', res);
   });
 
-  it('Calculate Raydium ratios', async () => {
-    console.log('test');
-
+  it.skip('Calculate Raydium ratios', async () => {
     let kamino = new Kamino(
       cluster,
       connection,
