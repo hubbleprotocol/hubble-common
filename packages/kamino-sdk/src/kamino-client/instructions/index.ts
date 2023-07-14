@@ -82,6 +82,16 @@ export type {
   SwapUnevenVaultsArgs,
   SwapUnevenVaultsAccounts,
 } from "./swapUnevenVaults"
+export { checkExpectedVaultsBalances } from "./checkExpectedVaultsBalances"
+export type {
+  CheckExpectedVaultsBalancesArgs,
+  CheckExpectedVaultsBalancesAccounts,
+} from "./checkExpectedVaultsBalances"
+export { singleTokenDepositAndInvestWithMin } from "./singleTokenDepositAndInvestWithMin"
+export type {
+  SingleTokenDepositAndInvestWithMinArgs,
+  SingleTokenDepositAndInvestWithMinAccounts,
+} from "./singleTokenDepositAndInvestWithMin"
 export { flashSwapUnevenVaultsStart } from "./flashSwapUnevenVaultsStart"
 export type {
   FlashSwapUnevenVaultsStartArgs,

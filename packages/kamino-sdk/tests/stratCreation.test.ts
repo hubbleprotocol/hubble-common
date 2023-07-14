@@ -21,6 +21,8 @@ import { expect } from 'chai';
 import { WHIRLPOOL_PROGRAM_ID } from '../src/whirpools-client/programId';
 import { PROGRAM_ID as RAYDIUM_PROGRAM_ID } from '../src/raydium_client/programId';
 import { Manual, PricePercentage, PricePercentageWithReset } from '../src/kamino-client/types/RebalanceType';
+import { MAINNET_GLOBAL_LOOKUP_TABLE } from '../dist/constants/pubkeys';
+import { createWsolAtaIfMissing, getComputeBudgetAndPriorityFeeIxns } from '../src/utils/transactions';
 
 describe('Kamino strategy creation SDK Tests', () => {
   let connection: Connection;
@@ -1045,6 +1047,208 @@ describe('Kamino strategy creation SDK Tests', () => {
     //@ts-ignore
     const openPositionTxId = await sendAndConfirmTransaction(kamino._connection, openPositionTx);
     console.log('openPositionTxId', openPositionTxId);
+  });
+
+  it.skip('one click single sided deposit USDC in USDH-USDC', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      GlobalConfigMainnet,
+      KaminoProgramIdMainnet,
+      WHIRLPOOL_PROGRAM_ID,
+      RAYDIUM_PROGRAM_ID
+    );
+
+    let strategy = new PublicKey('Cfuy5T6osdazUeLego5LFycBQebm9PP3H7VNdCndXXEN');
+
+    let strategyState = (await kamino.getStrategies([strategy]))[0];
+    if (!strategyState) {
+      throw new Error('strategy not found');
+    }
+
+    let amountToDeposit = new Decimal(1.0);
+
+    let singleSidedDepositIxs: TransactionInstruction[] = [];
+    let lookupTables: PublicKey[] = [];
+    // if USDC is tokenA mint deposit tokenA, else deposit tokenB
+    if (strategyState.tokenAMint == USDCMintMainnet) {
+      let { instructions, lookupTablesAddresses } = await kamino.singleSidedDepositTokenA(
+        strategy,
+        amountToDeposit,
+        signer.publicKey,
+        new Decimal(15)
+      );
+      singleSidedDepositIxs = instructions;
+      lookupTables = lookupTablesAddresses;
+    } else {
+      let { instructions, lookupTablesAddresses } = await kamino.singleSidedDepositTokenB(
+        strategy,
+        amountToDeposit,
+        signer.publicKey,
+        new Decimal(15)
+      );
+      singleSidedDepositIxs = instructions;
+      lookupTables = lookupTablesAddresses;
+    }
+
+    const singleSidedDepositMessage = await kamino.getTransactionV2Message(signer.publicKey, singleSidedDepositIxs, [
+      ...lookupTables,
+      MAINNET_GLOBAL_LOOKUP_TABLE,
+    ]);
+    const singleSidedDepositTx = new VersionedTransaction(singleSidedDepositMessage);
+    singleSidedDepositTx.sign([signer]);
+
+    try {
+      //@ts-ignore
+      const depositTxId = await sendAndConfirmTransaction(kamino._connection, singleSidedDepositTx);
+      console.log('singleSidedDepoxit tx hash', depositTxId);
+    } catch (e) {
+      console.log(e);
+    }
+  });
+
+  it.skip('one click single sided deposit USDC in SOL-USDC strat', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      GlobalConfigMainnet,
+      KaminoProgramIdMainnet,
+      WHIRLPOOL_PROGRAM_ID,
+      RAYDIUM_PROGRAM_ID
+    );
+
+    let strategy = new PublicKey('CEz5keL9hBCUbtVbmcwenthRMwmZLupxJ6YtYAgzp4ex');
+
+    let strategyState = (await kamino.getStrategies([strategy]))[0];
+    if (!strategyState) {
+      throw new Error('strategy not found');
+    }
+
+    let amountToDeposit = new Decimal(1.0);
+
+    let singleSidedDepositIxs: TransactionInstruction[] = [];
+    let lookupTables: PublicKey[] = [];
+    // if USDC is tokenA mint deposit tokenA, else deposit tokenB
+    if (strategyState.tokenAMint.toString() === USDCMintMainnet.toString()) {
+      let { instructions, lookupTablesAddresses } = await kamino.singleSidedDepositTokenA(
+        strategy,
+        amountToDeposit,
+        signer.publicKey,
+        new Decimal(50)
+      );
+      singleSidedDepositIxs = instructions;
+      lookupTables = lookupTablesAddresses;
+    } else {
+      let { instructions, lookupTablesAddresses } = await kamino.singleSidedDepositTokenB(
+        strategy,
+        amountToDeposit,
+        signer.publicKey,
+        new Decimal(50)
+      );
+      singleSidedDepositIxs = instructions;
+      lookupTables = lookupTablesAddresses;
+    }
+
+    const singleSidedDepositMessage = await kamino.getTransactionV2Message(
+      signer.publicKey,
+      [...getComputeBudgetAndPriorityFeeIxns(1_400_000), ...singleSidedDepositIxs],
+      [...lookupTables, MAINNET_GLOBAL_LOOKUP_TABLE]
+    );
+    const singleSidedDepositTx = new VersionedTransaction(singleSidedDepositMessage);
+    singleSidedDepositTx.sign([signer]);
+
+    try {
+      //@ts-ignore
+      const depositTxId = await sendAndConfirmTransaction(kamino._connection, singleSidedDepositTx);
+      console.log('singleSidedDepoxit tx hash', depositTxId);
+    } catch (e) {
+      console.log(e);
+    }
+  });
+
+  it.skip('one click single sided deposit SOL in SOL-USDC strat', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      GlobalConfigMainnet,
+      KaminoProgramIdMainnet,
+      WHIRLPOOL_PROGRAM_ID,
+      RAYDIUM_PROGRAM_ID
+    );
+
+    let strategy = new PublicKey('CEz5keL9hBCUbtVbmcwenthRMwmZLupxJ6YtYAgzp4ex');
+
+    let strategyState = (await kamino.getStrategies([strategy]))[0];
+    if (!strategyState) {
+      throw new Error('strategy not found');
+    }
+
+    let amountToDeposit = new Decimal(0.1);
+
+    let singleSidedDepositIxs: TransactionInstruction[] = [];
+    let lookupTables: PublicKey[] = [];
+    // if USDC is tokenA mint deposit tokenA, else deposit tokenB
+    if (strategyState.tokenAMint.toString() === SOLMintMainnet.toString()) {
+      let { instructions, lookupTablesAddresses } = await kamino.singleSidedDepositTokenA(
+        strategy,
+        amountToDeposit,
+        signer.publicKey,
+        new Decimal(50)
+      );
+      singleSidedDepositIxs = instructions;
+      lookupTables = lookupTablesAddresses;
+    } else {
+      let { instructions, lookupTablesAddresses } = await kamino.singleSidedDepositTokenB(
+        strategy,
+        amountToDeposit,
+        signer.publicKey,
+        new Decimal(50)
+      );
+      singleSidedDepositIxs = instructions;
+      lookupTables = lookupTablesAddresses;
+    }
+
+    const singleSidedDepositMessage = await kamino.getTransactionV2Message(
+      signer.publicKey,
+      [...getComputeBudgetAndPriorityFeeIxns(1_400_000), ...singleSidedDepositIxs],
+      [...lookupTables, MAINNET_GLOBAL_LOOKUP_TABLE]
+    );
+    const singleSidedDepositTx = new VersionedTransaction(singleSidedDepositMessage);
+    singleSidedDepositTx.sign([signer]);
+
+    try {
+      //@ts-ignore
+      const depositTxId = await sendAndConfirmTransaction(kamino._connection, singleSidedDepositTx);
+      console.log('singleSidedDepoxit tx hash', depositTxId);
+    } catch (e) {
+      console.log(e);
+    }
+  });
+
+  it.skip('create wSOL ata', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      GlobalConfigMainnet,
+      KaminoProgramIdMainnet,
+      WHIRLPOOL_PROGRAM_ID,
+      RAYDIUM_PROGRAM_ID
+    );
+
+    //@ts-ignore
+    let createWSolAtaIxns = await createWsolAtaIfMissing(kamino._connection, new Decimal(0), signer.publicKey);
+
+    const createwSolAtaMessage = await kamino.getTransactionV2Message(signer.publicKey, createWSolAtaIxns.createIxns);
+    const createwSolAtaTx = new VersionedTransaction(createwSolAtaMessage);
+    createwSolAtaTx.sign([signer]);
+
+    try {
+      //@ts-ignore
+      const createwSolAtaTxHash = await sendAndConfirmTransaction(kamino._connection, createwSolAtaTx);
+      console.log('singleSidedDepoxit tx hash', createwSolAtaTxHash);
+    } catch (e) {
+      console.log(e);
+    }
   });
 
   it('read strategies share data on devnet', async () => {

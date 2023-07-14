@@ -10,7 +10,7 @@ export interface FlashSwapUnevenVaultsStartArgs {
 }
 
 export interface FlashSwapUnevenVaultsStartAccounts {
-  actionsAuthority: PublicKey
+  swapper: PublicKey
   strategy: PublicKey
   globalConfig: PublicKey
   tokenAVault: PublicKey
@@ -44,7 +44,7 @@ export function flashSwapUnevenVaultsStart(
   accounts: FlashSwapUnevenVaultsStartAccounts
 ) {
   const keys: Array<AccountMeta> = [
-    { pubkey: accounts.actionsAuthority, isSigner: true, isWritable: true },
+    { pubkey: accounts.swapper, isSigner: true, isWritable: true },
     { pubkey: accounts.strategy, isSigner: false, isWritable: true },
     { pubkey: accounts.globalConfig, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenAVault, isSigner: false, isWritable: true },

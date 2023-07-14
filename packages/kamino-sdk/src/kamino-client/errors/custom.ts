@@ -123,6 +123,10 @@ export type CustomError =
   | DecimalOperationFailed
   | VaultBalancesCausesWrongSharesIssuance
   | TokenDisabled
+  | InvalidReferencePriceType
+  | TokenToSwapNotEnough
+  | TokenAccountBalanceMismatch
+  | UnexpectedProgramIdForPrerequisiteIx
 
 export class IntegerOverflow extends Error {
   static readonly code = 6000
@@ -1512,6 +1516,50 @@ export class TokenDisabled extends Error {
   }
 }
 
+export class InvalidReferencePriceType extends Error {
+  static readonly code = 6124
+  readonly code = 6124
+  readonly name = "InvalidReferencePriceType"
+  readonly msg = "Invalid reference price type"
+
+  constructor(readonly logs?: string[]) {
+    super("6124: Invalid reference price type")
+  }
+}
+
+export class TokenToSwapNotEnough extends Error {
+  static readonly code = 6125
+  readonly code = 6125
+  readonly name = "TokenToSwapNotEnough"
+  readonly msg = "Token amount to be swapped is not enough"
+
+  constructor(readonly logs?: string[]) {
+    super("6125: Token amount to be swapped is not enough")
+  }
+}
+
+export class TokenAccountBalanceMismatch extends Error {
+  static readonly code = 6126
+  readonly code = 6126
+  readonly name = "TokenAccountBalanceMismatch"
+  readonly msg = "Token amount in ata is different than the expected amount"
+
+  constructor(readonly logs?: string[]) {
+    super("6126: Token amount in ata is different than the expected amount")
+  }
+}
+
+export class UnexpectedProgramIdForPrerequisiteIx extends Error {
+  static readonly code = 6127
+  readonly code = 6127
+  readonly name = "UnexpectedProgramIdForPrerequisiteIx"
+  readonly msg = "Unexpected programID for prerequisite ix"
+
+  constructor(readonly logs?: string[]) {
+    super("6127: Unexpected programID for prerequisite ix")
+  }
+}
+
 export function fromCode(code: number, logs?: string[]): CustomError | null {
   switch (code) {
     case 6000:
@@ -1762,6 +1810,14 @@ export function fromCode(code: number, logs?: string[]): CustomError | null {
       return new VaultBalancesCausesWrongSharesIssuance(logs)
     case 6123:
       return new TokenDisabled(logs)
+    case 6124:
+      return new InvalidReferencePriceType(logs)
+    case 6125:
+      return new TokenToSwapNotEnough(logs)
+    case 6126:
+      return new TokenAccountBalanceMismatch(logs)
+    case 6127:
+      return new UnexpectedProgramIdForPrerequisiteIx(logs)
   }
 
   return null

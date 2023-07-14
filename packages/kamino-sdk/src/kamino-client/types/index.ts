@@ -1,4 +1,5 @@
 import * as WithdrawalCapAccumulatorAction from "./WithdrawalCapAccumulatorAction"
+import * as RebalanceEffects from "./RebalanceEffects"
 import * as SwapLimit from "./SwapLimit"
 import * as MintingMethod from "./MintingMethod"
 import * as GlobalConfigOption from "./GlobalConfigOption"
@@ -7,9 +8,11 @@ import * as StrategyStatus from "./StrategyStatus"
 import * as StrategyType from "./StrategyType"
 import * as CreationStatus from "./CreationStatus"
 import * as ExecutiveWithdrawAction from "./ExecutiveWithdrawAction"
+import * as ReferencePriceType from "./ReferencePriceType"
 import * as LiquidityCalculationMode from "./LiquidityCalculationMode"
 import * as UpdateCollateralInfoMode from "./UpdateCollateralInfoMode"
 import * as BalanceStatus from "./BalanceStatus"
+import * as RebalanceAction from "./RebalanceAction"
 import * as RebalanceType from "./RebalanceType"
 import * as CollateralTestToken from "./CollateralTestToken"
 import * as ScopePriceIdTest from "./ScopePriceIdTest"
@@ -50,6 +53,15 @@ export type WithdrawalCapAccumulatorActionKind =
 export type WithdrawalCapAccumulatorActionJSON =
   | WithdrawalCapAccumulatorAction.KeepAccumulatorJSON
   | WithdrawalCapAccumulatorAction.ResetAccumulatorJSON
+
+export { RebalanceEffects }
+
+export type RebalanceEffectsKind =
+  | RebalanceEffects.NewRange
+  | RebalanceEffects.ClosePosition
+export type RebalanceEffectsJSON =
+  | RebalanceEffects.NewRangeJSON
+  | RebalanceEffects.ClosePositionJSON
 
 export { SwapLimit }
 
@@ -151,6 +163,10 @@ export type StrategyConfigOptionKind =
   | StrategyConfigOption.UpdateRebalanceParams
   | StrategyConfigOption.UpdateDepositMintingMethod
   | StrategyConfigOption.UpdateLookupTable
+  | StrategyConfigOption.UpdateReferencePriceType
+  | StrategyConfigOption.UpdateReward0Amount
+  | StrategyConfigOption.UpdateReward1Amount
+  | StrategyConfigOption.UpdateReward2Amount
 export type StrategyConfigOptionJSON =
   | StrategyConfigOption.UpdateDepositCapJSON
   | StrategyConfigOption.UpdateDepositCapIxnJSON
@@ -194,6 +210,10 @@ export type StrategyConfigOptionJSON =
   | StrategyConfigOption.UpdateRebalanceParamsJSON
   | StrategyConfigOption.UpdateDepositMintingMethodJSON
   | StrategyConfigOption.UpdateLookupTableJSON
+  | StrategyConfigOption.UpdateReferencePriceTypeJSON
+  | StrategyConfigOption.UpdateReward0AmountJSON
+  | StrategyConfigOption.UpdateReward1AmountJSON
+  | StrategyConfigOption.UpdateReward2AmountJSON
 
 export { StrategyStatus }
 
@@ -202,11 +222,13 @@ export type StrategyStatusKind =
   | StrategyStatus.Active
   | StrategyStatus.Frozen
   | StrategyStatus.Rebalancing
+  | StrategyStatus.NoPosition
 export type StrategyStatusJSON =
   | StrategyStatus.UninitializedJSON
   | StrategyStatus.ActiveJSON
   | StrategyStatus.FrozenJSON
   | StrategyStatus.RebalancingJSON
+  | StrategyStatus.NoPositionJSON
 
 export { StrategyType }
 
@@ -244,6 +266,15 @@ export type ExecutiveWithdrawActionJSON =
   | ExecutiveWithdrawAction.FreezeJSON
   | ExecutiveWithdrawAction.UnfreezeJSON
   | ExecutiveWithdrawAction.RebalanceJSON
+
+export { ReferencePriceType }
+
+export type ReferencePriceTypeKind =
+  | ReferencePriceType.POOL
+  | ReferencePriceType.TWAP
+export type ReferencePriceTypeJSON =
+  | ReferencePriceType.POOLJSON
+  | ReferencePriceType.TWAPJSON
 
 export { LiquidityCalculationMode }
 
@@ -289,6 +320,15 @@ export type BalanceStatusKind =
 export type BalanceStatusJSON =
   | BalanceStatus.BalancedJSON
   | BalanceStatus.UnbalancedJSON
+
+export { RebalanceAction }
+
+export type RebalanceActionKind =
+  | RebalanceAction.NewRange
+  | RebalanceAction.ClosePosition
+export type RebalanceActionJSON =
+  | RebalanceAction.NewRangeJSON
+  | RebalanceAction.ClosePositionJSON
 
 export { RebalanceType }
 

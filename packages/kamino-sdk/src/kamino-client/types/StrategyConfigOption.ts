@@ -969,6 +969,98 @@ export class UpdateLookupTable {
   }
 }
 
+export interface UpdateReferencePriceTypeJSON {
+  kind: "UpdateReferencePriceType"
+}
+
+export class UpdateReferencePriceType {
+  static readonly discriminator = 42
+  static readonly kind = "UpdateReferencePriceType"
+  readonly discriminator = 42
+  readonly kind = "UpdateReferencePriceType"
+
+  toJSON(): UpdateReferencePriceTypeJSON {
+    return {
+      kind: "UpdateReferencePriceType",
+    }
+  }
+
+  toEncodable() {
+    return {
+      UpdateReferencePriceType: {},
+    }
+  }
+}
+
+export interface UpdateReward0AmountJSON {
+  kind: "UpdateReward0Amount"
+}
+
+export class UpdateReward0Amount {
+  static readonly discriminator = 43
+  static readonly kind = "UpdateReward0Amount"
+  readonly discriminator = 43
+  readonly kind = "UpdateReward0Amount"
+
+  toJSON(): UpdateReward0AmountJSON {
+    return {
+      kind: "UpdateReward0Amount",
+    }
+  }
+
+  toEncodable() {
+    return {
+      UpdateReward0Amount: {},
+    }
+  }
+}
+
+export interface UpdateReward1AmountJSON {
+  kind: "UpdateReward1Amount"
+}
+
+export class UpdateReward1Amount {
+  static readonly discriminator = 44
+  static readonly kind = "UpdateReward1Amount"
+  readonly discriminator = 44
+  readonly kind = "UpdateReward1Amount"
+
+  toJSON(): UpdateReward1AmountJSON {
+    return {
+      kind: "UpdateReward1Amount",
+    }
+  }
+
+  toEncodable() {
+    return {
+      UpdateReward1Amount: {},
+    }
+  }
+}
+
+export interface UpdateReward2AmountJSON {
+  kind: "UpdateReward2Amount"
+}
+
+export class UpdateReward2Amount {
+  static readonly discriminator = 45
+  static readonly kind = "UpdateReward2Amount"
+  readonly discriminator = 45
+  readonly kind = "UpdateReward2Amount"
+
+  toJSON(): UpdateReward2AmountJSON {
+    return {
+      kind: "UpdateReward2Amount",
+    }
+  }
+
+  toEncodable() {
+    return {
+      UpdateReward2Amount: {},
+    }
+  }
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function fromDecoded(obj: any): types.StrategyConfigOptionKind {
   if (typeof obj !== "object") {
@@ -1100,6 +1192,18 @@ export function fromDecoded(obj: any): types.StrategyConfigOptionKind {
   }
   if ("UpdateLookupTable" in obj) {
     return new UpdateLookupTable()
+  }
+  if ("UpdateReferencePriceType" in obj) {
+    return new UpdateReferencePriceType()
+  }
+  if ("UpdateReward0Amount" in obj) {
+    return new UpdateReward0Amount()
+  }
+  if ("UpdateReward1Amount" in obj) {
+    return new UpdateReward1Amount()
+  }
+  if ("UpdateReward2Amount" in obj) {
+    return new UpdateReward2Amount()
   }
 
   throw new Error("Invalid enum object")
@@ -1235,6 +1339,18 @@ export function fromJSON(
     case "UpdateLookupTable": {
       return new UpdateLookupTable()
     }
+    case "UpdateReferencePriceType": {
+      return new UpdateReferencePriceType()
+    }
+    case "UpdateReward0Amount": {
+      return new UpdateReward0Amount()
+    }
+    case "UpdateReward1Amount": {
+      return new UpdateReward1Amount()
+    }
+    case "UpdateReward2Amount": {
+      return new UpdateReward2Amount()
+    }
   }
 }
 
@@ -1282,6 +1398,10 @@ export function layout(property?: string) {
     borsh.struct([], "UpdateRebalanceParams"),
     borsh.struct([], "UpdateDepositMintingMethod"),
     borsh.struct([], "UpdateLookupTable"),
+    borsh.struct([], "UpdateReferencePriceType"),
+    borsh.struct([], "UpdateReward0Amount"),
+    borsh.struct([], "UpdateReward1Amount"),
+    borsh.struct([], "UpdateReward2Amount"),
   ])
   if (property !== undefined) {
     return ret.replicate(property)

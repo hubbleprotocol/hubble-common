@@ -1,4 +1,4 @@
-import { Connection } from '@solana/web3.js';
+import { Connection, PublicKey } from '@solana/web3.js';
 import { Kamino, StrategiesFilters, ZERO } from '../src';
 import {
   GlobalConfigMainnet,
@@ -16,6 +16,74 @@ describe('Kamino strategy creation SDK Tests', () => {
   const cluster = 'mainnet-beta';
   const clusterUrl: string = 'https://api.mainnet-beta.solana.com';
   connection = new Connection(clusterUrl, 'processed');
+
+  it.skip('Calculate Mainnet Raydium ratio', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      GlobalConfigMainnet,
+      KaminoProgramIdMainnet,
+      WHIRLPOOL_PROGRAM_ID,
+      RAYDIUM_PROGRAM_ID
+    );
+
+    let res = await kamino.calculateAmountsToBeDeposited(
+      new PublicKey('6satrFEw7p382wkJPcS1U3AWi25YcGiJuHkt7NyJa9vi'),
+      new Decimal('19737586503'),
+      new Decimal('60624622')
+    );
+
+    console.log('Res', res);
+  });
+
+  it.skip('Calculate Raydium ratios', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      GlobalConfigMainnet,
+      KaminoProgramIdMainnet,
+      WHIRLPOOL_PROGRAM_ID,
+      RAYDIUM_PROGRAM_ID
+    );
+
+    console.log(
+      await kamino.calculateAmountsToBeDeposited(
+        new PublicKey('6satrFEw7p382wkJPcS1U3AWi25YcGiJuHkt7NyJa9vi'),
+        new Decimal('19737586503'),
+        new Decimal('0')
+      )
+    );
+    console.log(
+      await kamino.calculateAmountsToBeDeposited(
+        new PublicKey('6satrFEw7p382wkJPcS1U3AWi25YcGiJuHkt7NyJa9vi'),
+        new Decimal('19737586503')
+      )
+    );
+
+    console.log(
+      await kamino.calculateAmountsToBeDeposited(
+        new PublicKey('6satrFEw7p382wkJPcS1U3AWi25YcGiJuHkt7NyJa9vi'),
+        new Decimal('0'),
+        new Decimal('61127955')
+      )
+    );
+
+    console.log(
+      await kamino.calculateAmountsToBeDeposited(
+        new PublicKey('6satrFEw7p382wkJPcS1U3AWi25YcGiJuHkt7NyJa9vi'),
+        undefined,
+        new Decimal('61127955')
+      )
+    );
+
+    console.log(
+      await kamino.calculateAmountsToBeDeposited(
+        new PublicKey('6satrFEw7p382wkJPcS1U3AWi25YcGiJuHkt7NyJa9vi'),
+        new Decimal('19737580863'),
+        new Decimal('61127955')
+      )
+    );
+  });
 
   it('FilterStrats strategies based on status', async () => {
     console.log('test');

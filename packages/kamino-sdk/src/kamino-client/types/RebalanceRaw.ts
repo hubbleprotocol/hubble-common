@@ -6,20 +6,24 @@ import * as borsh from "@project-serum/borsh"
 export interface RebalanceRawFields {
   params: Array<number>
   state: Array<number>
+  referencePriceType: number
 }
 
 export interface RebalanceRawJSON {
   params: Array<number>
   state: Array<number>
+  referencePriceType: number
 }
 
 export class RebalanceRaw {
   readonly params: Array<number>
   readonly state: Array<number>
+  readonly referencePriceType: number
 
   constructor(fields: RebalanceRawFields) {
     this.params = fields.params
     this.state = fields.state
+    this.referencePriceType = fields.referencePriceType
   }
 
   static layout(property?: string) {
@@ -27,6 +31,7 @@ export class RebalanceRaw {
       [
         borsh.array(borsh.u8(), 128, "params"),
         borsh.array(borsh.u8(), 256, "state"),
+        borsh.u8("referencePriceType"),
       ],
       property
     )
@@ -37,6 +42,7 @@ export class RebalanceRaw {
     return new RebalanceRaw({
       params: obj.params,
       state: obj.state,
+      referencePriceType: obj.referencePriceType,
     })
   }
 
@@ -44,6 +50,7 @@ export class RebalanceRaw {
     return {
       params: fields.params,
       state: fields.state,
+      referencePriceType: fields.referencePriceType,
     }
   }
 
@@ -51,6 +58,7 @@ export class RebalanceRaw {
     return {
       params: this.params,
       state: this.state,
+      referencePriceType: this.referencePriceType,
     }
   }
 
@@ -58,6 +66,7 @@ export class RebalanceRaw {
     return new RebalanceRaw({
       params: obj.params,
       state: obj.state,
+      referencePriceType: obj.referencePriceType,
     })
   }
 

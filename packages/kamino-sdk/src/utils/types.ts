@@ -1,6 +1,6 @@
-import { PublicKey } from '@solana/web3.js';
+import { PublicKey, TransactionInstruction, TransactionMessage } from '@solana/web3.js';
 import { WhirlpoolStrategy } from '../kamino-client/accounts';
-import { Dex } from './utils';
+import { Dex, collToLamportsDecimal } from './utils';
 import Decimal from 'decimal.js';
 import { RebalanceTypeKind } from '../kamino-client/types';
 
@@ -194,6 +194,19 @@ export interface DepositAmountsForSwap {
   tokenBToSwapAmount: Decimal;
 }
 
+export function depositAmountsForSwapToLamports(
+  depositAmounts: DepositAmountsForSwap,
+  tokenADecimals: number,
+  tokenBDecimals: number
+): DepositAmountsForSwap {
+  return {
+    requiredAAmountToDeposit: collToLamportsDecimal(depositAmounts.requiredAAmountToDeposit, tokenADecimals),
+    requiredBAmountToDeposit: collToLamportsDecimal(depositAmounts.requiredBAmountToDeposit, tokenBDecimals),
+    tokenAToSwapAmount: collToLamportsDecimal(depositAmounts.tokenAToSwapAmount, tokenADecimals),
+    tokenBToSwapAmount: collToLamportsDecimal(depositAmounts.tokenBToSwapAmount, tokenBDecimals),
+  };
+}
+
 export interface RebalanceParams {
   rebalanceType: RebalanceTypeKind;
   lowerRangeBps: Decimal;
@@ -213,4 +226,35 @@ export interface RebalanceParamsAsPrices {
 export interface PositionRange {
   lowerPrice: Decimal;
   upperPrice: Decimal;
+}
+
+export interface TokensBalances {
+  a?: Decimal;
+  b?: Decimal;
+}
+
+export interface SwapperIxBuilder {
+  (
+    input: DepositAmountsForSwap,
+    tokenAMint: PublicKey,
+    tokenBMint: PublicKey,
+    owner: PublicKey,
+    slippage: Decimal
+  ): Promise<[TransactionInstruction[], PublicKey[]]>;
+}
+
+export interface CreateAta {
+  ata: PublicKey;
+  createIxns: TransactionInstruction[];
+  closeIxns: TransactionInstruction[];
+}
+
+export interface DeserializedVersionedTransaction {
+  txMessage: TransactionMessage[];
+  lookupTablesAddresses: PublicKey[];
+}
+
+export interface InstructionsWithLookupTables {
+  instructions: TransactionInstruction[];
+  lookupTablesAddresses: PublicKey[];
 }
