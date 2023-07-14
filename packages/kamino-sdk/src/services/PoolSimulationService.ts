@@ -1,7 +1,5 @@
-import { StrategyType } from '../utils';
 import axios, { AxiosResponse } from 'axios';
 import { PoolSimulationResponseFormatted, PoolSimulationResponseRaw } from '../models/PoolSimulationResponseRaw';
-import { ManualRebalanceMethod, PricePercentageRebalanceMethod, RebalanceMethod } from '../utils/CreationParameters';
 import Decimal from 'decimal.js';
 import { PublicKey } from '@solana/web3.js';
 
@@ -37,6 +35,12 @@ function formatSimulationResponse(response: PoolSimulationResponseRaw): PoolSimu
       priceUpper: response.price_upper[key],
       priceCurr: response.price_curr[key],
       priceCurrTwap: response.price_curr_twap[key],
+      pnlVsUsdApy: response.pnl_vs_usd_apy[key],
+      pnlVsUsdReturnPct: response.pnl_vs_usd_return_pct[key],
+      investmentValueUsd: response.investment_value_usd[key],
+      hodlValueUsd: response.hodl_value_usd[key],
+      hodlTokenaValueUsd: response.hodl_tokenb_value_usd[key],
+      hodlTokenbValueUsd: response.hodl_tokenb_value_usd[key],
     };
   });
 }

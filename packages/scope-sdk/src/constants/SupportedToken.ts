@@ -62,6 +62,7 @@ export const SupportedTokens = [
   'USDCEma',
   'USDTEma',
   'DAIEma',
+  'wstETHEma',
   'DUSTTwap',
   'BONK',
   'BONKTwap',

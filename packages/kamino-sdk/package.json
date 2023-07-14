@@ -3,7 +3,7 @@
   "description": "Kamino SDK",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "version": "2.0.37",
+  "version": "2.0.43",
   "scripts": {
     "build": "tsc",
     "build:watch": "tsc -w"
@@ -36,7 +36,7 @@
   "dependencies": {
     "@hubbleprotocol/hubble-config": "^2.0.0",
     "@hubbleprotocol/hubble-idl": "^2.0.11",
-    "@hubbleprotocol/scope-sdk": "^2.0.33",
+    "@hubbleprotocol/scope-sdk": "^2.0.38",
     "@orca-so/sdk": "^1.2.26",
     "@orca-so/whirlpool-client-sdk": "^0.0.8",
     "@orca-so/whirlpool-sdk": "^0.4.2",
