@@ -1,5 +1,9 @@
 import axios, { AxiosResponse } from 'axios';
-import { PoolSimulationResponseFormatted, PoolSimulationResponseRaw } from '../models/PoolSimulationResponseRaw';
+import {
+  PoolSimulationResponseDataFormatted,
+  PoolSimulationResponseData,
+  PoolSimulationResponse,
+} from '../models/PoolSimulationResponseData';
 import Decimal from 'decimal.js';
 import { PublicKey } from '@solana/web3.js';
 
@@ -21,34 +25,34 @@ export type SimulationPercentagePoolParameters = SimulationParameters & {
   resetRangeWidthPercLower?: number;
 };
 
-function formatSimulationResponse(response: PoolSimulationResponseRaw): PoolSimulationResponseFormatted[] {
-  return Object.keys(response.ts).map((key) => {
+function formatSimulationResponse(response: PoolSimulationResponse): PoolSimulationResponseDataFormatted[] {
+  return response.data.map((item) => {
     return {
-      timestamp: response.ts[key],
-      feesApy: response.fees_apy[key],
-      ilApy: response.il_apy[key],
-      pnlApy: response.pnl_apy[key],
-      feesReturnPct: response.fees_return_pct[key],
-      ilReturnPct: response.il_return_pct[key],
-      pnlReturnPct: response.pnl_return_pct[key],
-      priceLower: response.price_lower[key],
-      priceUpper: response.price_upper[key],
-      priceCurr: response.price_curr[key],
-      priceCurrTwap: response.price_curr_twap[key],
-      pnlVsUsdApy: response.pnl_vs_usd_apy[key],
-      pnlVsUsdReturnPct: response.pnl_vs_usd_return_pct[key],
-      investmentValueUsd: response.investment_value_usd[key],
-      hodlValueUsd: response.hodl_value_usd[key],
-      hodlTokenaValueUsd: response.hodl_tokenb_value_usd[key],
-      hodlTokenbValueUsd: response.hodl_tokenb_value_usd[key],
+      timestamp: item.ts,
+      feesApy: item.fees_apy,
+      ilApy: item.il_apy,
+      pnlApy: item.pnl_apy,
+      feesReturnPct: item.fees_return_pct,
+      ilReturnPct: item.il_return_pct,
+      pnlReturnPct: item.pnl_return_pct,
+      priceLower: item.price_lower,
+      priceUpper: item.price_upper,
+      priceCurr: item.price_curr,
+      priceCurrTwap: item.price_curr_twap,
+      pnlVsUsdApy: item.pnl_vs_usd_apy,
+      pnlVsUsdReturnPct: item.pnl_vs_usd_return_pct,
+      investmentValueUsd: item.investment_value_usd,
+      hodlValueUsd: item.hodl_value_usd,
+      hodlTokenaValueUsd: item.hodl_tokenb_value_usd,
+      hodlTokenbValueUsd: item.hodl_tokenb_value_usd,
     };
   });
 }
 
 export async function simulateManualPool(
   params: SimulationManualPoolParameters
-): Promise<PoolSimulationResponseFormatted[]> {
-  const response: AxiosResponse<PoolSimulationResponseRaw> = await axios.get(
+): Promise<PoolSimulationResponseDataFormatted[]> {
+  const response: AxiosResponse<PoolSimulationResponse> = await axios.get(
     `https://api.kamino.finance/simulate/${params.poolAddress}?strategy_type=Fixed&deposit_date=${
       params.depositDate
     }&end_date=${
@@ -60,8 +64,8 @@ export async function simulateManualPool(
 
 export async function simulatePercentagePool(
   params: SimulationPercentagePoolParameters
-): Promise<PoolSimulationResponseFormatted[]> {
-  const response: AxiosResponse<PoolSimulationResponseRaw> = await axios.get(
+): Promise<PoolSimulationResponseDataFormatted[]> {
+  const response: AxiosResponse<PoolSimulationResponse> = await axios.get(
     `https://api.kamino.finance/simulate/${params.poolAddress}?strategy_type=Tracker&deposit_date=${params.depositDate}&end_date=${params.endDate}&range_width_perc_lower=${params.rangeWidthPriceLower}&range_width_perc_upper=${params.rangeWidthPriceUpper}&reset_range_width_perc_upper=${params.resetRangeWidthPercUpper}&reset_range_width_perc_lower=${params.resetRangeWidthPercLower}`
   );
   return formatSimulationResponse(response.data);
