@@ -1429,7 +1429,14 @@ export class Kamino {
     //  add rewards vaults accounts to withdraw
     const isRaydium = strategyState.strategy.strategyDex.toNumber() == dexToNumber('RAYDIUM');
     if (isRaydium) {
-      collectFeesAndRewardsIxns = [await this.collectFeesAndRewards(strategy, owner)];
+      const raydiumPosition = await PersonalPositionState.fetch(this._connection, strategyState.strategy.position);
+      if (!raydiumPosition) {
+        throw new Error('Position is not found');
+      }
+
+      collectFeesAndRewardsIxns =
+        raydiumPosition.liquidity.toNumber() > 0 ? [await this.collectFeesAndRewards(strategy, owner)] : [];
+
       const poolState = await this.getRaydiumPoolByAddress(strategyState.strategy.pool);
       if (!poolState) {
         throw new Error('Pool is not found');
