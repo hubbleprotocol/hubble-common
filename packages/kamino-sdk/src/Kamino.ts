@@ -1434,7 +1434,7 @@ export class Kamino {
         throw new Error('Position is not found');
       }
 
-      collectFeesAndRewardsIxns = raydiumPosition.liquidity.gt(0)
+      collectFeesAndRewardsIxns = new Decimal(raydiumPosition.liquidity.toString()).gt(ZERO)
         ? [await this.collectFeesAndRewards(strategy, owner)]
         : [];
 
