@@ -1434,8 +1434,9 @@ export class Kamino {
         throw new Error('Position is not found');
       }
 
-      collectFeesAndRewardsIxns =
-        raydiumPosition.liquidity.toNumber() > 0 ? [await this.collectFeesAndRewards(strategy, owner)] : [];
+      collectFeesAndRewardsIxns = raydiumPosition.liquidity.gt(0)
+        ? [await this.collectFeesAndRewards(strategy, owner)]
+        : [];
 
       const poolState = await this.getRaydiumPoolByAddress(strategyState.strategy.pool);
       if (!poolState) {
