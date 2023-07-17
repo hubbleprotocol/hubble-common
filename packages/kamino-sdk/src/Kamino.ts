@@ -3710,7 +3710,6 @@ export class Kamino {
         poolState.sqrtPriceX64,
         SqrtPriceMath.priceToSqrtPriceX64(lowerPrice, decimalsA, decimalsB),
         SqrtPriceMath.priceToSqrtPriceX64(upperPrice, decimalsA, decimalsB),
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         new BN(100_000_000),
         true
       );
