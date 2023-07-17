@@ -26,7 +26,7 @@ export interface RebalanceMethod {
 }
 
 export const ManualRebalanceMethod: RebalanceMethod = {
-  label: 'Fixed Ranges',
+  label: 'Fixed Range',
   value: Manual.discriminator,
   descriptionShort: 'Market make with no rebalancing',
   description:
