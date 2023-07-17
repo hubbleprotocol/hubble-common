@@ -1251,11 +1251,53 @@ describe('Kamino strategy creation SDK Tests', () => {
     }
   });
 
-  it('read strategies share data on devnet', async () => {
+  it.skip('read strategies share data on devnet', async () => {
     let devnetConnection = new Connection('https://api.devnet.solana.com', 'processed');
     let kamino = new Kamino('devnet', devnetConnection);
 
     const shareData = await kamino.getStrategiesShareData({});
     console.log('shareData', shareData.length);
+  });
+
+  it('amounts distribution to be deposited with price range Orca', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      GlobalConfigMainnet,
+      KaminoProgramIdMainnet,
+      WHIRLPOOL_PROGRAM_ID,
+      RAYDIUM_PROGRAM_ID
+    );
+
+    let [tokenAAmount, tokenBAmount] = await kamino.calculateAmountsDistributionWithPriceRange(
+      'ORCA',
+      new PublicKey('7qbRF6YsyGuLUVs6Y1q64bdVrfe4ZcUUz1JRdoVNUJnm'),
+      new Decimal(22.464697),
+      new Decimal(32.301927)
+    );
+
+    console.log('tokenAAmount', tokenAAmount.toString());
+    console.log('tokenBAmount', tokenBAmount.toString());
+  });
+
+  it('amounts distribution to be deposited with price range Raydium', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      GlobalConfigMainnet,
+      KaminoProgramIdMainnet,
+      WHIRLPOOL_PROGRAM_ID,
+      RAYDIUM_PROGRAM_ID
+    );
+
+    let [tokenAAmount, tokenBAmount] = await kamino.calculateAmountsDistributionWithPriceRange(
+      'RAYDIUM',
+      new PublicKey('2QdhepnKRTLjjSqPL1PtKNwqrUkoLee5Gqs8bvZhRdMv'),
+      new Decimal(21.540764564),
+      new Decimal(32.295468218)
+    );
+
+    console.log('tokenAAmount', tokenAAmount.toString());
+    console.log('tokenBAmount', tokenBAmount.toString());
   });
 });

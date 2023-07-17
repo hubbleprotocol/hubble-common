@@ -100,7 +100,7 @@ import {
   InstructionsWithLookupTables,
   RAYDIUM_DEVNET_PROGRAM_ID,
 } from './utils';
-import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID } from '@solana/spl-token';
+import { ASSOCIATED_TOKEN_PROGRAM_ID, Token, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import {
   checkExpectedVaultsBalances,
   CheckExpectedVaultsBalancesAccounts,
@@ -3689,6 +3689,74 @@ export class Kamino {
     };
 
     return depositAmountsForSwap;
+  };
+
+  calculateAmountsDistributionWithPriceRange = async (
+    dex: Dex,
+    pool: PublicKey,
+    lowerPrice: Decimal,
+    upperPrice: Decimal
+  ): Promise<[Decimal, Decimal]> => {
+    let tokenAAmountToDeposit = new Decimal(100.0);
+
+    if (dex == 'RAYDIUM') {
+      const poolState = await PoolState.fetch(this._connection, pool);
+      if (!poolState) {
+        throw new Error(`Raydium poolState ${pool.toString()} is not found`);
+      }
+      let decimalsA = poolState.mintDecimals0;
+      let decimalsB = poolState.mintDecimals1;
+
+      const { amountA, amountB } = LiquidityMath.getAmountsFromLiquidity(
+        poolState.sqrtPriceX64,
+        SqrtPriceMath.priceToSqrtPriceX64(lowerPrice, decimalsA, decimalsB),
+        SqrtPriceMath.priceToSqrtPriceX64(upperPrice, decimalsA, decimalsB),
+        new BN(100_000_000),
+        true
+      );
+
+      const amountADecimal = new Decimal(amountA.toString());
+      const amountBDecimal = new Decimal(amountB.toString());
+      return [lamportsToNumberDecimal(amountADecimal, decimalsA), lamportsToNumberDecimal(amountBDecimal, decimalsB)];
+    } else if (dex == 'ORCA') {
+      let whirlpoolState = await Whirlpool.fetch(this._connection, pool);
+      if (!whirlpoolState) {
+        throw new Error(`Raydium poolState ${pool.toString()} is not found`);
+      }
+      let tokenMintA = whirlpoolState.tokenMintA;
+      let tokenMintB = whirlpoolState.tokenMintB;
+      let decimalsA = await getMintDecimals(this._connection, tokenMintA);
+      let decimalsB = await getMintDecimals(this._connection, tokenMintB);
+
+      let tickLowerIndex = getNearestValidTickIndexFromTickIndex(
+        priceToTickIndex(lowerPrice, decimalsA, decimalsB),
+        whirlpoolState.tickSpacing
+      );
+      let tickUpperIndex = getNearestValidTickIndexFromTickIndex(
+        priceToTickIndex(upperPrice, decimalsA, decimalsB),
+        whirlpoolState.tickSpacing
+      );
+
+      const params: InternalAddLiquidityQuoteParam = {
+        tokenMintA,
+        tokenMintB,
+        tickCurrentIndex: whirlpoolState.tickCurrentIndex,
+        sqrtPrice: whirlpoolState.sqrtPrice,
+        inputTokenMint: tokenMintA,
+        inputTokenAmount: new BN(collToLamportsDecimal(tokenAAmountToDeposit, decimalsA).toString()),
+        tickLowerIndex,
+        tickUpperIndex,
+        slippageTolerance: defaultSlippagePercentage,
+      };
+
+      const addLiqResult: InternalAddLiquidityQuote = getAddLiquidityQuote(params);
+      return [
+        lamportsToNumberDecimal(addLiqResult.estTokenA.toNumber(), decimalsA),
+        lamportsToNumberDecimal(addLiqResult.estTokenB.toNumber(), decimalsB),
+      ];
+    } else {
+      throw new Error('Invalid dex, use RAYDIUM or ORCA');
+    }
   };
 
   calculateAmountsToBeDeposited = async (
