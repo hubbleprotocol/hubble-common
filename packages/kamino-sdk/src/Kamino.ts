@@ -3711,13 +3711,13 @@ export class Kamino {
         SqrtPriceMath.priceToSqrtPriceX64(lowerPrice, decimalsA, decimalsB),
         SqrtPriceMath.priceToSqrtPriceX64(upperPrice, decimalsA, decimalsB),
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        new BN(tokenAAmountToDeposit.toNumber()), // safe to use ! here because we check in the beginning that at least one of the amounts are not undefined;
+        new BN(100_000_000),
         true
       );
 
       const amountADecimal = new Decimal(amountA.toString());
       const amountBDecimal = new Decimal(amountB.toString());
-      return [amountADecimal, amountBDecimal];
+      return [lamportsToNumberDecimal(amountADecimal, decimalsA), lamportsToNumberDecimal(amountBDecimal, decimalsB)];
     } else if (dex == 'ORCA') {
       let whirlpoolState = await Whirlpool.fetch(this._connection, pool);
       if (!whirlpoolState) {
