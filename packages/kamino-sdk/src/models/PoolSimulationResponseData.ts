@@ -1,8 +1,10 @@
 export interface PoolSimulationResponse {
   data: PoolSimulationResponseData[];
   backtest_end_date: string;
-  backtest_num_days: number;
   backtest_start_date: string;
+  backtest_num_days: number;
+  tokena_ratio: number;
+  tokenb_ratio: number;
 }
 
 export interface PoolSimulationResponseData {
@@ -23,24 +25,4 @@ export interface PoolSimulationResponseData {
   hodl_value_usd: number;
   hodl_tokena_value_usd: number;
   hodl_tokenb_value_usd: number;
-}
-
-export interface PoolSimulationResponseDataFormatted {
-  timestamp: number;
-  feesApy: number;
-  ilApy: number;
-  pnlApy: number;
-  feesReturnPct: number;
-  ilReturnPct: number;
-  pnlReturnPct: number;
-  priceLower: number;
-  priceUpper: number;
-  priceCurr: number;
-  priceCurrTwap: number;
-  pnlVsUsdApy: number;
-  pnlVsUsdReturnPct: number;
-  investmentValueUsd: number;
-  hodlValueUsd: number;
-  hodlTokenaValueUsd: number;
-  hodlTokenbValueUsd: number;
 }
