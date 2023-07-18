@@ -491,10 +491,15 @@ export class Kamino {
       let genericPoolInfos: GenericPoolInfo[] = await Promise.all(
         pools.map(async (pool: OrcaPool) => {
           let positionsCount = new Decimal(await this.getPositionsCountForPool(dex, new PublicKey(pool.address)));
+          // read price from pool
+          let poolData = await this._orcaService.getPool(new PublicKey(pool.address));
+          if (!poolData) {
+            throw new Error(`Pool ${pool.address} not found`);
+          }
           let poolInfo: GenericPoolInfo = {
             dex,
             address: new PublicKey(pool.address),
-            price: new Decimal(pool.price),
+            price: poolData.price,
             tokenMintA: new PublicKey(pool.tokenA.mint),
             tokenMintB: new PublicKey(pool.tokenB.mint),
             tvl: pool.tvl ? new Decimal(pool.tvl) : undefined,
@@ -512,6 +517,7 @@ export class Kamino {
       let genericPoolInfos: GenericPoolInfo[] = await Promise.all(
         pools.map(async (pool: Pool) => {
           let positionsCount = new Decimal(await this.getPositionsCountForPool(dex, new PublicKey(pool.id)));
+
           let poolInfo: GenericPoolInfo = {
             dex,
             address: new PublicKey(pool.id),

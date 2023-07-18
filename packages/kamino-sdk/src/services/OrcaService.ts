@@ -87,6 +87,14 @@ export class OrcaService {
     return tokensPrices;
   }
 
+  async getPool(poolAddress: PublicKey) {
+    const orca = new OrcaWhirlpoolClient({
+      connection: this._connection,
+      network: this._orcaNetwork,
+    });
+    return await orca.getPool(poolAddress);
+  }
+
   async getStrategyWhirlpoolPoolAprApy(
     strategy: WhirlpoolStrategy,
     whirlpools?: Whirlpool[],
