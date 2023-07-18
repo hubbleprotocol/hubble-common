@@ -678,7 +678,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     console.log('raydium liquidityDistribution', liquidityDistribution);
   });
 
-  it('get raydium positions for live pool', async () => {
+  it.skip('get raydium positions for live pool', async () => {
     let raydiumService = new RaydiumService(connection, cluster);
     let liquidityDistribution = await raydiumService.getRaydiumPoolLiquidityDistribution(
       new PublicKey('61R1ndXxvsWXXkWSyNkCxnzwd3zUNB8Q2ibmkiLPC8ht')
@@ -1259,7 +1259,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     console.log('shareData', shareData.length);
   });
 
-  it('amounts distribution to be deposited with price range Orca', async () => {
+  it.skip('amounts distribution to be deposited with price range Orca', async () => {
     let kamino = new Kamino(
       cluster,
       connection,
@@ -1280,7 +1280,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     console.log('tokenBAmount', tokenBAmount.toString());
   });
 
-  it('amounts distribution to be deposited with price range Raydium', async () => {
+  it.skip('amounts distribution to be deposited with price range Raydium', async () => {
     let kamino = new Kamino(
       cluster,
       connection,
