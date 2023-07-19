@@ -3,6 +3,7 @@ import { WhirlpoolStrategy } from '../kamino-client/accounts';
 import { Dex, collToLamportsDecimal } from './utils';
 import Decimal from 'decimal.js';
 import { RebalanceTypeKind } from '../kamino-client/types';
+import BN from 'bn.js';
 
 export const RAYDIUM_DEVNET_PROGRAM_ID = new PublicKey('devi51mZmdwUJGU9hjN27vEz64Gps7uUefqxg27EAtH');
 
@@ -258,3 +259,15 @@ export interface InstructionsWithLookupTables {
   instructions: TransactionInstruction[];
   lookupTablesAddresses: PublicKey[];
 }
+
+export interface ClmmPosition {
+  dex: Dex,
+  pool: PublicKey;
+  positionMint: PublicKey;
+  tickLowerIndex: number;
+  tickUpperIndex: number;
+  liquidity: BN;
+  tokenAFeesOwed: BN;
+  tokenBFeesOwed: BN;
+}
+

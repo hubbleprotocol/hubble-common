@@ -99,6 +99,7 @@ import {
   DECIMALS_SOL,
   InstructionsWithLookupTables,
   RAYDIUM_DEVNET_PROGRAM_ID,
+  ClmmPosition,
 } from './utils';
 import { ASSOCIATED_TOKEN_PROGRAM_ID, Token, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import {
@@ -1358,12 +1359,6 @@ export class Kamino {
   getWhirlpoolByAddress = (whirlpool: PublicKey) => Whirlpool.fetch(this._connection, whirlpool);
 
   /**
-   * Get whirlpool position from public key
-   * @param position pubkey of the orca whirlpool position
-   */
-  getWhirlpoolPositionByAddress = (position: PublicKey) => Position.fetch(this._connection, position);
-
-  /**
    * Get a list of Raydium pools from public keys
    * @param pools
    */
@@ -1380,10 +1375,47 @@ export class Kamino {
   getRaydiumPoolByAddress = (pool: PublicKey) => PoolState.fetch(this._connection, pool);
 
   /**
-   * Get Raydium position from public key
+   * Get position from public key
+   * @param dex the dex of the position (ORCA or RAYDIUM)
    * @param position pubkey of the orca whirlpool position
    */
-  getRaydiumPositionByAddress = (position: PublicKey) => PersonalPositionState.fetch(this._connection, position);
+  getPositionData = async (dex: Dex, position: PublicKey): Promise<ClmmPosition> => {
+    if (dex == 'ORCA') {
+      let positionData = await Position.fetch(this._connection, position);
+      if (!positionData) {
+        throw Error(`Could not find Orca position ${position}`);
+      }
+      let clmmPosition: ClmmPosition = {
+        dex,
+        pool: positionData.whirlpool,
+        positionMint: positionData.positionMint,
+        tickLowerIndex: positionData.tickLowerIndex,
+        tickUpperIndex: positionData.tickUpperIndex,
+        liquidity: positionData.liquidity,
+        tokenAFeesOwed: positionData.feeOwedA,
+        tokenBFeesOwed: positionData.feeOwedB,
+      };
+      return clmmPosition;
+    } else if (dex == 'RAYDIUM') {
+      let positionData = await PersonalPositionState.fetch(this._connection, position);
+      if (!positionData) {
+        throw Error(`Could not find Raydium position ${position}`);
+      }
+      let clmmPosition: ClmmPosition = {
+        dex,
+        pool: positionData.poolId,
+        positionMint: positionData.nftMint,
+        tickLowerIndex: positionData.tickLowerIndex,
+        tickUpperIndex: positionData.tickUpperIndex,
+        liquidity: positionData.liquidity,
+        tokenAFeesOwed: positionData.tokenFeesOwed0,
+        tokenBFeesOwed: positionData.tokenFeesOwed1,
+      };
+      return clmmPosition;
+    } else {
+      throw Error(`Dex ${dex} not supported`);
+    }
+  };
 
   /**
    * Return transaction instruction to withdraw shares from a strategy owner (wallet) and get back token A and token B
