@@ -1358,6 +1358,12 @@ export class Kamino {
   getWhirlpoolByAddress = (whirlpool: PublicKey) => Whirlpool.fetch(this._connection, whirlpool);
 
   /**
+   * Get whirlpool position from public key
+   * @param position pubkey of the orca whirlpool position
+   */
+  getWhirlpoolPositionByAddress = (position: PublicKey) => Position.fetch(this._connection, position);
+
+  /**
    * Get a list of Raydium pools from public keys
    * @param pools
    */
@@ -1372,6 +1378,12 @@ export class Kamino {
    * @param pool pubkey of the orca whirlpool
    */
   getRaydiumPoolByAddress = (pool: PublicKey) => PoolState.fetch(this._connection, pool);
+
+  /**
+   * Get Raydium position from public key
+   * @param position pubkey of the orca whirlpool position
+   */
+  getRaydiumPositionByAddress = (position: PublicKey) => PersonalPositionState.fetch(this._connection, position);
 
   /**
    * Return transaction instruction to withdraw shares from a strategy owner (wallet) and get back token A and token B
