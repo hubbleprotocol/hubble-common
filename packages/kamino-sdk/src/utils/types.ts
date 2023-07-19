@@ -261,7 +261,7 @@ export interface InstructionsWithLookupTables {
 }
 
 export interface ClmmPosition {
-  dex: Dex,
+  dex: Dex;
   pool: PublicKey;
   positionMint: PublicKey;
   tickLowerIndex: number;
@@ -270,4 +270,3 @@ export interface ClmmPosition {
   tokenAFeesOwed: BN;
   tokenBFeesOwed: BN;
 }
-
