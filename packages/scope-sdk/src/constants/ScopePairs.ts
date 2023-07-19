@@ -92,5 +92,7 @@ export const ScopePairs = [
   'NANATwap/USD',
   'STEP/USD',
   'STEPTwap/USD',
+  'FORGE/USD',
+  'FORGETwap/USD',
 ] as const;
 export type ScopePair = (typeof ScopePairs)[number];

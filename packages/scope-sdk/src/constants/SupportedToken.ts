@@ -91,5 +91,7 @@ export const SupportedTokens = [
   'NANATwap',
   'STEP',
   'STEPTwap',
+  'FORGE',
+  'FORGETwap',
 ] as const;
 export type SupportedToken = (typeof SupportedTokens)[number];

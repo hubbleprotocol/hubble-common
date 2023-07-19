@@ -67,6 +67,7 @@ export const ScopeMints: { cluster: SolanaCluster; mints: { token: SupportedToke
       { token: 'IOT', mint: 'iotEVVZLEywoTn1QdwNPddxPWszn3zFhEot3MfL9fns' },
       { token: 'NANA', mint: 'HxRELUQfvvjToVbacjr9YECdfQMUqGgPYB68jVDYxkbr' },
       { token: 'STEP', mint: 'StepAscQoEioFxxWGnh2sLBDFp9d8rvKz2Yp39iDpyT' },
+      { token: 'FORGE', mint: 'FoRGERiW7odcCBGU1bztZi16osPBHjxharvDathL5eds' },
     ],
   },
   {
