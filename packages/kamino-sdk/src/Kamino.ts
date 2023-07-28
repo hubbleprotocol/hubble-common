@@ -261,13 +261,14 @@ export class Kamino {
     if (whirlpoolProgramId) {
       setWhirlpoolsProgramId(whirlpoolProgramId);
     }
-    if (raydiumProgramId) {
-      setRaydiumProgramId(raydiumProgramId);
-    } else {
-      if (cluster == 'devnet') {
-        setRaydiumProgramId(RAYDIUM_DEVNET_PROGRAM_ID);
-      }
-    }
+
+    // if (raydiumProgramId) {
+    //   setRaydiumProgramId(raydiumProgramId);
+    // } else {
+    //   if (cluster == 'devnet') {
+    //     setRaydiumProgramId(RAYDIUM_DEVNET_PROGRAM_ID);
+    //   }
+    // }
     this._orcaService = new OrcaService(connection, cluster, this._globalConfig);
     this._raydiumService = new RaydiumService(connection, cluster);
     this._jupService = new JupService(connection, cluster);
