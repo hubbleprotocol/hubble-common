@@ -28,6 +28,20 @@ Currently, deployment is done manually by using a GitHub Action called [Release 
 
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
+- `git clone git@github.com:hubbleprotocol/hubble-common.git`
+- `cd hubble-common/`
+- `npm install`
+- `cd packages/kamino-sdk/`
+- `npm install`
+- `cd ../../`
+- `npx ts-mocha packages/kamino-sdk/tests/calculateAmounts.test.ts`
+- Put in your RPC (see below)
+
+## Create a free mainnet RPC:
+- go to `https://www.hellomoon.io/dashboard`
+- get a mainnet rpc 
+- paste it where it says `const clusterUrl: string = 'https://api.mainnet-beta.solana.com';`
+
 
 ## License
 
