@@ -3662,6 +3662,8 @@ export class Kamino {
     let tokenADecimals = strategyState.tokenAMintDecimals.toNumber();
     let tokenBDecimals = strategyState.tokenBMintDecimals.toNumber();
     let tokenADecimalsDiff = tokenADecimals - tokenBDecimals;
+    const tokenAAddDecimals = tokenADecimalsDiff > 0 ? 0 : Math.abs(tokenADecimalsDiff);
+    const tokenBAddDecimals = tokenADecimalsDiff > 0 ? Math.abs(tokenADecimalsDiff) : 0;
 
     let aAmount = tokenAAmountUserDeposit;
     let bAmount = tokenBAmountUserDeposit;
@@ -3677,16 +3679,22 @@ export class Kamino {
     let ratio = orcaAmountA.div(orcaAmountB);
     ratio = ratio.div(priceBInA);
 
-    let totalUserDepositInA = aAmount.add(bAmount.mul(priceBInA));
+    // multiply by tokens delta to make sure that both values uses the same about of decimals
+    let totalUserDepositInA = aAmount
+      .mul(10 ** tokenAAddDecimals)
+      .add(bAmount.mul(10 ** tokenBAddDecimals).mul(priceBInA));
 
-    let requiredAAmountToDeposit = totalUserDepositInA.mul(ratio).div(ratio.add(1));
-    let requiredBAmountToDeposit = totalUserDepositInA.sub(requiredAAmountToDeposit).mul(priceAInB);
-    requiredBAmountToDeposit = requiredBAmountToDeposit.div(new Decimal(10).pow(tokenADecimalsDiff));
+    let requiredAAmountToDeposit = totalUserDepositInA
+      .mul(ratio)
+      .div(ratio.add(1))
+      .div(10 ** tokenAAddDecimals);
+    let requiredBAmountToDeposit = totalUserDepositInA
+      .sub(requiredAAmountToDeposit.mul(10 ** tokenAAddDecimals))
+      .div(10 ** tokenBAddDecimals)
+      .mul(priceAInB);
 
     let tokenAToSwapAmount = requiredAAmountToDeposit.sub(tokenAAmountUserDeposit);
-    let tokenBToSwapAmount = requiredBAmountToDeposit.sub(
-      tokenBAmountUserDeposit.div(new Decimal(10).pow(tokenADecimalsDiff))
-    );
+    let tokenBToSwapAmount = requiredBAmountToDeposit.sub(tokenBAmountUserDeposit);
 
     let depositAmountsForSwap: DepositAmountsForSwap = {
       requiredAAmountToDeposit,
