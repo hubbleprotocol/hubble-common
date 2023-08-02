@@ -1873,7 +1873,9 @@ export class Kamino {
       let solToDeposit = availableSol.sub(tokenAMinPostDepositBalanceLamports);
 
       aToDeposit = solToDeposit;
-      tokenAAtaBalance = lamportsToNumberDecimal(solToDeposit, DECIMALS_SOL);
+      if (!aToDeposit.eq(ZERO)) {
+        tokenAAtaBalance = lamportsToNumberDecimal(aToDeposit, DECIMALS_SOL);
+      }
 
       let createWSolAtaIxns = await createWsolAtaIfMissing(
         this._connection,
@@ -1908,7 +1910,10 @@ export class Kamino {
       availableSol;
 
       bToDeposit = solToDeposit;
-      tokenBAtaBalance = lamportsToNumberDecimal(solToDeposit, DECIMALS_SOL);
+
+      if (!tokenBAtaBalance.eq(ZERO)) {
+        tokenBAtaBalance = lamportsToNumberDecimal(bToDeposit, DECIMALS_SOL);
+      }
 
       let createWSolAtaIxns = await createWsolAtaIfMissing(
         this._connection,
