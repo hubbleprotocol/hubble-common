@@ -99,6 +99,7 @@ import {
   DECIMALS_SOL,
   InstructionsWithLookupTables,
   RAYDIUM_DEVNET_PROGRAM_ID,
+  CreateAta,
 } from './utils';
 import { ASSOCIATED_TOKEN_PROGRAM_ID, Token, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import {
@@ -1686,23 +1687,22 @@ export class Kamino {
 
     // if any of the tokens is SOL, we need to read how much SOL the user has, not how much wSOL which is what getInitialUserTokenBalances returns
     if (isSOLMint(strategyWithAddress.strategy.tokenAMint)) {
-      userTokenBalances.a = lamportsToNumberDecimal(
-        new Decimal(await this._connection.getBalance(owner)),
-        DECIMALS_SOL
+      userTokenBalances.a = userTokenBalances.a?.add(
+        lamportsToNumberDecimal(new Decimal(await this._connection.getBalance(owner)), DECIMALS_SOL)
       );
     }
 
     if (isSOLMint(strategyWithAddress.strategy.tokenBMint)) {
-      userTokenBalances.b = lamportsToNumberDecimal(
-        new Decimal(await this._connection.getBalance(owner)),
-        DECIMALS_SOL
+      userTokenBalances.b = userTokenBalances.b?.add(
+        lamportsToNumberDecimal(new Decimal(await this._connection.getBalance(owner)), DECIMALS_SOL)
       );
     }
 
     if (!userTokenBalances.a || !userTokenBalances.b) {
       throw Error('Error reading user token balances');
     }
-    let tokenAMinPostDepositBalance = userTokenBalances.a.sub(amountToDeposit);
+
+    let tokenAMinPostDepositBalance = userTokenBalances.a?.sub(amountToDeposit);
 
     let swapper: SwapperIxBuilder = swapIxsBuilder
       ? swapIxsBuilder
@@ -1745,16 +1745,14 @@ export class Kamino {
 
     // if any of the tokens is SOL, we need to read how much SOL the user has, not how much wSOL which is what getInitialUserTokenBalances returns
     if (isSOLMint(strategyWithAddress.strategy.tokenAMint)) {
-      userTokenBalances.a = lamportsToNumberDecimal(
-        new Decimal(await this._connection.getBalance(owner)),
-        DECIMALS_SOL
+      userTokenBalances.a = userTokenBalances.a?.add(
+        lamportsToNumberDecimal(new Decimal(await this._connection.getBalance(owner)), DECIMALS_SOL)
       );
     }
 
     if (isSOLMint(strategyWithAddress.strategy.tokenBMint)) {
-      userTokenBalances.b = lamportsToNumberDecimal(
-        new Decimal(await this._connection.getBalance(owner)),
-        DECIMALS_SOL
+      userTokenBalances.b = userTokenBalances.b?.add(
+        lamportsToNumberDecimal(new Decimal(await this._connection.getBalance(owner)), DECIMALS_SOL)
       );
     }
 
@@ -1866,15 +1864,20 @@ export class Kamino {
 
     if (isSOLMint(strategyState.tokenAMint)) {
       // read how much SOL the user has and calculate the amount to deposit and balance based on it
-      let availableSol = new Decimal(await this._connection.getBalance(owner));
-      let solToDepsit = availableSol.sub(tokenAMinPostDepositBalanceLamports);
+      let solBalance = new Decimal(await this._connection.getBalance(owner));
+      let tokenAAtaBalanceLamports = collToLamportsDecimal(
+        tokenAAtaBalance,
+        strategyState.tokenAMintDecimals.toNumber()
+      );
+      let availableSol = solBalance.add(tokenAAtaBalanceLamports);
+      let solToDeposit = availableSol.sub(tokenAMinPostDepositBalanceLamports);
 
-      aToDeposit = solToDepsit;
-      tokenAAtaBalance = lamportsToNumberDecimal(solToDepsit, DECIMALS_SOL);
+      aToDeposit = solToDeposit;
+      tokenAAtaBalance = lamportsToNumberDecimal(solToDeposit, DECIMALS_SOL);
 
       let createWSolAtaIxns = await createWsolAtaIfMissing(
         this._connection,
-        new Decimal(lamportsToNumberDecimal(solToDepsit, DECIMALS_SOL)),
+        new Decimal(lamportsToNumberDecimal(solToDeposit, DECIMALS_SOL)),
         owner
       );
 
@@ -1882,6 +1885,12 @@ export class Kamino {
       let wSolAtaExists = await checkIfAccountExists(this._connection, createWSolAtaIxns.ata);
       if (!wSolAtaExists) {
         realTokenAMinPostDepositBalanceLamports = new Decimal(0);
+      } else {
+        if (solToDeposit.greaterThanOrEqualTo(tokenAAtaBalanceLamports)) {
+          realTokenAMinPostDepositBalanceLamports = ZERO;
+        } else {
+          realTokenAMinPostDepositBalanceLamports = tokenAAtaBalanceLamports.sub(solToDeposit);
+        }
       }
 
       createAtasIxns.push(...createWSolAtaIxns.createIxns);
@@ -1889,21 +1898,33 @@ export class Kamino {
     }
 
     if (isSOLMint(strategyState.tokenBMint)) {
-      let availableSol = new Decimal(await this._connection.getBalance(owner));
-      let solToDepsit = availableSol.sub(tokenBMinPostDepositBalanceLamports);
+      let solBalance = new Decimal(await this._connection.getBalance(owner));
+      let tokenBAtaBalanceLamports = collToLamportsDecimal(
+        tokenBAtaBalance,
+        strategyState.tokenBMintDecimals.toNumber()
+      );
+      let availableSol = solBalance.add(tokenBAtaBalanceLamports);
+      let solToDeposit = availableSol.sub(tokenBMinPostDepositBalanceLamports);
+      availableSol;
 
-      bToDeposit = solToDepsit;
-      tokenBAtaBalance = lamportsToNumberDecimal(solToDepsit, DECIMALS_SOL);
+      bToDeposit = solToDeposit;
+      tokenBAtaBalance = lamportsToNumberDecimal(solToDeposit, DECIMALS_SOL);
 
       let createWSolAtaIxns = await createWsolAtaIfMissing(
         this._connection,
-        new Decimal(lamportsToNumberDecimal(solToDepsit, DECIMALS_SOL)),
+        new Decimal(lamportsToNumberDecimal(solToDeposit, DECIMALS_SOL)),
         owner
       );
 
       let wSolAtaExists = await checkIfAccountExists(this._connection, createWSolAtaIxns.ata);
       if (!wSolAtaExists) {
         realTokenBMinPostDepositBalanceLamports = new Decimal(0);
+      } else {
+        if (solToDeposit.greaterThanOrEqualTo(tokenBAtaBalanceLamports)) {
+          realTokenAMinPostDepositBalanceLamports = ZERO;
+        } else {
+          realTokenAMinPostDepositBalanceLamports = tokenBAtaBalanceLamports.sub(solToDeposit);
+        }
       }
 
       createAtasIxns.push(...createWSolAtaIxns.createIxns);
@@ -2092,6 +2113,7 @@ export class Kamino {
 
     let expectedALamports = collToLamportsDecimal(expectedABalance, strategyState.tokenAMintDecimals.toNumber());
     let expectedBLamports = collToLamportsDecimal(expectedBBalance, strategyState.tokenBMintDecimals.toNumber());
+
     const args: CheckExpectedVaultsBalancesArgs = {
       tokenAAtaBalance: new BN(expectedALamports.toString()),
       tokenBAtaBalance: new BN(expectedBLamports.toString()),
