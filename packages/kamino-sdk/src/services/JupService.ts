@@ -43,7 +43,7 @@ export class JupService {
     amount: Decimal,
     inputMint: PublicKey,
     outputMint: PublicKey,
-    slippage: number,
+    slippageBps: number,
     mode = 'ExactIn',
     asLegacyTransaction?: boolean
   ): Promise<RouteInfo> => {
@@ -51,7 +51,7 @@ export class JupService {
       inputMint: inputMint.toString(),
       outputMint: outputMint.toString(),
       amount: amount.ceil().toString(),
-      slippageBps: slippage * 100,
+      slippageBps,
       onlyDirectRoutes: false,
       asLegacyTransaction,
       mode,
