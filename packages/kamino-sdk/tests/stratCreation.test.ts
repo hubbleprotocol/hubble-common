@@ -1072,6 +1072,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     }
 
     let amountToDeposit = new Decimal(1.0);
+    let slippageBps = new Decimal(100);
 
     let singleSidedDepositIxs: TransactionInstruction[] = [];
     let lookupTables: PublicKey[] = [];
@@ -1081,7 +1082,7 @@ describe('Kamino strategy creation SDK Tests', () => {
         strategy,
         amountToDeposit,
         signer.publicKey,
-        new Decimal(15)
+        slippageBps
       );
       singleSidedDepositIxs = instructions;
       lookupTables = lookupTablesAddresses;
@@ -1090,7 +1091,7 @@ describe('Kamino strategy creation SDK Tests', () => {
         strategy,
         amountToDeposit,
         signer.publicKey,
-        new Decimal(15)
+        slippageBps
       );
       singleSidedDepositIxs = instructions;
       lookupTables = lookupTablesAddresses;
@@ -1131,6 +1132,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     }
 
     let amountToDeposit = new Decimal(1.0);
+    let slippageBps = new Decimal(100);
 
     let singleSidedDepositIxs: TransactionInstruction[] = [];
     let lookupTables: PublicKey[] = [];
@@ -1140,7 +1142,7 @@ describe('Kamino strategy creation SDK Tests', () => {
         strategy,
         amountToDeposit,
         signer.publicKey,
-        new Decimal(50)
+        slippageBps
       );
       singleSidedDepositIxs = instructions;
       lookupTables = lookupTablesAddresses;
@@ -1149,7 +1151,7 @@ describe('Kamino strategy creation SDK Tests', () => {
         strategy,
         amountToDeposit,
         signer.publicKey,
-        new Decimal(50)
+        slippageBps
       );
       singleSidedDepositIxs = instructions;
       lookupTables = lookupTablesAddresses;
@@ -1190,6 +1192,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     }
 
     let amountToDeposit = new Decimal(0.1);
+    let slippageBps = new Decimal(50);
 
     let singleSidedDepositIxs: TransactionInstruction[] = [];
     let lookupTables: PublicKey[] = [];
@@ -1199,7 +1202,7 @@ describe('Kamino strategy creation SDK Tests', () => {
         strategy,
         amountToDeposit,
         signer.publicKey,
-        new Decimal(50)
+        slippageBps
       );
       singleSidedDepositIxs = instructions;
       lookupTables = lookupTablesAddresses;
@@ -1208,7 +1211,7 @@ describe('Kamino strategy creation SDK Tests', () => {
         strategy,
         amountToDeposit,
         signer.publicKey,
-        new Decimal(50)
+        slippageBps
       );
       singleSidedDepositIxs = instructions;
       lookupTables = lookupTablesAddresses;
@@ -1256,6 +1259,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     }
 
     let amountToDeposit = new Decimal(0.1);
+    let slippageBps = new Decimal(50);
 
     let singleSidedDepositIxs: TransactionInstruction[] = [];
     let lookupTables: PublicKey[] = [];
@@ -1265,7 +1269,7 @@ describe('Kamino strategy creation SDK Tests', () => {
         strategy,
         amountToDeposit,
         signer.publicKey,
-        new Decimal(50)
+        slippageBps
       );
       singleSidedDepositIxs = instructions;
       lookupTables = lookupTablesAddresses;
@@ -1274,7 +1278,7 @@ describe('Kamino strategy creation SDK Tests', () => {
         strategy,
         amountToDeposit,
         signer.publicKey,
-        new Decimal(50)
+        slippageBps
       );
       singleSidedDepositIxs = instructions;
       lookupTables = lookupTablesAddresses;
@@ -1326,6 +1330,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     }
 
     let amountToDeposit = new Decimal(0.1);
+    let slippageBps = new Decimal(50);
 
     let singleSidedDepositIxs: TransactionInstruction[] = [];
     let lookupTables: PublicKey[] = [];
@@ -1335,7 +1340,7 @@ describe('Kamino strategy creation SDK Tests', () => {
         strategy,
         amountToDeposit,
         signer.publicKey,
-        new Decimal(50)
+        slippageBps
       );
       singleSidedDepositIxs = instructions;
       lookupTables = lookupTablesAddresses;
@@ -1344,7 +1349,7 @@ describe('Kamino strategy creation SDK Tests', () => {
         strategy,
         amountToDeposit,
         signer.publicKey,
-        new Decimal(50)
+        slippageBps
       );
       singleSidedDepositIxs = instructions;
       lookupTables = lookupTablesAddresses;
@@ -1396,6 +1401,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     }
 
     let amountToDeposit = new Decimal(0.01);
+    let slippageBps = new Decimal(50);
 
     let singleSidedDepositIxs: TransactionInstruction[] = [];
     let lookupTables: PublicKey[] = [];
@@ -1405,7 +1411,7 @@ describe('Kamino strategy creation SDK Tests', () => {
         strategy,
         amountToDeposit,
         signer.publicKey,
-        new Decimal(50)
+        slippageBps
       );
       singleSidedDepositIxs = instructions;
       lookupTables = lookupTablesAddresses;
@@ -1414,7 +1420,7 @@ describe('Kamino strategy creation SDK Tests', () => {
         strategy,
         amountToDeposit,
         signer.publicKey,
-        new Decimal(50)
+        slippageBps
       );
       singleSidedDepositIxs = instructions;
       lookupTables = lookupTablesAddresses;
