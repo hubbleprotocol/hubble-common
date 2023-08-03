@@ -59,10 +59,6 @@ export class JupService {
 
     const res = await axios.get('https://quote-api.jup.ag/v4/quote', { params });
 
-    console.log('amount', amount.toString());
-    console.log('inputMint', inputMint.toString());
-    console.log('outputMint', outputMint.toString());
-    console.log('res.data.data[0]', res.data);
     return res.data.data[0] as RouteInfo;
   };
 
