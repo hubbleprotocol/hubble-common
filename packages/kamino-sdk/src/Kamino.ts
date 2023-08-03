@@ -1671,7 +1671,7 @@ export class Kamino {
     strategy: PublicKey | StrategyWithAddress,
     amountToDeposit: Decimal,
     owner: PublicKey,
-    slippage: Decimal,
+    slippageBps: Decimal,
     swapIxsBuilder?: SwapperIxBuilder,
     initialUserTokenBalances?: TokensBalances,
     priceAInB?: Decimal
@@ -1721,7 +1721,7 @@ export class Kamino {
       collToLamportsDecimal(tokenAMinPostDepositBalance, strategyWithAddress.strategy.tokenAMintDecimals.toNumber()),
       collToLamportsDecimal(userTokenBalances.b, strategyWithAddress.strategy.tokenBMintDecimals.toNumber()),
       owner,
-      slippage,
+      slippageBps,
       swapper,
       priceAInB
     );
@@ -1731,7 +1731,7 @@ export class Kamino {
     strategy: PublicKey | StrategyWithAddress,
     amountToDeposit: Decimal,
     owner: PublicKey,
-    slippage: Decimal,
+    slippageBps: Decimal,
     swapIxsBuilder?: SwapperIxBuilder,
     initialUserTokenBalances?: TokensBalances,
     priceAInB?: Decimal
@@ -1778,7 +1778,7 @@ export class Kamino {
       collToLamportsDecimal(userTokenBalances.a, strategyWithAddress.strategy.tokenAMintDecimals.toNumber()),
       collToLamportsDecimal(tokenBMinPostDepositBalance, strategyWithAddress.strategy.tokenBMintDecimals.toNumber()),
       owner,
-      slippage,
+      slippageBps,
       swapper,
       priceAInB
     );
@@ -1827,7 +1827,7 @@ export class Kamino {
     tokenAMinPostDepositBalanceLamports: Decimal,
     tokenBMinPostDepositBalanceLamports: Decimal,
     owner: PublicKey,
-    swapSlippage: Decimal,
+    swapSlippageBps: Decimal,
     swapIxsBuilder: SwapperIxBuilder,
     priceAInB?: Decimal // not mandatory as it will be fetched from Jupyter
   ): Promise<InstructionsWithLookupTables> => {
@@ -1962,13 +1962,14 @@ export class Kamino {
       bToDeposit,
       priceAInB
     );
+    console.log('amountsToDepositWithSwap', amountsToDepositWithSwap);
 
     let [jupSwapIxs, lookupTablesAddresses] = await swapIxsBuilder(
       amountsToDepositWithSwap,
       strategyState.tokenAMint,
       strategyState.tokenBMint,
       owner,
-      swapSlippage
+      swapSlippageBps
     );
 
     let poolProgram = getDexProgramId(strategyState);
@@ -2037,25 +2038,27 @@ export class Kamino {
     tokenAMint: PublicKey,
     tokenBMint: PublicKey,
     owner: PublicKey,
-    slippage: Decimal,
+    slippageBps: Decimal,
     useOnlyLegacyTransaction: boolean
   ): Promise<[TransactionInstruction[], PublicKey[]]> => {
     let jupiterBestRoute: RouteInfo;
+    console.log('input.tokenAToSwapAmount', input.tokenAToSwapAmount.toString());
+    console.log('input.tokenBToSwapAmount', input.tokenBToSwapAmount.toString());
     if (input.tokenAToSwapAmount.lt(ZERO)) {
       jupiterBestRoute = await JupService.getBestRoute(
-        input.tokenAToSwapAmount,
+        input.tokenAToSwapAmount.abs(),
         tokenAMint,
         tokenBMint,
-        slippage.toNumber(),
+        slippageBps.toNumber(),
         'ExactIn',
         useOnlyLegacyTransaction
       );
     } else {
       jupiterBestRoute = await JupService.getBestRoute(
-        input.tokenBToSwapAmount,
+        input.tokenBToSwapAmount.abs(),
         tokenBMint,
         tokenAMint,
-        slippage.toNumber(),
+        slippageBps.toNumber(),
         'ExactIn',
         useOnlyLegacyTransaction
       );
@@ -3739,6 +3742,8 @@ export class Kamino {
 
     console.log('requiredAAmountToDeposit', requiredAAmountToDeposit.toNumber());
     console.log('requiredBAmountToDeposit', requiredBAmountToDeposit.toNumber());
+    console.log('tokenAToSwapAmount', tokenAToSwapAmount.toNumber());
+    console.log('tokenBToSwapAmount', tokenBToSwapAmount.toNumber());
     let depositAmountsForSwap: DepositAmountsForSwap = {
       requiredAAmountToDeposit,
       requiredBAmountToDeposit,

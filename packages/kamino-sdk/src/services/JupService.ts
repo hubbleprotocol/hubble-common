@@ -43,15 +43,15 @@ export class JupService {
     amount: Decimal,
     inputMint: PublicKey,
     outputMint: PublicKey,
-    slippage: number,
+    slippageBps: number,
     mode = 'ExactIn',
     asLegacyTransaction?: boolean
   ): Promise<RouteInfo> => {
     const params = {
       inputMint: inputMint.toString(),
       outputMint: outputMint.toString(),
-      amount: amount.ceil().toString(),
-      slippageBps: slippage * 100,
+      amount: amount.mul(-1).ceil().toString(),
+      slippageBps,
       onlyDirectRoutes: false,
       asLegacyTransaction,
       mode,
@@ -59,6 +59,10 @@ export class JupService {
 
     const res = await axios.get('https://quote-api.jup.ag/v4/quote', { params });
 
+    console.log('amount', amount.toString());
+    console.log('inputMint', inputMint.toString());
+    console.log('outputMint', outputMint.toString());
+    console.log('res.data.data[0]', res.data);
     return res.data.data[0] as RouteInfo;
   };
 

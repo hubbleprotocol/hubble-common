@@ -6,13 +6,15 @@ import {
   TransactionInstruction,
   VersionedTransaction,
 } from '@solana/web3.js';
-import { Kamino, OrcaService, RaydiumService, sendTransactionWithLogs } from '../src';
+import { Kamino, OrcaService, RaydiumService, sendTransactionWithLogs, sleep } from '../src';
 import Decimal from 'decimal.js';
 import { createTransactionWithExtraBudget } from '../src';
 import {
+  balance,
   GlobalConfigMainnet,
   KaminoProgramIdMainnet,
   SOLMintMainnet,
+  toJson,
   updateStrategyConfig,
   USDCMintMainnet,
 } from './utils';
@@ -23,6 +25,7 @@ import { PROGRAM_ID as RAYDIUM_PROGRAM_ID } from '../src/raydium_client/programI
 import { Manual, PricePercentage, PricePercentageWithReset } from '../src/kamino-client/types/RebalanceType';
 import { MAINNET_GLOBAL_LOOKUP_TABLE } from '../dist/constants/pubkeys';
 import { createWsolAtaIfMissing, getComputeBudgetAndPriorityFeeIxns } from '../src/utils/transactions';
+import { JupService } from '../src/services/JupService';
 
 describe('Kamino strategy creation SDK Tests', () => {
   let connection: Connection;
@@ -1448,6 +1451,7 @@ describe('Kamino strategy creation SDK Tests', () => {
       WHIRLPOOL_PROGRAM_ID,
       RAYDIUM_PROGRAM_ID
     );
+    const jupService = new JupService(kamino.getConnection(), cluster);
 
     let strategy = new PublicKey('CYLt3Bs51QT3WeFhjtYnPGZNDzdd6SY5vfUMa86gT2D8');
 
@@ -1456,7 +1460,26 @@ describe('Kamino strategy creation SDK Tests', () => {
       throw new Error('strategy not found');
     }
 
-    let amountToDeposit = new Decimal(0.1);
+    const shareDataBefore = await kamino.getStrategyShareData(strategy);
+    let sharesAtaBalanceBefore = await balance(kamino.getConnection(), signer, strategyState.sharesMint);
+    const userSharesMvBefore = sharesAtaBalanceBefore! * shareDataBefore.price.toNumber();
+    let amountToDeposit = new Decimal(0.01);
+    {
+      let aAtaBalance = await balance(kamino.getConnection(), signer, strategyState.tokenAMint);
+      let bAtaBalance = await balance(kamino.getConnection(), signer, strategyState.tokenBMint);
+      console.log('balances ', toJson({ aAtaBalance, bAtaBalance, sharesAtaBalanceBefore }));
+
+      let aPrice = await jupService.getPrice(strategyState.tokenAMint, USDCMintMainnet);
+
+      console.log('shareData', toJson(shareDataBefore));
+      console.log('shares minted', strategyState.sharesIssued.toString());
+
+      const userDepositMv = amountToDeposit.mul(aPrice).toNumber();
+      console.log("user's deposit mv", userDepositMv);
+      console.log("userShareMvBefore", userSharesMvBefore);
+    }
+
+    const slippageBps = new Decimal(100);
 
     let singleSidedDepositIxs: TransactionInstruction[] = [];
     let lookupTables: PublicKey[] = [MAINNET_GLOBAL_LOOKUP_TABLE];
@@ -1469,7 +1492,7 @@ describe('Kamino strategy creation SDK Tests', () => {
         strategy,
         amountToDeposit,
         signer.publicKey,
-        new Decimal(50)
+        slippageBps
       );
       singleSidedDepositIxs = instructions;
       lookupTables = lookupTables.concat(lookupTablesAddresses);
@@ -1478,7 +1501,7 @@ describe('Kamino strategy creation SDK Tests', () => {
         strategy,
         amountToDeposit,
         signer.publicKey,
-        new Decimal(50)
+        slippageBps
       );
       singleSidedDepositIxs = instructions;
       lookupTables = lookupTables.concat(lookupTablesAddresses);
@@ -1493,9 +1516,38 @@ describe('Kamino strategy creation SDK Tests', () => {
     const singleSidedDepositTx = new VersionedTransaction(singleSidedDepositMessage);
     singleSidedDepositTx.sign([signer]);
 
-    //@ts-ignore
-    const depositTxId = await sendAndConfirmTransaction(kamino._connection, singleSidedDepositTx);
-    console.log('singleSidedDepoxit tx hash', depositTxId);
+    try {
+      //@ts-ignore
+      const depositTxId = await sendAndConfirmTransaction(kamino._connection, singleSidedDepositTx);
+      console.log('singleSidedDepoxit tx hash', depositTxId);
+    } catch (e) {
+      console.log(e);
+    }
+
+    await sleep(5000);
+
+    let sharesAtaBalanceAfter = await balance(kamino.getConnection(), signer, strategyState.sharesMint);
+    const shareDataAfter = await kamino.getStrategyShareData(strategy);
+    const userSharesMvAfter = sharesAtaBalanceAfter! * shareDataAfter.price.toNumber();
+    {
+      console.log('after deposit');
+      let aAtaBalance = await balance(kamino.getConnection(), signer, strategyState.tokenAMint);
+      let bAtaBalance = await balance(kamino.getConnection(), signer, strategyState.tokenBMint);
+      console.log('balances ', toJson({ aAtaBalance, bAtaBalance, sharesAtaBalanceAfter }));
+
+      let aPrice = await jupService.getPrice(strategyState.tokenAMint, USDCMintMainnet);
+      let bPrice = await jupService.getPrice(strategyState.tokenBMint, USDCMintMainnet);
+
+      console.log('shareData', toJson(shareDataAfter));
+      console.log('shares minted', strategyState.sharesIssued.toString());
+
+      const userSharesMv = sharesAtaBalanceAfter! * shareDataAfter.price.toNumber();
+      console.log("user's shares mv", userSharesMv);
+
+      const diffMv = userSharesMvAfter - userSharesMvBefore;
+      console.log("userSharesMvAfter", userSharesMvAfter);
+      console.log('diff mv', diffMv);
+    }
   });
 
   it.skip('create wSOL ata', async () => {

@@ -1,4 +1,4 @@
-import { Connection, Keypair, PublicKey, sendAndConfirmTransaction } from '@solana/web3.js';
+import { Connection, Keypair, LAMPORTS_PER_SOL, PublicKey, sendAndConfirmTransaction } from '@solana/web3.js';
 import * as anchor from '@project-serum/anchor';
 import { StrategyConfigOptionKind, UpdateCollateralInfoModeKind } from '../src/kamino-client/types';
 import * as Instructions from '../src/kamino-client/instructions';
@@ -27,6 +27,7 @@ import { TokenInstructions } from '@project-serum/serum';
 import { collateralTokenToNumber, CollateralToken } from './token_utils';
 import { checkIfAccountExists, getAtasWithCreateIxnsIfMissing } from '../src/utils/transactions';
 import { FullBPS } from '../src/utils/CreationParameters';
+import { WRAPPED_SOL_MINT } from '@jup-ag/core';
 
 export const GlobalConfigMainnet = new PublicKey('GKnHiWh3RRrE1zsNzWxRkomymHc374TvJPSTv2wPeYdB');
 export const KaminoProgramIdMainnet = new PublicKey('6LtLpnUFNByNXLyCoK9wA2MykKAmQNZKBdY8s47dehDc');
@@ -569,3 +570,27 @@ async function getSwapBToAWithSlippageBPSIxs(
 
   return [mintToIx, burnFromIx];
 }
+
+export const balance = async (
+  connection: Connection,
+  user: Keypair,
+  mint: PublicKey,
+  ifSolGetWsolBalance: boolean = false
+) => {
+  if (isSOLMint(mint) && !ifSolGetWsolBalance) {
+    const balance = (await connection.getBalance(user.publicKey)) / LAMPORTS_PER_SOL;
+    return balance;
+  }
+
+  const ata = await getAssociatedTokenAddress(mint, user.publicKey);
+  if (await checkIfAccountExists(connection, ata)) {
+    const balance = await connection.getTokenAccountBalance(ata);
+    return balance.value.uiAmount;
+  }
+
+  return 0;
+};
+
+export const toJson = (object: any): string => {
+  return JSON.stringify(object, null, 2);
+};
