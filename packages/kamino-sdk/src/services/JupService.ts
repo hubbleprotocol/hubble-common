@@ -50,7 +50,7 @@ export class JupService {
     const params = {
       inputMint: inputMint.toString(),
       outputMint: outputMint.toString(),
-      amount: amount.mul(-1).ceil().toString(),
+      amount: amount.ceil().toString(),
       slippageBps,
       onlyDirectRoutes: false,
       asLegacyTransaction,
