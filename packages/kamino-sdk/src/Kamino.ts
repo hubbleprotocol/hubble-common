@@ -1676,6 +1676,7 @@ export class Kamino {
     initialUserTokenBalances?: TokensBalances,
     priceAInB?: Decimal
   ): Promise<InstructionsWithLookupTables> => {
+    console.log('singleSidedDepositTokenA', amountToDeposit.toString());
     const strategyWithAddress = await this.getStrategyStateIfNotFetched(strategy);
 
     let userTokenBalances = await this.getInitialUserTokenBalances(
@@ -1703,6 +1704,7 @@ export class Kamino {
     }
 
     let tokenAMinPostDepositBalance = userTokenBalances.a?.sub(amountToDeposit);
+    console.log('tokenAMinPostDepositBalance', tokenAMinPostDepositBalance.toString());
 
     let swapper: SwapperIxBuilder = swapIxsBuilder
       ? swapIxsBuilder
@@ -1859,6 +1861,7 @@ export class Kamino {
     let bToDeposit = collToLamportsDecimal(tokenBAtaBalance, strategyState.tokenBMintDecimals.toNumber()).sub(
       tokenBMinPostDepositBalanceLamports
     );
+    console.log('initial tokenAAtaBalance', tokenAAtaBalance.toString());
 
     let cleanupIxs: TransactionInstruction[] = [];
 
@@ -1872,9 +1875,13 @@ export class Kamino {
       let availableSol = solBalance.add(tokenAAtaBalanceLamports);
       let solToDeposit = availableSol.sub(tokenAMinPostDepositBalanceLamports);
 
+      console.log('solToDeposit', solToDeposit.toString());
       aToDeposit = solToDeposit;
       if (!aToDeposit.eq(ZERO)) {
-        tokenAAtaBalance = lamportsToNumberDecimal(aToDeposit, DECIMALS_SOL);
+        console.log('in if aToDeposit', aToDeposit.toString());
+        if (tokenAAtaBalanceLamports.lessThan(aToDeposit)) {
+          tokenAAtaBalance = lamportsToNumberDecimal(aToDeposit, DECIMALS_SOL);
+        }
       }
 
       let createWSolAtaIxns = await createWsolAtaIfMissing(
@@ -1926,9 +1933,9 @@ export class Kamino {
         realTokenBMinPostDepositBalanceLamports = new Decimal(0);
       } else {
         if (solToDeposit.greaterThanOrEqualTo(tokenBAtaBalanceLamports)) {
-          realTokenAMinPostDepositBalanceLamports = ZERO;
+          realTokenBMinPostDepositBalanceLamports = ZERO;
         } else {
-          realTokenAMinPostDepositBalanceLamports = tokenBAtaBalanceLamports.sub(solToDeposit);
+          realTokenBMinPostDepositBalanceLamports = tokenBAtaBalanceLamports.sub(solToDeposit);
         }
       }
 
@@ -1936,6 +1943,8 @@ export class Kamino {
       cleanupIxs.push(...createWSolAtaIxns.closeIxns);
     }
 
+    console.log('tokenAAtaBalance', tokenAAtaBalance.toNumber());
+    console.log('tokenBAtaBalance', tokenBAtaBalance.toNumber());
     let checkExpectedVaultsBalancesIx = await this.getCheckExpectedVaultsBalancesIx(strategyWithAddress, owner, {
       a: tokenAAtaBalance,
       b: tokenBAtaBalance,
@@ -1973,6 +1982,8 @@ export class Kamino {
       strategyState.tokenBMint
     );
 
+    console.log('realTokenAMinPostDepositBalanceLamports', realTokenAMinPostDepositBalanceLamports.toString());
+    console.log('realTokenBMinPostDepositBalanceLamports', realTokenBMinPostDepositBalanceLamports.toString());
     const args: SingleTokenDepositAndInvestWithMinArgs = {
       tokenAMinPostDepositBalance: new BN(realTokenAMinPostDepositBalanceLamports.floor().toString()),
       tokenBMinPostDepositBalance: new BN(realTokenBMinPostDepositBalanceLamports.floor().toString()),
@@ -2017,6 +2028,7 @@ export class Kamino {
     result.push(...createAtasIxns);
 
     result = result.concat([checkExpectedVaultsBalancesIx, ...jupSwapIxs, singleSidedDepositIx, ...cleanupIxs]);
+    // result = result.concat([...jupSwapIxs, singleSidedDepositIx]);
     return { instructions: result, lookupTablesAddresses };
   };
 
@@ -2119,6 +2131,8 @@ export class Kamino {
     let expectedALamports = collToLamportsDecimal(expectedABalance, strategyState.tokenAMintDecimals.toNumber());
     let expectedBLamports = collToLamportsDecimal(expectedBBalance, strategyState.tokenBMintDecimals.toNumber());
 
+    console.log('expectedALamports.toString()', expectedALamports.toString());
+    console.log('expectedBLamports.toString()', expectedBLamports.toString());
     const args: CheckExpectedVaultsBalancesArgs = {
       tokenAAtaBalance: new BN(expectedALamports.toString()),
       tokenBAtaBalance: new BN(expectedBLamports.toString()),
@@ -3723,6 +3737,8 @@ export class Kamino {
     let tokenAToSwapAmount = requiredAAmountToDeposit.sub(tokenAAmountUserDeposit);
     let tokenBToSwapAmount = requiredBAmountToDeposit.sub(tokenBAmountUserDeposit);
 
+    console.log('requiredAAmountToDeposit', requiredAAmountToDeposit.toNumber());
+    console.log('requiredBAmountToDeposit', requiredBAmountToDeposit.toNumber());
     let depositAmountsForSwap: DepositAmountsForSwap = {
       requiredAAmountToDeposit,
       requiredBAmountToDeposit,

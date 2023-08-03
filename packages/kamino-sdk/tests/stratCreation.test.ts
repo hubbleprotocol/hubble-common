@@ -27,12 +27,18 @@ import { createWsolAtaIfMissing, getComputeBudgetAndPriorityFeeIxns } from '../s
 describe('Kamino strategy creation SDK Tests', () => {
   let connection: Connection;
   const cluster = 'mainnet-beta';
-  const clusterUrl: string = 'https://api.mainnet-beta.solana.com';
+
+  // const clusterUrl: string = 'https://api.mainnet-beta.solana.com';
+  const clusterUrl: string = 'https://hubble-dedi.rpcpool.com/bb4c4a4764b89f0a7d765a6abaf2';
 
   connection = new Connection(clusterUrl, 'processed');
 
   // use your private key here
-  const signerPrivateKey = [];
+  const signerPrivateKey = [
+    178, 65, 98, 152, 172, 223, 56, 136, 242, 32, 177, 181, 183, 67, 173, 24, 65, 117, 155, 205, 15, 234, 161, 244, 50,
+    68, 101, 44, 121, 17, 172, 226, 252, 121, 151, 204, 91, 236, 195, 244, 71, 187, 116, 212, 30, 169, 243, 124, 216,
+    184, 28, 167, 65, 210, 113, 11, 177, 219, 79, 127, 243, 194, 2, 2,
+  ];
   const signer = Keypair.fromSecretKey(Uint8Array.from(signerPrivateKey));
 
   it.skip('get pools for Raydium SOL-USDC pair', async () => {
@@ -1361,6 +1367,135 @@ describe('Kamino strategy creation SDK Tests', () => {
     } catch (e) {
       console.log(e);
     }
+  });
+
+  it.skip('one click single sided deposit SOL in SOL-BONK strat with existent wSOL ata', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      GlobalConfigMainnet,
+      KaminoProgramIdMainnet,
+      WHIRLPOOL_PROGRAM_ID,
+      RAYDIUM_PROGRAM_ID
+    );
+
+    //@ts-ignore
+    let createWSolAtaIxns = await createWsolAtaIfMissing(kamino._connection, new Decimal(0.02), signer.publicKey);
+
+    const createwSolAtaMessage = await kamino.getTransactionV2Message(signer.publicKey, createWSolAtaIxns.createIxns);
+    const createwSolAtaTx = new VersionedTransaction(createwSolAtaMessage);
+    createwSolAtaTx.sign([signer]);
+
+    //@ts-ignore
+    const createwSolAtaTxHash = await sendAndConfirmTransaction(kamino._connection, createwSolAtaTx);
+    console.log('createSol tx hash', createwSolAtaTxHash);
+
+    let strategy = new PublicKey('HWg7yB3C1BnmTKFMU3KGD7E96xx2rUhv4gxrwbZLXHBt');
+
+    let strategyState = (await kamino.getStrategies([strategy]))[0];
+    if (!strategyState) {
+      throw new Error('strategy not found');
+    }
+
+    let amountToDeposit = new Decimal(0.01);
+
+    let singleSidedDepositIxs: TransactionInstruction[] = [];
+    let lookupTables: PublicKey[] = [];
+    // if SOL is tokenA mint deposit tokenA, else deposit tokenB
+    if (strategyState.tokenAMint.toString() === SOLMintMainnet.toString()) {
+      let { instructions, lookupTablesAddresses } = await kamino.singleSidedDepositTokenA(
+        strategy,
+        amountToDeposit,
+        signer.publicKey,
+        new Decimal(50)
+      );
+      singleSidedDepositIxs = instructions;
+      lookupTables = lookupTablesAddresses;
+    } else {
+      let { instructions, lookupTablesAddresses } = await kamino.singleSidedDepositTokenB(
+        strategy,
+        amountToDeposit,
+        signer.publicKey,
+        new Decimal(50)
+      );
+      singleSidedDepositIxs = instructions;
+      lookupTables = lookupTablesAddresses;
+    }
+
+    const singleSidedDepositMessage = await kamino.getTransactionV2Message(
+      signer.publicKey,
+      [...getComputeBudgetAndPriorityFeeIxns(1_400_000), ...singleSidedDepositIxs],
+      [...lookupTables, MAINNET_GLOBAL_LOOKUP_TABLE]
+    );
+    const singleSidedDepositTx = new VersionedTransaction(singleSidedDepositMessage);
+    singleSidedDepositTx.sign([signer]);
+
+    try {
+      //@ts-ignore
+      const depositTxId = await sendAndConfirmTransaction(kamino._connection, singleSidedDepositTx);
+      console.log('singleSidedDepoxit tx hash', depositTxId);
+    } catch (e) {
+      console.log(e);
+    }
+  });
+
+  it('one click single sided deposit SOL in SOL-USDH strat', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      GlobalConfigMainnet,
+      KaminoProgramIdMainnet,
+      WHIRLPOOL_PROGRAM_ID,
+      RAYDIUM_PROGRAM_ID
+    );
+
+    let strategy = new PublicKey('CYLt3Bs51QT3WeFhjtYnPGZNDzdd6SY5vfUMa86gT2D8');
+
+    let strategyState = (await kamino.getStrategies([strategy]))[0];
+    if (!strategyState) {
+      throw new Error('strategy not found');
+    }
+
+    let amountToDeposit = new Decimal(0.1);
+
+    let singleSidedDepositIxs: TransactionInstruction[] = [];
+    let lookupTables: PublicKey[] = [MAINNET_GLOBAL_LOOKUP_TABLE];
+    if (strategyState.strategyLookupTable != PublicKey.default) {
+      lookupTables.push(strategyState.strategyLookupTable);
+    }
+    // if SOL is tokenA mint deposit tokenA, else deposit tokenB
+    if (strategyState.tokenAMint.toString() === SOLMintMainnet.toString()) {
+      let { instructions, lookupTablesAddresses } = await kamino.singleSidedDepositTokenA(
+        strategy,
+        amountToDeposit,
+        signer.publicKey,
+        new Decimal(50)
+      );
+      singleSidedDepositIxs = instructions;
+      lookupTables = lookupTables.concat(lookupTablesAddresses);
+    } else {
+      let { instructions, lookupTablesAddresses } = await kamino.singleSidedDepositTokenB(
+        strategy,
+        amountToDeposit,
+        signer.publicKey,
+        new Decimal(50)
+      );
+      singleSidedDepositIxs = instructions;
+      lookupTables = lookupTables.concat(lookupTablesAddresses);
+    }
+
+    console.log('lookupTables', lookupTables.length);
+    const singleSidedDepositMessage = await kamino.getTransactionV2Message(
+      signer.publicKey,
+      [...getComputeBudgetAndPriorityFeeIxns(1_400_000), ...singleSidedDepositIxs],
+      lookupTables
+    );
+    const singleSidedDepositTx = new VersionedTransaction(singleSidedDepositMessage);
+    singleSidedDepositTx.sign([signer]);
+
+    //@ts-ignore
+    const depositTxId = await sendAndConfirmTransaction(kamino._connection, singleSidedDepositTx);
+    console.log('singleSidedDepoxit tx hash', depositTxId);
   });
 
   it.skip('create wSOL ata', async () => {
