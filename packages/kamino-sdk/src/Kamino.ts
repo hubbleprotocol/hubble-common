@@ -3581,28 +3581,18 @@ export class Kamino {
     pool: PublicKey,
     keepOrder: boolean = true,
     lowestTick?: number,
-    highestTick?: number,
+    highestTick?: number
   ): Promise<LiquidityDistribution> => {
-    return this._raydiumService.getRaydiumPoolLiquidityDistribution(
-      pool,
-      keepOrder,
-      lowestTick,
-      highestTick,
-    );
+    return this._raydiumService.getRaydiumPoolLiquidityDistribution(pool, keepOrder, lowestTick, highestTick);
   };
 
   getLiquidityDistributionOrcaWhirlpool = (
     pool: PublicKey,
     keepOrder: boolean = true,
     lowestTick?: number,
-    highestTick?: number,
+    highestTick?: number
   ): Promise<LiquidityDistribution> => {
-    return this._orcaService.getWhirlpoolLiquidityDistribution(
-      pool,
-      keepOrder,
-      lowestTick,
-      highestTick,
-    );
+    return this._orcaService.getWhirlpoolLiquidityDistribution(pool, keepOrder, lowestTick, highestTick);
   };
 
   getLiquidityDistribution = async (
@@ -3610,15 +3600,10 @@ export class Kamino {
     pool: PublicKey,
     keepOrder: boolean = true,
     lowestTick?: number,
-    highestTick?: number,
+    highestTick?: number
   ): Promise<LiquidityDistribution> => {
     if (dex == 'ORCA') {
-      return this.getLiquidityDistributionOrcaWhirlpool(
-        pool,
-        keepOrder,
-        lowestTick,
-        highestTick
-      );
+      return this.getLiquidityDistributionOrcaWhirlpool(pool, keepOrder, lowestTick, highestTick);
     } else if (dex == 'RAYDIUM') {
       return this.getLiquidityDistributionRaydiumPool(pool, keepOrder, lowestTick, highestTick);
     } else {

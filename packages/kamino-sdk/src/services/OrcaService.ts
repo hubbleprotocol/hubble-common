@@ -183,7 +183,7 @@ export class OrcaService {
     pool: PublicKey,
     keepOrder: boolean = true,
     lowestTick?: number,
-    highestTick?: number,
+    highestTick?: number
   ): Promise<LiquidityDistribution> {
     const orca = new OrcaWhirlpoolClient({
       connection: this._connection,
@@ -233,7 +233,6 @@ export class OrcaService {
 
       liqDistribution.distribution.push(liq);
     });
-
 
     return liqDistribution;
   }
