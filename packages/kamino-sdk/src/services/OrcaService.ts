@@ -184,7 +184,6 @@ export class OrcaService {
     keepOrder: boolean = true,
     lowestTick?: number,
     highestTick?: number,
-    isReversedTokensOrder: boolean = false
   ): Promise<LiquidityDistribution> {
     const orca = new OrcaWhirlpoolClient({
       connection: this._connection,
@@ -235,7 +234,7 @@ export class OrcaService {
       liqDistribution.distribution.push(liq);
     });
 
-    if (isReversedTokensOrder) {
+    if (!keepOrder) {
       liqDistribution.distribution = reverseLiquidityDistribution(liqDistribution.distribution);
     }
 

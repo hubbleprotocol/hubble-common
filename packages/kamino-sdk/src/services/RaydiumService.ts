@@ -41,8 +41,7 @@ export class RaydiumService {
     pool: PublicKey,
     keepOrder: boolean = true,
     lowestTick?: number,
-    highestTick?: number,
-    isReversedTokensOrder: boolean = false
+    highestTick?: number
   ): Promise<LiquidityDistribution> {
     let raydiumLiqDistribution = (
       await axios.get<RaydiumLiquidityDistribuion>(`https://api.raydium.io/v2/ammV3/positionLine/${pool.toString()}`)
@@ -93,7 +92,7 @@ export class RaydiumService {
       }
     });
 
-    if (isReversedTokensOrder) {
+    if (!keepOrder) {
       liqDistribution.distribution = reverseLiquidityDistribution(liqDistribution.distribution);
     }
 
