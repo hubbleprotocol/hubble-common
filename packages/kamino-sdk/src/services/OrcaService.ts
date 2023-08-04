@@ -234,9 +234,6 @@ export class OrcaService {
       liqDistribution.distribution.push(liq);
     });
 
-    if (!keepOrder) {
-      liqDistribution.distribution = reverseLiquidityDistribution(liqDistribution.distribution);
-    }
 
     return liqDistribution;
   }

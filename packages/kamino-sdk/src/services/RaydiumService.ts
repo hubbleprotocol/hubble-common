@@ -92,10 +92,6 @@ export class RaydiumService {
       }
     });
 
-    if (!keepOrder) {
-      liqDistribution.distribution = reverseLiquidityDistribution(liqDistribution.distribution);
-    }
-
     return liqDistribution;
   }
 
