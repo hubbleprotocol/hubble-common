@@ -3581,18 +3581,32 @@ export class Kamino {
     pool: PublicKey,
     keepOrder: boolean = true,
     lowestTick?: number,
-    highestTick?: number
+    highestTick?: number,
+    isReversedTokensOrder: boolean = false
   ): Promise<LiquidityDistribution> => {
-    return this._raydiumService.getRaydiumPoolLiquidityDistribution(pool, keepOrder, lowestTick, highestTick);
+    return this._raydiumService.getRaydiumPoolLiquidityDistribution(
+      pool,
+      keepOrder,
+      lowestTick,
+      highestTick,
+      isReversedTokensOrder
+    );
   };
 
   getLiquidityDistributionOrcaWhirlpool = (
     pool: PublicKey,
     keepOrder: boolean = true,
     lowestTick?: number,
-    highestTick?: number
+    highestTick?: number,
+    isReversedTokensOrder: boolean = false
   ): Promise<LiquidityDistribution> => {
-    return this._orcaService.getWhirlpoolLiquidityDistribution(pool, keepOrder, lowestTick, highestTick);
+    return this._orcaService.getWhirlpoolLiquidityDistribution(
+      pool,
+      keepOrder,
+      lowestTick,
+      highestTick,
+      isReversedTokensOrder
+    );
   };
 
   getLiquidityDistribution = async (
@@ -3600,12 +3614,19 @@ export class Kamino {
     pool: PublicKey,
     keepOrder: boolean = true,
     lowestTick?: number,
-    highestTick?: number
+    highestTick?: number,
+    isReversedTokensOrder: boolean = false
   ): Promise<LiquidityDistribution> => {
     if (dex == 'ORCA') {
-      return this.getLiquidityDistributionOrcaWhirlpool(pool, keepOrder, lowestTick, highestTick);
+      return this.getLiquidityDistributionOrcaWhirlpool(
+        pool,
+        keepOrder,
+        lowestTick,
+        highestTick,
+        isReversedTokensOrder
+      );
     } else if (dex == 'RAYDIUM') {
-      return this.getLiquidityDistributionRaydiumPool(pool, keepOrder, lowestTick, highestTick);
+      return this.getLiquidityDistributionRaydiumPool(pool, keepOrder, lowestTick, highestTick, isReversedTokensOrder);
     } else {
       throw Error(`Dex ${dex} not supported`);
     }

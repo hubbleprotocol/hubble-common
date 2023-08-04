@@ -22,6 +22,7 @@ import axios from 'axios';
 import { FullPercentage } from '../utils/CreationParameters';
 import { PROGRAM_ID as RAYDIUM_PROGRAM_ID } from '../raydium_client/programId';
 import { priceToTickIndexWithRounding } from '../utils/raydium';
+import { reverseLiquidityDistribution } from '../utils/reverseLiquidityDistribution';
 
 export class RaydiumService {
   private readonly _connection: Connection;
@@ -40,7 +41,8 @@ export class RaydiumService {
     pool: PublicKey,
     keepOrder: boolean = true,
     lowestTick?: number,
-    highestTick?: number
+    highestTick?: number,
+    isReversedTokensOrder: boolean = false
   ): Promise<LiquidityDistribution> {
     let raydiumLiqDistribution = (
       await axios.get<RaydiumLiquidityDistribuion>(`https://api.raydium.io/v2/ammV3/positionLine/${pool.toString()}`)
@@ -90,6 +92,10 @@ export class RaydiumService {
         liqDistribution.distribution.push(liq);
       }
     });
+
+    if (isReversedTokensOrder) {
+      liqDistribution.distribution = reverseLiquidityDistribution(liqDistribution.distribution);
+    }
 
     return liqDistribution;
   }

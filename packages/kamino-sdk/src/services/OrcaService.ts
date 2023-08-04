@@ -25,6 +25,7 @@ import {
 } from '../utils';
 import { WHIRLPOOL_PROGRAM_ID } from '../whirpools-client/programId';
 import { CollateralInfo } from '../kamino-client/types';
+import { reverseLiquidityDistribution } from '../utils/reverseLiquidityDistribution';
 
 export class OrcaService {
   private readonly _connection: Connection;
@@ -182,7 +183,8 @@ export class OrcaService {
     pool: PublicKey,
     keepOrder: boolean = true,
     lowestTick?: number,
-    highestTick?: number
+    highestTick?: number,
+    isReversedTokensOrder: boolean = false
   ): Promise<LiquidityDistribution> {
     const orca = new OrcaWhirlpoolClient({
       connection: this._connection,
@@ -232,6 +234,10 @@ export class OrcaService {
 
       liqDistribution.distribution.push(liq);
     });
+
+    if (isReversedTokensOrder) {
+      liqDistribution.distribution = reverseLiquidityDistribution(liqDistribution.distribution);
+    }
 
     return liqDistribution;
   }
