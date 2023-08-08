@@ -18,6 +18,13 @@ import {
 import { NATIVE_MINT, Token, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import { collToLamportsDecimal } from './utils';
 import { CreateAta } from './types';
+import {
+  CheckExpectedVaultsBalancesAccounts,
+  SingleTokenDepositAndInvestWithMinAccounts,
+} from '../kamino-client/instructions';
+
+export const MAX_ACCOUNTS_PER_TRANSACTION = 128;
+export const ACCOUNTS_USED_PER_ATA_CREATION = 6;
 
 export const decodeSerializedTransaction = (tx: string | undefined) => {
   if (!tx) {

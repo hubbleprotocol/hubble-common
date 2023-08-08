@@ -1071,11 +1071,11 @@ describe('Kamino strategy creation SDK Tests', () => {
       throw new Error('strategy not found');
     }
 
-    let amountToDeposit = new Decimal(1.0);
+    let amountToDeposit = new Decimal(0.1);
     let slippageBps = new Decimal(100);
 
     let singleSidedDepositIxs: TransactionInstruction[] = [];
-    let lookupTables: PublicKey[] = [];
+    let lookupTables: PublicKey[] = [strategyState.strategyLookupTable];
     // if USDC is tokenA mint deposit tokenA, else deposit tokenB
     if (strategyState.tokenAMint == USDCMintMainnet) {
       let { instructions, lookupTablesAddresses } = await kamino.singleSidedDepositTokenA(
@@ -1085,7 +1085,7 @@ describe('Kamino strategy creation SDK Tests', () => {
         slippageBps
       );
       singleSidedDepositIxs = instructions;
-      lookupTables = lookupTablesAddresses;
+      lookupTables.push(...lookupTablesAddresses);
     } else {
       let { instructions, lookupTablesAddresses } = await kamino.singleSidedDepositTokenB(
         strategy,
@@ -1094,7 +1094,7 @@ describe('Kamino strategy creation SDK Tests', () => {
         slippageBps
       );
       singleSidedDepositIxs = instructions;
-      lookupTables = lookupTablesAddresses;
+      lookupTables.push(...lookupTablesAddresses);
     }
 
     const singleSidedDepositMessage = await kamino.getTransactionV2Message(

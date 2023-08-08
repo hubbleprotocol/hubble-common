@@ -239,7 +239,8 @@ export interface SwapperIxBuilder {
     tokenAMint: PublicKey,
     tokenBMint: PublicKey,
     owner: PublicKey,
-    slippage: Decimal
+    slippage: Decimal,
+    maxAccountsInIxs: number // the total number of accounts in the swap instructions cannot exceed this number
   ): Promise<[TransactionInstruction[], PublicKey[]]>;
 }
 
