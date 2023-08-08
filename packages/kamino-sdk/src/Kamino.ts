@@ -149,7 +149,7 @@ import {
 } from './kamino-client/types';
 import { Rebalance } from './kamino-client/types/ExecutiveWithdrawAction';
 import { AmmConfig, PersonalPositionState, PoolState } from './raydium_client';
-import { PROGRAM_ID as RAYDIUM_PROGRAM_ID } from './raydium_client/programId';
+import { PROGRAM_ID as RAYDIUM_PROGRAM_ID, setRaydiumProgramId } from './raydium_client/programId';
 import { AmmV3, i32ToBytes, LiquidityMath, SqrtPriceMath, TickMath, TickUtils } from '@raydium-io/raydium-sdk';
 
 import KaminoIdl from './kamino-client/kamino.json';
@@ -262,13 +262,10 @@ export class Kamino {
       setWhirlpoolsProgramId(whirlpoolProgramId);
     }
 
-    // if (raydiumProgramId) {
-    //   setRaydiumProgramId(raydiumProgramId);
-    // } else {
-    //   if (cluster == 'devnet') {
-    //     setRaydiumProgramId(RAYDIUM_DEVNET_PROGRAM_ID);
-    //   }
-    // }
+    if (raydiumProgramId) {
+      setRaydiumProgramId(raydiumProgramId);
+    }
+
     this._orcaService = new OrcaService(connection, cluster, this._globalConfig);
     this._raydiumService = new RaydiumService(connection, cluster);
     this._jupService = new JupService(connection, cluster);
