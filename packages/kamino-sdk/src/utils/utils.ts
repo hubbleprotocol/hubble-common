@@ -12,8 +12,6 @@ import {
 
 export const RebalanceParamOffset = new Decimal(256);
 
-export const MAX_ACCOUNTS_PER_TRANSACTION = 64;
-
 export function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }

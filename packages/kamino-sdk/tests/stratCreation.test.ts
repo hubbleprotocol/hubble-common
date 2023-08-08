@@ -1174,7 +1174,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     }
   });
 
-  it.skip('one click single sided deposit SOL in SOL-USDC strat', async () => {
+  it('one click single sided deposit SOL in SOL-USDC strat', async () => {
     let kamino = new Kamino(
       cluster,
       connection,
