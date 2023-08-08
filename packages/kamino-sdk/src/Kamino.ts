@@ -262,7 +262,7 @@ export class Kamino {
       setWhirlpoolsProgramId(whirlpoolProgramId);
     }
 
-    if (cluster == 'localnet') {
+    if (cluster === 'localnet') {
       if (raydiumProgramId) {
         setRaydiumProgramId(raydiumProgramId);
       }
@@ -1718,7 +1718,6 @@ export class Kamino {
       collToLamportsDecimal(userTokenBalances.b, strategyWithAddress.strategy.tokenBMintDecimals.toNumber()),
       owner,
       slippageBps,
-      // swapIxsBuilder,
       swapper,
       priceAInB
     );
@@ -1776,7 +1775,6 @@ export class Kamino {
       collToLamportsDecimal(tokenBMinPostDepositBalance, strategyWithAddress.strategy.tokenBMintDecimals.toNumber()),
       owner,
       slippageBps,
-      // swapIxsBuilder,
       swapper,
       priceAInB
     );
@@ -1826,7 +1824,7 @@ export class Kamino {
     tokenBMinPostDepositBalanceLamports: Decimal,
     owner: PublicKey,
     swapSlippageBps: Decimal,
-    swapIxsBuilder: SwapperIxBuilder | undefined,
+    swapIxsBuilder: SwapperIxBuilder,
     priceAInB?: Decimal // not mandatory as it will be fetched from Jupyter
   ): Promise<InstructionsWithLookupTables> => {
     const strategyWithAddress = await this.getStrategyStateIfNotFetched(strategy);
@@ -2019,32 +2017,14 @@ export class Kamino {
       ...extractKeys(cleanupIxs),
     ];
 
-    let jupSwapIxs: TransactionInstruction[] = [];
-    let lookupTablesAddresses: PublicKey[] = [];
-    if (swapIxsBuilder) {
-      let [ixs, looekupTables] = await swapIxsBuilder(
-        amountsToDepositWithSwap,
-        strategyState.tokenAMint,
-        strategyState.tokenBMint,
-        owner,
-        swapSlippageBps,
-        allKeys
-      );
-      jupSwapIxs = ixs;
-      lookupTablesAddresses = looekupTables;
-    } else {
-      let [ixs, looekupTables] = await this.getJupSwapIxs(
-        amountsToDepositWithSwap,
-        strategyState.tokenAMint,
-        strategyState.tokenBMint,
-        owner,
-        swapSlippageBps,
-        false,
-        allKeys
-      );
-      jupSwapIxs = ixs;
-      lookupTablesAddresses = looekupTables;
-    }
+    let [jupSwapIxs, lookupTablesAddresses] = await swapIxsBuilder(
+      amountsToDepositWithSwap,
+      strategyState.tokenAMint,
+      strategyState.tokenBMint,
+      owner,
+      swapSlippageBps,
+      allKeys
+    );
 
     result = result.concat([checkExpectedVaultsBalancesIx, ...jupSwapIxs, singleSidedDepositIx, ...cleanupIxs]);
     return { instructions: result, lookupTablesAddresses };
