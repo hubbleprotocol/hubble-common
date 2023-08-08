@@ -2017,18 +2017,32 @@ export class Kamino {
       ...extractKeys(cleanupIxs),
     ];
 
-    let [jupSwapIxs, lookupTablesAddresses] = await swapIxsBuilder(
-      amountsToDepositWithSwap,
-      strategyState.tokenAMint,
-      strategyState.tokenBMint,
-      owner,
-      swapSlippageBps,
-      allKeys
+    let [jupSwapIxs, lookupTablesAddresses] = await Kamino.retryAsync(async () =>
+      swapIxsBuilder(
+        amountsToDepositWithSwap,
+        strategyState.tokenAMint,
+        strategyState.tokenBMint,
+        owner,
+        swapSlippageBps,
+        allKeys
+      )
     );
 
     result = result.concat([checkExpectedVaultsBalancesIx, ...jupSwapIxs, singleSidedDepositIx, ...cleanupIxs]);
     return { instructions: result, lookupTablesAddresses };
   };
+
+  static async retryAsync(fn: () => Promise<any>, retriesLeft = 5, interval = 2000): Promise<any> {
+    try {
+      return await fn();
+    } catch (error) {
+      if (retriesLeft) {
+        await new Promise((resolve) => setTimeout(resolve, interval));
+        return await Kamino.retryAsync(fn, retriesLeft - 1, interval);
+      }
+      throw error;
+    }
+  }
 
   getJupSwapIxs = async (
     input: DepositAmountsForSwap,
