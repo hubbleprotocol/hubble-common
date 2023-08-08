@@ -62,6 +62,30 @@ export class JupService {
     return res.data.data[0] as RouteInfo;
   };
 
+  // the amounts has to be in lamports
+  static getAllRoutes = async (
+    amount: Decimal,
+    inputMint: PublicKey,
+    outputMint: PublicKey,
+    slippageBps: number,
+    mode = 'ExactIn',
+    asLegacyTransaction?: boolean
+  ): Promise<RouteInfo[]> => {
+    const params = {
+      inputMint: inputMint.toString(),
+      outputMint: outputMint.toString(),
+      amount: amount.ceil().toString(),
+      slippageBps,
+      onlyDirectRoutes: false,
+      asLegacyTransaction,
+      mode,
+    };
+
+    const res = await axios.get('https://quote-api.jup.ag/v4/quote', { params });
+
+    return res.data.data as RouteInfo[];
+  };
+
   async getPrice(inputMint: PublicKey | string, outputMint: PublicKey | string): Promise<number> {
     const params = {
       ids: inputMint.toString(),

@@ -13,11 +13,12 @@ import {
   DECIMALS_SOL,
   createAssociatedTokenAccountInstruction,
   getAssociatedTokenAddress,
-  isSOLMint,
 } from './tokenUtils';
 import { NATIVE_MINT, Token, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import { collToLamportsDecimal } from './utils';
 import { CreateAta } from './types';
+
+export const MAX_ACCOUNTS_PER_TRANSACTION = 64;
 
 export const decodeSerializedTransaction = (tx: string | undefined) => {
   if (!tx) {

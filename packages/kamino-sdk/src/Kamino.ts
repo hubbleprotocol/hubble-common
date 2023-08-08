@@ -98,8 +98,6 @@ import {
   lamportsToNumberDecimal,
   DECIMALS_SOL,
   InstructionsWithLookupTables,
-  RAYDIUM_DEVNET_PROGRAM_ID,
-  CreateAta,
 } from './utils';
 import { ASSOCIATED_TOKEN_PROGRAM_ID, Token, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import {
@@ -211,6 +209,7 @@ import {
   createWsolAtaIfMissing,
   decodeSerializedTransaction,
   getAtasWithCreateIxnsIfMissing,
+  MAX_ACCOUNTS_PER_TRANSACTION,
   removeBudgetAndAtaIxns,
 } from './utils/transactions';
 import { RouteInfo } from '@jup-ag/core';
@@ -263,13 +262,12 @@ export class Kamino {
       setWhirlpoolsProgramId(whirlpoolProgramId);
     }
 
-    // if (raydiumProgramId) {
-    //   setRaydiumProgramId(raydiumProgramId);
-    // } else {
-    //   if (cluster == 'devnet') {
-    //     setRaydiumProgramId(RAYDIUM_DEVNET_PROGRAM_ID);
-    //   }
-    // }
+    if (cluster === 'localnet') {
+      if (raydiumProgramId) {
+        setRaydiumProgramId(raydiumProgramId);
+      }
+    }
+
     this._orcaService = new OrcaService(connection, cluster, this._globalConfig);
     this._raydiumService = new RaydiumService(connection, cluster);
     this._jupService = new JupService(connection, cluster);
@@ -1703,7 +1701,6 @@ export class Kamino {
     }
 
     let tokenAMinPostDepositBalance = userTokenBalances.a?.sub(amountToDeposit);
-
     let swapper: SwapperIxBuilder = swapIxsBuilder
       ? swapIxsBuilder
       : (
@@ -1711,8 +1708,9 @@ export class Kamino {
           tokenAMint: PublicKey,
           tokenBMint: PublicKey,
           user: PublicKey,
-          slippageBps: Decimal
-        ) => this.getJupSwapIxs(input, tokenAMint, tokenBMint, user, slippageBps, false);
+          slippageBps: Decimal,
+          allAccounts: PublicKey[]
+        ) => this.getJupSwapIxs(input, tokenAMint, tokenBMint, user, slippageBps, false, allAccounts);
 
     return this.getSingleSidedDepositIxs(
       strategyWithAddress,
@@ -1760,7 +1758,6 @@ export class Kamino {
       throw Error('Error reading user token balances');
     }
     let tokenBMinPostDepositBalance = userTokenBalances.b.sub(amountToDeposit);
-
     let swapper: SwapperIxBuilder = swapIxsBuilder
       ? swapIxsBuilder
       : (
@@ -1768,8 +1765,9 @@ export class Kamino {
           tokenAMint: PublicKey,
           tokenBMint: PublicKey,
           user: PublicKey,
-          slippageBps: Decimal
-        ) => this.getJupSwapIxs(input, tokenAMint, tokenBMint, user, slippageBps, false);
+          slippageBps: Decimal,
+          allAccounts: PublicKey[]
+        ) => this.getJupSwapIxs(input, tokenAMint, tokenBMint, user, slippageBps, false, allAccounts);
 
     return this.getSingleSidedDepositIxs(
       strategyWithAddress,
@@ -1955,14 +1953,6 @@ export class Kamino {
       priceAInB
     );
 
-    let [jupSwapIxs, lookupTablesAddresses] = await swapIxsBuilder(
-      amountsToDepositWithSwap,
-      strategyState.tokenAMint,
-      strategyState.tokenBMint,
-      owner,
-      swapSlippageBps
-    );
-
     let poolProgram = getDexProgramId(strategyState);
     const globalConfig = await GlobalConfig.fetch(this._connection, strategyState.globalConfig);
     if (!globalConfig) {
@@ -2017,10 +2007,42 @@ export class Kamino {
     let result: TransactionInstruction[] = [];
     result.push(...createAtasIxns);
 
+    // get all unique accounts in the tx so we can use the remaining space (MAX_ACCOUNTS_PER_TRANSACTION - accounts_used) for the swap
+    const extractKeys = (ixs: any[]) => ixs.flatMap((ix) => ix.keys?.map((key) => key.pubkey) || []);
+
+    const allKeys = [
+      ...extractKeys(result),
+      ...extractKeys([checkExpectedVaultsBalancesIx]),
+      ...extractKeys([singleSidedDepositIx]),
+      ...extractKeys(cleanupIxs),
+    ];
+
+    let [jupSwapIxs, lookupTablesAddresses] = await Kamino.retryAsync(async () =>
+      swapIxsBuilder(
+        amountsToDepositWithSwap,
+        strategyState.tokenAMint,
+        strategyState.tokenBMint,
+        owner,
+        swapSlippageBps,
+        allKeys
+      )
+    );
+
     result = result.concat([checkExpectedVaultsBalancesIx, ...jupSwapIxs, singleSidedDepositIx, ...cleanupIxs]);
-    // result = result.concat([...jupSwapIxs, singleSidedDepositIx]);
     return { instructions: result, lookupTablesAddresses };
   };
+
+  static async retryAsync(fn: () => Promise<any>, retriesLeft = 5, interval = 2000): Promise<any> {
+    try {
+      return await fn();
+    } catch (error) {
+      if (retriesLeft) {
+        await new Promise((resolve) => setTimeout(resolve, interval));
+        return await Kamino.retryAsync(fn, retriesLeft - 1, interval);
+      }
+      throw error;
+    }
+  }
 
   getJupSwapIxs = async (
     input: DepositAmountsForSwap,
@@ -2028,11 +2050,12 @@ export class Kamino {
     tokenBMint: PublicKey,
     owner: PublicKey,
     slippageBps: Decimal,
-    useOnlyLegacyTransaction: boolean
+    useOnlyLegacyTransaction: boolean,
+    existingAccounts: PublicKey[]
   ): Promise<[TransactionInstruction[], PublicKey[]]> => {
-    let jupiterBestRoute: RouteInfo;
+    let jupiterRoutes: RouteInfo[] = [];
     if (input.tokenAToSwapAmount.lt(ZERO)) {
-      jupiterBestRoute = await JupService.getBestRoute(
+      jupiterRoutes = await JupService.getAllRoutes(
         input.tokenAToSwapAmount.abs(),
         tokenAMint,
         tokenBMint,
@@ -2041,7 +2064,7 @@ export class Kamino {
         useOnlyLegacyTransaction
       );
     } else {
-      jupiterBestRoute = await JupService.getBestRoute(
+      jupiterRoutes = await JupService.getAllRoutes(
         input.tokenBToSwapAmount.abs(),
         tokenBMint,
         tokenAMint,
@@ -2051,47 +2074,56 @@ export class Kamino {
       );
     }
 
-    const {
-      setupTransaction,
-      swapTransaction,
-      cleanupTransaction,
-    }: {
-      setupTransaction: string | undefined;
-      swapTransaction: string;
-      cleanupTransaction: string | undefined;
-    } = await JupService.getSwapTransactions(jupiterBestRoute, owner, false, false);
+    for (let route of jupiterRoutes) {
+      const {
+        setupTransaction,
+        swapTransaction,
+        cleanupTransaction,
+      }: {
+        setupTransaction: string | undefined;
+        swapTransaction: string;
+        cleanupTransaction: string | undefined;
+      } = await JupService.getSwapTransactions(route, owner, false, false);
 
-    // remove budget and atas ixns from jup transaction because we manage it ourself
-    const decodedSetupTx = decodeSerializedTransaction(setupTransaction);
-    let clearedSwapSetupIxs: TransactionInstruction[] = [];
-    if (decodedSetupTx) {
-      clearedSwapSetupIxs = removeBudgetAndAtaIxns(decodedSetupTx.instructions, [
-        tokenAMint.toString(),
-        tokenBMint.toString(),
+      // remove budget and atas ixns from jup transaction because we manage it ourself
+      const decodedSetupTx = decodeSerializedTransaction(setupTransaction);
+      let clearedSwapSetupIxs: TransactionInstruction[] = [];
+      if (decodedSetupTx) {
+        clearedSwapSetupIxs = removeBudgetAndAtaIxns(decodedSetupTx.instructions, [
+          tokenAMint.toString(),
+          tokenBMint.toString(),
+        ]);
+      }
+
+      // remove budget and atas ixns from jup transaction because we manage it ourself
+      const decodedCleanupTx = decodeSerializedTransaction(cleanupTransaction);
+      let clearedCleanupIxns: TransactionInstruction[] = [];
+      if (decodedCleanupTx) {
+        clearedCleanupIxns = removeBudgetAndAtaIxns(decodedCleanupTx.instructions, [
+          tokenAMint.toString(),
+          tokenBMint.toString(),
+        ]);
+      }
+
+      let { txMessage, lookupTablesAddresses } = await JupService.deserealizeVersionedTransactions(this._connection, [
+        swapTransaction,
       ]);
+
+      let clearedSwapIxs = [
+        ...removeBudgetAndAtaIxns(txMessage[0].instructions, [tokenAMint.toString(), tokenBMint.toString()]),
+      ];
+
+      let allJupIxs = [...clearedSwapSetupIxs, ...clearedSwapIxs, ...clearedCleanupIxns];
+      let allJupAccounts = allJupIxs.flatMap((ix) => ix.keys?.map((key) => key.pubkey) || []);
+      let allAccounts = new Set<PublicKey>([...existingAccounts, ...allJupAccounts]);
+
+      if (allAccounts.size < MAX_ACCOUNTS_PER_TRANSACTION) {
+        return [allJupIxs, lookupTablesAddresses];
+      }
     }
 
-    // remove budget and atas ixns from jup transaction because we manage it ourself
-    const decodedCleanupTx = decodeSerializedTransaction(cleanupTransaction);
-    let clearedCleanupIxns: TransactionInstruction[] = [];
-    if (decodedCleanupTx) {
-      clearedCleanupIxns = removeBudgetAndAtaIxns(decodedCleanupTx.instructions, [
-        tokenAMint.toString(),
-        tokenBMint.toString(),
-      ]);
-    }
-
-    let { txMessage, lookupTablesAddresses } = await JupService.deserealizeVersionedTransactions(this._connection, [
-      swapTransaction,
-    ]);
-
-    let clearedSwapIxs = [
-      ...removeBudgetAndAtaIxns(txMessage[0].instructions, [tokenAMint.toString(), tokenBMint.toString()]),
-    ];
-
-    let allJupIxs = [...clearedSwapSetupIxs, ...clearedSwapIxs, ...clearedCleanupIxns];
-
-    return [allJupIxs, lookupTablesAddresses];
+    // if none of the swap TXs returned by Jup have less than max allowed accounts throw error as the tx will fail because we lock too many accounts
+    throw new Error('All Jupiter swap routes have too many accounts in the instructions');
   };
 
   getCheckExpectedVaultsBalancesIx = async (

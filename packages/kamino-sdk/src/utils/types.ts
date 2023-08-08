@@ -239,7 +239,8 @@ export interface SwapperIxBuilder {
     tokenAMint: PublicKey,
     tokenBMint: PublicKey,
     owner: PublicKey,
-    slippage: Decimal
+    slippage: Decimal,
+    allKeys: PublicKey[]
   ): Promise<[TransactionInstruction[], PublicKey[]]>;
 }
 
