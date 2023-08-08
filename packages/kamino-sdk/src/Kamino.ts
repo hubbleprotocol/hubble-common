@@ -262,8 +262,10 @@ export class Kamino {
       setWhirlpoolsProgramId(whirlpoolProgramId);
     }
 
-    if (raydiumProgramId) {
-      setRaydiumProgramId(raydiumProgramId);
+    if (cluster == 'localnet') {
+      if (raydiumProgramId) {
+        setRaydiumProgramId(raydiumProgramId);
+      }
     }
 
     this._orcaService = new OrcaService(connection, cluster, this._globalConfig);
