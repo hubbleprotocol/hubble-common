@@ -9,7 +9,6 @@ import {
   UpdateStrategyConfigArgs,
   updateStrategyConfig,
 } from '../kamino-client/instructions';
-import { Interface } from 'readline';
 
 export const RebalanceParamOffset = new Decimal(256);
 
@@ -124,5 +123,3 @@ export function lamportsToNumberDecimal(amount: Decimal.Value, decimals: number)
 export function readBigUint128LE(buffer: Buffer, offset: number): bigint {
   return buffer.readBigUint64LE(offset) + (buffer.readBigUint64LE(offset + 8) << BigInt(64));
 }
-
-

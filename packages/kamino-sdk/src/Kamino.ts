@@ -1988,6 +1988,7 @@ export class Kamino {
     let result: TransactionInstruction[] = [];
     result.push(...createAtasIxns);
 
+    // get all unique accounts in the tx so we can use the remaining space (MAX_ACCOUNTS_PER_TRANSACTION - accounts_used) for the swap
     let allAccounts = new Set<PublicKey>();
     result.forEach((ix) => {
       ix.keys.forEach((key) => {
