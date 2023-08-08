@@ -2101,7 +2101,7 @@ export class Kamino {
 
       let allJupIxs = [...clearedSwapSetupIxs, ...clearedSwapIxs, ...clearedCleanupIxns];
       let allJupAccounts = allJupIxs.flatMap((ix) => ix.keys?.map((key) => key.pubkey) || []);
-      let allAccounts = new Set<PublicKey>([...existingAccounts, ...allJupAccounts, ...lookupTablesAddresses]);
+      let allAccounts = new Set<PublicKey>([...existingAccounts, ...allJupAccounts]);
 
       if (allAccounts.size < MAX_ACCOUNTS_PER_TRANSACTION) {
         return [allJupIxs, lookupTablesAddresses];
