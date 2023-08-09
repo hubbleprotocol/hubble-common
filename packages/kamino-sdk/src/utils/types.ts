@@ -244,11 +244,6 @@ export interface SwapperIxBuilder {
   ): Promise<[TransactionInstruction[], PublicKey[]]>;
 }
 
-// profiledFunctionExecution(
-//   fn: () => Promise<any>,
-//   transactionName: string,
-//   tags: [string, string][] = []
-// ): Promise<any> {
 export interface ProfiledFunctionExecution {
   (fn: () => Promise<any>, transactionName: string, tags: [string, string][]): Promise<any>;
 }
