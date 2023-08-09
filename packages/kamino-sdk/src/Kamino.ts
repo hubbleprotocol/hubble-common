@@ -181,7 +181,7 @@ import {
   DefaultPerformanceFeeBps,
   DefaultWithdrawFeeBps,
 } from './constants/DefaultStrategyConfig';
-import { DEVNET_GLOBAL_LOOKUP_TABLE, MAINNET_GLOBAL_LOOKUP_TABLE } from './constants/pubkeys';
+import { DEVNET_GLOBAL_LOOKUP_TABLE, MAINNET_GLOBAL_LOOKUP_TABLE, MAINNET_TOKEN_INFOS } from './constants/pubkeys';
 import {
   DefaultDex,
   DefaultFeeTierOrca,
@@ -1916,14 +1916,6 @@ export class Kamino {
     let tokenAAtaBalance = initialUserTokenAtaBalances.a!;
     let tokenBAtaBalance = initialUserTokenAtaBalances.b!;
 
-    // let tokenAAtaBalance = await this.getTokenAccountBalanceOrZero(tokenAAta);
-    // let tokenBAtaBalance = await this.getTokenAccountBalanceOrZero(tokenBAta);
-
-    console.log('initialUserTokenAtaBalances', JSON.stringify(initialUserTokenAtaBalances));
-    console.log('tokenAMinPostDepositBalanceLamports', tokenAMinPostDepositBalanceLamports.toString());
-    console.log('tokenBMinPostDepositBalanceLamports', tokenBMinPostDepositBalanceLamports.toString());
-    console.log('tokenAAtaBalance', tokenAAtaBalance.toString());
-    console.log('tokenBAtaBalance', tokenBAtaBalance.toString());
     let aToDeposit = collToLamportsDecimal(tokenAAtaBalance, strategyState.tokenAMintDecimals.toNumber()).sub(
       tokenAMinPostDepositBalanceLamports
     );
@@ -2056,10 +2048,6 @@ export class Kamino {
     );
 
     let poolProgram = getDexProgramId(strategyState);
-    // const globalConfig = await GlobalConfig.fetch(this._connection, strategyState.globalConfig);
-    // if (!globalConfig) {
-    //   throw Error(`Could not fetch global config with pubkey ${strategyState.globalConfig.toString()}`);
-    // }
 
     const { treasuryFeeTokenAVault, treasuryFeeTokenBVault } = this.getTreasuryFeeVaultPDAs(
       strategyState.tokenAMint,
@@ -2090,7 +2078,7 @@ export class Kamino {
       sharesMint: strategyState.sharesMint,
       sharesMintAuthority: strategyState.sharesMintAuthority,
       scopePrices: strategyState.scopePrices,
-      tokenInfos: new PublicKey('3v6ootgJJZbSWEDfZMA1scfh7wcsVVfeocExRxPqCyWH'), // globalConfig.tokenInfos,
+      tokenInfos: MAINNET_TOKEN_INFOS,
       systemProgram: SystemProgram.programId,
       associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
       tokenProgram: TOKEN_PROGRAM_ID,
@@ -2216,8 +2204,6 @@ export class Kamino {
 
     let allJupAccounts = allJupIxs.flatMap((ix) => ix.keys?.map((key) => key.pubkey) || []);
     let allAccounts = new Set<PublicKey>([...existingAccounts, ...allJupAccounts]);
-    const jupOnlyAccounts = new Set<PublicKey>(allJupAccounts);
-    // jupOnlyAccounts.forEach((acc) => console.log('JupOnlyAcc:', acc.toString()));
 
     let prefix = 'getSingleSidedJupRoute:';
     console.log(`${prefix} All distinct existing accounts number ${new Set<PublicKey>(existingAccounts).size}`);
