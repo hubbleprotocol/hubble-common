@@ -1130,13 +1130,13 @@ describe('Kamino strategy creation SDK Tests', () => {
     const singleSidedDepositTx = new VersionedTransaction(singleSidedDepositMessage);
     singleSidedDepositTx.sign([signer]);
 
-    // try {
-    //   //@ts-ignore
-    //   const depositTxId = await sendAndConfirmTransaction(kamino._connection, singleSidedDepositTx);
-    //   console.log('singleSidedDepoxit tx hash', depositTxId);
-    // } catch (e) {
-    //   console.log(e);
-    // }
+    try {
+      //@ts-ignore
+      const depositTxId = await sendAndConfirmTransaction(kamino._connection, singleSidedDepositTx);
+      console.log('singleSidedDepoxit tx hash', depositTxId);
+    } catch (e) {
+      console.log(e);
+    }
   });
 
   it.skip('one click single sided deposit USDC in SOL-USDC strat', async () => {
