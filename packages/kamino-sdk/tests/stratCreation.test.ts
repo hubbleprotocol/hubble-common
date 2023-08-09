@@ -31,7 +31,7 @@ describe('Kamino strategy creation SDK Tests', () => {
   let connection: Connection;
   const cluster = 'mainnet-beta';
 
-  const clusterUrl: string = 'https://rpc.hellomoon.io/545b3c73-cfae-4871-8f07-52bec4a239e8';
+  const clusterUrl: string = 'https://api.mainnet-beta.solana.com';
 
   connection = new Connection(clusterUrl, 'processed');
 
@@ -1065,7 +1065,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     );
 
     // let strategy = new PublicKey('Cfuy5T6osdazUeLego5LFycBQebm9PP3H7VNdCndXXEN');
-    let strategy = new PublicKey('EG5DpbnuQQ988m3m1ZDpa6aPA6MnZzkikWZ6cWwjweia');
+    let strategy = new PublicKey('BwjnMHzEE5aFxYvc587pSQRXBn6ZPvxMgi33FAtd6QF6');
 
     let strategyState = (await kamino.getStrategies([strategy]))[0];
     if (!strategyState) {
@@ -1073,7 +1073,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     }
 
     let amountToDeposit = new Decimal(0.1);
-    let slippageBps = new Decimal(100);
+    let slippageBps = new Decimal(10);
 
     let singleSidedDepositIxs: TransactionInstruction[] = [];
     let lookupTables: PublicKey[] = [strategyState.strategyLookupTable];
@@ -1096,7 +1096,7 @@ describe('Kamino strategy creation SDK Tests', () => {
             slippageBps,
             profiledFunctionExecution,
             undefined,
-            initialTokenBalances
+            undefined // initialTokenBalances
           ),
         'singleSidedDepositTokenA',
         []
@@ -1113,7 +1113,7 @@ describe('Kamino strategy creation SDK Tests', () => {
             slippageBps,
             profiledFunctionExecution,
             undefined,
-            initialTokenBalances
+            undefined // initialTokenBalances
           ),
         'singleSidedDepositTokenB',
         []
