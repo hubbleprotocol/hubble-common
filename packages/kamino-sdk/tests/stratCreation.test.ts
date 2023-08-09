@@ -23,15 +23,15 @@ import { expect } from 'chai';
 import { WHIRLPOOL_PROGRAM_ID } from '../src/whirpools-client/programId';
 import { PROGRAM_ID as RAYDIUM_PROGRAM_ID } from '../src/raydium_client/programId';
 import { Manual, PricePercentage, PricePercentageWithReset } from '../src/kamino-client/types/RebalanceType';
-import { MAINNET_GLOBAL_LOOKUP_TABLE } from '../dist/constants/pubkeys';
 import { createWsolAtaIfMissing, getComputeBudgetAndPriorityFeeIxns } from '../src/utils/transactions';
 import { JupService } from '../src/services/JupService';
+import { MAINNET_GLOBAL_LOOKUP_TABLE } from '../src/constants/pubkeys';
 
 describe('Kamino strategy creation SDK Tests', () => {
   let connection: Connection;
   const cluster = 'mainnet-beta';
 
-  const clusterUrl: string = 'https://api.mainnet-beta.solana.com';
+  const clusterUrl: string = 'https://rpc.hellomoon.io/545b3c73-cfae-4871-8f07-52bec4a239e8';
 
   connection = new Connection(clusterUrl, 'processed');
 
@@ -1054,7 +1054,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     console.log('openPositionTxId', openPositionTxId);
   });
 
-  it.skip('one click single sided deposit USDC in USDH-USDC', async () => {
+  it('one click single sided deposit USDC in USDH-USDC', async () => {
     let kamino = new Kamino(
       cluster,
       connection,
@@ -1064,7 +1064,8 @@ describe('Kamino strategy creation SDK Tests', () => {
       RAYDIUM_PROGRAM_ID
     );
 
-    let strategy = new PublicKey('Cfuy5T6osdazUeLego5LFycBQebm9PP3H7VNdCndXXEN');
+    // let strategy = new PublicKey('Cfuy5T6osdazUeLego5LFycBQebm9PP3H7VNdCndXXEN');
+    let strategy = new PublicKey('EG5DpbnuQQ988m3m1ZDpa6aPA6MnZzkikWZ6cWwjweia');
 
     let strategyState = (await kamino.getStrategies([strategy]))[0];
     if (!strategyState) {
@@ -1076,22 +1077,46 @@ describe('Kamino strategy creation SDK Tests', () => {
 
     let singleSidedDepositIxs: TransactionInstruction[] = [];
     let lookupTables: PublicKey[] = [strategyState.strategyLookupTable];
+
+    const initialTokenBalances = await kamino.getInitialUserTokenBalances(
+      signer.publicKey,
+      strategyState.tokenAMint,
+      strategyState.tokenBMint,
+      undefined
+    );
+
     // if USDC is tokenA mint deposit tokenA, else deposit tokenB
     if (strategyState.tokenAMint == USDCMintMainnet) {
-      let { instructions, lookupTablesAddresses } = await kamino.singleSidedDepositTokenA(
-        strategy,
-        amountToDeposit,
-        signer.publicKey,
-        slippageBps
+      let { instructions, lookupTablesAddresses } = await profiledFunctionExecution(
+        async () =>
+          await kamino.singleSidedDepositTokenA(
+            { strategy: strategyState!, address: strategy },
+            amountToDeposit,
+            signer.publicKey,
+            slippageBps,
+            profiledFunctionExecution,
+            undefined,
+            initialTokenBalances
+          ),
+        'singleSidedDepositTokenA',
+        []
       );
       singleSidedDepositIxs = instructions;
       lookupTables.push(...lookupTablesAddresses);
     } else {
-      let { instructions, lookupTablesAddresses } = await kamino.singleSidedDepositTokenB(
-        strategy,
-        amountToDeposit,
-        signer.publicKey,
-        slippageBps
+      let { instructions, lookupTablesAddresses } = await profiledFunctionExecution(
+        async () =>
+          await kamino.singleSidedDepositTokenB(
+            { strategy: strategyState!, address: strategy },
+            amountToDeposit,
+            signer.publicKey,
+            slippageBps,
+            profiledFunctionExecution,
+            undefined,
+            initialTokenBalances
+          ),
+        'singleSidedDepositTokenB',
+        []
       );
       singleSidedDepositIxs = instructions;
       lookupTables.push(...lookupTablesAddresses);
@@ -1105,13 +1130,13 @@ describe('Kamino strategy creation SDK Tests', () => {
     const singleSidedDepositTx = new VersionedTransaction(singleSidedDepositMessage);
     singleSidedDepositTx.sign([signer]);
 
-    try {
-      //@ts-ignore
-      const depositTxId = await sendAndConfirmTransaction(kamino._connection, singleSidedDepositTx);
-      console.log('singleSidedDepoxit tx hash', depositTxId);
-    } catch (e) {
-      console.log(e);
-    }
+    // try {
+    //   //@ts-ignore
+    //   const depositTxId = await sendAndConfirmTransaction(kamino._connection, singleSidedDepositTx);
+    //   console.log('singleSidedDepoxit tx hash', depositTxId);
+    // } catch (e) {
+    //   console.log(e);
+    // }
   });
 
   it.skip('one click single sided deposit USDC in SOL-USDC strat', async () => {
@@ -1627,3 +1652,29 @@ describe('Kamino strategy creation SDK Tests', () => {
     console.log('tokenBAmount', tokenBAmount.toString());
   });
 });
+
+export async function profiledFunctionExecution(
+  fn: () => Promise<any>,
+  transactionName: string,
+  tags: [string, string][] = []
+): Promise<any> {
+  const startTime = Date.now(); // Start time
+
+  const prefix = '[PROFILING]';
+  console.log(prefix, `function=${transactionName} event=start ts=${new Date(startTime).toISOString()}`);
+
+  let result;
+  try {
+    result = await fn(); // Execute the passed function
+  } catch (error) {
+    throw error; // rethrow the error after setting the status
+  }
+
+  const endTime = Date.now(); // End time
+  const duration = (endTime - startTime) / 1000; // Duration in seconds
+
+  console.log(prefix, `function=${transactionName} event=finish ts=${new Date(endTime).toISOString()}`);
+  console.log(prefix, `function=${transactionName} event=measure duration=${duration.toFixed(2)} seconds`);
+
+  return result;
+}

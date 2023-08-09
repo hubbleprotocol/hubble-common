@@ -4,6 +4,7 @@ import axios from 'axios';
 import Decimal from 'decimal.js';
 import { RouteInfo } from '@jup-ag/core';
 import { DeserializedVersionedTransaction } from '../utils';
+import { QuoteResponse, SwapResponse, createJupiterApiClient } from '@jup-ag/api';
 
 export type SwapTransactionsResponse = {
   setupTransaction: string | undefined;
@@ -58,12 +59,13 @@ export class JupService {
     };
 
     const res = await axios.get('https://quote-api.jup.ag/v4/quote', { params });
+    console.log('SwapRes', JSON.stringify(res));
 
     return res.data.data[0] as RouteInfo;
   };
 
   // the amounts has to be in lamports
-  static getAllRoutes = async (
+  static getAllRoutesV4 = async (
     amount: Decimal,
     inputMint: PublicKey,
     outputMint: PublicKey,
@@ -84,6 +86,45 @@ export class JupService {
     const res = await axios.get('https://quote-api.jup.ag/v4/quote', { params });
 
     return res.data.data as RouteInfo[];
+  };
+
+  // the amounts has to be in lamports
+  static getBestRouteV6 = async (
+    userPublicKey: PublicKey,
+    amount: Decimal,
+    inputMint: PublicKey,
+    outputMint: PublicKey,
+    slippageBps: number,
+    asLegacyTransaction?: boolean,
+    maxAccounts?: number
+  ): Promise<SwapResponse> => {
+    try {
+      const jupiterQuoteApi = createJupiterApiClient(); // config is optional
+
+      console.log('getBestRouteV6 with maxAccounts', maxAccounts);
+
+      const quote = await jupiterQuoteApi.quoteGet({
+        inputMint: inputMint.toString(),
+        outputMint: outputMint.toString(),
+        amount: amount.floor().toNumber(),
+        slippageBps,
+        onlyDirectRoutes: false,
+        asLegacyTransaction,
+        maxAccounts,
+      });
+
+      const transaction = await jupiterQuoteApi.swapPost({
+        swapRequest: {
+          quoteResponse: quote,
+          userPublicKey: userPublicKey.toString(),
+        },
+      });
+
+      return transaction;
+    } catch (error) {
+      console.log('SwapError', error);
+      throw error;
+    }
   };
 
   async getPrice(inputMint: PublicKey | string, outputMint: PublicKey | string): Promise<number> {

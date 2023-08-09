@@ -20,7 +20,10 @@ import { CollateralInfo } from '../kamino-client/types';
 export const ASSOCIATED_TOKEN_PROGRAM_ID = new PublicKey('ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL');
 export const TOKEN_PROGRAM_ID = new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA');
 
-export const SOL_MINTS = ['So11111111111111111111111111111111111111111', 'So11111111111111111111111111111111111111112'];
+export const SOL_MINTS = [
+  new PublicKey('So11111111111111111111111111111111111111111'),
+  new PublicKey('So11111111111111111111111111111111111111112'),
+];
 export const DECIMALS_SOL = 9;
 
 export async function getAssociatedTokenAddressAndData(
@@ -33,16 +36,16 @@ export async function getAssociatedTokenAddressAndData(
   return [ata, data];
 }
 
-export async function getAssociatedTokenAddress(
+export function getAssociatedTokenAddress(
   mint: PublicKey,
   owner: PublicKey,
   allowOwnerOffCurve = true,
   programId = TOKEN_PROGRAM_ID,
   associatedTokenProgramId = ASSOCIATED_TOKEN_PROGRAM_ID
-): Promise<PublicKey> {
+): PublicKey {
   if (!allowOwnerOffCurve && !PublicKey.isOnCurve(owner.toBuffer())) throw new Error('Token owner off curve');
 
-  const [address] = await PublicKey.findProgramAddress(
+  const [address] = PublicKey.findProgramAddressSync(
     [owner.toBuffer(), programId.toBuffer(), mint.toBuffer()],
     associatedTokenProgramId
   );
@@ -184,7 +187,6 @@ export function getTokenNameFromCollateralInfo(collateralInfo: CollateralInfo) {
   return String.fromCharCode(...collateralInfo.name.filter((x) => x > 0));
 }
 
-export const isSOLMint = (mint: PublicKey | string): boolean => {
-  const _mint = new PublicKey(mint).toString();
-  return SOL_MINTS.filter((m) => m === _mint).length > 0;
+export const isSOLMint = (mint: PublicKey): boolean => {
+  return SOL_MINTS.filter((m) => m.equals(mint)).length > 0;
 };
