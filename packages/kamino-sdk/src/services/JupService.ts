@@ -101,9 +101,19 @@ export class JupService {
     try {
       const jupiterQuoteApi = createJupiterApiClient(); // config is optional
 
-      console.log('getBestRouteV6 with maxAccounts', maxAccounts);
+      // const quote = await jupiterQuoteApi.quoteGet({
+      //   inputMint: inputMint.toString(),
+      //   outputMint: outputMint.toString(),
+      //   amount: amount.floor().toNumber(),
+      //   slippageBps,
+      //   onlyDirectRoutes: false,
+      //   asLegacyTransaction,
+      //   maxAccounts,
+      // });
+      // quote-api.jup.ag/v6/quote?inputMint=7dHbWXmci3dT8UFYWYZweBLXgycu7Y3iL6trKn1Y7ARj&outputMint=mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So&amount=71101983&slippageBps=10&onlyDirectRoutes=false&asLegacyTransaction=false&maxAccounts=33
+      // https: console.log('res', res);
 
-      const quote = await jupiterQuoteApi.quoteGet({
+      const params = {
         inputMint: inputMint.toString(),
         outputMint: outputMint.toString(),
         amount: amount.floor().toNumber(),
@@ -111,11 +121,14 @@ export class JupService {
         onlyDirectRoutes: false,
         asLegacyTransaction,
         maxAccounts,
-      });
+      };
+
+      console.log('getBestRouteV6 params', JSON.stringify(params));
+      const res = await axios.get('https://quote-api.jup.ag/v6/quote', { params });
 
       const transaction = await jupiterQuoteApi.swapPost({
         swapRequest: {
-          quoteResponse: quote,
+          quoteResponse: res.data,
           userPublicKey: userPublicKey.toString(),
         },
       });
