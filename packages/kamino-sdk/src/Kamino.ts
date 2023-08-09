@@ -2133,7 +2133,7 @@ export class Kamino {
       let allAccounts = new Set<PublicKey>([...existingAccounts, ...allJupAccounts]);
 
       let prefix = 'getSingleSidedJupRoute:';
-      console.log(` ${prefix} All distinct existing accounts number ${new Set<PublicKey>(existingAccounts).size}`);
+      console.log(`${prefix} All distinct existing accounts number ${new Set<PublicKey>(existingAccounts).size}`);
       console.log(`${prefix} All distinct Jup accounts number ${new Set<PublicKey>(allJupAccounts).size}`);
       console.log(`${prefix} All accounts number ${allAccounts.size}`);
 
