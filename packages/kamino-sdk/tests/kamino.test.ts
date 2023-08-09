@@ -14,6 +14,7 @@ import {
   Dex,
   getReadOnlyWallet,
   Kamino,
+  noopProfiledFunctionExecution,
   sendTransactionWithLogs,
   sleep,
   StrategiesFilters,
@@ -678,6 +679,7 @@ describe('Kamino SDK Tests', () => {
         user.owner.publicKey,
         new Decimal(0),
         swapper,
+        noopProfiledFunctionExecution,
         new Decimal(1.0) // this doesn't have to be provided on mainnet, as it reads the price from Jup
       );
 

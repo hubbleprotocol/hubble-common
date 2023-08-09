@@ -98,6 +98,8 @@ import {
   lamportsToNumberDecimal,
   DECIMALS_SOL,
   InstructionsWithLookupTables,
+  ProfiledFunctionExecution,
+  noopProfiledFunctionExecution,
 } from './utils';
 import { ASSOCIATED_TOKEN_PROGRAM_ID, Token, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import {
@@ -1670,6 +1672,7 @@ export class Kamino {
     amountToDeposit: Decimal,
     owner: PublicKey,
     slippageBps: Decimal,
+    profiledFunctionExecution: ProfiledFunctionExecution = noopProfiledFunctionExecution,
     swapIxsBuilder?: SwapperIxBuilder,
     initialUserTokenBalances?: TokensBalances,
     priceAInB?: Decimal
@@ -1719,6 +1722,7 @@ export class Kamino {
       owner,
       slippageBps,
       swapper,
+      profiledFunctionExecution,
       priceAInB
     );
   };
@@ -1728,6 +1732,7 @@ export class Kamino {
     amountToDeposit: Decimal,
     owner: PublicKey,
     slippageBps: Decimal,
+    profiledFunctionExecution: ProfiledFunctionExecution = noopProfiledFunctionExecution,
     swapIxsBuilder?: SwapperIxBuilder,
     initialUserTokenBalances?: TokensBalances,
     priceAInB?: Decimal
@@ -1776,6 +1781,7 @@ export class Kamino {
       owner,
       slippageBps,
       swapper,
+      profiledFunctionExecution,
       priceAInB
     );
   };
@@ -1825,6 +1831,7 @@ export class Kamino {
     owner: PublicKey,
     swapSlippageBps: Decimal,
     swapIxsBuilder: SwapperIxBuilder,
+    profiledFunctionExecution: ProfiledFunctionExecution,
     priceAInB?: Decimal // not mandatory as it will be fetched from Jupyter
   ): Promise<InstructionsWithLookupTables> => {
     const strategyWithAddress = await this.getStrategyStateIfNotFetched(strategy);
@@ -2018,13 +2025,21 @@ export class Kamino {
     ];
 
     let [jupSwapIxs, lookupTablesAddresses] = await Kamino.retryAsync(async () =>
-      swapIxsBuilder(
-        amountsToDepositWithSwap,
-        strategyState.tokenAMint,
-        strategyState.tokenBMint,
-        owner,
-        swapSlippageBps,
-        allKeys
+      profiledFunctionExecution(
+        async () =>
+          swapIxsBuilder(
+            amountsToDepositWithSwap,
+            strategyState.tokenAMint,
+            strategyState.tokenBMint,
+            owner,
+            swapSlippageBps,
+            allKeys
+          ),
+        'swapIxsBuilder',
+        [
+          ['tokenAMint', strategyState.tokenAMint.toString()],
+          ['tokenBMint', strategyState.tokenBMint.toString()],
+        ]
       )
     );
 
@@ -2116,6 +2131,11 @@ export class Kamino {
       let allJupIxs = [...clearedSwapSetupIxs, ...clearedSwapIxs, ...clearedCleanupIxns];
       let allJupAccounts = allJupIxs.flatMap((ix) => ix.keys?.map((key) => key.pubkey) || []);
       let allAccounts = new Set<PublicKey>([...existingAccounts, ...allJupAccounts]);
+
+      let prefix = 'getSingleSidedJupRoute:';
+      console.log(`${prefix} All distinct existing accounts number ${new Set<PublicKey>(existingAccounts).size}`);
+      console.log(`${prefix} All distinct Jup accounts number ${new Set<PublicKey>(allJupAccounts).size}`);
+      console.log(`${prefix} All accounts number ${allAccounts.size}`);
 
       if (allAccounts.size < MAX_ACCOUNTS_PER_TRANSACTION) {
         return [allJupIxs, lookupTablesAddresses];

@@ -244,6 +244,14 @@ export interface SwapperIxBuilder {
   ): Promise<[TransactionInstruction[], PublicKey[]]>;
 }
 
+export interface ProfiledFunctionExecution {
+  (fn: () => Promise<any>, transactionName: string, tags: [string, string][]): Promise<any>;
+}
+
+export function noopProfiledFunctionExecution(fn: () => Promise<any>, transactionName: string): Promise<any> {
+  return fn();
+}
+
 export interface CreateAta {
   ata: PublicKey;
   createIxns: TransactionInstruction[];
