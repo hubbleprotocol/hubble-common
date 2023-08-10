@@ -245,11 +245,11 @@ export interface SwapperIxBuilder {
 }
 
 export interface ProfiledFunctionExecution {
-  (fn: () => Promise<any>, transactionName: string, tags: [string, string][]): Promise<any>;
+  (promise: Promise<any>, transactionName: string, tags: [string, string][]): Promise<any>;
 }
 
-export function noopProfiledFunctionExecution(fn: () => Promise<any>, transactionName: string): Promise<any> {
-  return fn();
+export function noopProfiledFunctionExecution(promise: Promise<any>, transactionName: string): Promise<any> {
+  return promise;
 }
 
 export interface CreateAta {
