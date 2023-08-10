@@ -115,17 +115,7 @@ export class JupService {
     try {
       const jupiterQuoteApi = createJupiterApiClient(); // config is optional
 
-      // const quote = await jupiterQuoteApi.quoteGet({
-      //   inputMint: inputMint.toString(),
-      //   outputMint: outputMint.toString(),
-      //   amount: amount.floor().toNumber(),
-      //   slippageBps,
-      //   onlyDirectRoutes: false,
-      //   asLegacyTransaction,
-      //   maxAccounts,
-      // });
       // quote-api.jup.ag/v6/quote?inputMint=7dHbWXmci3dT8UFYWYZweBLXgycu7Y3iL6trKn1Y7ARj&outputMint=mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So&amount=71101983&slippageBps=10&onlyDirectRoutes=false&asLegacyTransaction=false&maxAccounts=33
-      // https: console.log('res', res);
 
       const params = {
         inputMint: inputMint.toString(),
@@ -148,67 +138,9 @@ export class JupService {
         },
       });
 
-      // const decodedSetupTx: Transaction = this.deserealizeVersionedTransactions(this.co transaction.swapTransaction!)!;
-      // decodedSetupTx.instructions.forEach((instruction) => {
-      //   console.log('SwapInstruction', instruction.programId.toString(), instruction.data);
-      // });
-
-      // const swapParams = {
-      //   quoteResponse: res.data,
-      //   userPublicKey: userPublicKey.toString(),
-      //   wrapUnwrapSOL: false,
-      // };
-
-      // const transactionResponse = (
-      //   await axios.post('https://quote-api.jup.ag/v6/swap-instructions', JSON.stringify(swapParams))
-      // ).data as SwapInstructionsResponse;
-
-      // // @ts-ignore
-      // const { setupInstructions, swapInstruction, cleanupInstruction, addressLookupTableAddresses } =
-      //   transactionResponse;
-      // console.log(transactionResponse, JSON.stringify(transactionResponse));
-
-      // // @ts-ignore
-      // const lookupTablesAddresses = addressLookupTableAddresses.map((address) => new PublicKey(address));
-
-      // // @ts-ignore
-      // const { programId, accounts, data } = swapInstruction;
-
-      // const instruction = new TransactionInstruction({
-      //   keys: accounts!.map((account) => {
-      //     return {
-      //       pubkey: new PublicKey(account.pubkey!),
-      //       isSigner: account.isSigner!,
-      //       isWritable: account.isWritable!,
-      //     };
-      //   }),
-      //   programId: new PublicKey(programId!),
-      //   data: Buffer.from(data!),
-      // });
-
-      // console.log('instruction', JSON.stringify(instruction));
-      // console.log('Buffer.from(data!)', JSON.stringify(instruction));
-      // console.log('FinalInstruction', Buffer.from(data!).toString());
-      // console.log('data', data);
-      // console.log('Buffer.from(data!)', Buffer.from(data!));
-      // console.log('swapInstruction', JSON.stringify(swapInstruction));
-      // console.log('instruction', JSON.stringify(instruction));
-
-      // return [[instruction], lookupTablesAddresses as PublicKey[]];
-
-      // const response: SwapInstructionsResponse = SwapInstructionsResponseFromJSONTyped(transactionResponse, true);
-      // const { swapInstruction, addressLookupTableAddresses } = response;
-
-      // const lookupTablesAddresses = addressLookupTableAddresses?.map((address) => new PublicKey(address));
-      // console.log('lookupTablesAddresses', lookupTablesAddresses);
-      //   const instruction=
-      // return [[instruction], lookupTablesAddresses as PublicKey[]];
-
-      // console.log('transaction', transaction);
-
       return transaction;
     } catch (error) {
-      console.log('SwapError', error);
+      console.log('getBestRouteV6 error', error);
       throw error;
     }
   };

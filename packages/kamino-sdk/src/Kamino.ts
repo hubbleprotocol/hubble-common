@@ -2003,7 +2003,7 @@ export class Kamino {
 
     const [createAtasIxns, amountsToDepositWithSwap] = await profiler(
       Promise.all([createAtasIxnsPromise, amountsToDepositWithSwapPromise]),
-      'promiseAll',
+      'B-promiseAll(createAtasIxns, amountsToDepositWithSwap)',
       []
     );
 
@@ -2136,7 +2136,7 @@ export class Kamino {
             useOnlyLegacyTransaction,
             maxAccounts
           ),
-          'getBestRouteV6',
+          'C-getBestRouteV6',
           []
         )
       : await profiler(
@@ -2149,13 +2149,13 @@ export class Kamino {
             useOnlyLegacyTransaction,
             maxAccounts
           ),
-          'getBestRouteV6',
+          'C-getBestRouteV6',
           []
         );
 
     let { txMessage, lookupTablesAddresses } = await profiler(
       JupService.deserealizeVersionedTransactions(this._connection, [jupiterQuote.swapTransaction]),
-      'deserealizeVersionedTransactions',
+      'C-deserealizeVersionedTransactions',
       []
     );
 
@@ -2311,7 +2311,8 @@ export class Kamino {
       }
     }
 
-    throw new Error(`getJupSwapIxs: Could not find a route with less than 64 total accounts`);
+    console.log('getJupSwapIxs: Could not find a route with less than 64 total accounts');
+    throw new Error(`Oops. Failed to find a route. Try again or unselect single-sided deposit.`);
   };
 
   getCheckExpectedVaultsBalancesIx = async (
