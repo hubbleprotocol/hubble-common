@@ -1679,7 +1679,7 @@ export class Kamino {
     slippageBps: Decimal,
     profiler: ProfiledFunctionExecution = noopProfiledFunctionExecution,
     swapIxsBuilder?: SwapperIxBuilder,
-    initialUserTokenAtaBalances?: MaybeTokensBalances,
+    initialUserTokenAtaBalances?: TokensBalances,
     priceAInB?: Decimal
   ): Promise<InstructionsWithLookupTables> => {
     const strategyWithAddress = await this.getStrategyStateIfNotFetched(strategy);
