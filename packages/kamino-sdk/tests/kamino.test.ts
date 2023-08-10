@@ -670,6 +670,15 @@ describe('Kamino SDK Tests', () => {
       slippageBps: Decimal
     ) => getLocalSwapIxs(input, tokenAMint, tokenBMint, user, slippageBps, signer.publicKey);
 
+    await sleep(2000);
+    const initialTokenBalances = await kamino.getInitialUserTokenBalances(
+      user.owner.publicKey,
+      strategyState.tokenAMint,
+      strategyState.tokenBMint,
+      undefined
+    );
+    console.log('initialTokenBalances', initialTokenBalances);
+
     let { instructions: singleSidedDepositIxs, lookupTablesAddresses: _lookupTables } =
       // @ts-ignore
       await kamino.getSingleSidedDepositIxs(
@@ -680,6 +689,7 @@ describe('Kamino SDK Tests', () => {
         new Decimal(0),
         swapper,
         noopProfiledFunctionExecution,
+        initialTokenBalances,
         new Decimal(1.0) // this doesn't have to be provided on mainnet, as it reads the price from Jup
       );
 
@@ -693,9 +703,13 @@ describe('Kamino SDK Tests', () => {
     let singleSidedDepositTx = new VersionedTransaction(tx);
     singleSidedDepositTx.sign([signer, user.owner]);
 
-    //@ts-ignore
-    let myHash = await sendAndConfirmTransaction(kamino._connection, singleSidedDepositTx);
+    // @ts-ignore
+    let myHash = await sendAndConfirmTransaction(kamino.getConnection(), singleSidedDepositTx, undefined, {
+      skipPreflight: true,
+    });
     console.log('single sided deposit tx hash', myHash);
+    // const depositTxId = await kamino.getConnection().simulateTransaction(singleSidedDepositTx);
+    // console.log('single sided deposit tx hash', depositTxId);
 
     const strategy = await kamino.getStrategyByAddress(fixtures.newOrcaStrategy);
     expect(strategy).to.not.be.null;

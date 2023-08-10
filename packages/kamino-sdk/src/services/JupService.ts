@@ -1,9 +1,25 @@
-import { Connection, PublicKey, Transaction, TransactionMessage, VersionedTransaction } from '@solana/web3.js';
+import {
+  Connection,
+  PublicKey,
+  Transaction,
+  TransactionInstruction,
+  TransactionMessage,
+  VersionedTransaction,
+} from '@solana/web3.js';
 import { SolanaCluster } from '@hubbleprotocol/hubble-config';
 import axios from 'axios';
 import Decimal from 'decimal.js';
 import { RouteInfo } from '@jup-ag/core';
 import { DeserializedVersionedTransaction } from '../utils';
+import {
+  QuoteResponse,
+  SwapInstructionsResponse,
+  SwapInstructionsResponseFromJSONTyped,
+  SwapResponse,
+  TransactionObject,
+  createJupiterApiClient,
+} from '@jup-ag/api';
+import { decodeSerializedTransaction } from '../utils/transactions';
 
 export type SwapTransactionsResponse = {
   setupTransaction: string | undefined;
@@ -63,7 +79,7 @@ export class JupService {
   };
 
   // the amounts has to be in lamports
-  static getAllRoutes = async (
+  static getAllRoutesV4 = async (
     amount: Decimal,
     inputMint: PublicKey,
     outputMint: PublicKey,
@@ -84,6 +100,49 @@ export class JupService {
     const res = await axios.get('https://quote-api.jup.ag/v4/quote', { params });
 
     return res.data.data as RouteInfo[];
+  };
+
+  // the amounts has to be in lamports
+  static getBestRouteV6 = async (
+    userPublicKey: PublicKey,
+    amount: Decimal,
+    inputMint: PublicKey,
+    outputMint: PublicKey,
+    slippageBps: number,
+    asLegacyTransaction?: boolean,
+    maxAccounts?: number
+  ): Promise<SwapResponse> => {
+    try {
+      const jupiterQuoteApi = createJupiterApiClient(); // config is optional
+
+      // quote-api.jup.ag/v6/quote?inputMint=7dHbWXmci3dT8UFYWYZweBLXgycu7Y3iL6trKn1Y7ARj&outputMint=mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So&amount=71101983&slippageBps=10&onlyDirectRoutes=false&asLegacyTransaction=false&maxAccounts=33
+
+      const params = {
+        inputMint: inputMint.toString(),
+        outputMint: outputMint.toString(),
+        amount: amount.floor().toNumber(),
+        slippageBps,
+        onlyDirectRoutes: false,
+        asLegacyTransaction,
+        maxAccounts,
+      };
+
+      console.log('getBestRouteV6 params', JSON.stringify(params));
+      const res = await axios.get('https://quote-api.jup.ag/v6/quote', { params });
+
+      const transaction: SwapResponse = await jupiterQuoteApi.swapPost({
+        swapRequest: {
+          quoteResponse: res.data,
+          userPublicKey: userPublicKey.toString(),
+          wrapAndUnwrapSol: false,
+        },
+      });
+
+      return transaction;
+    } catch (error) {
+      console.log('getBestRouteV6 error', error);
+      throw error;
+    }
   };
 
   async getPrice(inputMint: PublicKey | string, outputMint: PublicKey | string): Promise<number> {
