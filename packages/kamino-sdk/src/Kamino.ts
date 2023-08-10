@@ -2002,8 +2002,9 @@ export class Kamino {
       owner
     );
 
-    const [createAtasIxns, amountsToDepositWithSwap] = await profiler(
-      Promise.all([createAtasIxnsPromise, amountsToDepositWithSwapPromise]),
+    const getGlobalConfigPromise = GlobalConfig.fetch(this._connection, strategyState.globalConfig);
+    const [createAtasIxns, amountsToDepositWithSwap, globalConfig] = await profiler(
+      Promise.all([createAtasIxnsPromise, amountsToDepositWithSwapPromise, getGlobalConfigPromise]),
       'B-promiseAll(createAtasIxns, amountsToDepositWithSwap)',
       []
     );
@@ -2048,7 +2049,7 @@ export class Kamino {
       sharesMint: strategyState.sharesMint,
       sharesMintAuthority: strategyState.sharesMintAuthority,
       scopePrices: strategyState.scopePrices,
-      tokenInfos: MAINNET_TOKEN_INFOS,
+      tokenInfos: globalConfig.tokenInfos,
       systemProgram: SystemProgram.programId,
       associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
       tokenProgram: TOKEN_PROGRAM_ID,
