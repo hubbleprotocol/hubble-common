@@ -100,6 +100,7 @@ import {
   InstructionsWithLookupTables,
   ProfiledFunctionExecution,
   noopProfiledFunctionExecution,
+  MaybeTokensBalances,
 } from './utils';
 import { ASSOCIATED_TOKEN_PROGRAM_ID, Token, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import {
@@ -1678,7 +1679,7 @@ export class Kamino {
     slippageBps: Decimal,
     profiler: ProfiledFunctionExecution = noopProfiledFunctionExecution,
     swapIxsBuilder?: SwapperIxBuilder,
-    initialUserTokenAtaBalances?: TokensBalances,
+    initialUserTokenAtaBalances?: MaybeTokensBalances,
     priceAInB?: Decimal
   ): Promise<InstructionsWithLookupTables> => {
     const strategyWithAddress = await this.getStrategyStateIfNotFetched(strategy);
@@ -1822,7 +1823,7 @@ export class Kamino {
     owner: PublicKey,
     tokenAMint: PublicKey,
     tokenBMint: PublicKey,
-    initialUserTokenBalances?: TokensBalances
+    initialUserTokenBalances?: MaybeTokensBalances
   ): Promise<TokensBalances> => {
     let initialUserTokenABalance = new Decimal(0);
     let initialUserTokenBBalance = new Decimal(0);
@@ -2320,7 +2321,7 @@ export class Kamino {
     user: PublicKey,
     tokenAAta: PublicKey,
     tokenBAta: PublicKey,
-    expectedTokensBalances?: TokensBalances
+    expectedTokensBalances?: MaybeTokensBalances
   ) => {
     const { strategy: strategyState, address: _ } = strategy;
 

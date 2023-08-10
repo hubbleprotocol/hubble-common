@@ -228,9 +228,14 @@ export interface PositionRange {
   upperPrice: Decimal;
 }
 
-export interface TokensBalances {
+export interface MaybeTokensBalances {
   a?: Decimal;
   b?: Decimal;
+}
+
+export interface TokensBalances {
+  a: Decimal;
+  b: Decimal;
 }
 
 export interface SwapperIxBuilder {
