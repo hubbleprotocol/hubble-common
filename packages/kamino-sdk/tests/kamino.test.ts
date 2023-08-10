@@ -670,6 +670,13 @@ describe('Kamino SDK Tests', () => {
       slippageBps: Decimal
     ) => getLocalSwapIxs(input, tokenAMint, tokenBMint, user, slippageBps, signer.publicKey);
 
+    const initialTokenBalances = await kamino.getInitialUserTokenBalances(
+      signer.publicKey,
+      strategyState.tokenAMint,
+      strategyState.tokenBMint,
+      undefined
+    );
+
     let { instructions: singleSidedDepositIxs, lookupTablesAddresses: _lookupTables } =
       // @ts-ignore
       await kamino.getSingleSidedDepositIxs(
@@ -680,6 +687,7 @@ describe('Kamino SDK Tests', () => {
         new Decimal(0),
         swapper,
         noopProfiledFunctionExecution,
+        initialTokenBalances,
         new Decimal(1.0) // this doesn't have to be provided on mainnet, as it reads the price from Jup
       );
 

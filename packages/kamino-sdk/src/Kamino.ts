@@ -1678,7 +1678,7 @@ export class Kamino {
     slippageBps: Decimal,
     profiler: ProfiledFunctionExecution = noopProfiledFunctionExecution,
     swapIxsBuilder?: SwapperIxBuilder,
-    initialUserTokenBalances?: TokensBalances,
+    initialUserTokenAtaBalances?: TokensBalances,
     priceAInB?: Decimal
   ): Promise<InstructionsWithLookupTables> => {
     const strategyWithAddress = await this.getStrategyStateIfNotFetched(strategy);
@@ -1688,7 +1688,7 @@ export class Kamino {
         owner,
         strategyWithAddress.strategy.tokenAMint,
         strategyWithAddress.strategy.tokenBMint,
-        initialUserTokenBalances
+        initialUserTokenAtaBalances
       ),
       'A-getInitialUserTokenBalances',
       []
@@ -1883,8 +1883,8 @@ export class Kamino {
     const tokenAAta = getAssociatedTokenAddress(strategyState.tokenAMint, owner);
     const tokenBAta = getAssociatedTokenAddress(strategyState.tokenBMint, owner);
 
-    let tokenAAtaBalance = initialUserTokenAtaBalances.a!;
-    let tokenBAtaBalance = initialUserTokenAtaBalances.b!;
+    let tokenAAtaBalance = initialUserTokenAtaBalances.a;
+    let tokenBAtaBalance = initialUserTokenAtaBalances.b;
 
     let aToDeposit = collToLamportsDecimal(tokenAAtaBalance, strategyState.tokenAMintDecimals.toNumber()).sub(
       tokenAMinPostDepositBalanceLamports
@@ -2290,7 +2290,7 @@ export class Kamino {
       1; // tokenBAta
 
     while (extraAccountsBuffer < 30) {
-      const maxAccounts = 64 - (currentAccounts - duplicatedAccounts) - extraAccountsBuffer;
+      const maxAccounts = MAX_ACCOUNTS_PER_TRANSACTION - (currentAccounts - duplicatedAccounts) - extraAccountsBuffer;
       try {
         const result = await this.getJupSwapIxsWithMaxAccounts(
           input,
@@ -3925,7 +3925,7 @@ export class Kamino {
         undefined,
         profiler
       ),
-      'calculateAmountsToBeDeposited',
+      'C-calculateAmountsToBeDeposited',
       []
     );
 
@@ -4063,7 +4063,7 @@ export class Kamino {
     }
     return await profiler(
       this.calculateDepositAmountsProportionalWithTotalTokens(totalHoldings, tokenAAmount, tokenBAmount),
-      'calculateDepositAmountsProportionalWithTotalTokens',
+      'C-calculateDepositAmountsProportionalWithTotalTokens',
       []
     );
   };
