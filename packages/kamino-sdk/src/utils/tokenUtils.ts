@@ -1,6 +1,7 @@
 import {
   AccountInfo,
   Commitment,
+  ComputeBudgetProgram,
   Connection,
   PublicKey,
   sendAndConfirmTransaction,
@@ -190,3 +191,21 @@ export function getTokenNameFromCollateralInfo(collateralInfo: CollateralInfo) {
 export const isSOLMint = (mint: PublicKey): boolean => {
   return SOL_MINTS.filter((m) => m.equals(mint)).length > 0;
 };
+
+export function removeBudgetAndAtaIxns(ixns: TransactionInstruction[], mints: string[]): TransactionInstruction[] {
+  return ixns.filter((ixn) => {
+    const { programId, keys } = ixn;
+
+    if (programId.toString() === ComputeBudgetProgram.programId.toString()) {
+      return false;
+    }
+
+    if (programId.toString() === ASSOCIATED_TOKEN_PROGRAM_ID.toString()) {
+      const mint = keys[3];
+
+      return !mints.includes(mint.pubkey.toString());
+    }
+
+    return true;
+  });
+}

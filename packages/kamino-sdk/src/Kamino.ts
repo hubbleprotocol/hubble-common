@@ -1998,7 +1998,7 @@ export class Kamino {
         }
       }
 
-      createAtasIxns.push(...createWSolAtaIxns.createIxns);
+      createWsolAtasIxns.push(...createWSolAtaIxns.createIxns);
       cleanupIxs.push(...createWSolAtaIxns.closeIxns);
     }
 
@@ -2058,6 +2058,11 @@ export class Kamino {
       tokenAMinPostDepositBalance: new BN(realTokenAMinPostDepositBalanceLamports.floor().toString()),
       tokenBMinPostDepositBalance: new BN(realTokenBMinPostDepositBalanceLamports.floor().toString()),
     };
+
+    console.log('TokenAMint', strategyState.tokenAMint.toBase58());
+    console.log('TokenBMint', strategyState.tokenBMint.toBase58());
+    console.log('TokenAAta', tokenAAta.toBase58());
+    console.log('TokenBAta', tokenBAta.toBase58());
 
     const accounts: SingleTokenDepositAndInvestWithMinAccounts = {
       user: owner,
@@ -2204,6 +2209,8 @@ export class Kamino {
 
     let allJupAccounts = allJupIxs.flatMap((ix) => ix.keys?.map((key) => key.pubkey) || []);
     let allAccounts = new Set<PublicKey>([...existingAccounts, ...allJupAccounts]);
+
+    console.log('lookupTablesAddresses', lookupTablesAddresses);
 
     let prefix = 'getSingleSidedJupRoute:';
     console.log(`${prefix} All distinct existing accounts number ${new Set<PublicKey>(existingAccounts).size}`);

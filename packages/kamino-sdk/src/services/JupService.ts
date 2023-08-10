@@ -1,10 +1,25 @@
-import { Connection, PublicKey, Transaction, TransactionMessage, VersionedTransaction } from '@solana/web3.js';
+import {
+  Connection,
+  PublicKey,
+  Transaction,
+  TransactionInstruction,
+  TransactionMessage,
+  VersionedTransaction,
+} from '@solana/web3.js';
 import { SolanaCluster } from '@hubbleprotocol/hubble-config';
 import axios from 'axios';
 import Decimal from 'decimal.js';
 import { RouteInfo } from '@jup-ag/core';
 import { DeserializedVersionedTransaction } from '../utils';
-import { QuoteResponse, SwapResponse, createJupiterApiClient } from '@jup-ag/api';
+import {
+  QuoteResponse,
+  SwapInstructionsResponse,
+  SwapInstructionsResponseFromJSONTyped,
+  SwapResponse,
+  TransactionObject,
+  createJupiterApiClient,
+} from '@jup-ag/api';
+import { decodeSerializedTransaction } from '../utils/transactions';
 
 export type SwapTransactionsResponse = {
   setupTransaction: string | undefined;
@@ -125,12 +140,71 @@ export class JupService {
       console.log('getBestRouteV6 params', JSON.stringify(params));
       const res = await axios.get('https://quote-api.jup.ag/v6/quote', { params });
 
-      const transaction = await jupiterQuoteApi.swapPost({
+      const transaction: SwapResponse = await jupiterQuoteApi.swapPost({
         swapRequest: {
           quoteResponse: res.data,
           userPublicKey: userPublicKey.toString(),
+          wrapAndUnwrapSol: false,
         },
       });
+
+      // const decodedSetupTx: Transaction = this.deserealizeVersionedTransactions(this.co transaction.swapTransaction!)!;
+      // decodedSetupTx.instructions.forEach((instruction) => {
+      //   console.log('SwapInstruction', instruction.programId.toString(), instruction.data);
+      // });
+
+      // const swapParams = {
+      //   quoteResponse: res.data,
+      //   userPublicKey: userPublicKey.toString(),
+      //   wrapUnwrapSOL: false,
+      // };
+
+      // const transactionResponse = (
+      //   await axios.post('https://quote-api.jup.ag/v6/swap-instructions', JSON.stringify(swapParams))
+      // ).data as SwapInstructionsResponse;
+
+      // // @ts-ignore
+      // const { setupInstructions, swapInstruction, cleanupInstruction, addressLookupTableAddresses } =
+      //   transactionResponse;
+      // console.log(transactionResponse, JSON.stringify(transactionResponse));
+
+      // // @ts-ignore
+      // const lookupTablesAddresses = addressLookupTableAddresses.map((address) => new PublicKey(address));
+
+      // // @ts-ignore
+      // const { programId, accounts, data } = swapInstruction;
+
+      // const instruction = new TransactionInstruction({
+      //   keys: accounts!.map((account) => {
+      //     return {
+      //       pubkey: new PublicKey(account.pubkey!),
+      //       isSigner: account.isSigner!,
+      //       isWritable: account.isWritable!,
+      //     };
+      //   }),
+      //   programId: new PublicKey(programId!),
+      //   data: Buffer.from(data!),
+      // });
+
+      // console.log('instruction', JSON.stringify(instruction));
+      // console.log('Buffer.from(data!)', JSON.stringify(instruction));
+      // console.log('FinalInstruction', Buffer.from(data!).toString());
+      // console.log('data', data);
+      // console.log('Buffer.from(data!)', Buffer.from(data!));
+      // console.log('swapInstruction', JSON.stringify(swapInstruction));
+      // console.log('instruction', JSON.stringify(instruction));
+
+      // return [[instruction], lookupTablesAddresses as PublicKey[]];
+
+      // const response: SwapInstructionsResponse = SwapInstructionsResponseFromJSONTyped(transactionResponse, true);
+      // const { swapInstruction, addressLookupTableAddresses } = response;
+
+      // const lookupTablesAddresses = addressLookupTableAddresses?.map((address) => new PublicKey(address));
+      // console.log('lookupTablesAddresses', lookupTablesAddresses);
+      //   const instruction=
+      // return [[instruction], lookupTablesAddresses as PublicKey[]];
+
+      // console.log('transaction', transaction);
 
       return transaction;
     } catch (error) {
