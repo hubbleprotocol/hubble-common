@@ -10,7 +10,6 @@ import {
 import {
   createAddExtraComputeUnitsTransaction,
   DepositAmountsForSwap,
-  depositAmountsForSwapToLamports,
   Dex,
   getReadOnlyWallet,
   Kamino,
@@ -303,237 +302,237 @@ describe('Kamino SDK Tests', () => {
     });
   });
 
-  // it('should throw on invalid cluster', () => {
-  //   // @ts-ignore
-  //   const init = () => new Kamino('invalid-clusters', undefined);
-  //   expect(init).to.throw(Error);
-  // });
+  it('should throw on invalid cluster', () => {
+    // @ts-ignore
+    const init = () => new Kamino('invalid-clusters', undefined);
+    expect(init).to.throw(Error);
+  });
 
-  // it('should get all strategies', async () => {
-  //   let kamino = new Kamino(
-  //     cluster,
-  //     connection,
-  //     fixtures.globalConfig,
-  //     fixtures.kaminoProgramId,
-  //     WHIRLPOOL_PROGRAM_ID,
-  //     LOCAL_RAYDIUM_PROGRAM_ID
-  //   );
-  //   const allStrategies = await kamino.getStrategies([fixtures.newOrcaStrategy]);
-  //   expect(allStrategies.length).to.be.greaterThan(0);
-  //   for (const strat of allStrategies) {
-  //     expect(strat).not.to.be.null;
-  //     console.log(strat?.pool.toString());
-  //   }
-  // });
-  // it('should get strategy by address', async () => {
-  //   let kamino = new Kamino(
-  //     cluster,
-  //     connection,
-  //     fixtures.globalConfig,
-  //     fixtures.kaminoProgramId,
-  //     WHIRLPOOL_PROGRAM_ID,
-  //     LOCAL_RAYDIUM_PROGRAM_ID
-  //   );
-  //   const strategy = await kamino.getStrategyByAddress(fixtures.newOrcaStrategy);
-  //   expect(strategy).not.to.be.null;
-  //   console.log(strategy?.toJSON());
-  // });
+  it('should get all strategies', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      fixtures.globalConfig,
+      fixtures.kaminoProgramId,
+      WHIRLPOOL_PROGRAM_ID,
+      LOCAL_RAYDIUM_PROGRAM_ID
+    );
+    const allStrategies = await kamino.getStrategies([fixtures.newOrcaStrategy]);
+    expect(allStrategies.length).to.be.greaterThan(0);
+    for (const strat of allStrategies) {
+      expect(strat).not.to.be.null;
+      console.log(strat?.pool.toString());
+    }
+  });
+  it('should get strategy by address', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      fixtures.globalConfig,
+      fixtures.kaminoProgramId,
+      WHIRLPOOL_PROGRAM_ID,
+      LOCAL_RAYDIUM_PROGRAM_ID
+    );
+    const strategy = await kamino.getStrategyByAddress(fixtures.newOrcaStrategy);
+    expect(strategy).not.to.be.null;
+    console.log(strategy?.toJSON());
+  });
 
-  // it('should get RAYDIUM strategy share price', async () => {
-  //   let kamino = new Kamino(
-  //     cluster,
-  //     connection,
-  //     fixtures.globalConfig,
-  //     fixtures.kaminoProgramId,
-  //     WHIRLPOOL_PROGRAM_ID,
-  //     LOCAL_RAYDIUM_PROGRAM_ID
-  //   );
+  it('should get RAYDIUM strategy share price', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      fixtures.globalConfig,
+      fixtures.kaminoProgramId,
+      WHIRLPOOL_PROGRAM_ID,
+      LOCAL_RAYDIUM_PROGRAM_ID
+    );
 
-  //   const strategy = await kamino.getStrategyByAddress(fixtures.newRaydiumStrategy);
-  //   expect(strategy).not.to.be.null;
-  //   const price = await kamino.getStrategyShareData(fixtures.newRaydiumStrategy);
-  //   expect(price.price.toNumber()).to.be.greaterThanOrEqual(0);
-  //   console.log(price);
-  // });
+    const strategy = await kamino.getStrategyByAddress(fixtures.newRaydiumStrategy);
+    expect(strategy).not.to.be.null;
+    const price = await kamino.getStrategyShareData(fixtures.newRaydiumStrategy);
+    expect(price.price.toNumber()).to.be.greaterThanOrEqual(0);
+    console.log(price);
+  });
 
-  // it('should get Orca strategy share price', async () => {
-  //   let kamino = new Kamino(
-  //     cluster,
-  //     connection,
-  //     fixtures.globalConfig,
-  //     fixtures.kaminoProgramId,
-  //     WHIRLPOOL_PROGRAM_ID,
-  //     LOCAL_RAYDIUM_PROGRAM_ID
-  //   );
+  it('should get Orca strategy share price', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      fixtures.globalConfig,
+      fixtures.kaminoProgramId,
+      WHIRLPOOL_PROGRAM_ID,
+      LOCAL_RAYDIUM_PROGRAM_ID
+    );
 
-  //   const strategyState = await kamino.getStrategyByAddress(fixtures.newOrcaStrategy);
-  //   expect(strategyState).not.to.be.null;
-  //   if (strategyState == null) {
-  //     throw new Error(`Could not fetch strategy for pubkey ${fixtures.newOrcaStrategy.toString()}`);
-  //   }
+    const strategyState = await kamino.getStrategyByAddress(fixtures.newOrcaStrategy);
+    expect(strategyState).not.to.be.null;
+    if (strategyState == null) {
+      throw new Error(`Could not fetch strategy for pubkey ${fixtures.newOrcaStrategy.toString()}`);
+    }
 
-  //   const price = await kamino.getStrategyShareData(fixtures.newOrcaStrategy);
-  //   expect(price.price.toNumber()).to.be.greaterThanOrEqual(0);
-  //   console.log(price);
-  // });
+    const price = await kamino.getStrategyShareData(fixtures.newOrcaStrategy);
+    expect(price.price.toNumber()).to.be.greaterThanOrEqual(0);
+    console.log(price);
+  });
 
-  // it('should get strategy share price from all strat', async () => {
-  //   let kamino = new Kamino(
-  //     cluster,
-  //     connection,
-  //     fixtures.globalConfig,
-  //     fixtures.kaminoProgramId,
-  //     WHIRLPOOL_PROGRAM_ID,
-  //     LOCAL_RAYDIUM_PROGRAM_ID
-  //   );
+  it('should get strategy share price from all strat', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      fixtures.globalConfig,
+      fixtures.kaminoProgramId,
+      WHIRLPOOL_PROGRAM_ID,
+      LOCAL_RAYDIUM_PROGRAM_ID
+    );
 
-  //   let sharesPricesWithAddress = await kamino.getStrategyShareDataForStrategies({});
-  //   expect(sharesPricesWithAddress.length).to.be.eq(2);
-  //   console.log(sharesPricesWithAddress);
-  // });
+    let sharesPricesWithAddress = await kamino.getStrategyShareDataForStrategies({});
+    expect(sharesPricesWithAddress.length).to.be.eq(2);
+    console.log(sharesPricesWithAddress);
+  });
 
-  // it('should get all strategy holders', async () => {
-  //   let kamino = new Kamino(
-  //     cluster,
-  //     connection,
-  //     fixtures.globalConfig,
-  //     fixtures.kaminoProgramId,
-  //     WHIRLPOOL_PROGRAM_ID,
-  //     LOCAL_RAYDIUM_PROGRAM_ID
-  //   );
+  it('should get all strategy holders', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      fixtures.globalConfig,
+      fixtures.kaminoProgramId,
+      WHIRLPOOL_PROGRAM_ID,
+      LOCAL_RAYDIUM_PROGRAM_ID
+    );
 
-  //   const solAirdropAmount = new Decimal(1);
-  //   const usdcAirdropAmount = new Decimal(100);
-  //   const usdhAirdropAmount = new Decimal(100);
+    const solAirdropAmount = new Decimal(1);
+    const usdcAirdropAmount = new Decimal(100);
+    const usdhAirdropAmount = new Decimal(100);
 
-  //   let user = await createUser(
-  //     connection,
-  //     signer,
-  //     fixtures.newOrcaStrategy,
-  //     solAirdropAmount,
-  //     usdcAirdropAmount,
-  //     usdhAirdropAmount
-  //   );
+    let user = await createUser(
+      connection,
+      signer,
+      fixtures.newOrcaStrategy,
+      solAirdropAmount,
+      usdcAirdropAmount,
+      usdhAirdropAmount
+    );
 
-  //   const [usdcDeposit, usdhDeposit] = [new Decimal(5), new Decimal(5)];
-  //   await kamino.deposit(fixtures.newOrcaStrategy, usdcDeposit, usdhDeposit, user.owner.publicKey);
-  //   await sleep(2000);
+    const [usdcDeposit, usdhDeposit] = [new Decimal(5), new Decimal(5)];
+    await kamino.deposit(fixtures.newOrcaStrategy, usdcDeposit, usdhDeposit, user.owner.publicKey);
+    await sleep(2000);
 
-  //   const strategy = await kamino.getStrategyByAddress(fixtures.newOrcaStrategy);
-  //   expect(strategy).to.not.be.null;
-  //   const accounts = await kamino.getStrategyHolders(fixtures.newOrcaStrategy);
-  //   expect(accounts.length).to.be.greaterThan(0);
-  //   const expectedShares = new Decimal(strategy!.sharesIssued.toString())
-  //     .div(new Decimal(10).pow(strategy!.sharesMintDecimals.toString()))
-  //     .toNumber();
-  //   const actualShares = accounts.map((x) => x.amount.toNumber()).reduce((partialSum, a) => partialSum + a, 0);
-  //   expect(expectedShares).to.eq(actualShares);
-  // });
+    const strategy = await kamino.getStrategyByAddress(fixtures.newOrcaStrategy);
+    expect(strategy).to.not.be.null;
+    const accounts = await kamino.getStrategyHolders(fixtures.newOrcaStrategy);
+    expect(accounts.length).to.be.greaterThan(0);
+    const expectedShares = new Decimal(strategy!.sharesIssued.toString())
+      .div(new Decimal(10).pow(strategy!.sharesMintDecimals.toString()))
+      .toNumber();
+    const actualShares = accounts.map((x) => x.amount.toNumber()).reduce((partialSum, a) => partialSum + a, 0);
+    expect(expectedShares).to.eq(actualShares);
+  });
 
-  // it('should get all whirlpools', async () => {
-  //   let kamino = new Kamino(
-  //     cluster,
-  //     connection,
-  //     fixtures.globalConfig,
-  //     fixtures.kaminoProgramId,
-  //     WHIRLPOOL_PROGRAM_ID,
-  //     LOCAL_RAYDIUM_PROGRAM_ID
-  //   );
-  //   console.log(await kamino.getWhirlpools([fixtures.newWhirlpool]));
-  // });
+  it('should get all whirlpools', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      fixtures.globalConfig,
+      fixtures.kaminoProgramId,
+      WHIRLPOOL_PROGRAM_ID,
+      LOCAL_RAYDIUM_PROGRAM_ID
+    );
+    console.log(await kamino.getWhirlpools([fixtures.newWhirlpool]));
+  });
 
-  // it('should get all Raydium pools', async () => {
-  //   let kamino = new Kamino(
-  //     cluster,
-  //     connection,
-  //     fixtures.globalConfig,
-  //     fixtures.kaminoProgramId,
-  //     WHIRLPOOL_PROGRAM_ID,
-  //     LOCAL_RAYDIUM_PROGRAM_ID
-  //   );
-  //   console.log(await kamino.getRaydiumPools([fixtures.newRaydiumPool]));
-  // });
+  it('should get all Raydium pools', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      fixtures.globalConfig,
+      fixtures.kaminoProgramId,
+      WHIRLPOOL_PROGRAM_ID,
+      LOCAL_RAYDIUM_PROGRAM_ID
+    );
+    console.log(await kamino.getRaydiumPools([fixtures.newRaydiumPool]));
+  });
 
-  // it('should withdraw shares from a Orca strategy', async () => {
-  //   let kamino = new Kamino(
-  //     cluster,
-  //     connection,
-  //     fixtures.globalConfig,
-  //     fixtures.kaminoProgramId,
-  //     WHIRLPOOL_PROGRAM_ID,
-  //     LOCAL_RAYDIUM_PROGRAM_ID
-  //   );
-  //   const strategyState = await kamino.getStrategyByAddress(fixtures.newOrcaStrategy);
-  //   expect(strategyState).not.to.be.null;
-  //   if (strategyState == null) {
-  //     throw new Error(`Could not fetch strategy for pubkey ${fixtures.newOrcaStrategy.toString()}`);
-  //   }
+  it('should withdraw shares from a Orca strategy', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      fixtures.globalConfig,
+      fixtures.kaminoProgramId,
+      WHIRLPOOL_PROGRAM_ID,
+      LOCAL_RAYDIUM_PROGRAM_ID
+    );
+    const strategyState = await kamino.getStrategyByAddress(fixtures.newOrcaStrategy);
+    expect(strategyState).not.to.be.null;
+    if (strategyState == null) {
+      throw new Error(`Could not fetch strategy for pubkey ${fixtures.newOrcaStrategy.toString()}`);
+    }
 
-  //   let tx = createTransactionWithExtraBudget(signer.publicKey, 12000000);
-  //   const [sharesAta, sharesMintData] = await getAssociatedTokenAddressAndData(
-  //     connection,
-  //     strategyState.sharesMint,
-  //     signer.publicKey
-  //   );
-  //   const [tokenAAta, tokenAData] = await getAssociatedTokenAddressAndData(
-  //     connection,
-  //     strategyState.tokenAMint,
-  //     signer.publicKey
-  //   );
-  //   const [tokenBAta, tokenBData] = await getAssociatedTokenAddressAndData(
-  //     connection,
-  //     strategyState.tokenBMint,
-  //     signer.publicKey
-  //   );
+    let tx = createTransactionWithExtraBudget(signer.publicKey, 12000000);
+    const [sharesAta, sharesMintData] = await getAssociatedTokenAddressAndData(
+      connection,
+      strategyState.sharesMint,
+      signer.publicKey
+    );
+    const [tokenAAta, tokenAData] = await getAssociatedTokenAddressAndData(
+      connection,
+      strategyState.tokenAMint,
+      signer.publicKey
+    );
+    const [tokenBAta, tokenBData] = await getAssociatedTokenAddressAndData(
+      connection,
+      strategyState.tokenBMint,
+      signer.publicKey
+    );
 
-  //   let strategyWithAddres = { address: fixtures.newOrcaStrategy, strategy: strategyState };
-  //   const ataInstructions = await kamino.getCreateAssociatedTokenAccountInstructionsIfNotExist(
-  //     signer.publicKey,
-  //     strategyWithAddres,
-  //     tokenAData,
-  //     tokenAAta,
-  //     tokenBData,
-  //     tokenBAta,
-  //     sharesMintData,
-  //     sharesAta
-  //   );
-  //   if (ataInstructions.length > 0) {
-  //     tx.add(...ataInstructions);
-  //   }
+    let strategyWithAddres = { address: fixtures.newOrcaStrategy, strategy: strategyState };
+    const ataInstructions = await kamino.getCreateAssociatedTokenAccountInstructionsIfNotExist(
+      signer.publicKey,
+      strategyWithAddres,
+      tokenAData,
+      tokenAAta,
+      tokenBData,
+      tokenBAta,
+      sharesMintData,
+      sharesAta
+    );
+    if (ataInstructions.length > 0) {
+      tx.add(...ataInstructions);
+    }
 
-  //   let res = await sendTransactionWithLogs(connection, tx, signer.publicKey, [signer]);
-  //   console.log('res createAtas ', res);
+    let res = await sendTransactionWithLogs(connection, tx, signer.publicKey, [signer]);
+    console.log('res createAtas ', res);
 
-  //   const [usdcDeposit, usdhDeposit] = [new Decimal(5), new Decimal(5)];
-  //   await mintTo(connection, signer, strategyState.tokenAMint, tokenAAta, 9000000);
-  //   await mintTo(connection, signer, strategyState.tokenBMint, tokenBAta, 9000000);
-  //   await sleep(5000);
+    const [usdcDeposit, usdhDeposit] = [new Decimal(5), new Decimal(5)];
+    await mintTo(connection, signer, strategyState.tokenAMint, tokenAAta, 9000000);
+    await mintTo(connection, signer, strategyState.tokenBMint, tokenBAta, 9000000);
+    await sleep(5000);
 
-  //   let depositIx = await kamino.deposit(fixtures.newOrcaStrategy, usdcDeposit, usdhDeposit, signer.publicKey);
-  //   let depositTx = createTransactionWithExtraBudget(signer.publicKey, 1200000);
-  //   depositTx.add(depositIx);
-  //   await sendTransactionWithLogs(connection, depositTx, signer.publicKey, [signer]);
+    let depositIx = await kamino.deposit(fixtures.newOrcaStrategy, usdcDeposit, usdhDeposit, signer.publicKey);
+    let depositTx = createTransactionWithExtraBudget(signer.publicKey, 1200000);
+    depositTx.add(depositIx);
+    await sendTransactionWithLogs(connection, depositTx, signer.publicKey, [signer]);
 
-  //   const strategy = (await kamino.getStrategyByAddress(fixtures.newOrcaStrategy))!;
-  //   const strategyWithAddress = { strategy, address: fixtures.newOrcaStrategy };
+    const strategy = (await kamino.getStrategyByAddress(fixtures.newOrcaStrategy))!;
+    const strategyWithAddress = { strategy, address: fixtures.newOrcaStrategy };
 
-  //   let withdrawTx = createTransactionWithExtraBudget(signer.publicKey);
+    let withdrawTx = createTransactionWithExtraBudget(signer.publicKey);
 
-  //   //@ts-ignore
-  //   let shares = await kamino.getTokenAccountBalance(sharesAta);
-  //   console.log('shares, ', shares);
+    //@ts-ignore
+    let shares = await kamino.getTokenAccountBalance(sharesAta);
+    console.log('shares, ', shares);
 
-  //   const withdrawIxns = await kamino.withdrawShares(strategyWithAddress, new Decimal(0.2), signer.publicKey);
-  //   withdrawTx.add(...withdrawIxns);
+    const withdrawIxns = await kamino.withdrawShares(strategyWithAddress, new Decimal(0.2), signer.publicKey);
+    withdrawTx.add(...withdrawIxns);
 
-  //   withdrawTx = await assignBlockInfoToTransaction(connection, withdrawTx, signer.publicKey);
+    withdrawTx = await assignBlockInfoToTransaction(connection, withdrawTx, signer.publicKey);
 
-  //   const txHash = await sendAndConfirmTransaction(connection, withdrawTx, [signer], {
-  //     commitment: 'processed',
-  //     skipPreflight: true,
-  //   });
-  //   console.log(txHash);
-  // });
+    const txHash = await sendAndConfirmTransaction(connection, withdrawTx, [signer], {
+      commitment: 'processed',
+      skipPreflight: true,
+    });
+    console.log(txHash);
+  });
 
   it.skip('create wSOL ata', async () => {
     let kamino = new Kamino(
@@ -1187,6 +1186,73 @@ describe('Kamino SDK Tests', () => {
     }
   });
 
+  it('should rebalance a new Raydium strategy without liquidity', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      fixtures.globalConfig,
+      fixtures.kaminoProgramId,
+      WHIRLPOOL_PROGRAM_ID,
+      LOCAL_RAYDIUM_PROGRAM_ID
+    );
+
+    let createRaydiumTx = createTransactionWithExtraBudget(signer.publicKey);
+    const newRaydiumStrategy = Keypair.generate();
+    const createRaydiumStrategyAccountIx = await kamino.createStrategyAccount(
+      signer.publicKey,
+      newRaydiumStrategy.publicKey
+    );
+
+    createRaydiumTx.add(createRaydiumStrategyAccountIx);
+    let raydiumStrategyIx = await kamino.createStrategy(
+      newRaydiumStrategy.publicKey,
+      fixtures.newRaydiumPool,
+      signer.publicKey,
+      'RAYDIUM'
+    );
+    createRaydiumTx.add(raydiumStrategyIx);
+    let raydiumTxHash = await sendTransactionWithLogs(connection, createRaydiumTx, signer.publicKey, [
+      signer,
+      newRaydiumStrategy,
+    ]);
+    console.log('create new Raydium strategy tx hash', raydiumTxHash);
+
+    // setup strategy lookup table
+    await kamino.setupStrategyLookupTable(signer, newRaydiumStrategy.publicKey);
+    await openPosition(kamino, signer, newRaydiumStrategy.publicKey, new Decimal(0.97), new Decimal(1.03));
+    await sleep(1000);
+
+    const strategy = (await kamino.getStrategyByAddress(newRaydiumStrategy.publicKey))!;
+
+    // New position to rebalance into
+    const newPosition = Keypair.generate();
+
+    const rebalanceIxs = await kamino.rebalance(
+      newRaydiumStrategy.publicKey,
+      newPosition.publicKey,
+      new Decimal(0.98),
+      new Decimal(1.01),
+      signer.publicKey
+    );
+
+    {
+      const increaseBudgetIx = createAddExtraComputeUnitsTransaction(signer.publicKey, 1_400_000);
+
+      const openPositionTx = await kamino.getTransactionV2Message(
+        signer.publicKey,
+        [increaseBudgetIx, ...rebalanceIxs],
+        [strategy.strategyLookupTable]
+      );
+      let openPositionTxV0 = new VersionedTransaction(openPositionTx);
+      openPositionTxV0.sign([signer, newPosition]);
+
+      console.log('rebalancing raydium strategy in rebalancing');
+      //@ts-ignore
+      let myHash = await sendAndConfirmTransaction(kamino._connection, openPositionTxV0);
+      console.log('rebalance tx hash', myHash);
+    }
+  });
+
   it('should read all strats correctly with no filter', async () => {
     let kamino = new Kamino(
       cluster,
@@ -1202,7 +1268,7 @@ describe('Kamino SDK Tests', () => {
       strategyCreationStatus: undefined,
     };
     let strats = await kamino.getAllStrategiesWithFilters(filters);
-    expect(strats.length).to.be.eq(2);
+    expect(strats.length).to.be.eq(3);
   });
 
   it('should read strats correctly when no strat match the filter', async () => {
@@ -1239,7 +1305,7 @@ describe('Kamino SDK Tests', () => {
       strategyCreationStatus: 'IGNORED',
     };
     let strats = await kamino.getAllStrategiesWithFilters(filters);
-    expect(strats.length).to.be.eq(2);
+    expect(strats.length).to.be.eq(3);
   });
 
   it('should read strats correctly with strategy type NON_PEGGED', async () => {
@@ -1257,7 +1323,7 @@ describe('Kamino SDK Tests', () => {
       strategyCreationStatus: undefined,
     };
     let strats = await kamino.getAllStrategiesWithFilters(filters);
-    expect(strats.length).to.be.eq(2);
+    expect(strats.length).to.be.eq(3);
   });
 
   it('should read strats correctly after creation status changes', async () => {
@@ -1275,7 +1341,7 @@ describe('Kamino SDK Tests', () => {
       strategyCreationStatus: 'IGNORED',
     };
     let strats = await kamino.getAllStrategiesWithFilters(filters);
-    expect(strats.length).to.be.eq(2);
+    expect(strats.length).to.be.eq(3);
 
     // set creation state to live
     await updateStrategyConfig(
@@ -1288,7 +1354,7 @@ describe('Kamino SDK Tests', () => {
 
     // assert only a single strat remained SHADOW
     strats = await kamino.getAllStrategiesWithFilters(filters);
-    expect(strats.length).to.be.eq(1);
+    expect(strats.length).to.be.eq(2);
 
     // assert there is a strategy with creation status LIVE
     filters.strategyCreationStatus = 'LIVE';
@@ -1311,14 +1377,14 @@ describe('Kamino SDK Tests', () => {
       strategyCreationStatus: undefined,
     };
     let strats = await kamino.getAllStrategiesWithFilters(filters);
-    expect(strats.length).to.be.eq(2);
+    expect(strats.length).to.be.eq(3);
 
     // set it to STABLE
     await updateStrategyConfig(connection, signer, fixtures.newOrcaStrategy, new UpdateStrategyType(), new Decimal(2));
 
     // assert that only one strat is NON_PEGGED
     strats = await kamino.getAllStrategiesWithFilters(filters);
-    expect(strats.length).to.be.eq(1);
+    expect(strats.length).to.be.eq(2);
 
     // assert there is one strat that is STABLE
     filters.strategyType = 'STABLE';
