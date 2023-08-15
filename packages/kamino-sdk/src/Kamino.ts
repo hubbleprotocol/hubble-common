@@ -807,17 +807,6 @@ export class Kamino {
     collateralInfos: CollateralInfo[],
     prices?: ScopeToken[]
   ) => {
-    const lowerSqrtPriceX64 = SqrtPriceMath.getSqrtPriceX64FromTick(position.tickLowerIndex);
-    const upperSqrtPriceX64 = SqrtPriceMath.getSqrtPriceX64FromTick(position.tickUpperIndex);
-
-    const { amountA, amountB } = LiquidityMath.getAmountsFromLiquidity(
-      pool.sqrtPriceX64,
-      new BN(lowerSqrtPriceX64),
-      new BN(upperSqrtPriceX64),
-      position.liquidity,
-      false // round down so the holdings are not overestimated
-    );
-
     const strategyPrices = await this.getPrices(strategy, collateralInfos, prices);
     const tokenHoldings = await this.getRaydiumTokensBalances(strategy, pool, position);
 
@@ -2695,13 +2684,13 @@ export class Kamino {
    * @param status strategy status
    */
   openPosition = async (
-    strategy: PublicKey,
+    strategy: PublicKey | StrategyWithAddress,
     positionMint: PublicKey,
     priceLower: Decimal,
     priceUpper: Decimal,
     status: StrategyStatusKind = new Uninitialized()
   ): Promise<TransactionInstruction> => {
-    const strategyState: WhirlpoolStrategy | null = await this.getStrategyByAddress(strategy);
+    const { strategy: strategyState, address: strategyAddress } = await this.getStrategyStateIfNotFetched(strategy);
     if (!strategyState) {
       throw Error(`Could not fetch strategy state with pubkey ${strategy.toString()}`);
     }
@@ -2709,7 +2698,7 @@ export class Kamino {
     if (strategyState.strategyDex.toNumber() == dexToNumber('ORCA')) {
       return this.openPositionOrca(
         strategyState.adminAuthority,
-        strategy,
+        strategyAddress,
         strategyState.baseVaultAuthority,
         strategyState.pool,
         positionMint,
@@ -2740,7 +2729,7 @@ export class Kamino {
 
       return this.openPositionRaydium(
         strategyState.adminAuthority,
-        strategy,
+        strategyAddress,
         strategyState.baseVaultAuthority,
         strategyState.pool,
         positionMint,
@@ -3691,16 +3680,25 @@ export class Kamino {
    * @returns list of transactions to rebalance (executive withdraw, collect fees/rewards, open new position, invest)
    */
   rebalance = async (
-    strategy: PublicKey,
+    strategy: PublicKey | StrategyWithAddress,
     newPosition: PublicKey,
     priceLower: Decimal,
     priceUpper: Decimal,
     payer: PublicKey
-  ) => [
-    await this.executiveWithdraw(strategy, new Rebalance()),
-    await this.collectFeesAndRewards(strategy),
-    await this.openPosition(strategy, newPosition, priceLower, priceUpper, new Rebalancing()),
-  ];
+  ): Promise<TransactionInstruction[]> => {
+    const strategyWithAddress = await this.getStrategyStateIfNotFetched(strategy);
+
+    let ixs: TransactionInstruction[] = [await this.executiveWithdraw(strategyWithAddress, new Rebalance())];
+
+    // if there are no invested tokens we don't need to collect fees and rewards
+    const stratTokenBalances = await this.getStrategyTokensBalances(strategyWithAddress.strategy);
+    if (stratTokenBalances.invested.a.greaterThan(ZERO) || stratTokenBalances.invested.b.greaterThan(ZERO)) {
+      ixs.push(await this.collectFeesAndRewards(strategyWithAddress));
+    }
+    ixs.push(await this.openPosition(strategyWithAddress, newPosition, priceLower, priceUpper, new Rebalancing()));
+
+    return ixs;
+  };
 
   /**
    * Get a list of rebalancing params
