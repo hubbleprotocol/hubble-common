@@ -10,7 +10,6 @@ import {
 import {
   createAddExtraComputeUnitsTransaction,
   DepositAmountsForSwap,
-  depositAmountsForSwapToLamports,
   Dex,
   getReadOnlyWallet,
   Kamino,
@@ -1187,6 +1186,73 @@ describe('Kamino SDK Tests', () => {
     }
   });
 
+  it('should rebalance a new Raydium strategy without liquidity', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      fixtures.globalConfig,
+      fixtures.kaminoProgramId,
+      WHIRLPOOL_PROGRAM_ID,
+      LOCAL_RAYDIUM_PROGRAM_ID
+    );
+
+    let createRaydiumTx = createTransactionWithExtraBudget(signer.publicKey);
+    const newRaydiumStrategy = Keypair.generate();
+    const createRaydiumStrategyAccountIx = await kamino.createStrategyAccount(
+      signer.publicKey,
+      newRaydiumStrategy.publicKey
+    );
+
+    createRaydiumTx.add(createRaydiumStrategyAccountIx);
+    let raydiumStrategyIx = await kamino.createStrategy(
+      newRaydiumStrategy.publicKey,
+      fixtures.newRaydiumPool,
+      signer.publicKey,
+      'RAYDIUM'
+    );
+    createRaydiumTx.add(raydiumStrategyIx);
+    let raydiumTxHash = await sendTransactionWithLogs(connection, createRaydiumTx, signer.publicKey, [
+      signer,
+      newRaydiumStrategy,
+    ]);
+    console.log('create new Raydium strategy tx hash', raydiumTxHash);
+
+    // setup strategy lookup table
+    await kamino.setupStrategyLookupTable(signer, newRaydiumStrategy.publicKey);
+    await openPosition(kamino, signer, newRaydiumStrategy.publicKey, new Decimal(0.97), new Decimal(1.03));
+    await sleep(1000);
+
+    const strategy = (await kamino.getStrategyByAddress(newRaydiumStrategy.publicKey))!;
+
+    // New position to rebalance into
+    const newPosition = Keypair.generate();
+
+    const rebalanceIxs = await kamino.rebalance(
+      newRaydiumStrategy.publicKey,
+      newPosition.publicKey,
+      new Decimal(0.98),
+      new Decimal(1.01),
+      signer.publicKey
+    );
+
+    {
+      const increaseBudgetIx = createAddExtraComputeUnitsTransaction(signer.publicKey, 1_400_000);
+
+      const openPositionTx = await kamino.getTransactionV2Message(
+        signer.publicKey,
+        [increaseBudgetIx, ...rebalanceIxs],
+        [strategy.strategyLookupTable]
+      );
+      let openPositionTxV0 = new VersionedTransaction(openPositionTx);
+      openPositionTxV0.sign([signer, newPosition]);
+
+      console.log('rebalancing raydium strategy in rebalancing');
+      //@ts-ignore
+      let myHash = await sendAndConfirmTransaction(kamino._connection, openPositionTxV0);
+      console.log('rebalance tx hash', myHash);
+    }
+  });
+
   it('should read all strats correctly with no filter', async () => {
     let kamino = new Kamino(
       cluster,
@@ -1202,7 +1268,7 @@ describe('Kamino SDK Tests', () => {
       strategyCreationStatus: undefined,
     };
     let strats = await kamino.getAllStrategiesWithFilters(filters);
-    expect(strats.length).to.be.eq(2);
+    expect(strats.length).to.be.eq(3);
   });
 
   it('should read strats correctly when no strat match the filter', async () => {
@@ -1239,7 +1305,7 @@ describe('Kamino SDK Tests', () => {
       strategyCreationStatus: 'IGNORED',
     };
     let strats = await kamino.getAllStrategiesWithFilters(filters);
-    expect(strats.length).to.be.eq(2);
+    expect(strats.length).to.be.eq(3);
   });
 
   it('should read strats correctly with strategy type NON_PEGGED', async () => {
@@ -1257,7 +1323,7 @@ describe('Kamino SDK Tests', () => {
       strategyCreationStatus: undefined,
     };
     let strats = await kamino.getAllStrategiesWithFilters(filters);
-    expect(strats.length).to.be.eq(2);
+    expect(strats.length).to.be.eq(3);
   });
 
   it('should read strats correctly after creation status changes', async () => {
@@ -1275,7 +1341,7 @@ describe('Kamino SDK Tests', () => {
       strategyCreationStatus: 'IGNORED',
     };
     let strats = await kamino.getAllStrategiesWithFilters(filters);
-    expect(strats.length).to.be.eq(2);
+    expect(strats.length).to.be.eq(3);
 
     // set creation state to live
     await updateStrategyConfig(
@@ -1288,7 +1354,7 @@ describe('Kamino SDK Tests', () => {
 
     // assert only a single strat remained SHADOW
     strats = await kamino.getAllStrategiesWithFilters(filters);
-    expect(strats.length).to.be.eq(1);
+    expect(strats.length).to.be.eq(2);
 
     // assert there is a strategy with creation status LIVE
     filters.strategyCreationStatus = 'LIVE';
@@ -1311,14 +1377,14 @@ describe('Kamino SDK Tests', () => {
       strategyCreationStatus: undefined,
     };
     let strats = await kamino.getAllStrategiesWithFilters(filters);
-    expect(strats.length).to.be.eq(2);
+    expect(strats.length).to.be.eq(3);
 
     // set it to STABLE
     await updateStrategyConfig(connection, signer, fixtures.newOrcaStrategy, new UpdateStrategyType(), new Decimal(2));
 
     // assert that only one strat is NON_PEGGED
     strats = await kamino.getAllStrategiesWithFilters(filters);
-    expect(strats.length).to.be.eq(1);
+    expect(strats.length).to.be.eq(2);
 
     // assert there is one strat that is STABLE
     filters.strategyType = 'STABLE';
