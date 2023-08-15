@@ -3692,9 +3692,14 @@ export class Kamino {
 
     // if there are no invested tokens we don't need to collect fees and rewards
     const stratTokenBalances = await this.getStrategyTokensBalances(strategyWithAddress.strategy);
-    if (stratTokenBalances.invested.a.greaterThan(ZERO) || stratTokenBalances.invested.b.greaterThan(ZERO)) {
+    if (
+      strategyWithAddress.strategy.strategyDex.toNumber() == dexToNumber('ORCA') ||
+      stratTokenBalances.invested.a.greaterThan(ZERO) ||
+      stratTokenBalances.invested.b.greaterThan(ZERO)
+    ) {
       ixs.push(await this.collectFeesAndRewards(strategyWithAddress));
     }
+
     ixs.push(await this.openPosition(strategyWithAddress, newPosition, priceLower, priceUpper, new Rebalancing()));
 
     return ixs;
