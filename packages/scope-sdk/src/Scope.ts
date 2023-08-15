@@ -107,6 +107,7 @@ export class Scope {
     { id: 93, pair: 'STEPTwap/USD', name: 'STEPTwap', price: new Decimal(0) },
     { id: 94, pair: 'FORGE/USD', name: 'FORGE', price: new Decimal(0) },
     { id: 95, pair: 'FORGETwap/USD', name: 'FORGETwap', price: new Decimal(0) },
+    { id: 96, pair: 'tBTC/USD', name: 'FORGETwap', price: new Decimal(0) },
   ];
 
   /**
