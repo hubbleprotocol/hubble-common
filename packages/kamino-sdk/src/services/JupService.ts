@@ -11,15 +11,7 @@ import axios from 'axios';
 import Decimal from 'decimal.js';
 import { RouteInfo } from '@jup-ag/core';
 import { DeserializedVersionedTransaction } from '../utils';
-import {
-  QuoteResponse,
-  SwapInstructionsResponse,
-  SwapInstructionsResponseFromJSONTyped,
-  SwapResponse,
-  TransactionObject,
-  createJupiterApiClient,
-} from '@jup-ag/api';
-import { decodeSerializedTransaction } from '../utils/transactions';
+import { SwapResponse, createJupiterApiClient } from '@jup-ag/api';
 
 export type SwapTransactionsResponse = {
   setupTransaction: string | undefined;
