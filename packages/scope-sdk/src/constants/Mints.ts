@@ -69,6 +69,7 @@ export const ScopeMints: { cluster: SolanaCluster; mints: { token: SupportedToke
       { token: 'STEP', mint: 'StepAscQoEioFxxWGnh2sLBDFp9d8rvKz2Yp39iDpyT' },
       { token: 'FORGE', mint: 'FoRGERiW7odcCBGU1bztZi16osPBHjxharvDathL5eds' },
       { token: 'tBTC', mint: '6DNSN2BJsaPFdFFc1zP37kkeNe4Usc1Sqkzr9C9vPWcU' },
+      { token: 'COCO', mint: '74DSHnK1qqr4z1pXjLjPAVi8XFngZ635jEVpdkJtnizQ' },
     ],
   },
   {

@@ -94,5 +94,7 @@ export const SupportedTokens = [
   'FORGE',
   'FORGETwap',
   'tBTC',
+  'COCO',
+  'COCOTwap',
 ] as const;
 export type SupportedToken = (typeof SupportedTokens)[number];
