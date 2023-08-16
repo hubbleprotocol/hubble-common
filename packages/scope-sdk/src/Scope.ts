@@ -17,6 +17,7 @@ export class Scope {
     { id: 1, pair: 'ETH/USD', name: 'ETH', price: new Decimal(0) },
     { id: 2, pair: 'BTC/USD', name: 'BTC', price: new Decimal(0) },
     { id: 2, pair: 'wBTC/USD', name: 'wBTC', price: new Decimal(0) },
+    { id: 2, pair: 'tBTC/USD', name: 'tBTC', price: new Decimal(0) }, // use the same scope ID as wBTC
     { id: 3, pair: 'SRM/USD', name: 'SRM', price: new Decimal(0) },
     { id: 4, pair: 'RAY/USD', name: 'RAY', price: new Decimal(0) },
     { id: 5, pair: 'FTT/USD', name: 'FTT', price: new Decimal(0) },
