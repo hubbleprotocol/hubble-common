@@ -93,5 +93,6 @@ export const SupportedTokens = [
   'STEPTwap',
   'FORGE',
   'FORGETwap',
+  'tBTC',
 ] as const;
 export type SupportedToken = (typeof SupportedTokens)[number];

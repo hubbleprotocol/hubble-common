@@ -94,5 +94,6 @@ export const ScopePairs = [
   'STEPTwap/USD',
   'FORGE/USD',
   'FORGETwap/USD',
+  'tBTC/USD',
 ] as const;
 export type ScopePair = (typeof ScopePairs)[number];
