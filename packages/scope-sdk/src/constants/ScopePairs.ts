@@ -97,5 +97,9 @@ export const ScopePairs = [
   'tBTC/USD',
   'COCO/USD',
   'COCOTwap/USD',
+  'STYLE/USD',
+  'STYLETwap/USD',
+  'CHAI/USD',
+  'CHAITwap/USD',
 ] as const;
 export type ScopePair = (typeof ScopePairs)[number];

@@ -96,5 +96,9 @@ export const SupportedTokens = [
   'tBTC',
   'COCO',
   'COCOTwap',
+  'STYLE',
+  'STYLETwap',
+  'CHAI',
+  'CHAITwap',
 ] as const;
 export type SupportedToken = (typeof SupportedTokens)[number];
