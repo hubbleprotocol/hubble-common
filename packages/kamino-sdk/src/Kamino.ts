@@ -174,6 +174,7 @@ import {
   UpdateCollectFeesFee,
   UpdateRebalanceType,
   UpdateLookupTable,
+  UpdateDepositMintingMethod,
 } from './kamino-client/types/StrategyConfigOption';
 import {
   DefaultDepositCap,
@@ -4590,6 +4591,13 @@ export class Kamino {
       new UpdateReward2Fee(),
       performanceFeeBps
     );
+    let updateMintingMethodToProportionalIx = await getUpdateStrategyConfigIx(
+      strategyAdmin,
+      this._globalConfig,
+      strategy,
+      new UpdateDepositMintingMethod(),
+      new Decimal(1)
+    );
 
     return [
       updateRebalanceTypeIx,
@@ -4601,6 +4609,7 @@ export class Kamino {
       updateRewards0FeeIx,
       updateRewards1FeeIx,
       updateRewards2FeeIx,
+      updateMintingMethodToProportionalIx,
     ];
   };
 
