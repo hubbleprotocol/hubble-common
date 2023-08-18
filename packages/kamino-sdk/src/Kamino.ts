@@ -101,6 +101,7 @@ import {
   ProfiledFunctionExecution,
   noopProfiledFunctionExecution,
   MaybeTokensBalances,
+  ProportionalMintingMethod,
 } from './utils';
 import { ASSOCIATED_TOKEN_PROGRAM_ID, Token, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import {
@@ -174,6 +175,7 @@ import {
   UpdateCollectFeesFee,
   UpdateRebalanceType,
   UpdateLookupTable,
+  UpdateDepositMintingMethod,
 } from './kamino-client/types/StrategyConfigOption';
 import {
   DefaultDepositCap,
@@ -4590,6 +4592,13 @@ export class Kamino {
       new UpdateReward2Fee(),
       performanceFeeBps
     );
+    let updateMintingMethodToProportionalIx = await getUpdateStrategyConfigIx(
+      strategyAdmin,
+      this._globalConfig,
+      strategy,
+      new UpdateDepositMintingMethod(),
+      ProportionalMintingMethod
+    );
 
     return [
       updateRebalanceTypeIx,
@@ -4601,6 +4610,7 @@ export class Kamino {
       updateRewards0FeeIx,
       updateRewards1FeeIx,
       updateRewards2FeeIx,
+      updateMintingMethodToProportionalIx,
     ];
   };
 
