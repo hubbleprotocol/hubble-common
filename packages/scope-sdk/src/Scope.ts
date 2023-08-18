@@ -114,6 +114,10 @@ export class Scope {
     { id: 99, pair: 'STYLETwap/USD', name: 'STYLETwap', price: new Decimal(0) },
     { id: 100, pair: 'CHAI/USD', name: 'CHAI', price: new Decimal(0) },
     { id: 101, pair: 'CHAITwap/USD', name: 'CHAITwap', price: new Decimal(0) },
+    { id: 102, pair: 'T/USD', name: 'T', price: new Decimal(0) },
+    { id: 103, pair: 'TTwap/USD', name: 'TTwap', price: new Decimal(0) },
+    { id: 104, pair: 'BLZE/USD', name: 'BLZE', price: new Decimal(0) },
+    { id: 105, pair: 'BLZETwap/USD', name: 'BLZETwap', price: new Decimal(0) },
   ];
 
   /**

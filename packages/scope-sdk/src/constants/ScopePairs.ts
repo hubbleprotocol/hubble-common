@@ -101,5 +101,9 @@ export const ScopePairs = [
   'STYLETwap/USD',
   'CHAI/USD',
   'CHAITwap/USD',
+  'T/USD',
+  'TTwap/USD',
+  'BLZE/USD',
+  'BLZETwap/USD',
 ] as const;
 export type ScopePair = (typeof ScopePairs)[number];

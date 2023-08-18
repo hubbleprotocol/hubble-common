@@ -72,6 +72,8 @@ export const ScopeMints: { cluster: SolanaCluster; mints: { token: SupportedToke
       { token: 'COCO', mint: '74DSHnK1qqr4z1pXjLjPAVi8XFngZ635jEVpdkJtnizQ' },
       { token: 'STYLE', mint: '3FHpkMTQ3QyAJoLoXVdBpH4TfHiehnL2kXmv9UXBpYuF' },
       { token: 'CHAI', mint: '3jsFX1tx2Z8ewmamiwSU851GzyzM2DJMq7KWW5DM8Py3' },
+      { token: 'T', mint: '4Njvi3928U3figEF5tf8xvjLC5GqUN33oe4XTJNe7xXC' },
+      { token: 'BLZE', mint: 'BLZEEuZUBVqFhj8adcCFPJvPVCiCyVmh3hkJMrU8KuJA' },
     ],
   },
   {
