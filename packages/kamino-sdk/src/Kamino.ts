@@ -101,6 +101,7 @@ import {
   ProfiledFunctionExecution,
   noopProfiledFunctionExecution,
   MaybeTokensBalances,
+  ProportionalMintingMethod,
 } from './utils';
 import { ASSOCIATED_TOKEN_PROGRAM_ID, Token, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import {
@@ -4596,7 +4597,7 @@ export class Kamino {
       this._globalConfig,
       strategy,
       new UpdateDepositMintingMethod(),
-      new Decimal(1)
+      ProportionalMintingMethod
     );
 
     return [

@@ -10,6 +10,9 @@ import {
   updateStrategyConfig,
 } from '../kamino-client/instructions';
 
+export const DolarBasedMintingMethod = new Decimal(0);
+export const ProportionalMintingMethod = new Decimal(1);
+
 export const RebalanceParamOffset = new Decimal(256);
 
 export function sleep(ms: number) {
