@@ -100,5 +100,9 @@ export const SupportedTokens = [
   'STYLETwap',
   'CHAI',
   'CHAITwap',
+  'T',
+  'TTwap',
+  'BLZE',
+  'BLZETwap',
 ] as const;
 export type SupportedToken = (typeof SupportedTokens)[number];
