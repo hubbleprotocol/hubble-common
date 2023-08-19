@@ -4539,16 +4539,16 @@ export class Kamino {
       depositCapPerIx
     );
 
-    if (!depositFeeBps) {
-      depositFeeBps = DefaultDepositFeeBps;
+    let updateDepositFeeIx: TransactionInstruction | undefined;
+    if (depositFeeBps && depositFeeBps.gt(0)) {
+      updateDepositFeeIx = await getUpdateStrategyConfigIx(
+        strategyAdmin,
+        this._globalConfig,
+        strategy,
+        new UpdateDepositFee(),
+        depositFeeBps
+      );
     }
-    let updateDepositFeeIx = await getUpdateStrategyConfigIx(
-      strategyAdmin,
-      this._globalConfig,
-      strategy,
-      new UpdateDepositFee(),
-      depositFeeBps
-    );
 
     if (!withdrawFeeBps) {
       withdrawFeeBps = DefaultWithdrawFeeBps;
@@ -4600,11 +4600,10 @@ export class Kamino {
       ProportionalMintingMethod
     );
 
-    return [
+    let ixs = [
       updateRebalanceTypeIx,
       updateDepositCapIx,
       updateDepositCapPerIxnIx,
-      updateDepositFeeIx,
       updateWithdrawalFeeIx,
       updateFeesFeeIx,
       updateRewards0FeeIx,
@@ -4612,6 +4611,11 @@ export class Kamino {
       updateRewards2FeeIx,
       updateMintingMethodToProportionalIx,
     ];
+    if (updateDepositFeeIx) {
+      ixs.push(updateDepositFeeIx);
+    }
+
+    return ixs;
   };
 
   getUpdateRewardsIxs = async (
