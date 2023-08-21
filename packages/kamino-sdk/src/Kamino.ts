@@ -632,7 +632,7 @@ export class Kamino {
     }
 
     if (strategyFilters.isCommunity !== undefined && strategyFilters.isCommunity !== null) {
-      let value = strategyFilters.isCommunity === false ? '1' : '2';
+      let value = !strategyFilters.isCommunity ? '1' : '2';
       filters.push({
         memcmp: {
           bytes: value,
@@ -655,6 +655,37 @@ export class Kamino {
    * @param address
    */
   getStrategyByAddress = (address: PublicKey) => WhirlpoolStrategy.fetch(this._connection, address);
+
+  /**
+   * Get a Kamino whirlpool strategy by its kToken mint address
+   * @param kTokenMint - mint address of the kToken
+   */
+  getStrategyByKTokenMint = async (kTokenMint: PublicKey): Promise<StrategyWithAddress | null> => {
+    const matchingStrategies = await this._kaminoProgram.account.whirlpoolStrategy.all([
+      {
+        memcmp: {
+          bytes: kTokenMint.toBase58(),
+          offset: 720,
+        },
+      },
+    ]);
+
+    if (matchingStrategies.length === 0) {
+      return null;
+    }
+    if (matchingStrategies.length > 1) {
+      throw new Error(
+        `Multiple strategies found for kToken mint: ${kTokenMint.toBase58()}. Strategies found: ${matchingStrategies.map(
+          (x) => x.publicKey.toBase58()
+        )}`
+      );
+    }
+    const decodedStrategy = new WhirlpoolStrategy(matchingStrategies[0].account as WhirlpoolStrategyFields);
+    return {
+      address: matchingStrategies[0].publicKey,
+      strategy: decodedStrategy,
+    };
+  };
 
   /**
    * Get the strategy share data (price + balances) of the specified Kamino whirlpool strategy

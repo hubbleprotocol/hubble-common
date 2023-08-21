@@ -1271,6 +1271,24 @@ describe('Kamino SDK Tests', () => {
     expect(strats.length).to.be.eq(3);
   });
 
+  it('should get strat by kToken mint', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      fixtures.globalConfig,
+      fixtures.kaminoProgramId,
+      WHIRLPOOL_PROGRAM_ID,
+      LOCAL_RAYDIUM_PROGRAM_ID
+    );
+
+    const strategyByAddress = await kamino.getStrategyByAddress(fixtures.newRaydiumStrategy);
+    expect(strategyByAddress).not.null;
+
+    let strategyByKToken = await kamino.getStrategyByKTokenMint(strategyByAddress!.sharesMint);
+    expect(strategyByKToken).not.null;
+    expect(strategyByKToken!.address.toBase58()).to.be.eq(fixtures.newRaydiumStrategy.toBase58());
+  });
+
   it('should read strats correctly when no strat match the filter', async () => {
     let kamino = new Kamino(
       cluster,
