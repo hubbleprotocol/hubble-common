@@ -323,7 +323,7 @@ export class Kamino {
 
   getDefaultRebalanceMethod = (): RebalanceMethod => PricePercentageRebalanceMethod;
 
-  getDefaultParametersForNewVault = async () => {
+  getDefaultParametersForNewVault = async (): Promise<VaultParameters> => {
     const dex = DefaultDex;
     const tokenMintA = DefaultMintTokenA;
     const tokenMintB = DefaultMintTokenB;
