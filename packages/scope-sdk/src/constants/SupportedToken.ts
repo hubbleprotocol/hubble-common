@@ -104,5 +104,7 @@ export const SupportedTokens = [
   'TTwap',
   'BLZE',
   'BLZETwap',
+  'EUROE',
+  'EUROETwap',
 ] as const;
 export type SupportedToken = (typeof SupportedTokens)[number];

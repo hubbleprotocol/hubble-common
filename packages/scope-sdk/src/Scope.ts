@@ -118,6 +118,8 @@ export class Scope {
     { id: 103, pair: 'TTwap/USD', name: 'TTwap', price: new Decimal(0) },
     { id: 104, pair: 'BLZE/USD', name: 'BLZE', price: new Decimal(0) },
     { id: 105, pair: 'BLZETwap/USD', name: 'BLZETwap', price: new Decimal(0) },
+    { id: 106, pair: 'EUROE/USD', name: 'EUROE', price: new Decimal(0) },
+    { id: 107, pair: 'EUROETwap/USD', name: 'EUROETwap', price: new Decimal(0) },
   ];
 
   /**
