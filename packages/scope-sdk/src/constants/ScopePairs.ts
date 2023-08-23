@@ -105,5 +105,7 @@ export const ScopePairs = [
   'TTwap/USD',
   'BLZE/USD',
   'BLZETwap/USD',
+  'EUROE/USD',
+  'EUROETwap/USD',
 ] as const;
 export type ScopePair = (typeof ScopePairs)[number];
