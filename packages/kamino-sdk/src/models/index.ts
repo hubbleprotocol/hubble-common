@@ -10,6 +10,7 @@ export * from './MultipleAccountsResponse';
 export * from './StrategyWithAddress';
 export * from './KaminoPosition';
 export * from './StrategyHolder';
+export * from './StrategyPrices';
 export * from './StrategyProgramAddress';
 export * from './StrategyVaultTokens';
 export * from './ShareData';

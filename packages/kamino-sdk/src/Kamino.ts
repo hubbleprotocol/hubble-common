@@ -36,6 +36,7 @@ import {
   OrcaWhirlpoolClient,
   Percentage,
   priceToTickIndex,
+  RemoveLiquidityQuoteParam,
   sqrtPriceX64ToPrice,
   tickIndexToPrice,
 } from '@orca-so/whirlpool-sdk';
@@ -59,7 +60,7 @@ import {
   TreasuryFeeVault,
 } from './models';
 import { PROGRAM_ID_CLI as WHIRLPOOL_PROGRAM_ID, setWhirlpoolsProgramId } from './whirpools-client/programId';
-import { Scope, ScopeToken, SupportedTokens } from '@hubbleprotocol/scope-sdk';
+import { OraclePrices, Scope, ScopeToken, SupportedTokens } from '@hubbleprotocol/scope-sdk';
 import {
   batchFetch,
   collToLamportsDecimal,
@@ -219,6 +220,7 @@ import {
 } from './utils/transactions';
 import { RouteInfo } from '@jup-ag/core';
 import { QuoteResponse, SwapResponse } from '@jup-ag/api';
+import { StrategyPrices } from './models/StrategyPrices';
 export const KAMINO_IDL = KaminoIdl;
 
 export class Kamino {
@@ -694,7 +696,7 @@ export class Kamino {
    */
   getStrategyShareData = async (
     strategy: PublicKey | StrategyWithAddress,
-    scopePrices?: ScopeToken[]
+    scopePrices?: OraclePrices
   ): Promise<ShareData> => {
     const strategyState = await this.getStrategyStateIfNotFetched(strategy);
     const sharesFactor = Decimal.pow(10, strategyState.strategy.sharesMintDecimals.toString());
@@ -715,7 +717,7 @@ export class Kamino {
     strategyFilters: StrategiesFilters | PublicKey[]
   ): Promise<Array<ShareDataWithAddress>> => {
     const result: Array<ShareDataWithAddress> = [];
-    const prices = await this.getAllPrices();
+    const prices = await this._scope.getOraclePrices();
     const strategiesWithAddresses = Array.isArray(strategyFilters)
       ? await this.getStrategiesWithAddresses(strategyFilters)
       : await this.getAllStrategiesWithFilters(strategyFilters);
@@ -741,7 +743,7 @@ export class Kamino {
     );
     const collateralInfos = await this.getCollateralInfos();
     for (const { strategy, address } of inactiveStrategies) {
-      const strategyPrices = await this.getPrices(strategy, collateralInfos, prices);
+      const strategyPrices = await this.getStrategyPrices(strategy, collateralInfos, prices);
       result.push({
         address,
         strategy,
@@ -808,10 +810,10 @@ export class Kamino {
       pool: PoolT,
       position: PositionT,
       collateralInfos: CollateralInfo[],
-      prices?: ScopeToken[]
+      prices?: OraclePrices
     ) => Promise<StrategyBalances>,
     collateralInfos: CollateralInfo[],
-    prices?: ScopeToken[]
+    prices?: OraclePrices
   ): Promise<StrategyBalanceWithAddress>[] => {
     const fetchBalances: Promise<StrategyBalanceWithAddress>[] = [];
     for (let i = 0; i < strategies.length; i++) {
@@ -838,9 +840,9 @@ export class Kamino {
     pool: PoolState,
     position: PersonalPositionState,
     collateralInfos: CollateralInfo[],
-    prices?: ScopeToken[]
+    prices?: OraclePrices
   ) => {
-    const strategyPrices = await this.getPrices(strategy, collateralInfos, prices);
+    const strategyPrices = await this.getStrategyPrices(strategy, collateralInfos, prices);
     const tokenHoldings = await this.getRaydiumTokensBalances(strategy, pool, position);
 
     let computedHoldings: Holdings = this.getStrategyHoldingsUsd(
@@ -918,9 +920,9 @@ export class Kamino {
     pool: Whirlpool,
     position: Position,
     collateralInfos: CollateralInfo[],
-    prices?: ScopeToken[]
+    prices?: OraclePrices
   ) => {
-    const strategyPrices = await this.getPrices(strategy, collateralInfos, prices);
+    const strategyPrices = await this.getStrategyPrices(strategy, collateralInfos, prices);
 
     let tokenHoldings = await this.getOrcaTokensBalances(strategy, pool, position);
     const computedHoldings: Holdings = this.getStrategyHoldingsUsd(
@@ -1028,7 +1030,7 @@ export class Kamino {
     }
   };
 
-  private getStrategyBalances = async (strategy: WhirlpoolStrategy, scopePrices?: ScopeToken[]) => {
+  private getStrategyBalances = async (strategy: WhirlpoolStrategy, scopePrices?: OraclePrices) => {
     const collateralInfos = await this.getCollateralInfos();
     if (strategy.strategyDex.toNumber() == dexToNumber('ORCA')) {
       return this.getStrategyBalancesOrca(strategy, collateralInfos, scopePrices);
@@ -1101,7 +1103,7 @@ export class Kamino {
   private getStrategyBalancesOrca = async (
     strategy: WhirlpoolStrategy,
     collateralInfos: CollateralInfo[],
-    scopePrices?: ScopeToken[]
+    scopePrices?: OraclePrices
   ) => {
     const states = await Promise.all([
       Whirlpool.fetch(this._connection, strategy.pool),
@@ -1123,7 +1125,7 @@ export class Kamino {
   private getStrategyBalancesRaydium = async (
     strategy: WhirlpoolStrategy,
     collateralInfos: CollateralInfo[],
-    scopePrices?: ScopeToken[]
+    scopePrices?: OraclePrices
   ) => {
     const states = await Promise.all([
       PoolState.fetch(this._connection, strategy.pool),
@@ -1176,42 +1178,50 @@ export class Kamino {
     };
   };
 
-  private getAllPrices = (): Promise<ScopeToken[]> => this._scope.getPrices([...SupportedTokens]);
+  getAllPrices = (): Promise<OraclePrices> => this._scope.getOraclePrices();
 
-  private getPrices = async (
+  /**
+   * Get the prices of all tokens in the specified strategy, or null if the reward token does not exist
+   * @param strategy
+   * @param collateralInfos
+   * @param scopePrices
+   */
+  getStrategyPrices = async (
     strategy: WhirlpoolStrategy,
     collateralInfos: CollateralInfo[],
-    scopeTokens?: ScopeToken[]
-  ) => {
+    scopePrices?: OraclePrices
+  ): Promise<StrategyPrices> => {
+    const tokenA = collateralInfos[strategy.tokenACollateralId.toNumber()];
+    const tokenB = collateralInfos[strategy.tokenBCollateralId.toNumber()];
     const rewardToken0 = collateralInfos[strategy.reward0CollateralId.toNumber()];
     const rewardToken1 = collateralInfos[strategy.reward1CollateralId.toNumber()];
     const rewardToken2 = collateralInfos[strategy.reward2CollateralId.toNumber()];
 
-    let prices: ScopeToken[];
-    if (scopeTokens) {
-      prices = scopeTokens;
+    let prices: OraclePrices;
+    if (scopePrices) {
+      prices = scopePrices;
     } else {
-      prices = await this._scope.getAllPrices();
+      prices = await this._scope.getOraclePrices();
     }
-    const aPrice = prices.find((x) => x.mint?.toString() === strategy.tokenAMint.toString());
-    const bPrice = prices.find((x) => x.mint?.toString() === strategy.tokenBMint.toString());
+    const aPrice = await this._scope.getPriceFromChain(tokenA.scopePriceChain, prices);
+    const bPrice = await this._scope.getPriceFromChain(tokenB.scopePriceChain, prices);
 
     const reward0Price =
-      prices.find((x) => x.mint?.toString() === rewardToken0?.mint.toString())?.price ?? new Decimal(0);
+      strategy.reward0Decimals.toNumber() !== 0
+        ? await this._scope.getPriceFromChain(rewardToken0.scopePriceChain, prices)
+        : null;
     const reward1Price =
-      prices.find((x) => x.mint?.toString() === rewardToken1?.mint.toString())?.price ?? new Decimal(0);
+      strategy.reward1Decimals.toNumber() !== 0
+        ? await this._scope.getPriceFromChain(rewardToken1.scopePriceChain, prices)
+        : null;
     const reward2Price =
-      prices.find((x) => x.mint?.toString() === rewardToken2?.mint.toString())?.price ?? new Decimal(0);
+      strategy.reward2Decimals.toNumber() !== 0
+        ? await this._scope.getPriceFromChain(rewardToken2.scopePriceChain, prices)
+        : null;
 
-    if (!aPrice) {
-      throw Error(`Could not get token price from scope for ${strategy.tokenAMint}`);
-    }
-    if (!bPrice) {
-      throw Error(`Could not get token price from scope for ${strategy.tokenBMint}`);
-    }
     return {
-      aPrice: aPrice.price,
-      bPrice: bPrice.price,
+      aPrice,
+      bPrice,
       reward0Price,
       reward1Price,
       reward2Price,

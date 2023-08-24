@@ -12,7 +12,7 @@ import axios from 'axios';
 import { OrcaWhirlpoolsResponse, Whirlpool } from './OrcaWhirlpoolsResponse';
 import { SolanaCluster } from '@hubbleprotocol/hubble-config';
 import { CollateralInfos, GlobalConfig, WhirlpoolStrategy } from '../kamino-client/accounts';
-import { Scope, ScopeToken } from '@hubbleprotocol/scope-sdk';
+import { OraclePrices, Scope, ScopeToken } from '@hubbleprotocol/scope-sdk';
 import { Position } from '../whirpools-client';
 import { WhirlpoolAprApy } from './WhirlpoolAprApy';
 import {
@@ -25,6 +25,7 @@ import {
 } from '../utils';
 import { WHIRLPOOL_PROGRAM_ID } from '../whirpools-client/programId';
 import { CollateralInfo } from '../kamino-client/types';
+import { StrategyPrices } from '../models/StrategyPrices';
 
 export class OrcaService {
   private readonly _connection: Connection;
@@ -45,21 +46,57 @@ export class OrcaService {
     return (await axios.get<OrcaWhirlpoolsResponse>(`${this._orcaApiUrl}/v1/whirlpool/list`)).data;
   }
 
-  private getTokenPrices(strategy: WhirlpoolStrategy, prices: ScopeToken[], collateralInfos: CollateralInfo[]) {
+  /**
+   * Get token prices for a strategy - for use with orca sdk
+   * @param strategy
+   * @param prices
+   * @param collateralInfos
+   * @returns {Record<string, Decimal>} - token prices by mint string
+   * @private
+   */
+  private getTokenPrices(
+    strategy: WhirlpoolStrategy,
+    prices: OraclePrices,
+    collateralInfos: CollateralInfo[]
+  ): Record<string, Decimal> {
     const tokensPrices: Record<string, Decimal> = {};
 
+    const tokenA = collateralInfos[strategy.tokenACollateralId.toNumber()];
+    const tokenB = collateralInfos[strategy.tokenBCollateralId.toNumber()];
+    const rewardToken0 = collateralInfos[strategy.reward0CollateralId.toNumber()];
+    const rewardToken1 = collateralInfos[strategy.reward1CollateralId.toNumber()];
+    const rewardToken2 = collateralInfos[strategy.reward2CollateralId.toNumber()];
+
+    const aPrice = Scope.getPriceFromScopeChain(tokenA.scopePriceChain, prices);
+    const bPrice = Scope.getPriceFromScopeChain(tokenB.scopePriceChain, prices);
+    const reward0Price =
+      strategy.reward0Decimals.toNumber() !== 0
+        ? Scope.getPriceFromScopeChain(rewardToken0.scopePriceChain, prices)
+        : null;
+    const reward1Price =
+      strategy.reward1Decimals.toNumber() !== 0
+        ? Scope.getPriceFromScopeChain(rewardToken1.scopePriceChain, prices)
+        : null;
+    const reward2Price =
+      strategy.reward2Decimals.toNumber() !== 0
+        ? Scope.getPriceFromScopeChain(rewardToken2.scopePriceChain, prices)
+        : null;
+
+    const [mintA, mintB] = [strategy.tokenAMint.toString(), strategy.tokenBMint.toString()];
     const reward0 = collateralInfos[strategy.reward0CollateralId.toNumber()]?.mint?.toString();
     const reward1 = collateralInfos[strategy.reward1CollateralId.toNumber()]?.mint?.toString();
     const reward2 = collateralInfos[strategy.reward2CollateralId.toNumber()]?.mint?.toString();
-    const tokens = [strategy.tokenAMint.toString(), strategy.tokenBMint.toString(), reward0, reward1, reward2];
-    for (const mint of tokens) {
-      if (mint) {
-        const price = prices.find((x) => x.mint?.toString() === mint)?.price;
-        if (!price) {
-          throw new Error(`Could not get token ${mint} price`);
-        }
-        tokensPrices[mint] = price;
-      }
+
+    tokensPrices[mintA] = aPrice;
+    tokensPrices[mintB] = bPrice;
+    if (reward0Price !== null) {
+      tokensPrices[reward0] = reward0Price;
+    }
+    if (reward1Price !== null) {
+      tokensPrices[reward1] = reward1Price;
+    }
+    if (reward2Price !== null) {
+      tokensPrices[reward2] = reward2Price;
     }
 
     return tokensPrices;
@@ -98,7 +135,7 @@ export class OrcaService {
   async getStrategyWhirlpoolPoolAprApy(
     strategy: WhirlpoolStrategy,
     whirlpools?: Whirlpool[],
-    prices?: ScopeToken[]
+    prices?: OraclePrices
   ): Promise<WhirlpoolAprApy> {
     const orca = new OrcaWhirlpoolClient({
       connection: this._connection,
@@ -106,7 +143,7 @@ export class OrcaService {
     });
     const scope = new Scope(this._cluster, this._connection);
     if (!prices) {
-      prices = await scope.getAllPrices();
+      prices = await scope.getOraclePrices();
     }
 
     const position = await Position.fetch(this._connection, strategy.position);
