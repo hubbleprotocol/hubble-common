@@ -111,9 +111,12 @@ import {
   CheckExpectedVaultsBalancesArgs,
   collectFeesAndRewards,
   CollectFeesAndRewardsAccounts,
+  deposit,
+  DepositAccounts,
   depositAndInvest,
   DepositAndInvestAccounts,
   DepositAndInvestArgs,
+  DepositArgs,
   executiveWithdraw,
   ExecutiveWithdrawAccounts,
   ExecutiveWithdrawArgs,
@@ -1663,12 +1666,12 @@ export class Kamino {
     const lamportsA = amountA.mul(new Decimal(10).pow(strategyState.strategy.tokenAMintDecimals.toString()));
     const lamportsB = amountB.mul(new Decimal(10).pow(strategyState.strategy.tokenBMintDecimals.toString()));
 
-    const depositArgs: DepositAndInvestArgs = {
+    const depositArgs: DepositArgs = {
       tokenMaxA: new BN(lamportsA.floor().toString()),
       tokenMaxB: new BN(lamportsB.floor().toString()),
     };
 
-    const depositAccounts: DepositAndInvestAccounts = {
+    const depositAccounts: DepositAccounts = {
       user: owner,
       strategy: strategyState.address,
       globalConfig: strategyState.strategy.globalConfig,
@@ -1692,16 +1695,10 @@ export class Kamino {
       associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
       tokenProgram: TOKEN_PROGRAM_ID,
       instructionSysvarAccount: SYSVAR_INSTRUCTIONS_PUBKEY,
-      raydiumProtocolPositionOrBaseVaultAuthority: strategyState.strategy.raydiumProtocolPositionOrBaseVaultAuthority,
-      positionTokenAccount: strategyState.strategy.positionTokenAccount,
-      poolTokenVaultA: strategyState.strategy.poolTokenVaultA,
-      poolTokenVaultB: strategyState.strategy.poolTokenVaultB,
-      tickArrayLower: strategyState.strategy.tickArrayLower,
-      tickArrayUpper: strategyState.strategy.tickArrayUpper,
-      poolProgram: poolProgram,
+      rent: SYSVAR_RENT_PUBKEY,
     };
 
-    return depositAndInvest(depositArgs, depositAccounts);
+    return deposit(depositArgs, depositAccounts);
   };
 
   singleSidedDepositTokenA = async (
