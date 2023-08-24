@@ -55,7 +55,6 @@ import { expect } from 'chai';
 import { WHIRLPOOL_PROGRAM_ID } from '../src/whirpools-client/programId';
 import * as ed25519 from 'tweetnacl-ts';
 import { Provider } from '@project-serum/anchor';
-import { ScopeMints } from '@hubbleprotocol/scope-sdk';
 import { createWsolAtaIfMissing } from '../src/utils/transactions';
 
 export const LOCAL_RAYDIUM_PROGRAM_ID = new PublicKey('devi51mZmdwUJGU9hjN27vEz64Gps7uUefqxg27EAtH');
@@ -292,14 +291,6 @@ describe('Kamino SDK Tests', () => {
 
     await kamino.setupStrategyLookupTable(signer, newOrcaStrategy.publicKey);
     await kamino.setupStrategyLookupTable(signer, newRaydiumStrategy.publicKey);
-
-    ScopeMints.push({
-      cluster: 'localnet',
-      mints: [
-        { token: 'USDH', mint: tokenAMint.toString() },
-        { token: 'USDC', mint: tokenBMint.toString() },
-      ],
-    });
   });
 
   it('should throw on invalid cluster', () => {

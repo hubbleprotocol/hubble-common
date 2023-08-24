@@ -24,12 +24,13 @@ import Loan from './models/Loan';
 import { DECIMAL_FACTOR, HBB_DECIMALS, STABLECOIN_DECIMALS, STREAMFLOW_HBB_CONTRACT } from './constants';
 import Decimal from 'decimal.js';
 import UserMetadataWithJson from './models/UserMetadataWithJson';
-import Stream, { Cluster } from '@streamflow/stream';
+import { StreamflowSolana, Types } from '@streamflow/stream';
 import StabilityProviderStateWithJson from './models/StabilityProviderStateWithJson';
 import { HbbVault, PsmReserve, UsdhVault } from './models';
 import GlobalConfig from './models/GlobalConfig';
 import { SwapInfo } from './models/SwapInfo';
 import { signTerms, SignTermsAccounts, SignTermsArgs, TermsSignature } from './models/TermsSignature';
+import { ICluster } from '@streamflow/stream/dist/common/types';
 
 export class Hubble {
   private readonly _cluster: SolanaCluster;
@@ -528,10 +529,11 @@ export class Hubble {
 
     if (this._cluster === 'mainnet-beta') {
       try {
-        const streams = await Stream.get({
-          connection: this._connection,
-          wallet: new PublicKey(STREAMFLOW_HBB_CONTRACT),
-          cluster: Cluster.Mainnet,
+        const client = new StreamflowSolana.SolanaStreamClient(this._connection.rpcEndpoint, ICluster.Mainnet);
+        const streams = await client.get({
+          address: STREAMFLOW_HBB_CONTRACT,
+          type: Types.StreamType.All,
+          direction: Types.StreamDirection.All,
         });
         let notWithdrawnTokens = new Decimal(0);
         for (let [pubkey, stream] of streams) {

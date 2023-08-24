@@ -4,7 +4,7 @@ import Decimal from 'decimal.js';
 import { OraclePrices } from './accounts';
 import { setProgramId } from './programId';
 import { Price } from './types';
-import { mintToScopeToken, scopeTokenToMint, SupportedToken } from './constants';
+import { mintToScopeToken, scopeTokenToMint, SupportedToken, U16_MAX } from './constants';
 import { ScopeToken } from './ScopeToken';
 
 export class Scope {
@@ -157,7 +157,7 @@ export class Scope {
     return new Decimal(price.value.toString()).mul(new Decimal(10).pow(new Decimal(-price.exp.toString())));
   }
 
-  private async getOraclePrices() {
+  async getOraclePrices() {
     const prices = await OraclePrices.fetch(this._connection, this._config.scope.oraclePrices);
     if (!prices) {
       throw Error(`Could not get scope oracle prices`);
@@ -228,6 +228,53 @@ export class Scope {
       throw Error(`Could not map mint ${mint} to a Scope token. Is the mint mapping missing?`);
     }
     return this.getPrice(token);
+  }
+
+  /**
+   * Get the price of a token from a chain of token prices
+   * @param chain
+   * @param oraclePrices
+   */
+  public static getPriceFromScopeChain(chain: Array<number>, prices: OraclePrices) {
+    // Protect from bad defaults
+    if (chain.every((tokenId) => tokenId === 0)) {
+      throw new Error('Token chain cannot be all 0s');
+    }
+    // Protect from bad defaults
+    chain = chain.filter((tokenId) => tokenId !== U16_MAX);
+    if (chain.length === 0) {
+      throw new Error(`Token chain cannot be all ${U16_MAX}s (u16 max)`);
+    }
+    const priceChain = chain.map((tokenId) => {
+      const datedPrice = prices.prices[tokenId];
+      if (!datedPrice) {
+        throw Error(`Could not get price for token ${tokenId}`);
+      }
+      const priceInfo = datedPrice.price;
+      return Scope.priceToDecimal(priceInfo);
+    });
+
+    if (priceChain.length === 1) {
+      return priceChain[0];
+    }
+
+    // Compute token value by multiplying all values of the chain
+    return priceChain.reduce((acc, price) => acc.mul(price), new Decimal(1));
+  }
+
+  /**
+   * Get the price of a token from a chain of token prices
+   * @param chain
+   * @param oraclePrices
+   */
+  async getPriceFromChain(chain: Array<number>, oraclePrices?: OraclePrices): Promise<Decimal> {
+    let prices;
+    if (oraclePrices) {
+      prices = oraclePrices;
+    } else {
+      prices = await this.getOraclePrices();
+    }
+    return Scope.getPriceFromScopeChain(chain, prices);
   }
 }
 
