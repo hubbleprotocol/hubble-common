@@ -417,6 +417,29 @@ export class ScopePriceId {
   }
 }
 
+export interface MinPerformanceFeeBpsJSON {
+  kind: "MinPerformanceFeeBps"
+}
+
+export class MinPerformanceFeeBps {
+  static readonly discriminator = 18
+  static readonly kind = "MinPerformanceFeeBps"
+  readonly discriminator = 18
+  readonly kind = "MinPerformanceFeeBps"
+
+  toJSON(): MinPerformanceFeeBpsJSON {
+    return {
+      kind: "MinPerformanceFeeBps",
+    }
+  }
+
+  toEncodable() {
+    return {
+      MinPerformanceFeeBps: {},
+    }
+  }
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function fromDecoded(obj: any): types.GlobalConfigOptionKind {
   if (typeof obj !== "object") {
@@ -476,6 +499,9 @@ export function fromDecoded(obj: any): types.GlobalConfigOptionKind {
   }
   if ("ScopePriceId" in obj) {
     return new ScopePriceId()
+  }
+  if ("MinPerformanceFeeBps" in obj) {
+    return new MinPerformanceFeeBps()
   }
 
   throw new Error("Invalid enum object")
@@ -539,6 +565,9 @@ export function fromJSON(
     case "ScopePriceId": {
       return new ScopePriceId()
     }
+    case "MinPerformanceFeeBps": {
+      return new MinPerformanceFeeBps()
+    }
   }
 }
 
@@ -562,6 +591,7 @@ export function layout(property?: string) {
     borsh.struct([], "UpdateTokenInfos"),
     borsh.struct([], "ScopeProgramId"),
     borsh.struct([], "ScopePriceId"),
+    borsh.struct([], "MinPerformanceFeeBps"),
   ])
   if (property !== undefined) {
     return ret.replicate(property)

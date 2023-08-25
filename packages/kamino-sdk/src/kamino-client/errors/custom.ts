@@ -127,6 +127,7 @@ export type CustomError =
   | TokenToSwapNotEnough
   | TokenAccountBalanceMismatch
   | UnexpectedProgramIdForPrerequisiteIx
+  | ComputeFeesAndRewardsUpdateError
 
 export class IntegerOverflow extends Error {
   static readonly code = 6000
@@ -1560,6 +1561,20 @@ export class UnexpectedProgramIdForPrerequisiteIx extends Error {
   }
 }
 
+export class ComputeFeesAndRewardsUpdateError extends Error {
+  static readonly code = 6128
+  readonly code = 6128
+  readonly name = "ComputeFeesAndRewardsUpdateError"
+  readonly msg =
+    "Got an error from the dex specific function while computing the fees/rewards update"
+
+  constructor(readonly logs?: string[]) {
+    super(
+      "6128: Got an error from the dex specific function while computing the fees/rewards update"
+    )
+  }
+}
+
 export function fromCode(code: number, logs?: string[]): CustomError | null {
   switch (code) {
     case 6000:
@@ -1818,6 +1833,8 @@ export function fromCode(code: number, logs?: string[]): CustomError | null {
       return new TokenAccountBalanceMismatch(logs)
     case 6127:
       return new UnexpectedProgramIdForPrerequisiteIx(logs)
+    case 6128:
+      return new ComputeFeesAndRewardsUpdateError(logs)
   }
 
   return null

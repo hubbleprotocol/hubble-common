@@ -92,6 +92,11 @@ export type {
   SingleTokenDepositAndInvestWithMinArgs,
   SingleTokenDepositAndInvestWithMinAccounts,
 } from "./singleTokenDepositAndInvestWithMin"
+export { singleTokenDepositWithMin } from "./singleTokenDepositWithMin"
+export type {
+  SingleTokenDepositWithMinArgs,
+  SingleTokenDepositWithMinAccounts,
+} from "./singleTokenDepositWithMin"
 export { flashSwapUnevenVaultsStart } from "./flashSwapUnevenVaultsStart"
 export type {
   FlashSwapUnevenVaultsStartArgs,
@@ -113,6 +118,10 @@ export { changePool } from "./changePool"
 export type { ChangePoolAccounts } from "./changePool"
 export { closeProgramAccount } from "./closeProgramAccount"
 export type { CloseProgramAccountAccounts } from "./closeProgramAccount"
+export { migrateToProportionalDeposit } from "./migrateToProportionalDeposit"
+export type { MigrateToProportionalDepositAccounts } from "./migrateToProportionalDeposit"
+export { migrateToDepositWithoutInvest } from "./migrateToDepositWithoutInvest"
+export type { MigrateToDepositWithoutInvestAccounts } from "./migrateToDepositWithoutInvest"
 export { orcaSwap } from "./orcaSwap"
 export type { OrcaSwapArgs, OrcaSwapAccounts } from "./orcaSwap"
 export { signTerms } from "./signTerms"

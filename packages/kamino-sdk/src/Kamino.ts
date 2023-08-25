@@ -111,9 +111,12 @@ import {
   CheckExpectedVaultsBalancesArgs,
   collectFeesAndRewards,
   CollectFeesAndRewardsAccounts,
+  deposit,
+  DepositAccounts,
   depositAndInvest,
   DepositAndInvestAccounts,
   DepositAndInvestArgs,
+  DepositArgs,
   executiveWithdraw,
   ExecutiveWithdrawAccounts,
   ExecutiveWithdrawArgs,
@@ -128,6 +131,9 @@ import {
   singleTokenDepositAndInvestWithMin,
   SingleTokenDepositAndInvestWithMinAccounts,
   SingleTokenDepositAndInvestWithMinArgs,
+  singleTokenDepositWithMin,
+  SingleTokenDepositWithMinAccounts,
+  SingleTokenDepositWithMinArgs,
   updateRewardMapping,
   UpdateRewardMappingAccounts,
   UpdateRewardMappingArgs,
@@ -1663,12 +1669,12 @@ export class Kamino {
     const lamportsA = amountA.mul(new Decimal(10).pow(strategyState.strategy.tokenAMintDecimals.toString()));
     const lamportsB = amountB.mul(new Decimal(10).pow(strategyState.strategy.tokenBMintDecimals.toString()));
 
-    const depositArgs: DepositAndInvestArgs = {
+    const depositArgs: DepositArgs = {
       tokenMaxA: new BN(lamportsA.floor().toString()),
       tokenMaxB: new BN(lamportsB.floor().toString()),
     };
 
-    const depositAccounts: DepositAndInvestAccounts = {
+    const depositAccounts: DepositAccounts = {
       user: owner,
       strategy: strategyState.address,
       globalConfig: strategyState.strategy.globalConfig,
@@ -1688,20 +1694,11 @@ export class Kamino {
       sharesMintAuthority: strategyState.strategy.sharesMintAuthority,
       scopePrices: strategyState.strategy.scopePrices,
       tokenInfos: globalConfig.tokenInfos,
-      systemProgram: SystemProgram.programId,
-      associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
       tokenProgram: TOKEN_PROGRAM_ID,
       instructionSysvarAccount: SYSVAR_INSTRUCTIONS_PUBKEY,
-      raydiumProtocolPositionOrBaseVaultAuthority: strategyState.strategy.raydiumProtocolPositionOrBaseVaultAuthority,
-      positionTokenAccount: strategyState.strategy.positionTokenAccount,
-      poolTokenVaultA: strategyState.strategy.poolTokenVaultA,
-      poolTokenVaultB: strategyState.strategy.poolTokenVaultB,
-      tickArrayLower: strategyState.strategy.tickArrayLower,
-      tickArrayUpper: strategyState.strategy.tickArrayUpper,
-      poolProgram: poolProgram,
     };
 
-    return depositAndInvest(depositArgs, depositAccounts);
+    return deposit(depositArgs, depositAccounts);
   };
 
   singleSidedDepositTokenA = async (
@@ -2057,12 +2054,12 @@ export class Kamino {
       strategyState.tokenBMint
     );
 
-    const args: SingleTokenDepositAndInvestWithMinArgs = {
+    const args: SingleTokenDepositWithMinArgs = {
       tokenAMinPostDepositBalance: new BN(realTokenAMinPostDepositBalanceLamports.floor().toString()),
       tokenBMinPostDepositBalance: new BN(realTokenBMinPostDepositBalanceLamports.floor().toString()),
     };
 
-    const accounts: SingleTokenDepositAndInvestWithMinAccounts = {
+    const accounts: SingleTokenDepositWithMinAccounts = {
       user: owner,
       strategy: strategyWithAddress.address,
       globalConfig: strategyState.globalConfig,
@@ -2082,20 +2079,11 @@ export class Kamino {
       sharesMintAuthority: strategyState.sharesMintAuthority,
       scopePrices: strategyState.scopePrices,
       tokenInfos: globalConfig.tokenInfos,
-      systemProgram: SystemProgram.programId,
-      associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
       tokenProgram: TOKEN_PROGRAM_ID,
       instructionSysvarAccount: SYSVAR_INSTRUCTIONS_PUBKEY,
-      raydiumProtocolPositionOrBaseVaultAuthority: strategyState.raydiumProtocolPositionOrBaseVaultAuthority,
-      positionTokenAccount: strategyState.positionTokenAccount,
-      poolTokenVaultA: strategyState.poolTokenVaultA,
-      poolTokenVaultB: strategyState.poolTokenVaultB,
-      tickArrayLower: strategyState.tickArrayLower,
-      tickArrayUpper: strategyState.tickArrayUpper,
-      poolProgram: poolProgram,
     };
 
-    let singleSidedDepositIx = singleTokenDepositAndInvestWithMin(args, accounts);
+    let singleSidedDepositIx = singleTokenDepositWithMin(args, accounts);
 
     let result: TransactionInstruction[] = [];
     result.push(...createAtasIxns, ...createWsolAtasIxns);
@@ -2461,7 +2449,6 @@ export class Kamino {
       systemProgram: SystemProgram.programId,
       rent: SYSVAR_RENT_PUBKEY,
       tokenProgram: TOKEN_PROGRAM_ID,
-      associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
     };
 
     return initializeStrategy(strategyArgs, strategyAccounts);

@@ -29,7 +29,6 @@ export interface InitializeStrategyAccounts {
   systemProgram: PublicKey
   rent: PublicKey
   tokenProgram: PublicKey
-  associatedTokenProgram: PublicKey
 }
 
 export const layout = borsh.struct([
@@ -60,11 +59,6 @@ export function initializeStrategy(
     { pubkey: accounts.systemProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.rent, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
-    {
-      pubkey: accounts.associatedTokenProgram,
-      isSigner: false,
-      isWritable: false,
-    },
   ]
   const identifier = Buffer.from([208, 119, 144, 145, 178, 57, 105, 252])
   const buffer = Buffer.alloc(1000)

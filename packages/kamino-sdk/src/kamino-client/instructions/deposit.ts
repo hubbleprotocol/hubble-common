@@ -29,9 +29,6 @@ export interface DepositAccounts {
   sharesMintAuthority: PublicKey
   scopePrices: PublicKey
   tokenInfos: PublicKey
-  systemProgram: PublicKey
-  rent: PublicKey
-  associatedTokenProgram: PublicKey
   tokenProgram: PublicKey
   instructionSysvarAccount: PublicKey
 }
@@ -74,13 +71,6 @@ export function deposit(args: DepositArgs, accounts: DepositAccounts) {
     },
     { pubkey: accounts.scopePrices, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenInfos, isSigner: false, isWritable: false },
-    { pubkey: accounts.systemProgram, isSigner: false, isWritable: false },
-    { pubkey: accounts.rent, isSigner: false, isWritable: false },
-    {
-      pubkey: accounts.associatedTokenProgram,
-      isSigner: false,
-      isWritable: false,
-    },
     { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
     {
       pubkey: accounts.instructionSysvarAccount,
