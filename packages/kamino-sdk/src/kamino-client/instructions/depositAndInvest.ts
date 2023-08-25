@@ -36,8 +36,6 @@ export interface DepositAndInvestAccounts {
   sharesMintAuthority: PublicKey
   scopePrices: PublicKey
   tokenInfos: PublicKey
-  systemProgram: PublicKey
-  associatedTokenProgram: PublicKey
   tokenProgram: PublicKey
   poolProgram: PublicKey
   instructionSysvarAccount: PublicKey
@@ -98,12 +96,6 @@ export function depositAndInvest(
     },
     { pubkey: accounts.scopePrices, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenInfos, isSigner: false, isWritable: false },
-    { pubkey: accounts.systemProgram, isSigner: false, isWritable: false },
-    {
-      pubkey: accounts.associatedTokenProgram,
-      isSigner: false,
-      isWritable: false,
-    },
     { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.poolProgram, isSigner: false, isWritable: false },
     {

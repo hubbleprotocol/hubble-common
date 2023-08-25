@@ -16,9 +16,6 @@ export interface AddKaminoRewardsAccounts {
   rewardVault: PublicKey
   baseVaultAuthority: PublicKey
   rewardAta: PublicKey
-  systemProgram: PublicKey
-  rent: PublicKey
-  associatedTokenProgram: PublicKey
   tokenProgram: PublicKey
 }
 
@@ -38,13 +35,6 @@ export function addKaminoRewards(
     { pubkey: accounts.rewardVault, isSigner: false, isWritable: true },
     { pubkey: accounts.baseVaultAuthority, isSigner: false, isWritable: true },
     { pubkey: accounts.rewardAta, isSigner: false, isWritable: true },
-    { pubkey: accounts.systemProgram, isSigner: false, isWritable: false },
-    { pubkey: accounts.rent, isSigner: false, isWritable: false },
-    {
-      pubkey: accounts.associatedTokenProgram,
-      isSigner: false,
-      isWritable: false,
-    },
     { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
   ]
   const identifier = Buffer.from([174, 174, 142, 193, 47, 77, 235, 65])

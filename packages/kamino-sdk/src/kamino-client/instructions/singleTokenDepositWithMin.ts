@@ -29,7 +29,6 @@ export interface SingleTokenDepositWithMinAccounts {
   sharesMintAuthority: PublicKey
   scopePrices: PublicKey
   tokenInfos: PublicKey
-  associatedTokenProgram: PublicKey
   tokenProgram: PublicKey
   instructionSysvarAccount: PublicKey
 }
@@ -75,11 +74,6 @@ export function singleTokenDepositWithMin(
     },
     { pubkey: accounts.scopePrices, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenInfos, isSigner: false, isWritable: false },
-    {
-      pubkey: accounts.associatedTokenProgram,
-      isSigner: false,
-      isWritable: false,
-    },
     { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
     {
       pubkey: accounts.instructionSysvarAccount,
