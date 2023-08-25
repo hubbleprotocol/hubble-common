@@ -1694,7 +1694,6 @@ export class Kamino {
       sharesMintAuthority: strategyState.strategy.sharesMintAuthority,
       scopePrices: strategyState.strategy.scopePrices,
       tokenInfos: globalConfig.tokenInfos,
-      associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
       tokenProgram: TOKEN_PROGRAM_ID,
       instructionSysvarAccount: SYSVAR_INSTRUCTIONS_PUBKEY,
     };
@@ -2080,7 +2079,6 @@ export class Kamino {
       sharesMintAuthority: strategyState.sharesMintAuthority,
       scopePrices: strategyState.scopePrices,
       tokenInfos: globalConfig.tokenInfos,
-      associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
       tokenProgram: TOKEN_PROGRAM_ID,
       instructionSysvarAccount: SYSVAR_INSTRUCTIONS_PUBKEY,
     };
@@ -2451,7 +2449,6 @@ export class Kamino {
       systemProgram: SystemProgram.programId,
       rent: SYSVAR_RENT_PUBKEY,
       tokenProgram: TOKEN_PROGRAM_ID,
-      associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
     };
 
     return initializeStrategy(strategyArgs, strategyAccounts);
