@@ -72,6 +72,75 @@ export class PricePercentageWithReset {
   }
 }
 
+export interface DriftJSON {
+  kind: "Drift"
+}
+
+export class Drift {
+  static readonly discriminator = 3
+  static readonly kind = "Drift"
+  readonly discriminator = 3
+  readonly kind = "Drift"
+
+  toJSON(): DriftJSON {
+    return {
+      kind: "Drift",
+    }
+  }
+
+  toEncodable() {
+    return {
+      Drift: {},
+    }
+  }
+}
+
+export interface TakeProfitJSON {
+  kind: "TakeProfit"
+}
+
+export class TakeProfit {
+  static readonly discriminator = 4
+  static readonly kind = "TakeProfit"
+  readonly discriminator = 4
+  readonly kind = "TakeProfit"
+
+  toJSON(): TakeProfitJSON {
+    return {
+      kind: "TakeProfit",
+    }
+  }
+
+  toEncodable() {
+    return {
+      TakeProfit: {},
+    }
+  }
+}
+
+export interface PeriodicRebalanceJSON {
+  kind: "PeriodicRebalance"
+}
+
+export class PeriodicRebalance {
+  static readonly discriminator = 5
+  static readonly kind = "PeriodicRebalance"
+  readonly discriminator = 5
+  readonly kind = "PeriodicRebalance"
+
+  toJSON(): PeriodicRebalanceJSON {
+    return {
+      kind: "PeriodicRebalance",
+    }
+  }
+
+  toEncodable() {
+    return {
+      PeriodicRebalance: {},
+    }
+  }
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function fromDecoded(obj: any): types.RebalanceTypeKind {
   if (typeof obj !== "object") {
@@ -86,6 +155,15 @@ export function fromDecoded(obj: any): types.RebalanceTypeKind {
   }
   if ("PricePercentageWithReset" in obj) {
     return new PricePercentageWithReset()
+  }
+  if ("Drift" in obj) {
+    return new Drift()
+  }
+  if ("TakeProfit" in obj) {
+    return new TakeProfit()
+  }
+  if ("PeriodicRebalance" in obj) {
+    return new PeriodicRebalance()
   }
 
   throw new Error("Invalid enum object")
@@ -104,6 +182,15 @@ export function fromJSON(
     case "PricePercentageWithReset": {
       return new PricePercentageWithReset()
     }
+    case "Drift": {
+      return new Drift()
+    }
+    case "TakeProfit": {
+      return new TakeProfit()
+    }
+    case "PeriodicRebalance": {
+      return new PeriodicRebalance()
+    }
   }
 }
 
@@ -112,6 +199,9 @@ export function layout(property?: string) {
     borsh.struct([], "Manual"),
     borsh.struct([], "PricePercentage"),
     borsh.struct([], "PricePercentageWithReset"),
+    borsh.struct([], "Drift"),
+    borsh.struct([], "TakeProfit"),
+    borsh.struct([], "PeriodicRebalance"),
   ])
   if (property !== undefined) {
     return ret.replicate(property)

@@ -4,12 +4,12 @@ import * as borsh from "@project-serum/borsh" // eslint-disable-line @typescript
 import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
 import { PROGRAM_ID } from "../programId"
 
-export interface DepositArgs {
-  tokenMaxA: BN
-  tokenMaxB: BN
+export interface SingleTokenDepositWithMinArgs {
+  tokenAMinPostDepositBalance: BN
+  tokenBMinPostDepositBalance: BN
 }
 
-export interface DepositAccounts {
+export interface SingleTokenDepositWithMinAccounts {
   user: PublicKey
   strategy: PublicKey
   globalConfig: PublicKey
@@ -35,11 +35,14 @@ export interface DepositAccounts {
 }
 
 export const layout = borsh.struct([
-  borsh.u64("tokenMaxA"),
-  borsh.u64("tokenMaxB"),
+  borsh.u64("tokenAMinPostDepositBalance"),
+  borsh.u64("tokenBMinPostDepositBalance"),
 ])
 
-export function deposit(args: DepositArgs, accounts: DepositAccounts) {
+export function singleTokenDepositWithMin(
+  args: SingleTokenDepositWithMinArgs,
+  accounts: SingleTokenDepositWithMinAccounts
+) {
   const keys: Array<AccountMeta> = [
     { pubkey: accounts.user, isSigner: true, isWritable: true },
     { pubkey: accounts.strategy, isSigner: false, isWritable: true },
@@ -84,12 +87,12 @@ export function deposit(args: DepositArgs, accounts: DepositAccounts) {
       isWritable: false,
     },
   ]
-  const identifier = Buffer.from([242, 35, 198, 137, 82, 225, 242, 182])
+  const identifier = Buffer.from([250, 142, 102, 160, 72, 12, 83, 139])
   const buffer = Buffer.alloc(1000)
   const len = layout.encode(
     {
-      tokenMaxA: args.tokenMaxA,
-      tokenMaxB: args.tokenMaxB,
+      tokenAMinPostDepositBalance: args.tokenAMinPostDepositBalance,
+      tokenBMinPostDepositBalance: args.tokenBMinPostDepositBalance,
     },
     buffer
   )

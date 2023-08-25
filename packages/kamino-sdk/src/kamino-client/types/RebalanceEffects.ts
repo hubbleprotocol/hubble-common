@@ -39,25 +39,25 @@ export class NewRange {
   }
 }
 
-export interface ClosePositionJSON {
-  kind: "ClosePosition"
+export interface WithdrawAndFreezeJSON {
+  kind: "WithdrawAndFreeze"
 }
 
-export class ClosePosition {
+export class WithdrawAndFreeze {
   static readonly discriminator = 1
-  static readonly kind = "ClosePosition"
+  static readonly kind = "WithdrawAndFreeze"
   readonly discriminator = 1
-  readonly kind = "ClosePosition"
+  readonly kind = "WithdrawAndFreeze"
 
-  toJSON(): ClosePositionJSON {
+  toJSON(): WithdrawAndFreezeJSON {
     return {
-      kind: "ClosePosition",
+      kind: "WithdrawAndFreeze",
     }
   }
 
   toEncodable() {
     return {
-      ClosePosition: {},
+      WithdrawAndFreeze: {},
     }
   }
 }
@@ -72,8 +72,8 @@ export function fromDecoded(obj: any): types.RebalanceEffectsKind {
     const val = obj["NewRange"]
     return new NewRange([val["_0"], val["_1"]])
   }
-  if ("ClosePosition" in obj) {
-    return new ClosePosition()
+  if ("WithdrawAndFreeze" in obj) {
+    return new WithdrawAndFreeze()
   }
 
   throw new Error("Invalid enum object")
@@ -86,8 +86,8 @@ export function fromJSON(
     case "NewRange": {
       return new NewRange([obj.value[0], obj.value[1]])
     }
-    case "ClosePosition": {
-      return new ClosePosition()
+    case "WithdrawAndFreeze": {
+      return new WithdrawAndFreeze()
     }
   }
 }
@@ -95,7 +95,7 @@ export function fromJSON(
 export function layout(property?: string) {
   const ret = borsh.rustEnum([
     borsh.struct([borsh.i32("_0"), borsh.i32("_1")], "NewRange"),
-    borsh.struct([], "ClosePosition"),
+    borsh.struct([], "WithdrawAndFreeze"),
   ])
   if (property !== undefined) {
     return ret.replicate(property)

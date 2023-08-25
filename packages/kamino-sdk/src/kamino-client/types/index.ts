@@ -12,6 +12,10 @@ import * as ReferencePriceType from "./ReferencePriceType"
 import * as LiquidityCalculationMode from "./LiquidityCalculationMode"
 import * as UpdateCollateralInfoMode from "./UpdateCollateralInfoMode"
 import * as BalanceStatus from "./BalanceStatus"
+import * as DriftDirection from "./DriftDirection"
+import * as RebalanceDriftStep from "./RebalanceDriftStep"
+import * as RebalanceTakeProfitToken from "./RebalanceTakeProfitToken"
+import * as RebalanceTakeProfitStep from "./RebalanceTakeProfitStep"
 import * as RebalanceAction from "./RebalanceAction"
 import * as RebalanceType from "./RebalanceType"
 import * as CollateralTestToken from "./CollateralTestToken"
@@ -28,8 +32,6 @@ export type {
   WhirlpoolRewardInfoFields,
   WhirlpoolRewardInfoJSON,
 } from "./WhirlpoolRewardInfo"
-export { Tick } from "./Tick"
-export type { TickFields, TickJSON } from "./Tick"
 export { RewardInfo } from "./RewardInfo"
 export type { RewardInfoFields, RewardInfoJSON } from "./RewardInfo"
 export { RebalanceRaw } from "./RebalanceRaw"
@@ -58,10 +60,10 @@ export { RebalanceEffects }
 
 export type RebalanceEffectsKind =
   | RebalanceEffects.NewRange
-  | RebalanceEffects.ClosePosition
+  | RebalanceEffects.WithdrawAndFreeze
 export type RebalanceEffectsJSON =
   | RebalanceEffects.NewRangeJSON
-  | RebalanceEffects.ClosePositionJSON
+  | RebalanceEffects.WithdrawAndFreezeJSON
 
 export { SwapLimit }
 
@@ -98,6 +100,7 @@ export type GlobalConfigOptionKind =
   | GlobalConfigOption.UpdateTokenInfos
   | GlobalConfigOption.ScopeProgramId
   | GlobalConfigOption.ScopePriceId
+  | GlobalConfigOption.MinPerformanceFeeBps
 export type GlobalConfigOptionJSON =
   | GlobalConfigOption.EmergencyModeJSON
   | GlobalConfigOption.BlockDepositJSON
@@ -117,6 +120,7 @@ export type GlobalConfigOptionJSON =
   | GlobalConfigOption.UpdateTokenInfosJSON
   | GlobalConfigOption.ScopeProgramIdJSON
   | GlobalConfigOption.ScopePriceIdJSON
+  | GlobalConfigOption.MinPerformanceFeeBpsJSON
 
 export { StrategyConfigOption }
 
@@ -321,14 +325,54 @@ export type BalanceStatusJSON =
   | BalanceStatus.BalancedJSON
   | BalanceStatus.UnbalancedJSON
 
+export { DriftDirection }
+
+export type DriftDirectionKind =
+  | DriftDirection.Increasing
+  | DriftDirection.Decreasing
+export type DriftDirectionJSON =
+  | DriftDirection.IncreasingJSON
+  | DriftDirection.DecreasingJSON
+
+export { RebalanceDriftStep }
+
+export type RebalanceDriftStepKind =
+  | RebalanceDriftStep.Uninitialized
+  | RebalanceDriftStep.Drifting
+export type RebalanceDriftStepJSON =
+  | RebalanceDriftStep.UninitializedJSON
+  | RebalanceDriftStep.DriftingJSON
+
+export { RebalanceTakeProfitToken }
+
+export type RebalanceTakeProfitTokenKind =
+  | RebalanceTakeProfitToken.A
+  | RebalanceTakeProfitToken.B
+export type RebalanceTakeProfitTokenJSON =
+  | RebalanceTakeProfitToken.AJSON
+  | RebalanceTakeProfitToken.BJSON
+
+export { RebalanceTakeProfitStep }
+
+export type RebalanceTakeProfitStepKind =
+  | RebalanceTakeProfitStep.Uninitialized
+  | RebalanceTakeProfitStep.TakingProfit
+  | RebalanceTakeProfitStep.Finished
+export type RebalanceTakeProfitStepJSON =
+  | RebalanceTakeProfitStep.UninitializedJSON
+  | RebalanceTakeProfitStep.TakingProfitJSON
+  | RebalanceTakeProfitStep.FinishedJSON
+
 export { RebalanceAction }
 
 export type RebalanceActionKind =
-  | RebalanceAction.NewRange
-  | RebalanceAction.ClosePosition
+  | RebalanceAction.NewSqrtPriceRange
+  | RebalanceAction.NewTickRange
+  | RebalanceAction.WithdrawAndFreeze
 export type RebalanceActionJSON =
-  | RebalanceAction.NewRangeJSON
-  | RebalanceAction.ClosePositionJSON
+  | RebalanceAction.NewSqrtPriceRangeJSON
+  | RebalanceAction.NewTickRangeJSON
+  | RebalanceAction.WithdrawAndFreezeJSON
 
 export { RebalanceType }
 
@@ -336,10 +380,16 @@ export type RebalanceTypeKind =
   | RebalanceType.Manual
   | RebalanceType.PricePercentage
   | RebalanceType.PricePercentageWithReset
+  | RebalanceType.Drift
+  | RebalanceType.TakeProfit
+  | RebalanceType.PeriodicRebalance
 export type RebalanceTypeJSON =
   | RebalanceType.ManualJSON
   | RebalanceType.PricePercentageJSON
   | RebalanceType.PricePercentageWithResetJSON
+  | RebalanceType.DriftJSON
+  | RebalanceType.TakeProfitJSON
+  | RebalanceType.PeriodicRebalanceJSON
 
 export { CollateralTestToken }
 

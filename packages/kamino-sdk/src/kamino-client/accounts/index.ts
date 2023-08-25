@@ -2,8 +2,6 @@ export { Whirlpool } from "./Whirlpool"
 export type { WhirlpoolFields, WhirlpoolJSON } from "./Whirlpool"
 export { Position } from "./Position"
 export type { PositionFields, PositionJSON } from "./Position"
-export { TickArray } from "./TickArray"
-export type { TickArrayFields, TickArrayJSON } from "./TickArray"
 export { PoolState } from "./PoolState"
 export type { PoolStateFields, PoolStateJSON } from "./PoolState"
 export { PersonalPositionState } from "./PersonalPositionState"
@@ -11,6 +9,11 @@ export type {
   PersonalPositionStateFields,
   PersonalPositionStateJSON,
 } from "./PersonalPositionState"
+export { ProtocolPositionState } from "./ProtocolPositionState"
+export type {
+  ProtocolPositionStateFields,
+  ProtocolPositionStateJSON,
+} from "./ProtocolPositionState"
 export { WhirlpoolStrategy } from "./WhirlpoolStrategy"
 export type {
   WhirlpoolStrategyFields,

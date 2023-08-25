@@ -131,6 +131,9 @@ import {
   singleTokenDepositAndInvestWithMin,
   SingleTokenDepositAndInvestWithMinAccounts,
   SingleTokenDepositAndInvestWithMinArgs,
+  singleTokenDepositWithMin,
+  SingleTokenDepositWithMinAccounts,
+  SingleTokenDepositWithMinArgs,
   updateRewardMapping,
   UpdateRewardMappingAccounts,
   UpdateRewardMappingArgs,
@@ -1691,11 +1694,9 @@ export class Kamino {
       sharesMintAuthority: strategyState.strategy.sharesMintAuthority,
       scopePrices: strategyState.strategy.scopePrices,
       tokenInfos: globalConfig.tokenInfos,
-      systemProgram: SystemProgram.programId,
       associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
       tokenProgram: TOKEN_PROGRAM_ID,
       instructionSysvarAccount: SYSVAR_INSTRUCTIONS_PUBKEY,
-      rent: SYSVAR_RENT_PUBKEY,
     };
 
     return deposit(depositArgs, depositAccounts);
@@ -2054,12 +2055,12 @@ export class Kamino {
       strategyState.tokenBMint
     );
 
-    const args: SingleTokenDepositAndInvestWithMinArgs = {
+    const args: SingleTokenDepositWithMinArgs = {
       tokenAMinPostDepositBalance: new BN(realTokenAMinPostDepositBalanceLamports.floor().toString()),
       tokenBMinPostDepositBalance: new BN(realTokenBMinPostDepositBalanceLamports.floor().toString()),
     };
 
-    const accounts: SingleTokenDepositAndInvestWithMinAccounts = {
+    const accounts: SingleTokenDepositWithMinAccounts = {
       user: owner,
       strategy: strategyWithAddress.address,
       globalConfig: strategyState.globalConfig,
@@ -2079,20 +2080,12 @@ export class Kamino {
       sharesMintAuthority: strategyState.sharesMintAuthority,
       scopePrices: strategyState.scopePrices,
       tokenInfos: globalConfig.tokenInfos,
-      systemProgram: SystemProgram.programId,
       associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
       tokenProgram: TOKEN_PROGRAM_ID,
       instructionSysvarAccount: SYSVAR_INSTRUCTIONS_PUBKEY,
-      raydiumProtocolPositionOrBaseVaultAuthority: strategyState.raydiumProtocolPositionOrBaseVaultAuthority,
-      positionTokenAccount: strategyState.positionTokenAccount,
-      poolTokenVaultA: strategyState.poolTokenVaultA,
-      poolTokenVaultB: strategyState.poolTokenVaultB,
-      tickArrayLower: strategyState.tickArrayLower,
-      tickArrayUpper: strategyState.tickArrayUpper,
-      poolProgram: poolProgram,
     };
 
-    let singleSidedDepositIx = singleTokenDepositAndInvestWithMin(args, accounts);
+    let singleSidedDepositIx = singleTokenDepositWithMin(args, accounts);
 
     let result: TransactionInstruction[] = [];
     result.push(...createAtasIxns, ...createWsolAtasIxns);

@@ -3,35 +3,35 @@ import BN from "bn.js" // eslint-disable-line @typescript-eslint/no-unused-vars
 import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
 import * as borsh from "@project-serum/borsh"
 
-export type NewRangeFields = [BN, BN]
-export type NewRangeValue = [BN, BN]
+export type NewSqrtPriceRangeFields = [BN, BN]
+export type NewSqrtPriceRangeValue = [BN, BN]
 
-export interface NewRangeJSON {
-  kind: "NewRange"
+export interface NewSqrtPriceRangeJSON {
+  kind: "NewSqrtPriceRange"
   value: [string, string]
 }
 
-export class NewRange {
+export class NewSqrtPriceRange {
   static readonly discriminator = 0
-  static readonly kind = "NewRange"
+  static readonly kind = "NewSqrtPriceRange"
   readonly discriminator = 0
-  readonly kind = "NewRange"
-  readonly value: NewRangeValue
+  readonly kind = "NewSqrtPriceRange"
+  readonly value: NewSqrtPriceRangeValue
 
-  constructor(value: NewRangeFields) {
+  constructor(value: NewSqrtPriceRangeFields) {
     this.value = [value[0], value[1]]
   }
 
-  toJSON(): NewRangeJSON {
+  toJSON(): NewSqrtPriceRangeJSON {
     return {
-      kind: "NewRange",
+      kind: "NewSqrtPriceRange",
       value: [this.value[0].toString(), this.value[1].toString()],
     }
   }
 
   toEncodable() {
     return {
-      NewRange: {
+      NewSqrtPriceRange: {
         _0: this.value[0],
         _1: this.value[1],
       },
@@ -39,25 +39,61 @@ export class NewRange {
   }
 }
 
-export interface ClosePositionJSON {
-  kind: "ClosePosition"
+export type NewTickRangeFields = [number, number]
+export type NewTickRangeValue = [number, number]
+
+export interface NewTickRangeJSON {
+  kind: "NewTickRange"
+  value: [number, number]
 }
 
-export class ClosePosition {
+export class NewTickRange {
   static readonly discriminator = 1
-  static readonly kind = "ClosePosition"
+  static readonly kind = "NewTickRange"
   readonly discriminator = 1
-  readonly kind = "ClosePosition"
+  readonly kind = "NewTickRange"
+  readonly value: NewTickRangeValue
 
-  toJSON(): ClosePositionJSON {
+  constructor(value: NewTickRangeFields) {
+    this.value = [value[0], value[1]]
+  }
+
+  toJSON(): NewTickRangeJSON {
     return {
-      kind: "ClosePosition",
+      kind: "NewTickRange",
+      value: [this.value[0], this.value[1]],
     }
   }
 
   toEncodable() {
     return {
-      ClosePosition: {},
+      NewTickRange: {
+        _0: this.value[0],
+        _1: this.value[1],
+      },
+    }
+  }
+}
+
+export interface WithdrawAndFreezeJSON {
+  kind: "WithdrawAndFreeze"
+}
+
+export class WithdrawAndFreeze {
+  static readonly discriminator = 2
+  static readonly kind = "WithdrawAndFreeze"
+  readonly discriminator = 2
+  readonly kind = "WithdrawAndFreeze"
+
+  toJSON(): WithdrawAndFreezeJSON {
+    return {
+      kind: "WithdrawAndFreeze",
+    }
+  }
+
+  toEncodable() {
+    return {
+      WithdrawAndFreeze: {},
     }
   }
 }
@@ -68,12 +104,16 @@ export function fromDecoded(obj: any): types.RebalanceActionKind {
     throw new Error("Invalid enum object")
   }
 
-  if ("NewRange" in obj) {
-    const val = obj["NewRange"]
-    return new NewRange([val["_0"], val["_1"]])
+  if ("NewSqrtPriceRange" in obj) {
+    const val = obj["NewSqrtPriceRange"]
+    return new NewSqrtPriceRange([val["_0"], val["_1"]])
   }
-  if ("ClosePosition" in obj) {
-    return new ClosePosition()
+  if ("NewTickRange" in obj) {
+    const val = obj["NewTickRange"]
+    return new NewTickRange([val["_0"], val["_1"]])
+  }
+  if ("WithdrawAndFreeze" in obj) {
+    return new WithdrawAndFreeze()
   }
 
   throw new Error("Invalid enum object")
@@ -83,19 +123,23 @@ export function fromJSON(
   obj: types.RebalanceActionJSON
 ): types.RebalanceActionKind {
   switch (obj.kind) {
-    case "NewRange": {
-      return new NewRange([new BN(obj.value[0]), new BN(obj.value[1])])
+    case "NewSqrtPriceRange": {
+      return new NewSqrtPriceRange([new BN(obj.value[0]), new BN(obj.value[1])])
     }
-    case "ClosePosition": {
-      return new ClosePosition()
+    case "NewTickRange": {
+      return new NewTickRange([obj.value[0], obj.value[1]])
+    }
+    case "WithdrawAndFreeze": {
+      return new WithdrawAndFreeze()
     }
   }
 }
 
 export function layout(property?: string) {
   const ret = borsh.rustEnum([
-    borsh.struct([borsh.u128("_0"), borsh.u128("_1")], "NewRange"),
-    borsh.struct([], "ClosePosition"),
+    borsh.struct([borsh.u128("_0"), borsh.u128("_1")], "NewSqrtPriceRange"),
+    borsh.struct([borsh.i32("_0"), borsh.i32("_1")], "NewTickRange"),
+    borsh.struct([], "WithdrawAndFreeze"),
   ])
   if (property !== undefined) {
     return ret.replicate(property)
