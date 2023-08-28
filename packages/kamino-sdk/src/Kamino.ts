@@ -3385,11 +3385,21 @@ export class Kamino {
       upperPrice = positionPrices[1];
       // todo: implement these rebalance types
     } else if (rebalanceKind.kind == RebalanceType.Drift.kind) {
+      // todo: understand how to calculate prices from this, the impl below is not correct
+      lowerPrice = rebalanceParams[0];
+      upperPrice = rebalanceParams[1];
     } else if (rebalanceKind.kind == RebalanceType.TakeProfit.kind) {
       lowerPrice = rebalanceParams[0];
       upperPrice = rebalanceParams[1];
     } else if (rebalanceKind.kind == RebalanceType.PeriodicRebalance.kind) {
-      
+      let positionPrices = await this.getPriceRangePercentageBasedFromPool(
+        dex,
+        pool,
+        rebalanceParams[0],
+        rebalanceParams[1]
+      );
+      lowerPrice = positionPrices[0];
+      upperPrice = positionPrices[1];
     } else if (rebalanceKind.kind == RebalanceType.Expander.kind) {
       let positionPrices = await this.getPriceRangePercentageBasedFromPool(
         dex,
