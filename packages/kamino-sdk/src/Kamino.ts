@@ -3386,8 +3386,19 @@ export class Kamino {
       // todo: implement these rebalance types
     } else if (rebalanceKind.kind == RebalanceType.Drift.kind) {
     } else if (rebalanceKind.kind == RebalanceType.TakeProfit.kind) {
+      lowerPrice = rebalanceParams[0];
+      upperPrice = rebalanceParams[1];
     } else if (rebalanceKind.kind == RebalanceType.PeriodicRebalance.kind) {
+      
     } else if (rebalanceKind.kind == RebalanceType.Expander.kind) {
+      let positionPrices = await this.getPriceRangePercentageBasedFromPool(
+        dex,
+        pool,
+        rebalanceParams[0],
+        rebalanceParams[1]
+      );
+      lowerPrice = positionPrices[0];
+      upperPrice = positionPrices[1];
     } else {
       throw new Error(`Rebalance type ${rebalanceKind} is not supported`);
     }
