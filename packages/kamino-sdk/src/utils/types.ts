@@ -149,6 +149,200 @@ export function getPricePercentageRebalanceFieldInfos(
   return [lowerBpsRebalanceFieldInfo, upperBpsRebalanceFieldInfo];
 }
 
+export function getPricePercentageWithResetRebalanceFieldInfos(
+  lowerPercentageBPS: number,
+  upperPercentageBPS: number,
+  resetLowerPercentageBPS: number,
+  resetUpperPercentageBPS: number,
+  enabled: boolean = true
+) {
+  let lowerBpsRebalanceFieldInfo: RebalanceFieldInfo = {
+    label: 'lowerThresholdBps',
+    type: 'number',
+    value: lowerPercentageBPS,
+    enabled,
+  };
+  let upperBpsRebalanceFieldInfo: RebalanceFieldInfo = {
+    label: 'upperThresholdBps',
+    type: 'number',
+    value: upperPercentageBPS,
+    enabled,
+  };
+  let resetLowerBpsRebalanceFieldInfo: RebalanceFieldInfo = {
+    label: 'resetLowerThresholdBps',
+    type: 'number',
+    value: resetLowerPercentageBPS,
+    enabled,
+  };
+  let resetUpperBpsRebalanceFieldInfo: RebalanceFieldInfo = {
+    label: 'resetUpperThresholdBps',
+    type: 'number',
+    value: resetUpperPercentageBPS,
+    enabled,
+  };
+
+  return [
+    lowerBpsRebalanceFieldInfo,
+    upperBpsRebalanceFieldInfo,
+    resetLowerBpsRebalanceFieldInfo,
+    resetUpperBpsRebalanceFieldInfo,
+  ];
+}
+
+export function getDriftRebalanceFieldInfos(
+  startMidTick: number,
+  ticksBelowMid: number,
+  ticksAboveMid: number,
+  secondsPerTick: number,
+  direction: number,
+  enabled: boolean = true
+) {
+  let startMidTickRebalanceFieldInfo: RebalanceFieldInfo = {
+    label: 'startMidTick',
+    type: 'number',
+    value: startMidTick,
+    enabled,
+  };
+  let ticksBelowMidRebalanceFieldInfo: RebalanceFieldInfo = {
+    label: 'ticksBelowMid',
+    type: 'number',
+    value: ticksBelowMid,
+    enabled,
+  };
+  let ticksAboveMidRebalanceFieldInfo: RebalanceFieldInfo = {
+    label: 'ticksAboveMid',
+    type: 'number',
+    value: ticksAboveMid,
+    enabled,
+  };
+  let secondsPerTickRebalanceFieldInfo: RebalanceFieldInfo = {
+    label: 'secondsPerTick',
+    type: 'number',
+    value: secondsPerTick,
+    enabled,
+  };
+  let directionRebalanceFieldInfo: RebalanceFieldInfo = {
+    label: 'direction',
+    type: 'number',
+    value: direction,
+    enabled,
+  };
+
+  return [
+    startMidTickRebalanceFieldInfo,
+    ticksBelowMidRebalanceFieldInfo,
+    ticksAboveMidRebalanceFieldInfo,
+    secondsPerTickRebalanceFieldInfo,
+    directionRebalanceFieldInfo,
+  ];
+}
+
+export function getTakeProfitRebalanceFieldsInfos(
+  lowerRangePrice: number,
+  upperRangePrice: number,
+  destinationToken: number
+) {
+  let lowerRangePriceRebalanceFieldInfo: RebalanceFieldInfo = {
+    label: 'lowerRangePrice',
+    type: 'number',
+    value: lowerRangePrice,
+    enabled: true,
+  };
+  let upperRangePriceRebalanceFieldInfo: RebalanceFieldInfo = {
+    label: 'upperRangePrice',
+    type: 'number',
+    value: upperRangePrice,
+    enabled: true,
+  };
+  let destinationTokenRebalanceFieldInfo: RebalanceFieldInfo = {
+    label: 'destinationToken',
+    type: 'number',
+    value: destinationToken,
+    enabled: true,
+  };
+
+  return [lowerRangePriceRebalanceFieldInfo, upperRangePriceRebalanceFieldInfo, destinationTokenRebalanceFieldInfo];
+}
+
+export function getPeriodicRebalanceRebalanceFieldInfos(period: number, lowerRangeBps: number, upperRangeBps: number) {
+  let periodRebalanceFieldInfo: RebalanceFieldInfo = {
+    label: 'period',
+    type: 'number',
+    value: period,
+    enabled: true,
+  };
+  let lowerRangeBpsRebalanceFieldInfo: RebalanceFieldInfo = {
+    label: 'lowerRangeBps',
+    type: 'number',
+    value: lowerRangeBps,
+    enabled: true,
+  };
+  let upperRangeBpsRebalanceFieldInfo: RebalanceFieldInfo = {
+    label: 'upperRangeBps',
+    type: 'number',
+    value: upperRangeBps,
+    enabled: true,
+  };
+
+  return [periodRebalanceFieldInfo, lowerRangeBpsRebalanceFieldInfo, upperRangeBpsRebalanceFieldInfo];
+}
+
+export function getExpanderRebalanceFieldInfos(
+  lowerPercentageBPS: number,
+  upperPercentageBPS: number,
+  resetLowerPercentageBPS: number,
+  resetUpperPercentageBPS: number,
+  expansionBPS: number,
+  maxNumberOfExpansions: number,
+  enabled: boolean = true
+) {
+  let lowerBpsRebalanceFieldInfo: RebalanceFieldInfo = {
+    label: 'lowerThresholdBps',
+    type: 'number',
+    value: lowerPercentageBPS,
+    enabled,
+  };
+  let upperBpsRebalanceFieldInfo: RebalanceFieldInfo = {
+    label: 'upperThresholdBps',
+    type: 'number',
+    value: upperPercentageBPS,
+    enabled,
+  };
+  let resetLowerBpsRebalanceFieldInfo: RebalanceFieldInfo = {
+    label: 'resetLowerThresholdBps',
+    type: 'number',
+    value: resetLowerPercentageBPS,
+    enabled,
+  };
+  let resetUpperBpsRebalanceFieldInfo: RebalanceFieldInfo = {
+    label: 'resetUpperThresholdBps',
+    type: 'number',
+    value: resetUpperPercentageBPS,
+    enabled,
+  };
+  let expansionBpsRebalanceFieldInfo: RebalanceFieldInfo = {
+    label: 'expansionBps',
+    type: 'number',
+    value: expansionBPS,
+    enabled,
+  };
+  let maxNumberOfExpansionsRebalanceFieldInfo: RebalanceFieldInfo = {
+    label: 'maxNumberOfExpansions',
+    type: 'number',
+    value: maxNumberOfExpansions,
+    enabled,
+  };
+
+  return [
+    lowerBpsRebalanceFieldInfo,
+    upperBpsRebalanceFieldInfo,
+    resetLowerBpsRebalanceFieldInfo,
+    resetUpperBpsRebalanceFieldInfo,
+    expansionBpsRebalanceFieldInfo,
+    maxNumberOfExpansionsRebalanceFieldInfo,
+  ];
+}
+
 export interface GenericPoolInfo {
   dex: Dex;
   address: PublicKey;
@@ -209,10 +403,20 @@ export function depositAmountsForSwapToLamports(
 
 export interface RebalanceParams {
   rebalanceType: RebalanceTypeKind;
-  lowerRangeBps: Decimal;
-  upperRangeBps: Decimal;
+  lowerRangeBps?: Decimal;
+  upperRangeBps?: Decimal;
   resetRangeLowerBps?: Decimal;
   resetRangeUpperBps?: Decimal;
+  startMidTick?: Decimal;
+  ticksBelowMid?: Decimal;
+  ticksAboveMid?: Decimal;
+  secondsPerTick?: Decimal;
+  driftDirection?: Decimal;
+  period?: Decimal;
+  lowerRangePrice?: Decimal;
+  upperRangePrice?: Decimal;
+  destinationToken?: Decimal;
+
 }
 
 export interface RebalanceParamsAsPrices {

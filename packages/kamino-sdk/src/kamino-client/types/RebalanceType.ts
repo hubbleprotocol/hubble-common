@@ -141,6 +141,29 @@ export class PeriodicRebalance {
   }
 }
 
+export interface ExpanderJSON {
+  kind: "Expander"
+}
+
+export class Expander {
+  static readonly discriminator = 6
+  static readonly kind = "Expander"
+  readonly discriminator = 6
+  readonly kind = "Expander"
+
+  toJSON(): ExpanderJSON {
+    return {
+      kind: "Expander",
+    }
+  }
+
+  toEncodable() {
+    return {
+      Expander: {},
+    }
+  }
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function fromDecoded(obj: any): types.RebalanceTypeKind {
   if (typeof obj !== "object") {
@@ -164,6 +187,9 @@ export function fromDecoded(obj: any): types.RebalanceTypeKind {
   }
   if ("PeriodicRebalance" in obj) {
     return new PeriodicRebalance()
+  }
+  if ("Expander" in obj) {
+    return new Expander()
   }
 
   throw new Error("Invalid enum object")
@@ -191,6 +217,9 @@ export function fromJSON(
     case "PeriodicRebalance": {
       return new PeriodicRebalance()
     }
+    case "Expander": {
+      return new Expander()
+    }
   }
 }
 
@@ -202,6 +231,7 @@ export function layout(property?: string) {
     borsh.struct([], "Drift"),
     borsh.struct([], "TakeProfit"),
     borsh.struct([], "PeriodicRebalance"),
+    borsh.struct([], "Expander"),
   ])
   if (property !== undefined) {
     return ret.replicate(property)

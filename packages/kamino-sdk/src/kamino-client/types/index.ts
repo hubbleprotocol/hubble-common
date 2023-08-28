@@ -14,6 +14,7 @@ import * as UpdateCollateralInfoMode from "./UpdateCollateralInfoMode"
 import * as BalanceStatus from "./BalanceStatus"
 import * as DriftDirection from "./DriftDirection"
 import * as RebalanceDriftStep from "./RebalanceDriftStep"
+import * as RebalanceDirection from "./RebalanceDirection"
 import * as RebalanceTakeProfitToken from "./RebalanceTakeProfitToken"
 import * as RebalanceTakeProfitStep from "./RebalanceTakeProfitStep"
 import * as RebalanceAction from "./RebalanceAction"
@@ -343,6 +344,15 @@ export type RebalanceDriftStepJSON =
   | RebalanceDriftStep.UninitializedJSON
   | RebalanceDriftStep.DriftingJSON
 
+export { RebalanceDirection }
+
+export type RebalanceDirectionKind =
+  | RebalanceDirection.Expand
+  | RebalanceDirection.Narrow
+export type RebalanceDirectionJSON =
+  | RebalanceDirection.ExpandJSON
+  | RebalanceDirection.NarrowJSON
+
 export { RebalanceTakeProfitToken }
 
 export type RebalanceTakeProfitTokenKind =
@@ -383,6 +393,7 @@ export type RebalanceTypeKind =
   | RebalanceType.Drift
   | RebalanceType.TakeProfit
   | RebalanceType.PeriodicRebalance
+  | RebalanceType.Expander
 export type RebalanceTypeJSON =
   | RebalanceType.ManualJSON
   | RebalanceType.PricePercentageJSON
@@ -390,6 +401,7 @@ export type RebalanceTypeJSON =
   | RebalanceType.DriftJSON
   | RebalanceType.TakeProfitJSON
   | RebalanceType.PeriodicRebalanceJSON
+  | RebalanceType.ExpanderJSON
 
 export { CollateralTestToken }
 
