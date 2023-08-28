@@ -1,5 +1,13 @@
 import { PublicKey } from '@solana/web3.js';
-import { Drift, Expander, Manual, PeriodicRebalance, PricePercentage, PricePercentageWithReset, TakeProfit } from '../kamino-client/types/RebalanceType';
+import {
+  Drift,
+  Expander,
+  Manual,
+  PeriodicRebalance,
+  PricePercentage,
+  PricePercentageWithReset,
+  TakeProfit,
+} from '../kamino-client/types/RebalanceType';
 import Decimal from 'decimal.js';
 import { Dex } from './utils';
 
@@ -50,27 +58,23 @@ export const DriftRebalanceMethod: RebalanceMethod = {
   label: 'Drift',
   value: Drift.discriminator,
   // todo: ask for a description
-  description:
-  'Optimize your portfolio for maximum returns with Kamino’s Drift strategy.',
+  description: 'Optimize your portfolio for maximum returns with Kamino’s Drift strategy.',
 };
 export const TakeProfitMethod: RebalanceMethod = {
   label: 'Take Profit',
   value: TakeProfit.discriminator,
   // todo: ask for a description
-  description:
-  'Optimize your portfolio for maximum returns with Kamino’s Take Profit strategy.',
+  description: 'Optimize your portfolio for maximum returns with Kamino’s Take Profit strategy.',
 };
 export const PeriodicRebalanceMethod: RebalanceMethod = {
   label: 'Periodic Rebalance',
   value: PeriodicRebalance.discriminator,
   // todo: ask for a description
-  description:
-  'Optimize your portfolio for maximum returns with Kamino’s Periodic Rebalance strategy.',
+  description: 'Optimize your portfolio for maximum returns with Kamino’s Periodic Rebalance strategy.',
 };
 export const ExpanderMethod: RebalanceMethod = {
   label: 'Expander',
   value: Expander.discriminator,
   // todo: ask for a description
-  description:
-  'Optimize your portfolio for maximum returns with Kamino’s Expander strategy.',
+  description: 'Optimize your portfolio for maximum returns with Kamino’s Expander strategy.',
 };

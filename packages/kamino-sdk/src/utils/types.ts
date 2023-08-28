@@ -416,7 +416,6 @@ export interface RebalanceParams {
   lowerRangePrice?: Decimal;
   upperRangePrice?: Decimal;
   destinationToken?: Decimal;
-
 }
 
 export interface RebalanceParamsAsPrices {
