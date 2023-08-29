@@ -5,6 +5,7 @@ import {
   sendAndConfirmTransaction,
   SystemProgram,
   Transaction,
+  TransactionInstruction,
   VersionedTransaction,
 } from '@solana/web3.js';
 import {
@@ -1137,7 +1138,7 @@ describe('Kamino SDK Tests', () => {
     // New position to rebalance into
     const newPosition = Keypair.generate();
 
-    const [executiveWithdrawIx, collectFeesIx, openPositionIx] = await kamino.rebalance(
+    let rebalanceIxns = await kamino.rebalance(
       fixtures.newRaydiumStrategy,
       newPosition.publicKey,
       new Decimal(0.98),
@@ -1145,14 +1146,25 @@ describe('Kamino SDK Tests', () => {
       signer.publicKey
     );
 
-    {
+    let openPositionIx: TransactionInstruction;
+    if (rebalanceIxns.length == 2) {
+      openPositionIx = rebalanceIxns[1];
+
+      let tx = createTransactionWithExtraBudget(signer.publicKey, 1_000_000).add(rebalanceIxns[0]);
+      let sig = await sendTransactionWithLogs(connection, tx, signer.publicKey, [signer]);
+      expect(sig).to.not.be.null;
+      console.log('executive withdraw and collect fees have been executed');
+    } else {
+      openPositionIx = rebalanceIxns[2];
+
       let tx = createTransactionWithExtraBudget(signer.publicKey, 1_000_000)
-        .add(collectFeesIx)
-        .add(executiveWithdrawIx);
+        .add(rebalanceIxns[0])
+        .add(rebalanceIxns[1]);
       let sig = await sendTransactionWithLogs(connection, tx, signer.publicKey, [signer]);
       expect(sig).to.not.be.null;
       console.log('executive withdraw and collect fees have been executed');
     }
+
     {
       const increaseBudgetIx = createAddExtraComputeUnitsTransaction(signer.publicKey, 1_000_000);
 
@@ -1169,6 +1181,7 @@ describe('Kamino SDK Tests', () => {
       let myHash = await sendAndConfirmTransaction(kamino._connection, openPositionTxV0);
       console.log('open position tx hash', myHash);
     }
+
     {
       let invextIx = await kamino.invest(fixtures.newRaydiumStrategy, signer.publicKey);
       let tx = createTransactionWithExtraBudget(signer.publicKey, 1000000).add(invextIx);

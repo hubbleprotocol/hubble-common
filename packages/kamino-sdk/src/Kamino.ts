@@ -3716,6 +3716,7 @@ export class Kamino {
     priceUpper: Decimal,
     payer: PublicKey
   ): Promise<TransactionInstruction[]> => {
+    // todo: refactor this to return an object, not a list
     const strategyWithAddress = await this.getStrategyStateIfNotFetched(strategy);
 
     let ixs: TransactionInstruction[] = [await this.executiveWithdraw(strategyWithAddress, new Rebalance())];
