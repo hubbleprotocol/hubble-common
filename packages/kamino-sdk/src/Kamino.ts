@@ -3547,11 +3547,8 @@ export class Kamino {
       strategyState.tickArrayUpper,
       strategyState.positionMint,
       strategyState.positionTokenAccount,
-      SYSVAR_RENT_PUBKEY,
-      TOKEN_PROGRAM_ID,
-      ASSOCIATED_TOKEN_PROGRAM_ID,
-      METADATA_PROGRAM_ID,
-      programId,
+      strategyState.sharesMint,
+      strategyState.sharesMintAuthority,
     ];
 
     return this.getAddLookupTableEntriesIx(authority, lookupTable, accountsToBeInserted);
