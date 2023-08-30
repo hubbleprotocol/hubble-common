@@ -37,9 +37,6 @@ describe('Kamino strategy creation SDK Tests', () => {
 
   // use your private key here
   const signerPrivateKey = [
-    247, 234, 48, 249, 75, 177, 251, 103, 200, 168, 48, 116, 87, 134, 97, 41, 224, 84, 251, 125, 142, 46, 49, 134, 66,
-    238, 215, 179, 164, 56, 59, 184, 105, 207, 83, 130, 168, 59, 24, 231, 178, 237, 144, 200, 6, 232, 71, 251, 226, 254,
-    62, 198, 64, 61, 65, 100, 217, 171, 239, 91, 177, 30, 70, 35,
   ];
   const signer = Keypair.fromSecretKey(Uint8Array.from(signerPrivateKey));
 
