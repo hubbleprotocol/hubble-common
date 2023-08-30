@@ -1797,6 +1797,7 @@ export class Kamino {
       'A-getInitialUserTokenBalances',
       []
     );
+    console.log('initial userTokenBalances', userTokenBalances.a.toString());
 
     const userTokenBalancesWithoutSolBalanace = {
       a: userTokenBalances.a,
@@ -1831,6 +1832,7 @@ export class Kamino {
           allAccounts: PublicKey[]
         ) => this.getJupSwapIxsV6(input, tokenAMint, tokenBMint, user, slippageBps, false, allAccounts, profiler);
 
+    console.log('userTokenBalances.a', userTokenBalances.a.toString());
     return await profiler(
       this.getSingleSidedDepositIxs(
         strategyWithAddress,
@@ -1866,7 +1868,9 @@ export class Kamino {
       if (!ataExists) {
         initialUserTokenABalance = new Decimal(0);
       } else {
+        console.log('tokenAAta', tokenAAta.toString());
         initialUserTokenABalance = await this.getTokenAccountBalance(tokenAAta);
+        console.log('initialUserTokenABalance', initialUserTokenABalance.toString());
       }
     }
 
@@ -1877,12 +1881,13 @@ export class Kamino {
 
       let ataExists = await checkIfAccountExists(this._connection, tokenBAta);
       if (!ataExists) {
-        initialUserTokenABalance = new Decimal(0);
+        initialUserTokenBBalance = new Decimal(0);
       } else {
         initialUserTokenBBalance = await this.getTokenAccountBalance(tokenBAta);
       }
     }
 
+    console.log('returning initialUserTokenABalance', initialUserTokenABalance.toString());
     return { a: initialUserTokenABalance, b: initialUserTokenBBalance };
   };
 
@@ -1915,6 +1920,8 @@ export class Kamino {
 
     let tokenAAtaBalance = initialUserTokenAtaBalances.a;
     let tokenBAtaBalance = initialUserTokenAtaBalances.b;
+    console.log('initial tokenAAtaBalance', tokenAAtaBalance.toString());
+    console.log('initial tokenBAtaBalance', tokenBAtaBalance.toString());
 
     let aToDeposit = collToLamportsDecimal(tokenAAtaBalance, strategyState.tokenAMintDecimals.toNumber()).sub(
       tokenAMinPostDepositBalanceLamports
@@ -1975,9 +1982,14 @@ export class Kamino {
       let solToDeposit = availableSol.sub(tokenBMinPostDepositBalanceLamports);
       availableSol;
 
+      console.log('solBalance', solBalance.toString());
+      console.log('tokenBAtaBalance', tokenBAtaBalance.toString());
+      console.log('availableSol', availableSol.toString());
+      console.log('solToDeposit', solToDeposit.toString());
+
       bToDeposit = solToDeposit;
 
-      if (!tokenBAtaBalance.eq(ZERO)) {
+      if (!bToDeposit.eq(ZERO)) {
         if (tokenBAtaBalanceLamports.lessThan(bToDeposit)) {
           tokenBAtaBalance = lamportsToNumberDecimal(bToDeposit, DECIMALS_SOL);
         }
@@ -2040,6 +2052,8 @@ export class Kamino {
       []
     );
 
+    console.log('tokenAAtaBalance', tokenAAtaBalance.toString());
+    console.log('tokenBAtaBalance', tokenBAtaBalance.toString());
     let checkExpectedVaultsBalancesIx = await profiler(
       this.getCheckExpectedVaultsBalancesIx(strategyWithAddress, owner, tokenAAta, tokenBAta, {
         a: tokenAAtaBalance,
