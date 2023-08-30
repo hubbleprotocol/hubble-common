@@ -1220,7 +1220,7 @@ describe('Kamino strategy creation SDK Tests', () => {
       throw new Error('strategy not found');
     }
 
-    let amountToDeposit = new Decimal(0.1);
+    let amountToDeposit = new Decimal(0.01);
     let slippageBps = new Decimal(50);
 
     let singleSidedDepositIxs: TransactionInstruction[] = [];

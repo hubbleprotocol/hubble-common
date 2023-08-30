@@ -1877,7 +1877,7 @@ export class Kamino {
 
       let ataExists = await checkIfAccountExists(this._connection, tokenBAta);
       if (!ataExists) {
-        initialUserTokenABalance = new Decimal(0);
+        initialUserTokenBBalance = new Decimal(0);
       } else {
         initialUserTokenBBalance = await this.getTokenAccountBalance(tokenBAta);
       }
@@ -1977,7 +1977,7 @@ export class Kamino {
 
       bToDeposit = solToDeposit;
 
-      if (!tokenBAtaBalance.eq(ZERO)) {
+      if (!bToDeposit.eq(ZERO)) {
         if (tokenBAtaBalanceLamports.lessThan(bToDeposit)) {
           tokenBAtaBalance = lamportsToNumberDecimal(bToDeposit, DECIMALS_SOL);
         }
