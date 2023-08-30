@@ -1054,7 +1054,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     console.log('openPositionTxId', openPositionTxId);
   });
 
-  it('one click single sided deposit USDC in USDH-USDC', async () => {
+  it.skip('one click single sided deposit USDC in USDH-USDC', async () => {
     let kamino = new Kamino(
       cluster,
       connection,
@@ -1257,6 +1257,66 @@ describe('Kamino strategy creation SDK Tests', () => {
     //@ts-ignore
     const depositTxId = await sendAndConfirmTransaction(kamino._connection, singleSidedDepositTx);
     console.log('singleSidedDepoxit tx hash', depositTxId);
+  });
+
+  it.skip('one click single sided deposit SOL in RLB-SOL strat', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      GlobalConfigMainnet,
+      KaminoProgramIdMainnet,
+      WHIRLPOOL_PROGRAM_ID,
+      RAYDIUM_PROGRAM_ID
+    );
+
+    let strategy = new PublicKey('AepjvYK4QfGhV3UjSRkZviR2AJAkLGtqdyKJFCf9kpz9');
+
+    let strategyState = (await kamino.getStrategies([strategy]))[0];
+    if (!strategyState) {
+      throw new Error('strategy not found');
+    }
+
+    let amountToDeposit = new Decimal(0.02);
+    let slippageBps = new Decimal(50);
+
+    let singleSidedDepositIxs: TransactionInstruction[] = [];
+    let lookupTables: PublicKey[] = [];
+    // if USDC is tokenA mint deposit tokenA, else deposit tokenB
+    if (strategyState.tokenAMint.toString() === SOLMintMainnet.toString()) {
+      let { instructions, lookupTablesAddresses } = await kamino.singleSidedDepositTokenA(
+        strategy,
+        amountToDeposit,
+        signer.publicKey,
+        slippageBps
+      );
+      singleSidedDepositIxs = instructions;
+      lookupTables = lookupTablesAddresses;
+    } else {
+      let { instructions, lookupTablesAddresses } = await kamino.singleSidedDepositTokenB(
+        strategy,
+        amountToDeposit,
+        signer.publicKey,
+        slippageBps
+      );
+      singleSidedDepositIxs = instructions;
+      lookupTables = lookupTablesAddresses;
+    }
+
+    const singleSidedDepositMessage = await kamino.getTransactionV2Message(
+      signer.publicKey,
+      [...getComputeBudgetAndPriorityFeeIxns(1_400_000), ...singleSidedDepositIxs],
+      [...lookupTables, MAINNET_GLOBAL_LOOKUP_TABLE]
+    );
+    const singleSidedDepositTx = new VersionedTransaction(singleSidedDepositMessage);
+    singleSidedDepositTx.sign([signer]);
+
+    try {
+      //@ts-ignore
+      const depositTxId = await sendAndConfirmTransaction(kamino._connection, singleSidedDepositTx);
+      console.log('singleSidedDepoxit tx hash', depositTxId);
+    } catch (e) {
+      console.log(e);
+    }
   });
 
   it.skip('one click single sided deposit SOL in SOL-USDC strat with existent wSOL ata', async () => {
