@@ -1978,7 +1978,9 @@ export class Kamino {
       bToDeposit = solToDeposit;
 
       if (!tokenBAtaBalance.eq(ZERO)) {
-        tokenBAtaBalance = lamportsToNumberDecimal(bToDeposit, DECIMALS_SOL);
+        if (tokenBAtaBalanceLamports.lessThan(bToDeposit)) {
+          tokenBAtaBalance = lamportsToNumberDecimal(bToDeposit, DECIMALS_SOL);
+        }
       }
 
       let createWSolAtaIxns = await createWsolAtaIfMissing(
