@@ -1967,7 +1967,6 @@ export class Kamino {
 
     if (isSOLMint(strategyState.tokenBMint)) {
       let solBalance = new Decimal(await this._connection.getBalance(owner));
-      console.log('solBalance', solBalance.toString());
       let tokenBAtaBalanceLamports = collToLamportsDecimal(
         tokenBAtaBalance,
         strategyState.tokenBMintDecimals.toNumber()
@@ -1975,9 +1974,6 @@ export class Kamino {
       let availableSol = solBalance.add(tokenBAtaBalanceLamports);
       let solToDeposit = availableSol.sub(tokenBMinPostDepositBalanceLamports);
       availableSol;
-      console.log('tokenBAtaBalance', tokenBAtaBalance.toString());
-      console.log('availableSol', availableSol.toString());
-      console.log('solToDeposit', solToDeposit.toString());
 
       bToDeposit = solToDeposit;
 
@@ -2043,9 +2039,6 @@ export class Kamino {
       'B-promiseAll(createAtasIxns, amountsToDepositWithSwap)',
       []
     );
-
-    console.log('a: tokenAAtaBalance', tokenAAtaBalance.toString());
-    console.log('b: tokenBAtaBalance', tokenBAtaBalance.toString());
 
     let checkExpectedVaultsBalancesIx = await profiler(
       this.getCheckExpectedVaultsBalancesIx(strategyWithAddress, owner, tokenAAta, tokenBAta, {
