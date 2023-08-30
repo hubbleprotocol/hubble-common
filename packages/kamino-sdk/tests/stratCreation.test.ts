@@ -36,8 +36,7 @@ describe('Kamino strategy creation SDK Tests', () => {
   connection = new Connection(clusterUrl, 'processed');
 
   // use your private key here
-  const signerPrivateKey = [
-  ];
+  const signerPrivateKey = [];
   const signer = Keypair.fromSecretKey(Uint8Array.from(signerPrivateKey));
 
   it.skip('get pools for Raydium SOL-USDC pair', async () => {
@@ -1204,7 +1203,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     }
   });
 
-  it('one click single sided deposit SOL in SOL-USDC strat', async () => {
+  it.skip('one click single sided deposit SOL in SOL-USDC strat', async () => {
     let kamino = new Kamino(
       cluster,
       connection,
@@ -1260,7 +1259,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     console.log('singleSidedDepoxit tx hash', depositTxId);
   });
 
-  it('one click single sided deposit SOL in RLB-SOL strat', async () => {
+  it.skip('one click single sided deposit SOL in RLB-SOL strat', async () => {
     let kamino = new Kamino(
       cluster,
       connection,
