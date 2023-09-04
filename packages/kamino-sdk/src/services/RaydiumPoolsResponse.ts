@@ -1,4 +1,4 @@
-import { AmmV3ConfigInfo } from '@raydium-io/raydium-sdk';
+import { ClmmConfigInfo } from '@raydium-io/raydium-sdk';
 
 export interface RaydiumPoolsResponse {
   data: Pool[];
@@ -12,7 +12,7 @@ export interface Pool {
   vaultB: string;
   mintDecimalsA: number;
   mintDecimalsB: number;
-  ammConfig: AmmV3ConfigInfo;
+  ammConfig: ClmmConfigInfo;
   tvl: number;
   day: Day;
   week: Week;

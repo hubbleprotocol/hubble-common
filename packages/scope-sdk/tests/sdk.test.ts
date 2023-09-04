@@ -1,17 +1,23 @@
-import { Scope, scopeTokenToMint, SupportedTokens, U16_MAX } from '../src';
+import { OracleType, Scope, scopeTokenToMint, SupportedTokens } from '../src';
 import * as chai from 'chai';
 import { expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import chaiDecimalJs from 'chai-decimaljs';
-import { clusterApiUrl, Connection } from '@solana/web3.js';
 import { Decimal } from 'decimal.js';
+import { Env, initEnv } from './runner/env';
+import { PublicKey } from '@solana/web3.js';
+import { beforeEach } from 'mocha';
 
 chai.use(chaiAsPromised);
 chai.use(chaiDecimalJs(Decimal));
 
-describe('Scope SDK Tests', () => {
-  const connection = new Connection('http://127.0.0.1:8899');
-  const scope = new Scope('localnet', connection);
+describe('Scope SDK Tests', async () => {
+  let env: Env;
+  let scope: Scope;
+  beforeEach(async () => {
+    env = await initEnv();
+    scope = new Scope('localnet', env.provider.connection);
+  });
 
   it('should throw on invalid cluster', async () => {
     const cluster = 'invalid-clusters';
@@ -26,6 +32,61 @@ describe('Scope SDK Tests', () => {
       console.log(supportedToken, mint);
       expect(mint).not.to.be.undefined;
     }
+  });
+
+  it('should initialise a new scope feed', async () => {
+    try {
+      await scope.initialise(env.admin, env.priceFeed);
+    } catch (e) {
+      console.log(`Error: ${JSON.stringify(e)}`);
+      throw e;
+    }
+    const [, config] = await scope.getFeedConfiguration(env.priceFeed);
+    expect(config).to.not.be.null;
+  });
+
+  it('should update a feed mapping', async () => {
+    await scope.initialise(env.admin, env.priceFeed);
+    try {
+      await scope.updateFeedMapping(
+        env.admin,
+        env.priceFeed,
+        SupportedTokens.indexOf('ETH'),
+        new OracleType.Pyth(),
+        new PublicKey('Gnt27xtC473ZT2Mw5u8wZ68Z3gULkSTb5DuxJy7eJotD')
+      );
+    } catch (e) {
+      console.log(`Error: ${JSON.stringify(e)}`);
+      throw e;
+    }
+
+    const newMappings = await scope.getOracleMappings(env.priceFeed);
+    const newPriceTypeMapping = newMappings.priceTypes[SupportedTokens.indexOf('ETH')];
+    const newPriceAccountMapping = newMappings.priceInfoAccounts[SupportedTokens.indexOf('ETH')];
+    expect(newPriceTypeMapping).to.equal(new OracleType.Pyth().discriminator);
+    expect(newPriceAccountMapping.toBase58()).to.equal('Gnt27xtC473ZT2Mw5u8wZ68Z3gULkSTb5DuxJy7eJotD');
+  });
+
+  it('should refresh a price list', async () => {
+    await scope.initialise(env.admin, env.priceFeed);
+    await scope.updateFeedMapping(
+      env.admin,
+      env.priceFeed,
+      SupportedTokens.indexOf('ETH'),
+      new OracleType.Pyth(),
+      new PublicKey('Gnt27xtC473ZT2Mw5u8wZ68Z3gULkSTb5DuxJy7eJotD')
+    );
+    const originalOraclePrices = await scope.getOraclePrices(env.priceFeed);
+    const originalPrice = originalOraclePrices.prices[SupportedTokens.indexOf('ETH')];
+    try {
+      await scope.refreshPriceList(env.admin, env.priceFeed, [SupportedTokens.indexOf('ETH')]);
+    } catch (e) {
+      console.log(`Error: ${JSON.stringify(e)}`);
+      throw e;
+    }
+    const newOraclePrices = await scope.getOraclePrices(env.priceFeed);
+    const newPrice = newOraclePrices.prices[SupportedTokens.indexOf('ETH')];
+    expect(newPrice.lastUpdatedSlot.toNumber()).gt(originalPrice.lastUpdatedSlot.toNumber());
   });
 
   it('should get prices by chain', async () => {

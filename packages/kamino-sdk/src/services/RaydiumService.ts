@@ -7,7 +7,7 @@ import {
 } from './RaydiumPoolsResponse';
 import { PersonalPositionState, PoolState } from '../raydium_client';
 import Decimal from 'decimal.js';
-import { AmmV3, AmmV3PoolInfo, PositionInfoLayout, TickMath, SqrtPriceMath } from '@raydium-io/raydium-sdk';
+import { Clmm, ClmmPoolInfo, PositionInfoLayout, TickMath, SqrtPriceMath } from '@raydium-io/raydium-sdk';
 import { WhirlpoolAprApy } from './WhirlpoolAprApy';
 import { WhirlpoolStrategy } from '../kamino-client/accounts';
 import {
@@ -118,7 +118,7 @@ export class RaydiumService {
     }
 
     const poolInfo = (
-      await AmmV3.fetchMultiplePoolInfos({
+      await Clmm.fetchMultiplePoolInfos({
         connection: this._connection,
         // @ts-ignore
         poolKeys: [raydiumPool],
@@ -147,7 +147,7 @@ export class RaydiumService {
     }
 
     const params: {
-      poolInfo: AmmV3PoolInfo;
+      poolInfo: ClmmPoolInfo;
       aprType: 'day' | 'week' | 'month';
       positionTickLowerIndex: number;
       positionTickUpperIndex: number;
@@ -158,7 +158,7 @@ export class RaydiumService {
       positionTickUpperIndex: position.tickUpperIndex,
     };
 
-    const { apr, feeApr, rewardsApr } = AmmV3.estimateAprsForPriceRangeMultiplier(params);
+    const { apr, feeApr, rewardsApr } = Clmm.estimateAprsForPriceRangeMultiplier(params);
     const totalApr = new Decimal(apr).div(100);
     const fee = new Decimal(feeApr).div(100);
     const rewards = rewardsApr.map((reward) => new Decimal(reward).div(100));
@@ -199,7 +199,7 @@ export class RaydiumService {
     }
 
     const poolInfo = (
-      await AmmV3.fetchMultiplePoolInfos({
+      await Clmm.fetchMultiplePoolInfos({
         connection: this._connection,
         // @ts-ignore
         poolKeys: [raydiumPool],
@@ -242,7 +242,7 @@ export class RaydiumService {
     }
 
     const params: {
-      poolInfo: AmmV3PoolInfo;
+      poolInfo: ClmmPoolInfo;
       aprType: 'day' | 'week' | 'month';
       positionTickLowerIndex: number;
       positionTickUpperIndex: number;
@@ -253,7 +253,7 @@ export class RaydiumService {
       positionTickUpperIndex: tickUpperIndex,
     };
 
-    const { apr, feeApr, rewardsApr } = AmmV3.estimateAprsForPriceRangeMultiplier(params);
+    const { apr, feeApr, rewardsApr } = Clmm.estimateAprsForPriceRangeMultiplier(params);
     const totalApr = new Decimal(apr).div(100);
     const fee = new Decimal(feeApr).div(100);
     const rewards = rewardsApr.map((reward) => new Decimal(reward).div(100));
