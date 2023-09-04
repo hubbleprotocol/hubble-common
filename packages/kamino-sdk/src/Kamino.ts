@@ -36,7 +36,6 @@ import {
   OrcaWhirlpoolClient,
   Percentage,
   priceToTickIndex,
-  RemoveLiquidityQuoteParam,
   sqrtPriceX64ToPrice,
   tickIndexToPrice,
 } from '@orca-so/whirlpool-sdk';
@@ -60,7 +59,7 @@ import {
   TreasuryFeeVault,
 } from './models';
 import { PROGRAM_ID_CLI as WHIRLPOOL_PROGRAM_ID, setWhirlpoolsProgramId } from './whirpools-client/programId';
-import { OraclePrices, Scope, ScopeToken, SupportedTokens } from '@hubbleprotocol/scope-sdk';
+import { OraclePrices, Scope } from '@hubbleprotocol/scope-sdk';
 import {
   batchFetch,
   collToLamportsDecimal,
@@ -113,9 +112,6 @@ import {
   CollectFeesAndRewardsAccounts,
   deposit,
   DepositAccounts,
-  depositAndInvest,
-  DepositAndInvestAccounts,
-  DepositAndInvestArgs,
   DepositArgs,
   executiveWithdraw,
   ExecutiveWithdrawAccounts,
@@ -128,9 +124,6 @@ import {
   openLiquidityPosition,
   OpenLiquidityPositionAccounts,
   OpenLiquidityPositionArgs,
-  singleTokenDepositAndInvestWithMin,
-  SingleTokenDepositAndInvestWithMinAccounts,
-  SingleTokenDepositAndInvestWithMinArgs,
   singleTokenDepositWithMin,
   SingleTokenDepositWithMinAccounts,
   SingleTokenDepositWithMinArgs,
@@ -160,7 +153,7 @@ import {
 import { Rebalance } from './kamino-client/types/ExecutiveWithdrawAction';
 import { AmmConfig, PersonalPositionState, PoolState } from './raydium_client';
 import { PROGRAM_ID as RAYDIUM_PROGRAM_ID, setRaydiumProgramId } from './raydium_client/programId';
-import { AmmV3, i32ToBytes, LiquidityMath, SqrtPriceMath, TickMath, TickUtils } from '@raydium-io/raydium-sdk';
+import { i32ToBytes, LiquidityMath, SqrtPriceMath, TickMath, TickUtils } from '@raydium-io/raydium-sdk';
 
 import KaminoIdl from './kamino-client/kamino.json';
 import { OrcaService, RaydiumService, Whirlpool as OrcaPool, WhirlpoolAprApy } from './services';
@@ -187,11 +180,10 @@ import {
 import {
   DefaultDepositCap,
   DefaultDepositCapPerIx,
-  DefaultDepositFeeBps,
   DefaultPerformanceFeeBps,
   DefaultWithdrawFeeBps,
 } from './constants/DefaultStrategyConfig';
-import { DEVNET_GLOBAL_LOOKUP_TABLE, MAINNET_GLOBAL_LOOKUP_TABLE, MAINNET_TOKEN_INFOS } from './constants/pubkeys';
+import { DEVNET_GLOBAL_LOOKUP_TABLE, MAINNET_GLOBAL_LOOKUP_TABLE } from './constants/pubkeys';
 import {
   DefaultDex,
   DefaultFeeTierOrca,
@@ -215,7 +207,7 @@ import {
   simulatePercentagePool,
   SimulationPercentagePoolParameters,
 } from './services/PoolSimulationService';
-import { Manual, PricePercentage, PricePercentageWithReset } from './kamino-client/types/RebalanceType';
+import { PricePercentageWithReset } from './kamino-client/types/RebalanceType';
 import {
   checkIfAccountExists,
   createWsolAtaIfMissing,
@@ -225,7 +217,7 @@ import {
   removeBudgetAndAtaIxns,
 } from './utils/transactions';
 import { RouteInfo } from '@jup-ag/core';
-import { QuoteResponse, SwapResponse } from '@jup-ag/api';
+import { SwapResponse } from '@jup-ag/api';
 import { StrategyPrices } from './models/StrategyPrices';
 export const KAMINO_IDL = KaminoIdl;
 
@@ -3520,16 +3512,20 @@ export class Kamino {
     });
   };
 
-  getPopulateLookupTableIx = async (
+  getPopulateLookupTableIxs = async (
     authority: PublicKey,
     lookupTable: PublicKey,
     strategy: PublicKey | StrategyWithAddress
-  ): Promise<TransactionInstruction> => {
+  ): Promise<TransactionInstruction[]> => {
     const { strategy: strategyState, address } = await this.getStrategyStateIfNotFetched(strategy);
     if (!strategyState) {
       throw Error(`Could not fetch strategy state with pubkey ${strategy.toString()}`);
     }
     let programId = getDexProgramId(strategyState);
+    const { treasuryFeeTokenAVault, treasuryFeeTokenBVault } = this.getTreasuryFeeVaultPDAs(
+      strategyState.tokenAMint,
+      strategyState.tokenBMint
+    );
 
     let accountsToBeInserted: PublicKey[] = [
       address,
@@ -3551,22 +3547,38 @@ export class Kamino {
       strategyState.positionTokenAccount,
       strategyState.sharesMint,
       strategyState.sharesMintAuthority,
+      treasuryFeeTokenAVault,
+      treasuryFeeTokenBVault,
+      SYSVAR_RENT_PUBKEY,
+      SYSVAR_INSTRUCTIONS_PUBKEY,
+      TOKEN_PROGRAM_ID,
+      ASSOCIATED_TOKEN_PROGRAM_ID,
+      METADATA_PROGRAM_ID,
+      programId,
     ];
 
-    return this.getAddLookupTableEntriesIx(authority, lookupTable, accountsToBeInserted);
+    return this.getAddLookupTableEntriesIxs(authority, lookupTable, accountsToBeInserted);
   };
 
-  getAddLookupTableEntriesIx = (
+  getAddLookupTableEntriesIxs = (
     authority: PublicKey,
     lookupTable: PublicKey,
     entries: PublicKey[]
-  ): TransactionInstruction => {
-    return AddressLookupTableProgram.extendLookupTable({
-      payer: authority,
-      authority,
-      lookupTable,
-      addresses: entries,
-    });
+  ): TransactionInstruction[] => {
+    const chunkSize = 20;
+    const txs: TransactionInstruction[] = [];
+    for (let i = 0; i < entries.length; i += chunkSize) {
+      const chunk = entries.slice(i, i + chunkSize);
+      txs.push(
+        AddressLookupTableProgram.extendLookupTable({
+          payer: authority,
+          authority,
+          lookupTable,
+          addresses: chunk,
+        })
+      );
+    }
+    return txs;
   };
 
   getLookupTable = async (tablePk: PublicKey): Promise<AddressLookupTableAccount> => {
@@ -3579,7 +3591,7 @@ export class Kamino {
 
   setupStrategyLookupTable = async (authority: Keypair, strategy: PublicKey, slot?: number): Promise<PublicKey> => {
     let [createLookupTableIx, lookupTable] = await this.getInitLookupTableIx(authority.publicKey, slot);
-    let populateLookupTableIx = await this.getPopulateLookupTableIx(authority.publicKey, lookupTable, strategy);
+    let populateLookupTableIx = await this.getPopulateLookupTableIxs(authority.publicKey, lookupTable, strategy);
 
     let getUpdateStrategyLookupTableIx = await getUpdateStrategyConfigIx(
       authority.publicKey,
@@ -3590,8 +3602,15 @@ export class Kamino {
       lookupTable
     );
 
-    const tx = new Transaction().add(createLookupTableIx, populateLookupTableIx, getUpdateStrategyLookupTableIx);
-    let hash = await sendTransactionWithLogs(this._connection, tx, authority.publicKey, [authority]);
+    const createTableTx = new Transaction().add(createLookupTableIx);
+    await sendTransactionWithLogs(this._connection, createTableTx, authority.publicKey, [authority]);
+    for (let ix of populateLookupTableIx) {
+      const populateLookupTableTx = new Transaction().add(ix);
+      await sendTransactionWithLogs(this._connection, populateLookupTableTx, authority.publicKey, [authority]);
+    }
+
+    const updateStrategyLookupTableTx = new Transaction().add(getUpdateStrategyLookupTableIx);
+    await sendTransactionWithLogs(this._connection, updateStrategyLookupTableTx, authority.publicKey, [authority]);
 
     return lookupTable;
   };
