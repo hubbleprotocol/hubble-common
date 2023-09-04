@@ -3512,11 +3512,11 @@ export class Kamino {
     });
   };
 
-  getPopulateLookupTableIx = async (
+  getPopulateLookupTableIxs = async (
     authority: PublicKey,
     lookupTable: PublicKey,
     strategy: PublicKey | StrategyWithAddress
-  ): Promise<TransactionInstruction> => {
+  ): Promise<TransactionInstruction[]> => {
     const { strategy: strategyState, address } = await this.getStrategyStateIfNotFetched(strategy);
     if (!strategyState) {
       throw Error(`Could not fetch strategy state with pubkey ${strategy.toString()}`);
@@ -3557,20 +3557,28 @@ export class Kamino {
       programId,
     ];
 
-    return this.getAddLookupTableEntriesIx(authority, lookupTable, accountsToBeInserted);
+    return this.getAddLookupTableEntriesIxs(authority, lookupTable, accountsToBeInserted);
   };
 
-  getAddLookupTableEntriesIx = (
+  getAddLookupTableEntriesIxs = (
     authority: PublicKey,
     lookupTable: PublicKey,
     entries: PublicKey[]
-  ): TransactionInstruction => {
-    return AddressLookupTableProgram.extendLookupTable({
-      payer: authority,
-      authority,
-      lookupTable,
-      addresses: entries,
-    });
+  ): TransactionInstruction[] => {
+    const chunkSize = 20;
+    const txs: TransactionInstruction[] = [];
+    for (let i = 0; i < entries.length; i += chunkSize) {
+      const chunk = entries.slice(i, i + chunkSize);
+      txs.push(
+        AddressLookupTableProgram.extendLookupTable({
+          payer: authority,
+          authority,
+          lookupTable,
+          addresses: chunk,
+        })
+      );
+    }
+    return txs;
   };
 
   getLookupTable = async (tablePk: PublicKey): Promise<AddressLookupTableAccount> => {
@@ -3583,7 +3591,7 @@ export class Kamino {
 
   setupStrategyLookupTable = async (authority: Keypair, strategy: PublicKey, slot?: number): Promise<PublicKey> => {
     let [createLookupTableIx, lookupTable] = await this.getInitLookupTableIx(authority.publicKey, slot);
-    let populateLookupTableIx = await this.getPopulateLookupTableIx(authority.publicKey, lookupTable, strategy);
+    let populateLookupTableIx = await this.getPopulateLookupTableIxs(authority.publicKey, lookupTable, strategy);
 
     let getUpdateStrategyLookupTableIx = await getUpdateStrategyConfigIx(
       authority.publicKey,
@@ -3594,8 +3602,15 @@ export class Kamino {
       lookupTable
     );
 
-    const tx = new Transaction().add(createLookupTableIx, populateLookupTableIx, getUpdateStrategyLookupTableIx);
-    let hash = await sendTransactionWithLogs(this._connection, tx, authority.publicKey, [authority]);
+    const createTableTx = new Transaction().add(createLookupTableIx);
+    await sendTransactionWithLogs(this._connection, createTableTx, authority.publicKey, [authority]);
+    for (let ix of populateLookupTableIx) {
+      const populateLookupTableTx = new Transaction().add(ix);
+      await sendTransactionWithLogs(this._connection, populateLookupTableTx, authority.publicKey, [authority]);
+    }
+
+    const updateStrategyLookupTableTx = new Transaction().add(getUpdateStrategyLookupTableIx);
+    await sendTransactionWithLogs(this._connection, updateStrategyLookupTableTx, authority.publicKey, [authority]);
 
     return lookupTable;
   };
