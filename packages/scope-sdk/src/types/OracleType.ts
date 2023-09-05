@@ -72,37 +72,14 @@ export class SwitchboardV2 {
   }
 }
 
-export interface DeprecatedPlaceholderJSON {
-  kind: "DeprecatedPlaceholder"
-}
-
-export class DeprecatedPlaceholder {
-  static readonly discriminator = 3
-  static readonly kind = "DeprecatedPlaceholder"
-  readonly discriminator = 3
-  readonly kind = "DeprecatedPlaceholder"
-
-  toJSON(): DeprecatedPlaceholderJSON {
-    return {
-      kind: "DeprecatedPlaceholder",
-    }
-  }
-
-  toEncodable() {
-    return {
-      DeprecatedPlaceholder: {},
-    }
-  }
-}
-
 export interface CTokenJSON {
   kind: "CToken"
 }
 
 export class CToken {
-  static readonly discriminator = 4
+  static readonly discriminator = 3
   static readonly kind = "CToken"
-  readonly discriminator = 4
+  readonly discriminator = 3
   readonly kind = "CToken"
 
   toJSON(): CTokenJSON {
@@ -123,9 +100,9 @@ export interface SplStakeJSON {
 }
 
 export class SplStake {
-  static readonly discriminator = 5
+  static readonly discriminator = 4
   static readonly kind = "SplStake"
-  readonly discriminator = 5
+  readonly discriminator = 4
   readonly kind = "SplStake"
 
   toJSON(): SplStakeJSON {
@@ -146,9 +123,9 @@ export interface KTokenJSON {
 }
 
 export class KToken {
-  static readonly discriminator = 6
+  static readonly discriminator = 5
   static readonly kind = "KToken"
-  readonly discriminator = 6
+  readonly discriminator = 5
   readonly kind = "KToken"
 
   toJSON(): KTokenJSON {
@@ -169,9 +146,9 @@ export interface PythEMAJSON {
 }
 
 export class PythEMA {
-  static readonly discriminator = 7
+  static readonly discriminator = 6
   static readonly kind = "PythEMA"
-  readonly discriminator = 7
+  readonly discriminator = 6
   readonly kind = "PythEMA"
 
   toJSON(): PythEMAJSON {
@@ -202,9 +179,6 @@ export function fromDecoded(obj: any): types.OracleTypeKind {
   if ("SwitchboardV2" in obj) {
     return new SwitchboardV2()
   }
-  if ("DeprecatedPlaceholder" in obj) {
-    return new DeprecatedPlaceholder()
-  }
   if ("CToken" in obj) {
     return new CToken()
   }
@@ -232,9 +206,6 @@ export function fromJSON(obj: types.OracleTypeJSON): types.OracleTypeKind {
     case "SwitchboardV2": {
       return new SwitchboardV2()
     }
-    case "DeprecatedPlaceholder": {
-      return new DeprecatedPlaceholder()
-    }
     case "CToken": {
       return new CToken()
     }
@@ -255,7 +226,6 @@ export function layout(property?: string) {
     borsh.struct([], "Pyth"),
     borsh.struct([], "SwitchboardV1"),
     borsh.struct([], "SwitchboardV2"),
-    borsh.struct([], "DeprecatedPlaceholder"),
     borsh.struct([], "CToken"),
     borsh.struct([], "SplStake"),
     borsh.struct([], "KToken"),
