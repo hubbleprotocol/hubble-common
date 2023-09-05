@@ -40,6 +40,7 @@ export * from './KlendReserveEntity';
 export * from './KlendReserveStateEntity';
 export * from './KaminoInstructionEntity';
 export * from './InstructionEntity';
+export * from './UserMetricsEntity';
 
 export const CLUSTER_TABLE: string = 'cluster';
 export const COLLATERAL_TABLE: string = 'collateral';
@@ -84,4 +85,5 @@ export const KLEND_RESERVE_STATE_TABLE = 'klend_reserve_state';
 export const KLEND_OBLIGATION_STATE_TABLE = 'klend_obligation_state';
 export const KAMINO_INSTRUCTION_TABLE = 'kamino_instruction';
 export const INSTRUCTION_TABLE = 'instruction';
+export const USER_METRICS_TABLE = 'user_metrics';
 export const API_SCHEMA: string = 'api';
