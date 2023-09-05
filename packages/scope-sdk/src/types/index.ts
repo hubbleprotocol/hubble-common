@@ -42,6 +42,7 @@ export type OracleTypeKind =
   | OracleType.Pyth
   | OracleType.SwitchboardV1
   | OracleType.SwitchboardV2
+  | OracleType.DeprecatedPlaceholder
   | OracleType.CToken
   | OracleType.SplStake
   | OracleType.KToken
@@ -50,6 +51,7 @@ export type OracleTypeJSON =
   | OracleType.PythJSON
   | OracleType.SwitchboardV1JSON
   | OracleType.SwitchboardV2JSON
+  | OracleType.DeprecatedPlaceholderJSON
   | OracleType.CTokenJSON
   | OracleType.SplStakeJSON
   | OracleType.KTokenJSON
