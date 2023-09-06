@@ -3522,7 +3522,7 @@ export class Kamino {
       throw Error(`Could not fetch strategy state with pubkey ${strategy.toString()}`);
     }
     let programId = getDexProgramId(strategyState);
-    const { treasuryFeeTokenAVault, treasuryFeeTokenBVault } = this.getTreasuryFeeVaultPDAs(
+    const { treasuryFeeTokenAVault, treasuryFeeTokenBVault, treasuryFeeVaultAuthority } = this.getTreasuryFeeVaultPDAs(
       strategyState.tokenAMint,
       strategyState.tokenBMint
     );
@@ -3539,22 +3539,11 @@ export class Kamino {
       strategyState.poolTokenVaultA,
       strategyState.poolTokenVaultB,
       strategyState.tokenAMint,
-      strategyState.raydiumProtocolPositionOrBaseVaultAuthority,
-      strategyState.raydiumPoolConfigOrBaseVaultAuthority,
-      strategyState.tickArrayLower,
-      strategyState.tickArrayUpper,
-      strategyState.positionMint,
-      strategyState.positionTokenAccount,
       strategyState.sharesMint,
       strategyState.sharesMintAuthority,
       treasuryFeeTokenAVault,
       treasuryFeeTokenBVault,
-      SYSVAR_RENT_PUBKEY,
-      SYSVAR_INSTRUCTIONS_PUBKEY,
-      TOKEN_PROGRAM_ID,
-      ASSOCIATED_TOKEN_PROGRAM_ID,
-      METADATA_PROGRAM_ID,
-      programId,
+      treasuryFeeVaultAuthority,
     ];
 
     return this.getAddLookupTableEntriesIxs(authority, lookupTable, accountsToBeInserted);
