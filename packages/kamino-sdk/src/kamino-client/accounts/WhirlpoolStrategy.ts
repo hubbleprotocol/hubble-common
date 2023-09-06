@@ -96,6 +96,8 @@ export interface WhirlpoolStrategyFields {
   tokenAFeesFromRewardsCumulative: BN
   tokenBFeesFromRewardsCumulative: BN
   strategyLookupTable: PublicKey
+  lastSwapUnevenStepTimestamp: BN
+  padding2: BN
   padding3: Array<BN>
   padding4: Array<BN>
   padding5: Array<BN>
@@ -194,6 +196,8 @@ export interface WhirlpoolStrategyJSON {
   tokenAFeesFromRewardsCumulative: string
   tokenBFeesFromRewardsCumulative: string
   strategyLookupTable: string
+  lastSwapUnevenStepTimestamp: string
+  padding2: string
   padding3: Array<string>
   padding4: Array<string>
   padding5: Array<string>
@@ -292,6 +296,8 @@ export class WhirlpoolStrategy {
   readonly tokenAFeesFromRewardsCumulative: BN
   readonly tokenBFeesFromRewardsCumulative: BN
   readonly strategyLookupTable: PublicKey
+  readonly lastSwapUnevenStepTimestamp: BN
+  readonly padding2: BN
   readonly padding3: Array<BN>
   readonly padding4: Array<BN>
   readonly padding5: Array<BN>
@@ -392,7 +398,9 @@ export class WhirlpoolStrategy {
     borsh.u64("tokenAFeesFromRewardsCumulative"),
     borsh.u64("tokenBFeesFromRewardsCumulative"),
     borsh.publicKey("strategyLookupTable"),
-    borsh.array(borsh.u128(), 26, "padding3"),
+    borsh.u64("lastSwapUnevenStepTimestamp"),
+    borsh.u64("padding2"),
+    borsh.array(borsh.u128(), 25, "padding3"),
     borsh.array(borsh.u128(), 32, "padding4"),
     borsh.array(borsh.u128(), 32, "padding5"),
     borsh.array(borsh.u128(), 32, "padding6"),
@@ -500,6 +508,8 @@ export class WhirlpoolStrategy {
     this.tokenBFeesFromRewardsCumulative =
       fields.tokenBFeesFromRewardsCumulative
     this.strategyLookupTable = fields.strategyLookupTable
+    this.lastSwapUnevenStepTimestamp = fields.lastSwapUnevenStepTimestamp
+    this.padding2 = fields.padding2
     this.padding3 = fields.padding3
     this.padding4 = fields.padding4
     this.padding5 = fields.padding5
@@ -645,6 +655,8 @@ export class WhirlpoolStrategy {
       tokenAFeesFromRewardsCumulative: dec.tokenAFeesFromRewardsCumulative,
       tokenBFeesFromRewardsCumulative: dec.tokenBFeesFromRewardsCumulative,
       strategyLookupTable: dec.strategyLookupTable,
+      lastSwapUnevenStepTimestamp: dec.lastSwapUnevenStepTimestamp,
+      padding2: dec.padding2,
       padding3: dec.padding3,
       padding4: dec.padding4,
       padding5: dec.padding5,
@@ -749,6 +761,8 @@ export class WhirlpoolStrategy {
       tokenBFeesFromRewardsCumulative:
         this.tokenBFeesFromRewardsCumulative.toString(),
       strategyLookupTable: this.strategyLookupTable.toString(),
+      lastSwapUnevenStepTimestamp: this.lastSwapUnevenStepTimestamp.toString(),
+      padding2: this.padding2.toString(),
       padding3: this.padding3.map((item) => item.toString()),
       padding4: this.padding4.map((item) => item.toString()),
       padding5: this.padding5.map((item) => item.toString()),
@@ -859,6 +873,8 @@ export class WhirlpoolStrategy {
         obj.tokenBFeesFromRewardsCumulative
       ),
       strategyLookupTable: new PublicKey(obj.strategyLookupTable),
+      lastSwapUnevenStepTimestamp: new BN(obj.lastSwapUnevenStepTimestamp),
+      padding2: new BN(obj.padding2),
       padding3: obj.padding3.map((item) => new BN(item)),
       padding4: obj.padding4.map((item) => new BN(item)),
       padding5: obj.padding5.map((item) => new BN(item)),
