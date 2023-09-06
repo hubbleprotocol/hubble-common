@@ -1,11 +1,22 @@
 import { getConfigByCluster, HubbleConfig, SolanaCluster } from '@hubbleprotocol/hubble-config';
-import { Connection, PublicKey } from '@solana/web3.js';
+import {
+  Connection,
+  Keypair,
+  PublicKey,
+  SystemProgram,
+  SYSVAR_CLOCK_PUBKEY,
+  SYSVAR_INSTRUCTIONS_PUBKEY,
+  Transaction,
+} from '@solana/web3.js';
 import Decimal from 'decimal.js';
-import { OraclePrices } from './accounts';
-import { setProgramId } from './programId';
-import { Price } from './types';
+import { Configuration, OracleMappings, OraclePrices } from './accounts';
+import { OracleTypeKind, Price } from './types';
 import { mintToScopeToken, scopeTokenToMint, SupportedToken, U16_MAX } from './constants';
 import { ScopeToken } from './ScopeToken';
+import * as ScopeIx from './instructions';
+import { Provider, Wallet } from '@project-serum/anchor';
+import { getConfigurationPda, ORACLE_MAPPINGS_LEN, ORACLE_PRICES_LEN } from './utils';
+import BN from 'bn.js';
 
 export class Scope {
   private readonly _cluster: SolanaCluster;
@@ -131,7 +142,6 @@ export class Scope {
     this._cluster = cluster;
     this._connection = connection;
     this._config = getConfigByCluster(cluster);
-    setProgramId(this._config.scope.programId);
   }
 
   private async getSinglePrice(token: SupportedToken, prices: OraclePrices) {
@@ -157,12 +167,56 @@ export class Scope {
     return new Decimal(price.value.toString()).mul(new Decimal(10).pow(new Decimal(-price.exp.toString())));
   }
 
-  async getOraclePrices() {
-    const prices = await OraclePrices.fetch(this._connection, this._config.scope.oraclePrices);
+  /**
+   * Get the deserialised OraclePrices account for a given feed
+   * @param feed
+   * @returns OraclePrices
+   */
+  async getOraclePrices(feed?: string): Promise<OraclePrices> {
+    let oraclePrices: PublicKey;
+    if (feed) {
+      const [config, configAccount] = await this.getFeedConfiguration(feed);
+      oraclePrices = configAccount.oraclePrices;
+    } else {
+      oraclePrices = this._config.scope.oraclePrices;
+    }
+    const prices = await OraclePrices.fetch(this._connection, oraclePrices, this._config.scope.programId);
     if (!prices) {
       throw Error(`Could not get scope oracle prices`);
     }
     return prices;
+  }
+
+  /**
+   * Get the deserialised Configuration account for a given feed
+   * @param feed
+   * @returns [configuration account address, deserialised configuration]
+   */
+  async getFeedConfiguration(feed: string): Promise<[PublicKey, Configuration]> {
+    const config = getConfigurationPda(feed);
+    const configAccount = await Configuration.fetch(this._connection, config, this._config.scope.programId);
+    if (!configAccount) {
+      throw new Error(`Could not find configuration account for ${feed}`);
+    }
+    return [config, configAccount];
+  }
+
+  /**
+   * Get the deserialised OracleMappings account for a given feed
+   * @param feed
+   * @returns OracleMappings
+   */
+  async getOracleMappings(feed: string): Promise<OracleMappings> {
+    const [config, configAccount] = await this.getFeedConfiguration(feed);
+    const oracleMappings = await OracleMappings.fetch(
+      this._connection,
+      configAccount.oracleMappings,
+      this._config.scope.programId
+    );
+    if (!oracleMappings) {
+      throw Error(`Could not get scope oracle mappings account for feed ${feed}, config ${config.toBase58()}`);
+    }
+    return oracleMappings;
   }
 
   /**
@@ -275,6 +329,133 @@ export class Scope {
       prices = await this.getOraclePrices();
     }
     return Scope.getPriceFromScopeChain(chain, prices);
+  }
+
+  /**
+   * Create a new scope price feed
+   * @param admin
+   * @param feed
+   */
+  async initialise(
+    admin: Keypair,
+    feed: string
+  ): Promise<
+    [
+      string,
+      {
+        configuration: PublicKey;
+        oracleMappings: PublicKey;
+        oraclePrices: PublicKey;
+      },
+    ]
+  > {
+    const config = getConfigurationPda(feed);
+    const oraclePrices = Keypair.generate();
+    const createOraclePricesIx = SystemProgram.createAccount({
+      fromPubkey: admin.publicKey,
+      newAccountPubkey: oraclePrices.publicKey,
+      lamports: await this._connection.getMinimumBalanceForRentExemption(ORACLE_PRICES_LEN),
+      space: ORACLE_PRICES_LEN,
+      programId: this._config.scope.programId,
+    });
+    const oracleMappings = Keypair.generate();
+    const createOracleMappingsIx = SystemProgram.createAccount({
+      fromPubkey: admin.publicKey,
+      newAccountPubkey: oracleMappings.publicKey,
+      lamports: await this._connection.getMinimumBalanceForRentExemption(ORACLE_MAPPINGS_LEN),
+      space: ORACLE_MAPPINGS_LEN,
+      programId: this._config.scope.programId,
+    });
+    const initScopeIx = ScopeIx.initialize(
+      { feedName: feed },
+      {
+        admin: admin.publicKey,
+        configuration: config,
+        oracleMappings: oracleMappings.publicKey,
+        oraclePrices: oraclePrices.publicKey,
+        systemProgram: SystemProgram.programId,
+      },
+      this._config.scope.programId
+    );
+    const provider = new Provider(this._connection, new Wallet(admin), {
+      commitment: this._connection.commitment,
+    });
+    const sig = await provider.send(
+      new Transaction().add(...[createOraclePricesIx, createOracleMappingsIx, initScopeIx]),
+      [admin, oraclePrices, oracleMappings]
+    );
+    return [
+      sig,
+      {
+        configuration: config,
+        oracleMappings: oracleMappings.publicKey,
+        oraclePrices: oraclePrices.publicKey,
+      },
+    ];
+  }
+
+  /**
+   * Update the price mapping of a token
+   * @param admin
+   * @param feed
+   * @param index
+   * @param oracleType
+   * @param mapping
+   */
+  async updateFeedMapping(
+    admin: Keypair,
+    feed: string,
+    index: number,
+    oracleType: OracleTypeKind,
+    mapping: PublicKey
+  ): Promise<string> {
+    const [config, configAccount] = await this.getFeedConfiguration(feed);
+    const updateIx = ScopeIx.updateMapping(
+      {
+        feedName: feed,
+        token: new BN(index),
+        priceType: oracleType.discriminator,
+      },
+      {
+        admin: admin.publicKey,
+        configuration: config,
+        oracleMappings: configAccount.oracleMappings,
+        priceInfo: mapping,
+      },
+      this._config.scope.programId
+    );
+    const provider = new Provider(this._connection, new Wallet(admin), {
+      commitment: this._connection.commitment,
+    });
+    return provider.send(new Transaction().add(updateIx), [admin]);
+  }
+
+  async refreshPriceList(payer: Keypair, feed: string, tokens: number[]) {
+    const [, configAccount] = await this.getFeedConfiguration(feed);
+    const refreshIx = ScopeIx.refreshPriceList(
+      {
+        tokens,
+      },
+      {
+        oracleMappings: configAccount.oracleMappings,
+        oraclePrices: configAccount.oraclePrices,
+        clock: SYSVAR_CLOCK_PUBKEY,
+        instructionSysvarAccountInfo: SYSVAR_INSTRUCTIONS_PUBKEY,
+      },
+      this._config.scope.programId
+    );
+    const provider = new Provider(this._connection, new Wallet(payer), {
+      commitment: this._connection.commitment,
+    });
+    const mappings = await this.getOracleMappings(feed);
+    tokens.forEach((token) => {
+      refreshIx.keys.push({
+        isSigner: false,
+        isWritable: false,
+        pubkey: mappings.priceInfoAccounts[token],
+      });
+    });
+    return provider.send(new Transaction().add(refreshIx), [payer]);
   }
 }
 

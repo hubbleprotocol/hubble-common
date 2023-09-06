@@ -27,7 +27,7 @@ import { TokenInstructions } from '@project-serum/serum';
 import { collateralTokenToNumber, CollateralToken } from './token_utils';
 import { checkIfAccountExists, getAtasWithCreateIxnsIfMissing } from '../src/utils/transactions';
 import { FullBPS } from '../src/utils/CreationParameters';
-import { WRAPPED_SOL_MINT } from '@jup-ag/core';
+import { U16_MAX } from '@hubbleprotocol/scope-sdk';
 
 export const GlobalConfigMainnet = new PublicKey('GKnHiWh3RRrE1zsNzWxRkomymHc374TvJPSTv2wPeYdB');
 export const KaminoProgramIdMainnet = new PublicKey('6LtLpnUFNByNXLyCoK9wA2MykKAmQNZKBdY8s47dehDc');
@@ -463,7 +463,7 @@ export async function updateCollateralInfo(
   console.log('Update Collateral Info txn: ' + sig.toString());
 }
 
-export function toCollateralInfoValue(value: bigint | PublicKey | Uint16Array | Uint8Array): number[] {
+export function toCollateralInfoValue(value: bigint | PublicKey | Uint16Array | Uint8Array | number[]): number[] {
   console.log('value', value);
   let buffer: Buffer;
   if (typeof value === 'bigint') {
@@ -480,10 +480,17 @@ export function toCollateralInfoValue(value: bigint | PublicKey | Uint16Array | 
     for (let i = 0; i < value.length; i++) {
       buffer[i] = value[i];
     }
-  } else if (value.constructor === PublicKey) {
-    buffer = value.toBuffer(); // PublicKey, the previous if statement wasn't seeing value as an instance of PublicKey anymore (?)
+  } else if (value.constructor.name === 'PublicKey') {
+    buffer = (value as PublicKey).toBuffer(); // PublicKey, the previous if statement wasn't seeing value as an instance of PublicKey anymore (?)
+  } else if (Array.isArray(value)) {
+    // scope chains
+    const padded = value.concat(Array(4 - value.length).fill(U16_MAX));
+    buffer = Buffer.alloc(32);
+    for (let i = 0; i < padded.length; i++) {
+      buffer.writeUInt16LE(padded[i], i * 2);
+    }
   } else {
-    throw 'Bad type ' + value;
+    throw new Error(`Bad type ${value}`);
   }
   return [...buffer];
 }

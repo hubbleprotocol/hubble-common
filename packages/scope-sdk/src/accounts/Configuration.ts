@@ -1,27 +1,27 @@
 import { PublicKey, Connection } from "@solana/web3.js"
 import BN from "bn.js" // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as borsh from "@project-serum/borsh" // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as borsh from "@coral-xyz/borsh" // eslint-disable-line @typescript-eslint/no-unused-vars
 import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
 import { PROGRAM_ID } from "../programId"
 
 export interface ConfigurationFields {
-  adminPbk: PublicKey
-  oracleMappingsPbk: PublicKey
-  oraclePricesPbk: PublicKey
+  admin: PublicKey
+  oracleMappings: PublicKey
+  oraclePrices: PublicKey
   padding: Array<BN>
 }
 
 export interface ConfigurationJSON {
-  adminPbk: string
-  oracleMappingsPbk: string
-  oraclePricesPbk: string
+  admin: string
+  oracleMappings: string
+  oraclePrices: string
   padding: Array<string>
 }
 
 export class Configuration {
-  readonly adminPbk: PublicKey
-  readonly oracleMappingsPbk: PublicKey
-  readonly oraclePricesPbk: PublicKey
+  readonly admin: PublicKey
+  readonly oracleMappings: PublicKey
+  readonly oraclePrices: PublicKey
   readonly padding: Array<BN>
 
   static readonly discriminator = Buffer.from([
@@ -29,29 +29,30 @@ export class Configuration {
   ])
 
   static readonly layout = borsh.struct([
-    borsh.publicKey("adminPbk"),
-    borsh.publicKey("oracleMappingsPbk"),
-    borsh.publicKey("oraclePricesPbk"),
+    borsh.publicKey("admin"),
+    borsh.publicKey("oracleMappings"),
+    borsh.publicKey("oraclePrices"),
     borsh.array(borsh.u64(), 1267, "padding"),
   ])
 
   constructor(fields: ConfigurationFields) {
-    this.adminPbk = fields.adminPbk
-    this.oracleMappingsPbk = fields.oracleMappingsPbk
-    this.oraclePricesPbk = fields.oraclePricesPbk
+    this.admin = fields.admin
+    this.oracleMappings = fields.oracleMappings
+    this.oraclePrices = fields.oraclePrices
     this.padding = fields.padding
   }
 
   static async fetch(
     c: Connection,
-    address: PublicKey
+    address: PublicKey,
+    programId: PublicKey = PROGRAM_ID
   ): Promise<Configuration | null> {
     const info = await c.getAccountInfo(address)
 
     if (info === null) {
       return null
     }
-    if (!info.owner.equals(PROGRAM_ID)) {
+    if (!info.owner.equals(programId)) {
       throw new Error("account doesn't belong to this program")
     }
 
@@ -60,7 +61,8 @@ export class Configuration {
 
   static async fetchMultiple(
     c: Connection,
-    addresses: PublicKey[]
+    addresses: PublicKey[],
+    programId: PublicKey = PROGRAM_ID
   ): Promise<Array<Configuration | null>> {
     const infos = await c.getMultipleAccountsInfo(addresses)
 
@@ -68,7 +70,7 @@ export class Configuration {
       if (info === null) {
         return null
       }
-      if (!info.owner.equals(PROGRAM_ID)) {
+      if (!info.owner.equals(programId)) {
         throw new Error("account doesn't belong to this program")
       }
 
@@ -84,27 +86,27 @@ export class Configuration {
     const dec = Configuration.layout.decode(data.slice(8))
 
     return new Configuration({
-      adminPbk: dec.adminPbk,
-      oracleMappingsPbk: dec.oracleMappingsPbk,
-      oraclePricesPbk: dec.oraclePricesPbk,
+      admin: dec.admin,
+      oracleMappings: dec.oracleMappings,
+      oraclePrices: dec.oraclePrices,
       padding: dec.padding,
     })
   }
 
   toJSON(): ConfigurationJSON {
     return {
-      adminPbk: this.adminPbk.toString(),
-      oracleMappingsPbk: this.oracleMappingsPbk.toString(),
-      oraclePricesPbk: this.oraclePricesPbk.toString(),
+      admin: this.admin.toString(),
+      oracleMappings: this.oracleMappings.toString(),
+      oraclePrices: this.oraclePrices.toString(),
       padding: this.padding.map((item) => item.toString()),
     }
   }
 
   static fromJSON(obj: ConfigurationJSON): Configuration {
     return new Configuration({
-      adminPbk: new PublicKey(obj.adminPbk),
-      oracleMappingsPbk: new PublicKey(obj.oracleMappingsPbk),
-      oraclePricesPbk: new PublicKey(obj.oraclePricesPbk),
+      admin: new PublicKey(obj.admin),
+      oracleMappings: new PublicKey(obj.oracleMappings),
+      oraclePrices: new PublicKey(obj.oraclePrices),
       padding: obj.padding.map((item) => new BN(item)),
     })
   }

@@ -1,32 +1,36 @@
-import { TransactionInstruction, PublicKey } from "@solana/web3.js" // eslint-disable-line @typescript-eslint/no-unused-vars
+import { TransactionInstruction, PublicKey, AccountMeta } from "@solana/web3.js" // eslint-disable-line @typescript-eslint/no-unused-vars
 import BN from "bn.js" // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as borsh from "@project-serum/borsh" // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as borsh from "@coral-xyz/borsh" // eslint-disable-line @typescript-eslint/no-unused-vars
 import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
 import { PROGRAM_ID } from "../programId"
 
 export interface UpdateMappingArgs {
   token: BN
   priceType: number
+  feedName: string
 }
 
 export interface UpdateMappingAccounts {
   admin: PublicKey
-  program: PublicKey
-  programData: PublicKey
+  configuration: PublicKey
   oracleMappings: PublicKey
   priceInfo: PublicKey
 }
 
-export const layout = borsh.struct([borsh.u64("token"), borsh.u8("priceType")])
+export const layout = borsh.struct([
+  borsh.u64("token"),
+  borsh.u8("priceType"),
+  borsh.str("feedName"),
+])
 
 export function updateMapping(
   args: UpdateMappingArgs,
-  accounts: UpdateMappingAccounts
+  accounts: UpdateMappingAccounts,
+  programId: PublicKey = PROGRAM_ID
 ) {
-  const keys = [
+  const keys: Array<AccountMeta> = [
     { pubkey: accounts.admin, isSigner: true, isWritable: false },
-    { pubkey: accounts.program, isSigner: false, isWritable: false },
-    { pubkey: accounts.programData, isSigner: false, isWritable: false },
+    { pubkey: accounts.configuration, isSigner: false, isWritable: false },
     { pubkey: accounts.oracleMappings, isSigner: false, isWritable: true },
     { pubkey: accounts.priceInfo, isSigner: false, isWritable: false },
   ]
@@ -36,10 +40,11 @@ export function updateMapping(
     {
       token: args.token,
       priceType: args.priceType,
+      feedName: args.feedName,
     },
     buffer
   )
   const data = Buffer.concat([identifier, buffer]).slice(0, 8 + len)
-  const ix = new TransactionInstruction({ keys, programId: PROGRAM_ID, data })
+  const ix = new TransactionInstruction({ keys, programId, data })
   return ix
 }

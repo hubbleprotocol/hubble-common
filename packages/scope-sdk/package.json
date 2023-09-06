@@ -3,10 +3,11 @@
   "description": "Scope Oracle SDK",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "version": "2.1.0",
+  "version": "2.1.9",
   "scripts": {
     "build": "tsc",
-    "build:watch": "tsc -w"
+    "build:watch": "tsc -w",
+    "codegen": "yarn anchor-client-gen ../hubble-idl/src/scope.json ./src/ --program-id HFn8GnPADiny6XqUoWE8uRPPxb29ikn4yTuPa9MF2fWJ"
   },
   "repository": {
     "type": "git",
@@ -26,9 +27,6 @@
     "url": "https://github.com/hubbleprotocol/hubble-common/issues"
   },
   "homepage": "https://github.com/hubbleprotocol/hubble-common/blob/master/packages/scope-sdk",
-  "devDependencies": {
-    "@types/bn.js": "^5.1.0"
-  },
   "dependencies": {
     "@hubbleprotocol/hubble-config": "^2.1.0",
     "@project-serum/anchor": "^0.21.0",
@@ -39,6 +37,10 @@
   "peerDependencies": {
     "@solana/web3.js": "^1.78.4",
     "decimal.js": "^10.3.1"
+  },
+  "devDependencies": {
+    "@types/bn.js": "^5.1.0",
+    "anchor-client-gen": "^0.28.1"
   },
   "publishConfig": {
     "access": "public"

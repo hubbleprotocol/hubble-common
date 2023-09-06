@@ -8,6 +8,7 @@ export interface KaminoInstructionEntity {
   instruction_id: number;
   strategy_id: number;
   owner_id: number;
+  latest_position: boolean;
 }
 
 export default KaminoInstructionEntity;

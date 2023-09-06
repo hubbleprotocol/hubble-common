@@ -1,0 +1,2 @@
+export const ORACLE_MAPPINGS_LEN = 21000;
+export const ORACLE_PRICES_LEN = 28712;
