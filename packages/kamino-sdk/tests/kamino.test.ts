@@ -1615,10 +1615,10 @@ describe('Kamino SDK Tests', () => {
     );
 
     let performanceFees = await kamino.getStrategyPerformanceFees(fixtures.newOrcaStrategy);
-    expect(performanceFees.feesFeeBPS).to.be.eq(ZERO);
-    expect(performanceFees.reward0FeeBPS).to.be.eq(ZERO);
-    expect(performanceFees.reward1FeeBPS).to.be.eq(ZERO);
-    expect(performanceFees.reward2FeeBPS).to.be.eq(ZERO);
+    expect(performanceFees.feesFeeBPS.eq(ZERO)).to.be.true;
+    expect(performanceFees.reward0FeeBPS.eq(ZERO)).to.be.true;
+    expect(performanceFees.reward1FeeBPS.eq(ZERO)).to.be.true;
+    expect(performanceFees.reward2FeeBPS.eq(ZERO)).to.be.true;
 
     // update fees and check they are read correctly
     await updateStrategyConfig(
@@ -1634,10 +1634,10 @@ describe('Kamino SDK Tests', () => {
 
     await sleep(1000);
     performanceFees = await kamino.getStrategyPerformanceFees(fixtures.newOrcaStrategy);
-    expect(performanceFees.feesFeeBPS).to.be.eq(new Decimal(200));
-    expect(performanceFees.reward0FeeBPS).to.be.eq(new Decimal(300));
-    expect(performanceFees.reward1FeeBPS).to.be.eq(new Decimal(400));
-    expect(performanceFees.reward2FeeBPS).to.be.eq(new Decimal(500));
+    expect(performanceFees.feesFeeBPS.eq(new Decimal(200))).to.be.true;
+    expect(performanceFees.reward0FeeBPS.eq(new Decimal(300))).to.be.true;
+    expect(performanceFees.reward1FeeBPS.eq(new Decimal(400))).to.be.true;
+    expect(performanceFees.reward2FeeBPS.eq(new Decimal(500))).to.be.true;
 
     // update fees again and check that they were updated
     await updateStrategyConfig(connection, signer, fixtures.newOrcaStrategy, new UpdateCollectFeesFee(), ZERO);
@@ -1647,10 +1647,10 @@ describe('Kamino SDK Tests', () => {
 
     await sleep(1000);
     performanceFees = await kamino.getStrategyPerformanceFees(fixtures.newOrcaStrategy);
-    expect(performanceFees.feesFeeBPS).to.be.eq(ZERO);
-    expect(performanceFees.reward0FeeBPS).to.be.eq(ZERO);
-    expect(performanceFees.reward1FeeBPS).to.be.eq(ZERO);
-    expect(performanceFees.reward2FeeBPS).to.be.eq(ZERO);
+    expect(performanceFees.feesFeeBPS.eq(ZERO)).to.be.true;
+    expect(performanceFees.reward0FeeBPS.eq(ZERO)).to.be.true;
+    expect(performanceFees.reward1FeeBPS.eq(ZERO)).to.be.true;
+    expect(performanceFees.reward2FeeBPS.eq(ZERO)).to.be.true;
   });
 
   it('read Strategy Performance Fee with min performance fee in GlobalConfig', async () => {
@@ -1673,11 +1673,12 @@ describe('Kamino SDK Tests', () => {
       'number'
     );
 
+    await sleep(1000);
     let performanceFees = await kamino.getStrategyPerformanceFees(fixtures.newOrcaStrategy);
-    expect(performanceFees.feesFeeBPS).to.be.eq(new Decimal(500));
-    expect(performanceFees.reward0FeeBPS).to.be.eq(new Decimal(500));
-    expect(performanceFees.reward1FeeBPS).to.be.eq(new Decimal(500));
-    expect(performanceFees.reward2FeeBPS).to.be.eq(new Decimal(500));
+    expect(performanceFees.feesFeeBPS.eq(new Decimal(500))).to.be.true;
+    expect(performanceFees.reward0FeeBPS.eq(new Decimal(500))).to.be.true;
+    expect(performanceFees.reward1FeeBPS.eq(new Decimal(500))).to.be.true;
+    expect(performanceFees.reward2FeeBPS.eq(new Decimal(500))).to.be.true;
 
     // update fees and check they are read correctly
     await updateStrategyConfig(
@@ -1693,10 +1694,10 @@ describe('Kamino SDK Tests', () => {
 
     await sleep(1000);
     performanceFees = await kamino.getStrategyPerformanceFees(fixtures.newOrcaStrategy);
-    expect(performanceFees.feesFeeBPS).to.be.eq(new Decimal(500));
-    expect(performanceFees.reward0FeeBPS).to.be.eq(new Decimal(500));
-    expect(performanceFees.reward1FeeBPS).to.be.eq(new Decimal(700));
-    expect(performanceFees.reward2FeeBPS).to.be.eq(new Decimal(800));
+    expect(performanceFees.feesFeeBPS.eq(new Decimal(500))).to.be.true;
+    expect(performanceFees.reward0FeeBPS.eq(new Decimal(500))).to.be.true;
+    expect(performanceFees.reward1FeeBPS.eq(new Decimal(700))).to.be.true;
+    expect(performanceFees.reward2FeeBPS.eq(new Decimal(800))).to.be.true;
 
     // update globalConfig min perf fee
     await updateGlobalConfig(
@@ -1711,10 +1712,10 @@ describe('Kamino SDK Tests', () => {
 
     await sleep(1000);
     performanceFees = await kamino.getStrategyPerformanceFees(fixtures.newOrcaStrategy);
-    expect(performanceFees.feesFeeBPS).to.be.eq(new Decimal(420));
-    expect(performanceFees.reward0FeeBPS).to.be.eq(new Decimal(450));
-    expect(performanceFees.reward1FeeBPS).to.be.eq(new Decimal(700));
-    expect(performanceFees.reward2FeeBPS).to.be.eq(new Decimal(800));
+    expect(performanceFees.feesFeeBPS.eq(new Decimal(420))).to.be.true;
+    expect(performanceFees.reward0FeeBPS.eq(new Decimal(450))).to.be.true;
+    expect(performanceFees.reward1FeeBPS.eq(new Decimal(700))).to.be.true;
+    expect(performanceFees.reward2FeeBPS.eq(new Decimal(800))).to.be.true;
   });
 });
 
