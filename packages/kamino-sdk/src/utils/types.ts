@@ -3,6 +3,10 @@ import { WhirlpoolStrategy } from '../kamino-client/accounts';
 import { Dex, collToLamportsDecimal } from './utils';
 import Decimal from 'decimal.js';
 import { RebalanceTypeKind } from '../kamino-client/types';
+import { FullBPS } from './CreationParameters';
+import { sqrtPriceX64ToPrice, tickIndexToPrice } from '@orca-so/whirlpool-sdk';
+import { SqrtPriceMath } from '@raydium-io/raydium-sdk';
+import BN from 'bn.js';
 
 export const RAYDIUM_DEVNET_PROGRAM_ID = new PublicKey('devi51mZmdwUJGU9hjN27vEz64Gps7uUefqxg27EAtH');
 
@@ -382,6 +386,72 @@ export function getPeriodicRebalanceRebalanceFieldInfos(
   ];
 }
 
+export function getPositionRangeFromPriceAndPercentageParams(
+  price: Decimal,
+  lowerPriceDifferenceBPS: Decimal,
+  upperPriceDifferenceBPS: Decimal
+): PositionRange {
+  let fullBPSDecimal = new Decimal(FullBPS);
+  let lowerPrice = price.mul(fullBPSDecimal.sub(lowerPriceDifferenceBPS)).div(fullBPSDecimal);
+  let upperPrice = price.mul(fullBPSDecimal.add(upperPriceDifferenceBPS)).div(fullBPSDecimal);
+
+  return { lowerPrice, upperPrice };
+}
+
+export function getPositionRangeFromDriftParams(
+  dex: Dex,
+  tokenADecimals: number,
+  tokenBDecimals: number,
+  startMidTick: number,
+  ticksBelowMid: number,
+  ticksAboveMid: number
+): PositionRange {
+  let lowerTickIndex = startMidTick - ticksBelowMid;
+  let upperTickIndex = startMidTick - ticksAboveMid;
+
+  if (dex == 'ORCA') {
+    let lowerPrice = tickIndexToPrice(lowerTickIndex, tokenADecimals, tokenBDecimals);
+    let upperPrice = tickIndexToPrice(upperTickIndex, tokenADecimals, tokenBDecimals);
+    return { lowerPrice, upperPrice };
+  } else if (dex == 'RAYDIUM') {
+    let lowerPrice = sqrtPriceX64ToPrice(
+      SqrtPriceMath.getSqrtPriceX64FromTick(lowerTickIndex),
+      tokenADecimals,
+      tokenBDecimals
+    );
+
+    let upperPrice = sqrtPriceX64ToPrice(
+      SqrtPriceMath.getSqrtPriceX64FromTick(upperTickIndex),
+      tokenADecimals,
+      tokenBDecimals
+    );
+
+    return { lowerPrice, upperPrice };
+  } else {
+    throw new Error(`Unknown DEX ${dex}`);
+  }
+}
+
+export function getPositionRangeFromTakeProfitParams(
+  dex: Dex,
+  tokenADecimals: number,
+  tokenBDecimals: number,
+  lowerSqrtPriceX64: Decimal,
+  upperSqrtPriceX64: Decimal
+): PositionRange {
+  if (dex == 'ORCA') {
+    let lowerPrice = sqrtPriceX64ToPrice(new BN(lowerSqrtPriceX64.toString()), tokenADecimals, tokenBDecimals);
+    let upperPrice = sqrtPriceX64ToPrice(new BN(upperSqrtPriceX64.toString()), tokenADecimals, tokenBDecimals);
+    return { lowerPrice, upperPrice };
+  } else if (dex == 'RAYDIUM') {
+    let lowerPrice = sqrtPriceX64ToPrice(new BN(lowerSqrtPriceX64.toString()), tokenADecimals, tokenBDecimals);
+    let upperPrice = sqrtPriceX64ToPrice(new BN(upperSqrtPriceX64.toString()), tokenADecimals, tokenBDecimals);
+    return { lowerPrice, upperPrice };
+  } else {
+    throw new Error(`Unknown DEX ${dex}`);
+  }
+}
+
 export function getExpanderRebalanceFieldInfos(
   lowerPercentageBPS: number,
   upperPercentageBPS: number,
@@ -427,19 +497,6 @@ export function getExpanderRebalanceFieldInfos(
     value: maxNumberOfExpansions,
     enabled,
   };
-
-  // let lowerRangeRebalanceFieldInfo: RebalanceFieldInfo = {
-  //   label: 'priceLower',
-  //   type: 'number',
-  //   value: lowerPrice,
-  //   enabled,
-  // };
-  // let upperRangeRebalanceFieldInfo: RebalanceFieldInfo = {
-  //   label: 'priceUpper',
-  //   type: 'number',
-  //   value: upperPrice,
-  //   enabled,
-  // };
 
   return [
     lowerBpsRebalanceFieldInfo,

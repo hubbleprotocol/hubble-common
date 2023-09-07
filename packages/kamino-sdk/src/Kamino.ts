@@ -105,6 +105,8 @@ import {
   getPricePercentageWithResetRebalanceFieldInfos,
   getDriftRebalanceFieldInfos,
   PerformanceFees,
+  getPositionRangeFromDriftParams,
+  getPositionRangeFromTakeProfitParams,
 } from './utils';
 import { ASSOCIATED_TOKEN_PROGRAM_ID, Token, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import {
@@ -543,9 +545,19 @@ export class Kamino {
       direction = directionInput.value;
     }
 
+    let tokenADecimals = await getMintDecimals(this._connection, tokenAMint);
+    let tokenBDecimals = await getMintDecimals(this._connection, tokenBMint);
+    let positionPriceRange = getPositionRangeFromDriftParams(
+      dex,
+      tokenADecimals,
+      tokenBDecimals,
+      startMidTick,
+      ticksBelowMid,
+      ticksAboveMid
+    );
     //todo: find how to calculate lowerPrice and upper price
-    let lowerPrice = price;
-    let upperPrice = price;
+    let lowerPrice = positionPriceRange.lowerPrice.toNumber();
+    let upperPrice = positionPriceRange.upperPrice.toNumber();
 
     let fieldInfos = getDriftRebalanceFieldInfos(
       startMidTick,
@@ -564,7 +576,7 @@ export class Kamino {
     fieldOverrides: RebalanceFieldInfo[],
     tokenAMint: PublicKey,
     tokenBMint: PublicKey
-  ) => {
+  ): Promise<RebalanceFieldInfo[]> => {
     let price = await this.getPriceForPair(dex, tokenAMint, tokenBMint);
 
     // pub lower_range_price: u128,
@@ -585,7 +597,11 @@ export class Kamino {
       upperRangePrice = upperRangePriceInput.value;
     }
 
-    
+    // don't do the commented code, we need to repesent the price directly in numerical value. not x64
+    // let tokenADecimals = await getMintDecimals(this._connection, tokenAMint);
+    // let tokenBDecimals = await getMintDecimals(this._connection, tokenBMint);
+    // let positionPriceRange = getPositionRangeFromTakeProfitParams(dex, tokenADecimals, tokenBDecimals, )
+    return getManualRebalanceFieldInfos(lowerRangePrice, upperRangePrice, true);
   };
 
   // todo: implement this
