@@ -103,6 +103,7 @@ import {
   MaybeTokensBalances,
   ProportionalMintingMethod,
   getPricePercentageWithResetRebalanceFieldInfos,
+  getDriftRebalanceFieldInfos,
 } from './utils';
 import { ASSOCIATED_TOKEN_PROGRAM_ID, Token, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import {
@@ -213,7 +214,15 @@ import {
   simulatePercentagePool,
   SimulationPercentagePoolParameters,
 } from './services/PoolSimulationService';
-import { Expander, Manual, PricePercentage, PricePercentageWithReset } from './kamino-client/types/RebalanceType';
+import {
+  Expander,
+  Manual,
+  PricePercentage,
+  PricePercentageWithReset,
+  Drift,
+  TakeProfit,
+  PeriodicRebalance,
+} from './kamino-client/types/RebalanceType';
 import {
   checkIfAccountExists,
   createWsolAtaIfMissing,
@@ -412,7 +421,7 @@ export class Kamino {
     fieldOverrides: RebalanceFieldInfo[],
     tokenAMint: PublicKey,
     tokenBMint: PublicKey
-  ) => {
+  ): Promise<RebalanceFieldInfo[]> => {
     let price = await this.getPriceForPair(dex, tokenAMint, tokenBMint);
 
     let lowerPriceDifferenceBPS: number;
@@ -445,7 +454,7 @@ export class Kamino {
     fieldOverrides: RebalanceFieldInfo[],
     tokenAMint: PublicKey,
     tokenBMint: PublicKey
-  ) => {
+  ): Promise<RebalanceFieldInfo[]> => {
     let price = await this.getPriceForPair(dex, tokenAMint, tokenBMint);
 
     let lowerPriceDifferenceBPS: number;
@@ -464,25 +473,88 @@ export class Kamino {
       upperPriceDifferenceBPS = DefaultUpperPriceDifferenceBPS;
     }
 
-    let lowerPriceResetDifference;
-
     let lowerPrice = (price * (FullBPS - lowerPriceDifferenceBPS)) / FullBPS;
     let upperPrice = (price * (FullBPS + upperPriceDifferenceBPS)) / FullBPS;
-    let fieldInfos = getPricePercentageRebalanceFieldInfos(lowerPriceDifferenceBPS, upperPriceDifferenceBPS).concat(
-      getManualRebalanceFieldInfos(lowerPrice, upperPrice, false)
-    );
+
+    let lowerReferencePriceDifferenceBPS: number = 0;
+    let lowerResetPriceDifferenceBPSInput = fieldOverrides.find((x) => x.label == 'lowerResetThresholdBps');
+    if (lowerResetPriceDifferenceBPSInput) {
+      lowerReferencePriceDifferenceBPS = lowerResetPriceDifferenceBPSInput.value;
+    }
+
+    let upperResetPriceDifferenceBPS: number = 0;
+    let upperResetPriceDifferenceBPSInput = fieldOverrides.find((x) => x.label == 'upperResetThresholdBps');
+    if (upperResetPriceDifferenceBPSInput) {
+      upperResetPriceDifferenceBPS = upperResetPriceDifferenceBPSInput.value;
+    }
+
+    let fieldInfos = getPricePercentageWithResetRebalanceFieldInfos(
+      lowerPriceDifferenceBPS,
+      upperPriceDifferenceBPS,
+      lowerReferencePriceDifferenceBPS,
+      upperResetPriceDifferenceBPS
+    ).concat(getManualRebalanceFieldInfos(lowerPrice, upperPrice, false));
 
     return fieldInfos;
   };
 
-  // todo: implement this
   getFieldsForDriftRebalanceMethod = async (
     dex: Dex,
     fieldOverrides: RebalanceFieldInfo[],
     tokenAMint: PublicKey,
     tokenBMint: PublicKey
-  ) => {
+  ): Promise<RebalanceFieldInfo[]> => {
     let price = await this.getPriceForPair(dex, tokenAMint, tokenBMint);
+
+    // pub start_mid_tick: i32,
+    // pub ticks_below_mid: i32,
+    // pub ticks_above_mid: i32,
+    // pub seconds_per_tick: u64,
+    // pub direction: DriftDirection,
+
+    let startMidTick: number = 0;
+    let startMidTickInput = fieldOverrides.find((x) => x.label == 'startMidTick');
+    if (startMidTickInput) {
+      startMidTick = startMidTickInput.value;
+    }
+
+    let ticksBelowMid: number = 0;
+    let ticksBelowMidInput = fieldOverrides.find((x) => x.label == 'ticksBelowMid');
+    if (ticksBelowMidInput) {
+      ticksBelowMid = ticksBelowMidInput.value;
+    }
+
+    let ticksAboveMid: number = 0;
+    let ticksAboveMidInput = fieldOverrides.find((x) => x.label == 'ticksAboveMid');
+    if (ticksAboveMidInput) {
+      ticksAboveMid = ticksAboveMidInput.value;
+    }
+
+    let secondsPerTick: number = 0;
+    let secondsPerTickInput = fieldOverrides.find((x) => x.label == 'secondsPerTick');
+    if (secondsPerTickInput) {
+      secondsPerTick = secondsPerTickInput.value;
+    }
+
+    let direction: number = 0;
+    let directionInput = fieldOverrides.find((x) => x.label == 'direction');
+    if (directionInput) {
+      direction = directionInput.value;
+    }
+
+    //todo: find how to calculate lowerPrice and upper price
+    let lowerPrice = price;
+    let upperPrice = price;
+
+    let fieldInfos = getDriftRebalanceFieldInfos(
+      startMidTick,
+      ticksBelowMid,
+      ticksAboveMid,
+      secondsPerTick,
+      direction
+    ).concat(getManualRebalanceFieldInfos(lowerPrice, upperPrice, false));
+
+    return fieldInfos;
   };
 
   // todo: implement this
@@ -493,6 +565,26 @@ export class Kamino {
     tokenBMint: PublicKey
   ) => {
     let price = await this.getPriceForPair(dex, tokenAMint, tokenBMint);
+
+    // pub lower_range_price: u128,
+    // pub upper_range_price: u128,
+    // // Which token we want the full amount in
+    // // Will wait until the position is fully in this token (0 or 1, representing A or B)
+    // pub destination_token: RebalanceTakeProfitToken,
+
+    let lowerRangePrice: number = 0;
+    let lowerRangePriceInput = fieldOverrides.find((x) => x.label == 'lowerRangePrice');
+    if (lowerRangePriceInput) {
+      lowerRangePrice = lowerRangePriceInput.value;
+    }
+
+    let upperRangePrice: number = 0;
+    let upperRangePriceInput = fieldOverrides.find((x) => x.label == 'upperRangePrice');
+    if (upperRangePriceInput) {
+      upperRangePrice = upperRangePriceInput.value;
+    }
+
+    
   };
 
   // todo: implement this

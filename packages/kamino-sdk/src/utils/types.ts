@@ -112,7 +112,11 @@ export interface RebalanceFieldInfo {
   enabled: boolean;
 }
 
-export function getManualRebalanceFieldInfos(lowerPrice: number, upperPrice: number, enabled: boolean = true) {
+export function getManualRebalanceFieldInfos(
+  lowerPrice: number,
+  upperPrice: number,
+  enabled: boolean = true
+): RebalanceFieldInfo[] {
   let lowerRangeRebalanceFieldInfo: RebalanceFieldInfo = {
     label: 'priceLower',
     type: 'number',
@@ -131,8 +135,10 @@ export function getManualRebalanceFieldInfos(lowerPrice: number, upperPrice: num
 export function getPricePercentageRebalanceFieldInfos(
   lowerPercentageBPS: number,
   upperPercentageBPS: number,
+  // lowerPrice: number,
+  // upperPrice: number,
   enabled: boolean = true
-) {
+): RebalanceFieldInfo[] {
   let lowerBpsRebalanceFieldInfo: RebalanceFieldInfo = {
     label: 'lowerThresholdBps',
     type: 'number',
@@ -145,8 +151,25 @@ export function getPricePercentageRebalanceFieldInfos(
     value: upperPercentageBPS,
     enabled,
   };
+  // let lowerRangeRebalanceFieldInfo: RebalanceFieldInfo = {
+  //   label: 'priceLower',
+  //   type: 'number',
+  //   value: lowerPrice,
+  //   enabled,
+  // };
+  // let upperRangeRebalanceFieldInfo: RebalanceFieldInfo = {
+  //   label: 'priceUpper',
+  //   type: 'number',
+  //   value: upperPrice,
+  //   enabled,
+  // };
 
-  return [lowerBpsRebalanceFieldInfo, upperBpsRebalanceFieldInfo];
+  return [
+    lowerBpsRebalanceFieldInfo,
+    upperBpsRebalanceFieldInfo,
+    // lowerRangeRebalanceFieldInfo,
+    // upperRangeRebalanceFieldInfo,
+  ];
 }
 
 export function getPricePercentageWithResetRebalanceFieldInfos(
@@ -154,8 +177,10 @@ export function getPricePercentageWithResetRebalanceFieldInfos(
   upperPercentageBPS: number,
   resetLowerPercentageBPS: number,
   resetUpperPercentageBPS: number,
+  // lowerPrice: number,
+  // upperPrice: number,
   enabled: boolean = true
-) {
+): RebalanceFieldInfo[] {
   let lowerBpsRebalanceFieldInfo: RebalanceFieldInfo = {
     label: 'lowerThresholdBps',
     type: 'number',
@@ -180,12 +205,26 @@ export function getPricePercentageWithResetRebalanceFieldInfos(
     value: resetUpperPercentageBPS,
     enabled,
   };
+  // let lowerRangeRebalanceFieldInfo: RebalanceFieldInfo = {
+  //   label: 'priceLower',
+  //   type: 'number',
+  //   value: lowerPrice,
+  //   enabled,
+  // };
+  // let upperRangeRebalanceFieldInfo: RebalanceFieldInfo = {
+  //   label: 'priceUpper',
+  //   type: 'number',
+  //   value: upperPrice,
+  //   enabled,
+  // };
 
   return [
     lowerBpsRebalanceFieldInfo,
     upperBpsRebalanceFieldInfo,
     resetLowerBpsRebalanceFieldInfo,
     resetUpperBpsRebalanceFieldInfo,
+    // lowerRangeRebalanceFieldInfo,
+    // upperRangeRebalanceFieldInfo,
   ];
 }
 
@@ -196,7 +235,7 @@ export function getDriftRebalanceFieldInfos(
   secondsPerTick: number,
   direction: number,
   enabled: boolean = true
-) {
+): RebalanceFieldInfo[] {
   let startMidTickRebalanceFieldInfo: RebalanceFieldInfo = {
     label: 'startMidTick',
     type: 'number',
@@ -227,6 +266,18 @@ export function getDriftRebalanceFieldInfos(
     value: direction,
     enabled,
   };
+  // let lowerRangeRebalanceFieldInfo: RebalanceFieldInfo = {
+  //   label: 'priceLower',
+  //   type: 'number',
+  //   value: lowerPrice,
+  //   enabled,
+  // };
+  // let upperRangeRebalanceFieldInfo: RebalanceFieldInfo = {
+  //   label: 'priceUpper',
+  //   type: 'number',
+  //   value: upperPrice,
+  //   enabled,
+  // };
 
   return [
     startMidTickRebalanceFieldInfo,
@@ -234,57 +285,101 @@ export function getDriftRebalanceFieldInfos(
     ticksAboveMidRebalanceFieldInfo,
     secondsPerTickRebalanceFieldInfo,
     directionRebalanceFieldInfo,
+    // lowerRangeRebalanceFieldInfo,
+    // upperRangeRebalanceFieldInfo,
   ];
 }
 
 export function getTakeProfitRebalanceFieldsInfos(
   lowerRangePrice: number,
   upperRangePrice: number,
-  destinationToken: number
-) {
+  destinationToken: number,
+  enabled: boolean = true
+): RebalanceFieldInfo[] {
   let lowerRangePriceRebalanceFieldInfo: RebalanceFieldInfo = {
     label: 'lowerRangePrice',
     type: 'number',
     value: lowerRangePrice,
-    enabled: true,
+    enabled,
   };
   let upperRangePriceRebalanceFieldInfo: RebalanceFieldInfo = {
     label: 'upperRangePrice',
     type: 'number',
     value: upperRangePrice,
-    enabled: true,
+    enabled,
   };
   let destinationTokenRebalanceFieldInfo: RebalanceFieldInfo = {
     label: 'destinationToken',
     type: 'number',
     value: destinationToken,
-    enabled: true,
+    enabled,
   };
+  // let lowerRangeRebalanceFieldInfo: RebalanceFieldInfo = {
+  //   label: 'priceLower',
+  //   type: 'number',
+  //   value: lowerPrice,
+  //   enabled,
+  // };
+  // let upperRangeRebalanceFieldInfo: RebalanceFieldInfo = {
+  //   label: 'priceUpper',
+  //   type: 'number',
+  //   value: upperPrice,
+  //   enabled,
+  // };
 
-  return [lowerRangePriceRebalanceFieldInfo, upperRangePriceRebalanceFieldInfo, destinationTokenRebalanceFieldInfo];
+  return [
+    lowerRangePriceRebalanceFieldInfo,
+    upperRangePriceRebalanceFieldInfo,
+    destinationTokenRebalanceFieldInfo,
+    // lowerRangeRebalanceFieldInfo,
+    // upperRangeRebalanceFieldInfo,
+  ];
 }
 
-export function getPeriodicRebalanceRebalanceFieldInfos(period: number, lowerRangeBps: number, upperRangeBps: number) {
+export function getPeriodicRebalanceRebalanceFieldInfos(
+  period: number,
+  lowerRangeBps: number,
+  upperRangeBps: number,
+  enabled: boolean = true
+): RebalanceFieldInfo[] {
   let periodRebalanceFieldInfo: RebalanceFieldInfo = {
     label: 'period',
     type: 'number',
     value: period,
-    enabled: true,
+    enabled,
   };
   let lowerRangeBpsRebalanceFieldInfo: RebalanceFieldInfo = {
     label: 'lowerRangeBps',
     type: 'number',
     value: lowerRangeBps,
-    enabled: true,
+    enabled,
   };
   let upperRangeBpsRebalanceFieldInfo: RebalanceFieldInfo = {
     label: 'upperRangeBps',
     type: 'number',
     value: upperRangeBps,
-    enabled: true,
+    enabled,
   };
+  // let lowerRangeRebalanceFieldInfo: RebalanceFieldInfo = {
+  //   label: 'priceLower',
+  //   type: 'number',
+  //   value: lowerPrice,
+  //   enabled,
+  // };
+  // let upperRangeRebalanceFieldInfo: RebalanceFieldInfo = {
+  //   label: 'priceUpper',
+  //   type: 'number',
+  //   value: upperPrice,
+  //   enabled,
+  // };
 
-  return [periodRebalanceFieldInfo, lowerRangeBpsRebalanceFieldInfo, upperRangeBpsRebalanceFieldInfo];
+  return [
+    periodRebalanceFieldInfo,
+    lowerRangeBpsRebalanceFieldInfo,
+    upperRangeBpsRebalanceFieldInfo,
+    // lowerRangeRebalanceFieldInfo,
+    // upperRangeRebalanceFieldInfo,
+  ];
 }
 
 export function getExpanderRebalanceFieldInfos(
@@ -295,7 +390,7 @@ export function getExpanderRebalanceFieldInfos(
   expansionBPS: number,
   maxNumberOfExpansions: number,
   enabled: boolean = true
-) {
+): RebalanceFieldInfo[] {
   let lowerBpsRebalanceFieldInfo: RebalanceFieldInfo = {
     label: 'lowerThresholdBps',
     type: 'number',
@@ -332,6 +427,19 @@ export function getExpanderRebalanceFieldInfos(
     value: maxNumberOfExpansions,
     enabled,
   };
+
+  // let lowerRangeRebalanceFieldInfo: RebalanceFieldInfo = {
+  //   label: 'priceLower',
+  //   type: 'number',
+  //   value: lowerPrice,
+  //   enabled,
+  // };
+  // let upperRangeRebalanceFieldInfo: RebalanceFieldInfo = {
+  //   label: 'priceUpper',
+  //   type: 'number',
+  //   value: upperPrice,
+  //   enabled,
+  // };
 
   return [
     lowerBpsRebalanceFieldInfo,
