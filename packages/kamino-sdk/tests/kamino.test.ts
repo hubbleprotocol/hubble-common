@@ -1668,7 +1668,7 @@ describe('Kamino SDK Tests', () => {
       signer,
       kamino.getGlobalConfig(),
       '0',
-      new GlobalConfigOption.ScopeProgramId(),
+      new GlobalConfigOption.MinPerformanceFeeBps(),
       new Decimal(500).toString(),
       'number'
     );
