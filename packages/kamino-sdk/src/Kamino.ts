@@ -102,6 +102,7 @@ import {
   noopProfiledFunctionExecution,
   MaybeTokensBalances,
   ProportionalMintingMethod,
+  PerformanceFees,
 } from './utils';
 import { ASSOCIATED_TOKEN_PROGRAM_ID, Token, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import {
@@ -3868,6 +3869,32 @@ export class Kamino {
       return this._raydiumService.getStrategyWhirlpoolPoolAprApy(strategyState, raydiumPools);
     }
     throw Error(`Strategy dex ${dex} not supported`);
+  };
+
+  getStrategyPerformanceFees = async (
+    strategy: PublicKey | StrategyWithAddress,
+    globalConfig?: GlobalConfig
+  ): Promise<PerformanceFees> => {
+    const { strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
+
+    const globalConfigState = globalConfig || (await GlobalConfig.fetch(this._connection, strategyState.globalConfig));
+
+    if (globalConfigState == null) {
+      throw new Error(`Unable to fetch GlobalConfig with Pubkey ${strategyState.globalConfig}`);
+    }
+    let globalConfigMinPerformanceFee = new Decimal(globalConfigState.minPerformanceFeeBps.toString());
+
+    let strategyFeesFee = new Decimal(strategyState.feesFee.toString());
+    let strategyReward0Fee = new Decimal(strategyState.reward0Fee.toString());
+    let strategyReward1Fee = new Decimal(strategyState.reward1Fee.toString());
+    let strategyReward2Fee = new Decimal(strategyState.reward2Fee.toString());
+
+    return {
+      feesFeeBPS: Decimal.max(strategyFeesFee, globalConfigMinPerformanceFee),
+      reward0FeeBPS: Decimal.max(strategyReward0Fee, globalConfigMinPerformanceFee),
+      reward1FeeBPS: Decimal.max(strategyReward1Fee, globalConfigMinPerformanceFee),
+      reward2FeeBPS: Decimal.max(strategyReward2Fee, globalConfigMinPerformanceFee),
+    };
   };
 
   getLiquidityDistributionRaydiumPool = (

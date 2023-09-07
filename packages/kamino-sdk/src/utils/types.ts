@@ -272,3 +272,10 @@ export interface InstructionsWithLookupTables {
   instructions: TransactionInstruction[];
   lookupTablesAddresses: PublicKey[];
 }
+
+export interface PerformanceFees {
+  feesFeeBPS: Decimal;
+  reward0FeeBPS: Decimal;
+  reward1FeeBPS: Decimal;
+  reward2FeeBPS: Decimal;
+}
