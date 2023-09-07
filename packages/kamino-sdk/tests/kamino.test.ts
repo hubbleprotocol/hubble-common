@@ -46,9 +46,13 @@ import {
 } from './utils';
 import {
   AllowDepositWithoutInvest,
+  UpdateCollectFeesFee,
   UpdateDepositCap,
   UpdateDepositCapIxn,
   UpdateMaxDeviationBps,
+  UpdateReward0Fee,
+  UpdateReward1Fee,
+  UpdateReward2Fee,
   UpdateStrategyCreationState,
   UpdateStrategyType,
 } from '../src/kamino-client/types/StrategyConfigOption';
@@ -1598,6 +1602,120 @@ describe('Kamino SDK Tests', () => {
 
     expect(tokens[0].toString()).to.be.eq(new Decimal(10).toString());
     expect(tokens[1].toString()).to.be.eq(new Decimal(25).toString());
+  });
+
+  it('read Strategy Performance Fee when no min performance fee in GlobalConfig', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      fixtures.globalConfig,
+      fixtures.kaminoProgramId,
+      WHIRLPOOL_PROGRAM_ID,
+      LOCAL_RAYDIUM_PROGRAM_ID
+    );
+
+    let performanceFees = await kamino.getStrategyPerformanceFees(fixtures.newOrcaStrategy);
+    expect(performanceFees.feesFeeBPS.eq(ZERO)).to.be.true;
+    expect(performanceFees.reward0FeeBPS.eq(ZERO)).to.be.true;
+    expect(performanceFees.reward1FeeBPS.eq(ZERO)).to.be.true;
+    expect(performanceFees.reward2FeeBPS.eq(ZERO)).to.be.true;
+
+    // update fees and check they are read correctly
+    await updateStrategyConfig(
+      connection,
+      signer,
+      fixtures.newOrcaStrategy,
+      new UpdateCollectFeesFee(),
+      new Decimal(200)
+    );
+    await updateStrategyConfig(connection, signer, fixtures.newOrcaStrategy, new UpdateReward0Fee(), new Decimal(300));
+    await updateStrategyConfig(connection, signer, fixtures.newOrcaStrategy, new UpdateReward1Fee(), new Decimal(400));
+    await updateStrategyConfig(connection, signer, fixtures.newOrcaStrategy, new UpdateReward2Fee(), new Decimal(500));
+
+    await sleep(1000);
+    performanceFees = await kamino.getStrategyPerformanceFees(fixtures.newOrcaStrategy);
+    expect(performanceFees.feesFeeBPS.eq(new Decimal(200))).to.be.true;
+    expect(performanceFees.reward0FeeBPS.eq(new Decimal(300))).to.be.true;
+    expect(performanceFees.reward1FeeBPS.eq(new Decimal(400))).to.be.true;
+    expect(performanceFees.reward2FeeBPS.eq(new Decimal(500))).to.be.true;
+
+    // update fees again and check that they were updated
+    await updateStrategyConfig(connection, signer, fixtures.newOrcaStrategy, new UpdateCollectFeesFee(), ZERO);
+    await updateStrategyConfig(connection, signer, fixtures.newOrcaStrategy, new UpdateReward0Fee(), ZERO);
+    await updateStrategyConfig(connection, signer, fixtures.newOrcaStrategy, new UpdateReward1Fee(), ZERO);
+    await updateStrategyConfig(connection, signer, fixtures.newOrcaStrategy, new UpdateReward2Fee(), ZERO);
+
+    await sleep(1000);
+    performanceFees = await kamino.getStrategyPerformanceFees(fixtures.newOrcaStrategy);
+    expect(performanceFees.feesFeeBPS.eq(ZERO)).to.be.true;
+    expect(performanceFees.reward0FeeBPS.eq(ZERO)).to.be.true;
+    expect(performanceFees.reward1FeeBPS.eq(ZERO)).to.be.true;
+    expect(performanceFees.reward2FeeBPS.eq(ZERO)).to.be.true;
+  });
+
+  it('read Strategy Performance Fee with min performance fee in GlobalConfig', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      fixtures.globalConfig,
+      fixtures.kaminoProgramId,
+      WHIRLPOOL_PROGRAM_ID,
+      LOCAL_RAYDIUM_PROGRAM_ID
+    );
+
+    await updateGlobalConfig(
+      kamino,
+      signer,
+      kamino.getGlobalConfig(),
+      '0',
+      new GlobalConfigOption.MinPerformanceFeeBps(),
+      new Decimal(500).toString(),
+      'number'
+    );
+
+    await sleep(1000);
+    let performanceFees = await kamino.getStrategyPerformanceFees(fixtures.newOrcaStrategy);
+    expect(performanceFees.feesFeeBPS.eq(new Decimal(500))).to.be.true;
+    expect(performanceFees.reward0FeeBPS.eq(new Decimal(500))).to.be.true;
+    expect(performanceFees.reward1FeeBPS.eq(new Decimal(500))).to.be.true;
+    expect(performanceFees.reward2FeeBPS.eq(new Decimal(500))).to.be.true;
+
+    // update fees and check they are read correctly
+    await updateStrategyConfig(
+      connection,
+      signer,
+      fixtures.newOrcaStrategy,
+      new UpdateCollectFeesFee(),
+      new Decimal(400)
+    );
+    await updateStrategyConfig(connection, signer, fixtures.newOrcaStrategy, new UpdateReward0Fee(), new Decimal(450));
+    await updateStrategyConfig(connection, signer, fixtures.newOrcaStrategy, new UpdateReward1Fee(), new Decimal(700));
+    await updateStrategyConfig(connection, signer, fixtures.newOrcaStrategy, new UpdateReward2Fee(), new Decimal(800));
+
+    await sleep(1000);
+    performanceFees = await kamino.getStrategyPerformanceFees(fixtures.newOrcaStrategy);
+    expect(performanceFees.feesFeeBPS.eq(new Decimal(500))).to.be.true;
+    expect(performanceFees.reward0FeeBPS.eq(new Decimal(500))).to.be.true;
+    expect(performanceFees.reward1FeeBPS.eq(new Decimal(700))).to.be.true;
+    expect(performanceFees.reward2FeeBPS.eq(new Decimal(800))).to.be.true;
+
+    // update globalConfig min perf fee
+    await updateGlobalConfig(
+      kamino,
+      signer,
+      kamino.getGlobalConfig(),
+      '0',
+      new GlobalConfigOption.MinPerformanceFeeBps(),
+      new Decimal(420).toString(),
+      'number'
+    );
+
+    await sleep(1000);
+    performanceFees = await kamino.getStrategyPerformanceFees(fixtures.newOrcaStrategy);
+    expect(performanceFees.feesFeeBPS.eq(new Decimal(420))).to.be.true;
+    expect(performanceFees.reward0FeeBPS.eq(new Decimal(450))).to.be.true;
+    expect(performanceFees.reward1FeeBPS.eq(new Decimal(700))).to.be.true;
+    expect(performanceFees.reward2FeeBPS.eq(new Decimal(800))).to.be.true;
   });
 });
 
