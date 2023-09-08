@@ -12,10 +12,13 @@ import Decimal from 'decimal.js';
 import { Dex } from './utils';
 
 export const FullBPS = 10_000;
+export const FullBPSDecimal = new Decimal(FullBPS);
 export const FullPercentage = 100;
 
 export const DefaultLowerPercentageBPS: number = 1000;
+export const DefaultLowerPercentageBPSDecimal: Decimal = new Decimal(DefaultLowerPercentageBPS);
 export const DefaultUpperPercentageBPS: number = 1000;
+export const DefaultUpperPercentageBPSDecimal: Decimal = new Decimal(DefaultUpperPercentageBPS);
 
 // the default parameters for the manual rebalance, 5% above and below the current price
 export const DefaultLowerPriceDifferenceBPS: number = 500;

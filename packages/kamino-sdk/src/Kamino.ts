@@ -72,8 +72,6 @@ import {
   getAssociatedTokenAddress,
   getAssociatedTokenAddressAndData,
   getDexProgramId,
-  getManualRebalanceFieldInfos,
-  getPricePercentageRebalanceFieldInfos,
   getReadOnlyWallet,
   buildStrategyRebalanceParams,
   getUpdateStrategyConfigIx,
@@ -102,11 +100,7 @@ import {
   noopProfiledFunctionExecution,
   MaybeTokensBalances,
   ProportionalMintingMethod,
-  getPricePercentageWithResetRebalanceFieldInfos,
-  getDriftRebalanceFieldInfos,
   PerformanceFees,
-  getPositionRangeFromDriftParams,
-  getPositionRangeFromTakeProfitParams,
 } from './utils';
 import { ASSOCIATED_TOKEN_PROGRAM_ID, Token, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import {
@@ -237,6 +231,11 @@ import {
 import { RouteInfo } from '@jup-ag/core';
 import { SwapResponse } from '@jup-ag/api';
 import { StrategyPrices } from './models/StrategyPrices';
+import { getManualRebalanceFieldInfos } from './rebalance_methods/manualRebalance';
+import {
+  getPositionRangeForPricePercentageRebalanceParams,
+  getPricePercentageRebalanceFieldInfos,
+} from './rebalance_methods/pricePercentageRebalance';
 export const KAMINO_IDL = KaminoIdl;
 
 export class Kamino {
@@ -400,20 +399,20 @@ export class Kamino {
   ): Promise<RebalanceFieldInfo[]> => {
     let price = await this.getPriceForPair(dex, tokenAMint, tokenBMint);
 
-    let lowerPrice: number;
+    let lowerPrice: Decimal;
     let lowerPriceInput = fieldOverrides.find((x) => x.label == 'lowerPrice');
     if (lowerPriceInput) {
       lowerPrice = lowerPriceInput.value;
     } else {
-      lowerPrice = (price * (FullBPS - DefaultLowerPriceDifferenceBPS)) / FullBPS;
+      lowerPrice = new Decimal((price * (FullBPS - DefaultLowerPriceDifferenceBPS)) / FullBPS);
     }
 
-    let upperPrice: number;
+    let upperPrice: Decimal;
     let upperPriceInput = fieldOverrides.find((x) => x.label == 'upperPrice');
     if (upperPriceInput) {
       upperPrice = upperPriceInput.value;
     } else {
-      upperPrice = (price * (FullBPS + DefaultUpperPriceDifferenceBPS)) / FullBPS;
+      upperPrice = new Decimal((price * (FullBPS + DefaultUpperPriceDifferenceBPS)) / FullBPS);
     }
 
     return getManualRebalanceFieldInfos(lowerPrice, upperPrice);
@@ -427,24 +426,27 @@ export class Kamino {
   ): Promise<RebalanceFieldInfo[]> => {
     let price = await this.getPriceForPair(dex, tokenAMint, tokenBMint);
 
-    let lowerPriceDifferenceBPS: number;
+    let lowerPriceDifferenceBPS: Decimal;
     let lowerPriceDifferenceBPSInput = fieldOverrides.find((x) => x.label == 'lowerThresholdBps');
     if (lowerPriceDifferenceBPSInput) {
       lowerPriceDifferenceBPS = lowerPriceDifferenceBPSInput.value;
     } else {
-      lowerPriceDifferenceBPS = DefaultLowerPriceDifferenceBPS;
+      lowerPriceDifferenceBPS = new Decimal(DefaultLowerPriceDifferenceBPS);
     }
 
-    let upperPriceDifferenceBPS: number;
+    let upperPriceDifferenceBPS: Decimal;
     let upperPriceDifferenceBPSInput = fieldOverrides.find((x) => x.label == 'upperThresholdBps');
     if (upperPriceDifferenceBPSInput) {
       upperPriceDifferenceBPS = upperPriceDifferenceBPSInput.value;
     } else {
-      upperPriceDifferenceBPS = DefaultUpperPriceDifferenceBPS;
+      upperPriceDifferenceBPS = new Decimal(DefaultUpperPriceDifferenceBPS);
     }
 
-    let lowerPrice = (price * (FullBPS - lowerPriceDifferenceBPS)) / FullBPS;
-    let upperPrice = (price * (FullBPS + upperPriceDifferenceBPS)) / FullBPS;
+    let { lowerPrice, upperPrice } = getPositionRangeForPricePercentageRebalanceParams(
+      new Decimal(price),
+      lowerPriceDifferenceBPS,
+      upperPriceDifferenceBPS
+    );
     let fieldInfos = getPricePercentageRebalanceFieldInfos(lowerPriceDifferenceBPS, upperPriceDifferenceBPS).concat(
       getManualRebalanceFieldInfos(lowerPrice, upperPrice, false)
     );
@@ -460,32 +462,35 @@ export class Kamino {
   ): Promise<RebalanceFieldInfo[]> => {
     let price = await this.getPriceForPair(dex, tokenAMint, tokenBMint);
 
-    let lowerPriceDifferenceBPS: number;
+    let lowerPriceDifferenceBPS: Decimal;
     let lowerPriceDifferenceBPSInput = fieldOverrides.find((x) => x.label == 'lowerThresholdBps');
     if (lowerPriceDifferenceBPSInput) {
       lowerPriceDifferenceBPS = lowerPriceDifferenceBPSInput.value;
     } else {
-      lowerPriceDifferenceBPS = DefaultLowerPriceDifferenceBPS;
+      lowerPriceDifferenceBPS = new Decimal(DefaultLowerPriceDifferenceBPS);
     }
 
-    let upperPriceDifferenceBPS: number;
+    let upperPriceDifferenceBPS: Decimal;
     let upperPriceDifferenceBPSInput = fieldOverrides.find((x) => x.label == 'upperThresholdBps');
     if (upperPriceDifferenceBPSInput) {
       upperPriceDifferenceBPS = upperPriceDifferenceBPSInput.value;
     } else {
-      upperPriceDifferenceBPS = DefaultUpperPriceDifferenceBPS;
+      upperPriceDifferenceBPS = new Decimal(DefaultUpperPriceDifferenceBPS);
     }
 
-    let lowerPrice = (price * (FullBPS - lowerPriceDifferenceBPS)) / FullBPS;
-    let upperPrice = (price * (FullBPS + upperPriceDifferenceBPS)) / FullBPS;
+    let { lowerPrice, upperPrice } = getPositionRangeForPricePercentageWithResetRebalanceParams(
+      new Decimal(price),
+      lowerPriceDifferenceBPS,
+      upperPriceDifferenceBPS
+    );
 
-    let lowerReferencePriceDifferenceBPS: number = 0;
+    let lowerReferencePriceDifferenceBPS: Decimal = ZERO;
     let lowerResetPriceDifferenceBPSInput = fieldOverrides.find((x) => x.label == 'lowerResetThresholdBps');
     if (lowerResetPriceDifferenceBPSInput) {
       lowerReferencePriceDifferenceBPS = lowerResetPriceDifferenceBPSInput.value;
     }
 
-    let upperResetPriceDifferenceBPS: number = 0;
+    let upperResetPriceDifferenceBPS: Decimal = ZERO;
     let upperResetPriceDifferenceBPSInput = fieldOverrides.find((x) => x.label == 'upperResetThresholdBps');
     if (upperResetPriceDifferenceBPSInput) {
       upperResetPriceDifferenceBPS = upperResetPriceDifferenceBPSInput.value;
@@ -515,31 +520,31 @@ export class Kamino {
     // pub seconds_per_tick: u64,
     // pub direction: DriftDirection,
 
-    let startMidTick: number = 0;
+    let startMidTick: Decimal = ZERO;
     let startMidTickInput = fieldOverrides.find((x) => x.label == 'startMidTick');
     if (startMidTickInput) {
       startMidTick = startMidTickInput.value;
     }
 
-    let ticksBelowMid: number = 0;
+    let ticksBelowMid: Decimal = ZERO;
     let ticksBelowMidInput = fieldOverrides.find((x) => x.label == 'ticksBelowMid');
     if (ticksBelowMidInput) {
       ticksBelowMid = ticksBelowMidInput.value;
     }
 
-    let ticksAboveMid: number = 0;
+    let ticksAboveMid: Decimal = ZERO;
     let ticksAboveMidInput = fieldOverrides.find((x) => x.label == 'ticksAboveMid');
     if (ticksAboveMidInput) {
       ticksAboveMid = ticksAboveMidInput.value;
     }
 
-    let secondsPerTick: number = 0;
+    let secondsPerTick: Decimal = ZERO;
     let secondsPerTickInput = fieldOverrides.find((x) => x.label == 'secondsPerTick');
     if (secondsPerTickInput) {
       secondsPerTick = secondsPerTickInput.value;
     }
 
-    let direction: number = 0;
+    let direction: Decimal = ZERO;
     let directionInput = fieldOverrides.find((x) => x.label == 'direction');
     if (directionInput) {
       direction = directionInput.value;
@@ -565,7 +570,7 @@ export class Kamino {
       ticksAboveMid,
       secondsPerTick,
       direction
-    ).concat(getManualRebalanceFieldInfos(lowerPrice, upperPrice, false));
+    ).concat(getManualRebalanceFieldInfos(new Decimal(lowerPrice), new Decimal(upperPrice), false));
 
     return fieldInfos;
   };
@@ -585,13 +590,13 @@ export class Kamino {
     // // Will wait until the position is fully in this token (0 or 1, representing A or B)
     // pub destination_token: RebalanceTakeProfitToken,
 
-    let lowerRangePrice: number = 0;
+    let lowerRangePrice: Decimal = ZERO;
     let lowerRangePriceInput = fieldOverrides.find((x) => x.label == 'lowerRangePrice');
     if (lowerRangePriceInput) {
       lowerRangePrice = lowerRangePriceInput.value;
     }
 
-    let upperRangePrice: number = 0;
+    let upperRangePrice: Decimal = ZERO;
     let upperRangePriceInput = fieldOverrides.find((x) => x.label == 'upperRangePrice');
     if (upperRangePriceInput) {
       upperRangePrice = upperRangePriceInput.value;
@@ -656,8 +661,8 @@ export class Kamino {
       let upperPrice = (price * (FullBPS + DefaultUpperPriceDifferenceBPS)) / FullBPS;
 
       let fieldInfos = getPricePercentageRebalanceFieldInfos(
-        DefaultLowerPercentageBPS,
-        DefaultUpperPercentageBPS
+        new Decimal(DefaultLowerPercentageBPS),
+        new Decimal(DefaultUpperPercentageBPS)
       ).concat(getManualRebalanceFieldInfos(lowerPrice, upperPrice, false));
 
       return fieldInfos;
