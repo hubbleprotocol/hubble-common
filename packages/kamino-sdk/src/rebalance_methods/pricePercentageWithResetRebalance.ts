@@ -1,57 +1,129 @@
-import Decimal from "decimal.js";
-import { RebalanceFieldInfo } from "../utils/types";
-import { DefaultLowerPercentageBPSDecimal, DefaultUpperPercentageBPSDecimal, FullBPSDecimal } from "../utils/CreationParameters";
-import { getManualRebalanceFieldInfos } from "./manualRebalance";
+import Decimal from 'decimal.js';
+import { PositionRange, RebalanceFieldInfo } from '../utils/types';
+import {
+  DefaultLowerPercentageBPSDecimal,
+  DefaultUpperPercentageBPSDecimal,
+  FullBPSDecimal,
+} from '../utils/CreationParameters';
+import { getManualRebalanceFieldInfos } from './manualRebalance';
 
 export function getPricePercentageWithResetRebalanceFieldInfos(
-    lowerPercentageBPS: Decimal,
-    upperPercentageBPS: Decimal,
-    resetLowerPercentageBPS: Decimal,
-    resetUpperPercentageBPS: Decimal,
-    enabled: boolean = true
-  ): RebalanceFieldInfo[] {
-    let lowerBpsRebalanceFieldInfo: RebalanceFieldInfo = {
-      label: 'lowerThresholdBps',
-      type: 'number',
-      value: lowerPercentageBPS,
-      enabled,
-    };
-    let upperBpsRebalanceFieldInfo: RebalanceFieldInfo = {
-      label: 'upperThresholdBps',
-      type: 'number',
-      value: upperPercentageBPS,
-      enabled,
-    };
-    let resetLowerBpsRebalanceFieldInfo: RebalanceFieldInfo = {
-      label: 'resetLowerThresholdBps',
-      type: 'number',
-      value: resetLowerPercentageBPS,
-      enabled,
-    };
-    let resetUpperBpsRebalanceFieldInfo: RebalanceFieldInfo = {
-      label: 'resetUpperThresholdBps',
-      type: 'number',
-      value: resetUpperPercentageBPS,
-      enabled,
-    };
-  
-    return [
-      lowerBpsRebalanceFieldInfo,
-      upperBpsRebalanceFieldInfo,
-      resetLowerBpsRebalanceFieldInfo,
-      resetUpperBpsRebalanceFieldInfo,
-    ];
-  }
+  price: Decimal,
+  lowerPercentageBPS: Decimal,
+  upperPercentageBPS: Decimal,
+  resetLowerPercentageBPS: Decimal,
+  resetUpperPercentageBPS: Decimal,
+  enabled: boolean = true
+): RebalanceFieldInfo[] {
+  let lowerBpsRebalanceFieldInfo: RebalanceFieldInfo = {
+    label: 'lowerThresholdBps',
+    type: 'number',
+    value: lowerPercentageBPS,
+    enabled,
+  };
+  let upperBpsRebalanceFieldInfo: RebalanceFieldInfo = {
+    label: 'upperThresholdBps',
+    type: 'number',
+    value: upperPercentageBPS,
+    enabled,
+  };
+  let resetLowerBpsRebalanceFieldInfo: RebalanceFieldInfo = {
+    label: 'resetLowerThresholdBps',
+    type: 'number',
+    value: resetLowerPercentageBPS,
+    enabled,
+  };
+  let resetUpperBpsRebalanceFieldInfo: RebalanceFieldInfo = {
+    label: 'resetUpperThresholdBps',
+    type: 'number',
+    value: resetUpperPercentageBPS,
+    enabled,
+  };
 
-  
+  let { lowerPrice, upperPrice } = getPositionRangeForPricePercentageWithResetRebalanceParams(
+    price,
+    lowerPercentageBPS,
+    upperPercentageBPS
+  );
+  let lowerRangeRebalanceFieldInfo: RebalanceFieldInfo = {
+    label: 'priceLower',
+    type: 'number',
+    value: lowerPrice,
+    enabled: false,
+  };
+  let upperRangeRebalanceFieldInfo: RebalanceFieldInfo = {
+    label: 'priceUpper',
+    type: 'number',
+    value: upperPrice,
+    enabled: false,
+  };
 
-  export function getDefaultPricePercentageWithResterRebalanceFieldInfos(price: Decimal): RebalanceFieldInfo[] {
-    let lowerPrice = price.mul(FullBPSDecimal.sub(DefaultLowerPercentageBPSDecimal)).div(FullBPSDecimal);
-    let upperPrice = price.mul(FullBPSDecimal.add(DefaultUpperPercentageBPSDecimal)).div(FullBPSDecimal);
+  let { lowerPrice: resetLowerPrice, upperPrice: resetUpperPrice } =
+    getPositionResetRangeForPricePercentageWithResetRebalanceParams(
+      price,
+      lowerPercentageBPS,
+      upperPercentageBPS,
+      resetLowerPercentageBPS,
+      resetUpperPercentageBPS
+    );
+  let resetLowerRangeRebalanceFieldInfo: RebalanceFieldInfo = {
+    label: 'resetPriceLower',
+    type: 'number',
+    value: resetLowerPrice,
+    enabled: false,
+  };
+  let resetUpperRangeRebalanceFieldInfo: RebalanceFieldInfo = {
+    label: 'resetPriceUpper',
+    type: 'number',
+    value: resetUpperPrice,
+    enabled: false,
+  };
 
-    let fieldInfos = getPricePercentageWithResetRebalanceFieldInfos(DefaultLowerPercentageBPSDecimal, DefaultUpperPercentageBPSDecimal, DefaultLowerPercentageBPSDecimal, DefaultUpperPercentageBPSDecimal).concat(
-        getManualRebalanceFieldInfos(lowerPrice, upperPrice, false)
-        );
-    return fieldInfos;
+  return [
+    lowerBpsRebalanceFieldInfo,
+    upperBpsRebalanceFieldInfo,
+    resetLowerBpsRebalanceFieldInfo,
+    resetUpperBpsRebalanceFieldInfo,
+    lowerRangeRebalanceFieldInfo,
+    upperRangeRebalanceFieldInfo,
+    resetLowerRangeRebalanceFieldInfo,
+    resetUpperRangeRebalanceFieldInfo,
+  ];
 }
 
+export function getPositionRangeForPricePercentageWithResetRebalanceParams(
+  price: Decimal,
+  lowerPercentageBPS: Decimal,
+  upperPercentageBPS: Decimal
+): PositionRange {
+  let lowerPrice = price.mul(FullBPSDecimal.sub(lowerPercentageBPS)).div(FullBPSDecimal);
+  let upperPrice = price.mul(FullBPSDecimal.add(upperPercentageBPS)).div(FullBPSDecimal);
+  return { lowerPrice, upperPrice };
+}
+
+export function getPositionResetRangeForPricePercentageWithResetRebalanceParams(
+  price: Decimal,
+  lowerPercentageBPS: Decimal,
+  upperPercentageBPS: Decimal,
+  resetLowerPercentageBPS: Decimal,
+  resetUpperPercentageBPS: Decimal
+): PositionRange {
+  let resetLowerPrice = price
+    .mul(FullBPSDecimal.sub(resetLowerPercentageBPS.mul(lowerPercentageBPS).div(FullBPSDecimal)))
+    .div(FullBPSDecimal);
+  let resetUpperPrice = price
+    .mul(FullBPSDecimal.add(resetUpperPercentageBPS.mul(upperPercentageBPS).div(FullBPSDecimal)))
+    .div(FullBPSDecimal);
+  return { lowerPrice: resetLowerPrice, upperPrice: resetUpperPrice };
+}
+
+export function getDefaultPricePercentageWithResetRebalanceFieldInfos(price: Decimal): RebalanceFieldInfo[] {
+  let fieldInfos = getPricePercentageWithResetRebalanceFieldInfos(
+    price,
+    DefaultLowerPercentageBPSDecimal,
+    DefaultUpperPercentageBPSDecimal,
+    DefaultLowerPercentageBPSDecimal,
+    DefaultUpperPercentageBPSDecimal
+  );
+  return fieldInfos;
+}
