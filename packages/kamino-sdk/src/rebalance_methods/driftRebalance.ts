@@ -17,6 +17,9 @@ export const DEFAULT_SECONDS_PER_TICK = new Decimal(60 * 60 * 24 * 3); // 3 days
 export const DEFAULT_DIRECTION = new Decimal(1);
 
 export function getDriftRebalanceFieldInfos(
+  dex: Dex,
+  tokenADecimals: number,
+  tokenBDecimals: number,
   startMidTick: Decimal,
   ticksBelowMid: Decimal,
   ticksAboveMid: Decimal,
@@ -54,6 +57,15 @@ export function getDriftRebalanceFieldInfos(
     value: direction,
     enabled,
   };
+
+  let { lowerPrice, upperPrice } = getPositionRangeFromDriftParams(
+    dex,
+    tokenADecimals,
+    tokenBDecimals,
+    startMidTick,
+    ticksBelowMid,
+    ticksAboveMid
+  );
 
   return [
     startMidTickRebalanceFieldInfo,
@@ -109,21 +121,15 @@ export function getDefaultDriftRebalanceFieldInfos(
 ): RebalanceFieldInfo[] {
   let currentTickIndex = priceToTickIndex(price, tokenADecimals, tokenBDecimals);
   let startMidTick = new Decimal(currentTickIndex);
-  let { lowerPrice, upperPrice } = getPositionRangeFromDriftParams(
+
+  return getDriftRebalanceFieldInfos(
     dex,
     tokenADecimals,
     tokenBDecimals,
     startMidTick,
     DEFAULT_TICKS_BELOW_MID,
-    DEFAULT_TICKS_ABOVE_MID
-  );
-
-  let fieldInfos = getDriftRebalanceFieldInfos(
-    startMidTick,
-    DEFAULT_TICKS_BELOW_MID,
     DEFAULT_TICKS_ABOVE_MID,
     DEFAULT_SECONDS_PER_TICK,
     DEFAULT_DIRECTION
-  ).concat(getManualRebalanceFieldInfos(lowerPrice, upperPrice, false));
-  return fieldInfos;
+  );
 }

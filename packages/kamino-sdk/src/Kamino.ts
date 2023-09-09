@@ -505,7 +505,11 @@ export class Kamino {
     tokenAMint: PublicKey,
     tokenBMint: PublicKey
   ): Promise<RebalanceFieldInfo[]> => {
-    let price = await this.getPriceForPair(dex, tokenAMint, tokenBMint);
+    const tokenADecimals = await getMintDecimals(this._connection, tokenAMint);
+    const tokenBDecimals = await getMintDecimals(this._connection, tokenBMint);
+    let price = new Decimal(await this.getPriceForPair(dex, tokenAMint, tokenBMint));
+
+    const defaultFields = getDefaultDriftRebalanceFieldInfos(dex, price, tokenADecimals, tokenBDecimals);
 
     // pub start_mid_tick: i32,
     // pub ticks_below_mid: i32,
@@ -513,7 +517,7 @@ export class Kamino {
     // pub seconds_per_tick: u64,
     // pub direction: DriftDirection,
 
-    let startMidTick: Decimal = ZERO;
+    let startMidTick = defaultFields.find((x) => x.label == 'startMidTick')!.value;
     let startMidTickInput = fieldOverrides.find((x) => x.label == 'startMidTick');
     if (startMidTickInput) {
       startMidTick = startMidTickInput.value;
@@ -543,27 +547,16 @@ export class Kamino {
       direction = directionInput.value;
     }
 
-    let tokenADecimals = await getMintDecimals(this._connection, tokenAMint);
-    let tokenBDecimals = await getMintDecimals(this._connection, tokenBMint);
-    let positionPriceRange = getPositionRangeFromDriftParams(
+    let fieldInfos = getDriftRebalanceFieldInfos(
       dex,
       tokenADecimals,
       tokenBDecimals,
       startMidTick,
       ticksBelowMid,
-      ticksAboveMid
-    );
-    //todo: find how to calculate lowerPrice and upper price
-    let lowerPrice = positionPriceRange.lowerPrice.toNumber();
-    let upperPrice = positionPriceRange.upperPrice.toNumber();
-
-    let fieldInfos = getDriftRebalanceFieldInfos(
-      startMidTick,
-      ticksBelowMid,
       ticksAboveMid,
       secondsPerTick,
       direction
-    ).concat(getManualRebalanceFieldInfos(new Decimal(lowerPrice), new Decimal(upperPrice), false));
+    );
 
     return fieldInfos;
   };
