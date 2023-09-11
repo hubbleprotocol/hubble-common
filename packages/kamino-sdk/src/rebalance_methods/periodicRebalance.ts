@@ -9,6 +9,7 @@ import { getManualRebalanceFieldInfos } from './manualRebalance';
 import { Dex } from '../utils';
 import { sqrtPriceX64ToPrice } from '@orca-so/whirlpool-sdk';
 import BN from 'bn.js';
+import { RebalanceRaw } from '../kamino-client/types';
 
 export const DEFAULT_LOWER_RANGE_PRICE_DIFF_BPS_PERIODIC_REBALANCE = new Decimal(500);
 export const DEFAULT_UPPER_RANGE_PRICE_DIFF_BPS_PERIODIC_REBALANCE = new Decimal(500);
@@ -94,4 +95,14 @@ export function getDefaultPeriodicRebalanceFieldInfos(price: Decimal): Rebalance
     DEFAULT_LOWER_RANGE_PRICE_DIFF_BPS_PERIODIC_REBALANCE,
     DEFAULT_UPPER_RANGE_PRICE_DIFF_BPS_PERIODIC_REBALANCE
   ).concat(getManualRebalanceFieldInfos(lowerPrice, upperPrice, false));
+}
+
+export function deserializePeriodicRebalanceFromOnchainParams(price: Decimal, rebalanceRaw: RebalanceRaw) {
+  let paramsBuffer = Buffer.from(rebalanceRaw.params);
+
+  let period = new Decimal(paramsBuffer.readBigUint64LE(0).toString());
+  let lowerRangeBps = new Decimal(paramsBuffer.readUInt16LE(8));
+  let upperRangeBps = new Decimal(paramsBuffer.readUInt16LE(10));
+
+  return getPeriodicRebalanceRebalanceFieldInfos(price, period, lowerRangeBps, upperRangeBps);
 }

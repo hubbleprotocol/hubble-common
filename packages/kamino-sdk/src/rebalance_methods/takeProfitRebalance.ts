@@ -6,13 +6,16 @@ import {
   FullBPSDecimal,
 } from '../utils/CreationParameters';
 import { getManualRebalanceFieldInfos } from './manualRebalance';
-import { Dex } from '../utils';
+import { Dex, readBigUint128LE } from '../utils';
 import { sqrtPriceX64ToPrice } from '@orca-so/whirlpool-sdk';
 import BN from 'bn.js';
+import { RebalanceRaw } from '../kamino-client/types';
+import { SqrtPriceMath } from '@raydium-io/raydium-sdk';
 
 export const DEFAULT_LOWER_RANGE_PRICE_DIFF_BPS = new Decimal(500);
 export const DEFAULT_UPPER_RANGE_PRICE_DIFF_BPS = new Decimal(500);
 export const DEFAULT_DESTINATION_TOKEN = new Decimal(1);
+export const TakeProfitRebalanceTypeName = 'takeProfit';
 
 export function getTakeProfitRebalanceFieldsInfos(
   lowerRangePrice: Decimal,
@@ -20,6 +23,12 @@ export function getTakeProfitRebalanceFieldsInfos(
   destinationToken: Decimal,
   enabled: boolean = true
 ): RebalanceFieldInfo[] {
+  let rebalanceType: RebalanceFieldInfo = {
+    label: 'rebalanceType',
+    type: 'string',
+    value: TakeProfitRebalanceTypeName,
+    enabled,
+  };
   let lowerRangePriceRebalanceFieldInfo: RebalanceFieldInfo = {
     label: 'priceLower',
     type: 'number',
@@ -67,4 +76,21 @@ export function getDefaultTakeProfitRebalanceFieldsInfos(price: Decimal): Rebala
   let upperPrice = price.mul(FullBPSDecimal.add(DEFAULT_UPPER_RANGE_PRICE_DIFF_BPS)).div(FullBPSDecimal);
 
   return getTakeProfitRebalanceFieldsInfos(lowerPrice, upperPrice, price);
+}
+
+export function deserializeTakeProfitRebalanceFromOnchainParams(
+  tokenADecimals: number,
+  tokenBDecimals: number,
+  rebalanceRaw: RebalanceRaw
+): RebalanceFieldInfo[] {
+  let paramsBuffer = Buffer.from(rebalanceRaw.params);
+
+  let rawLowerRangePrice = new BN(readBigUint128LE(paramsBuffer, 0).toString());
+  let rawUpperRangePrice = new BN(readBigUint128LE(paramsBuffer, 16).toString());
+  let destinationToken = new Decimal(paramsBuffer.readUint8(32));
+
+  let lowerPrice = SqrtPriceMath.sqrtPriceX64ToPrice(rawLowerRangePrice, tokenADecimals, tokenBDecimals);
+  let upperPrice = SqrtPriceMath.sqrtPriceX64ToPrice(rawUpperRangePrice, tokenADecimals, tokenBDecimals);
+
+  return getTakeProfitRebalanceFieldsInfos(lowerPrice, upperPrice, destinationToken);
 }

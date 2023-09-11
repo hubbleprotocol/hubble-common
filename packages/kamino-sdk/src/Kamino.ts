@@ -233,21 +233,26 @@ import { SwapResponse } from '@jup-ag/api';
 import { StrategyPrices } from './models/StrategyPrices';
 import { getDefaultManualRebalanceFieldInfos, getManualRebalanceFieldInfos } from './rebalance_methods/manualRebalance';
 import {
+  deserializePricePercentageRebalanceFromOnchainParams,
   getDefaultPricePercentageRebalanceFieldInfos,
   getPositionRangeFromPercentageRebalanceParams,
   getPricePercentageRebalanceFieldInfos,
 } from './rebalance_methods/pricePercentageRebalance';
 import {
+  deserializePricePercentageWithResetRebalanceFromOnchainParams,
   getDefaultPricePercentageWithResetRebalanceFieldInfos,
   getPositionRangeFromPricePercentageWithResetParams,
   getPricePercentageWithResetRebalanceFieldInfos,
 } from './rebalance_methods/pricePercentageWithResetRebalance';
 import {
+  deserializeDriftRebalanceFromOnchainParams,
   getDefaultDriftRebalanceFieldInfos,
   getDriftRebalanceFieldInfos,
   getPositionRangeFromDriftParams,
 } from './rebalance_methods/driftRebalance';
 import {
+  deserializePeriodicRebalanceFromOnchainParams,
+  deserializeTakeProfitRebalanceFromOnchainParams,
   getDefaultExpanderRebalanceFieldInfos,
   getDefaultPeriodicRebalanceFieldInfos,
   getDefaultTakeProfitRebalanceFieldsInfos,
@@ -255,6 +260,7 @@ import {
   getPeriodicRebalanceRebalanceFieldInfos,
   getPositionRangeFromExpanderParams,
   getTakeProfitRebalanceFieldsInfos,
+  readExpanderRebalanceFieldInfosFromStrategy,
 } from './rebalance_methods';
 export const KAMINO_IDL = KaminoIdl;
 
@@ -3688,48 +3694,49 @@ export class Kamino {
   /**
    * Get the prices for rebalancing params (range and reset range, if strategy involves a reset range)
    */
-  async getPricesFromRebalancingParams(strategy: PublicKey | StrategyWithAddress): Promise<RebalanceParamsAsPrices> {
+  async readRebalancingParams(strategy: PublicKey | StrategyWithAddress): Promise<RebalanceFieldInfo[]> {
     const strategyWithAddress = await this.getStrategyStateIfNotFetched(strategy);
     let rebalanceKind = numberToRebalanceType(strategyWithAddress.strategy.rebalanceType);
 
-    let result: RebalanceParamsAsPrices = {
-      rebalanceType: rebalanceKind,
-      rangePriceLower: ZERO,
-      rangePriceUpper: ZERO,
-    };
-
-    // read the current price range or 0 if not exist
-    if (strategyWithAddress.strategy.position.toString() !== PublicKey.default.toString()) {
+    if (rebalanceKind.kind === Manual.kind) {
       let positionRange = await this.getStrategyRange(strategyWithAddress);
-      result.rangePriceLower = positionRange.lowerPrice;
-      result.rangePriceUpper = positionRange.upperPrice;
-    }
-
-    if (rebalanceKind.kind === PricePercentageWithReset.kind || rebalanceKind.kind === Expander.kind) {
-      let stateBuffer = Buffer.from(strategyWithAddress.strategy.rebalanceRaw.state);
-      let lowerResetSqrtPrice = readBigUint128LE(stateBuffer, 0);
-      let upperResetSqrtPrice = readBigUint128LE(stateBuffer, 16);
-      let resetPriceLower = SqrtPriceMath.sqrtPriceX64ToPrice(
-        new BN(lowerResetSqrtPrice.toString()),
-        strategyWithAddress.strategy.tokenAMintDecimals.toNumber(),
-        strategyWithAddress.strategy.tokenBMintDecimals.toNumber()
+      return getManualRebalanceFieldInfos(positionRange.lowerPrice, positionRange.upperPrice);
+    } else if (rebalanceKind.kind === PricePercentage.kind) {
+      let price = await this.getCurrentPrice(strategyWithAddress);
+      return deserializePricePercentageRebalanceFromOnchainParams(price, strategyWithAddress.strategy.rebalanceRaw);
+    } else if (rebalanceKind.kind === PricePercentageWithReset.kind) {
+      let price = await this.getCurrentPrice(strategyWithAddress);
+      return deserializePricePercentageWithResetRebalanceFromOnchainParams(
+        price,
+        strategyWithAddress.strategy.rebalanceRaw
       );
-      let resetPriceUpper = SqrtPriceMath.sqrtPriceX64ToPrice(
-        new BN(upperResetSqrtPrice.toString()),
-        strategyWithAddress.strategy.tokenAMintDecimals.toNumber(),
-        strategyWithAddress.strategy.tokenBMintDecimals.toNumber()
+    } else if (rebalanceKind.kind === Drift.kind) {
+      let dex = numberToDex(strategyWithAddress.strategy.strategyDex.toNumber());
+      let tokenADecimals = await getMintDecimals(this._connection, strategyWithAddress.strategy.tokenAMint);
+      let tokenBDecimals = await getMintDecimals(this._connection, strategyWithAddress.strategy.tokenBMint);
+      return deserializeDriftRebalanceFromOnchainParams(
+        dex,
+        tokenADecimals,
+        tokenBDecimals,
+        strategyWithAddress.strategy.rebalanceRaw
       );
-
-      result.resetPriceLower = resetPriceLower;
-      result.resetPriceUpper = resetPriceUpper;
+    } else if (rebalanceKind.kind === TakeProfit.kind) {
+      let tokenADecimals = await getMintDecimals(this._connection, strategyWithAddress.strategy.tokenAMint);
+      let tokenBDecimals = await getMintDecimals(this._connection, strategyWithAddress.strategy.tokenBMint);
+      return deserializeTakeProfitRebalanceFromOnchainParams(
+        tokenADecimals,
+        tokenBDecimals,
+        strategyWithAddress.strategy.rebalanceRaw
+      );
+    } else if (rebalanceKind.kind === PeriodicRebalance.kind) {
+      let price = await this.getCurrentPrice(strategyWithAddress);
+      return deserializePeriodicRebalanceFromOnchainParams(price, strategyWithAddress.strategy.rebalanceRaw);
+    } else if (rebalanceKind.kind === Expander.kind) {
+      let price = await this.getCurrentPrice(strategyWithAddress);
+      return readExpanderRebalanceFieldInfosFromStrategy(price, strategyWithAddress.strategy.rebalanceRaw);
+    } else {
+      throw new Error(`Rebalance type ${rebalanceKind} is not supported`);
     }
-
-    // todo: implement these rebalance types
-    if (rebalanceKind.kind === Expander.kind) {
-      let stateBuffer = Buffer.from(strategyWithAddress.strategy.rebalanceRaw.state);
-    }
-
-    return result;
   }
 
   getPriceRangePercentageBasedFromPrice(
@@ -4077,115 +4084,6 @@ export class Kamino {
     ixs.push(await this.openPosition(strategyWithAddress, newPosition, priceLower, priceUpper, new Rebalancing()));
 
     return ixs;
-  };
-
-  /**
-   * Get the rebalance method and params for a strategy
-   * @param strategy the strategy address or decoded
-   * @returns list of decoded and processed rebalancing params
-   */
-
-  readRebalanceParams = async (strategy: PublicKey | StrategyWithAddress): Promise<RebalanceParams> => {
-    const strategyWithAddress = await this.getStrategyStateIfNotFetched(strategy);
-    let rebalanceType = numberToRebalanceType(strategyWithAddress.strategy.rebalanceType);
-
-    let rebalanceParams = strategyWithAddress.strategy.rebalanceRaw;
-    let paramsBuffer = Buffer.from(rebalanceParams.params);
-    // we represent the rebalance params as a vector of bytes and each param is represented over 2 bytes so when we read them we interpret the 2 bytes
-    if (rebalanceType.kind == RebalanceType.Manual.kind) {
-      throw new Error("Manual rebalance doesn't have params");
-    } else if (rebalanceType.kind == RebalanceType.PricePercentage.kind) {
-      let lowerRangeBps = new Decimal(rebalanceParams.params[0]).plus(
-        new Decimal(rebalanceParams.params[1]).mul(RebalanceParamOffset)
-      );
-      let upperRangeBps = new Decimal(rebalanceParams.params[2]).plus(
-        new Decimal(rebalanceParams.params[3]).mul(RebalanceParamOffset)
-      );
-
-      return { rebalanceType: new RebalanceType.PricePercentage(), lowerRangeBps, upperRangeBps };
-    } else if (rebalanceType.kind == RebalanceType.PricePercentageWithReset.kind) {
-      let lowerRangeBps = new Decimal(rebalanceParams.params[0]).plus(
-        new Decimal(rebalanceParams.params[1]).mul(RebalanceParamOffset)
-      );
-      let upperRangeBps = new Decimal(rebalanceParams.params[2]).plus(
-        new Decimal(rebalanceParams.params[3]).mul(RebalanceParamOffset)
-      );
-      let resetRangeLowerBps = new Decimal(rebalanceParams.params[4]).plus(
-        new Decimal(rebalanceParams.params[5]).mul(RebalanceParamOffset)
-      );
-      let resetRangeUpperBps = new Decimal(rebalanceParams.params[6]).plus(
-        new Decimal(rebalanceParams.params[7]).mul(RebalanceParamOffset)
-      );
-
-      return {
-        rebalanceType: new RebalanceType.PricePercentageWithReset(),
-        lowerRangeBps,
-        upperRangeBps,
-        resetRangeLowerBps,
-        resetRangeUpperBps,
-      };
-    } else if (rebalanceType.kind == RebalanceType.Drift.kind) {
-      let startMidTick = new Decimal(paramsBuffer.readInt32LE(0));
-      let ticksBelowMid = new Decimal(paramsBuffer.readInt32LE(4));
-      let ticksAboveMid = new Decimal(paramsBuffer.readInt32LE(8));
-      let secondsPerTick = new Decimal(paramsBuffer.readBigUint64LE(12).toString());
-      let driftDirection = new Decimal(paramsBuffer.readUint8(20));
-
-      // todo: calculate the lower and upper position price
-      return {
-        rebalanceType: new RebalanceType.Drift(),
-        startMidTick,
-        ticksBelowMid,
-        ticksAboveMid,
-        secondsPerTick,
-        driftDirection,
-      };
-    } else if (rebalanceType.kind == RebalanceType.TakeProfit.kind) {
-      let lowerRangePrice = new Decimal(readBigUint128LE(paramsBuffer, 0).toString());
-      let upperRangePrice = new Decimal(readBigUint128LE(paramsBuffer, 16).toString());
-      let destinationToken = new Decimal(paramsBuffer.readUint8(32));
-
-      return {
-        rebalanceType: new RebalanceType.TakeProfit(),
-        lowerRangePrice,
-        upperRangePrice,
-        destinationToken,
-      };
-    } else if (rebalanceType.kind == RebalanceType.PeriodicRebalance.kind) {
-      let period = new Decimal(paramsBuffer.readBigUint64LE(0).toString());
-      let lowerRangeBps = new Decimal(paramsBuffer.readInt32LE(8));
-      let upperRangeBps = new Decimal(paramsBuffer.readInt32LE(10));
-
-      return {
-        rebalanceType: new RebalanceType.PeriodicRebalance(),
-        lowerRangeBps,
-        upperRangeBps,
-        period,
-      };
-    } else if (rebalanceType.kind == RebalanceType.Expander.kind) {
-      let lowerRangeBps = new Decimal(rebalanceParams.params[0]).plus(
-        new Decimal(rebalanceParams.params[1]).mul(RebalanceParamOffset)
-      );
-      let upperRangeBps = new Decimal(rebalanceParams.params[2]).plus(
-        new Decimal(rebalanceParams.params[3]).mul(RebalanceParamOffset)
-      );
-      let resetRangeLowerBps = new Decimal(rebalanceParams.params[4]).plus(
-        new Decimal(rebalanceParams.params[5]).mul(RebalanceParamOffset)
-      );
-      let resetRangeUpperBps = new Decimal(rebalanceParams.params[6]).plus(
-        new Decimal(rebalanceParams.params[7]).mul(RebalanceParamOffset)
-      );
-
-      return {
-        rebalanceType: new RebalanceType.Expander(),
-        lowerRangeBps,
-        upperRangeBps,
-        resetRangeLowerBps,
-        resetRangeUpperBps,
-      };
-    } else {
-      throw new Error(`Invalid rebalance type ${rebalanceType}`);
-    }
   };
 
   /**

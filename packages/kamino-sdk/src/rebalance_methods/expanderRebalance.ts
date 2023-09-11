@@ -9,6 +9,7 @@ import {
 import { getManualRebalanceFieldInfos } from './manualRebalance';
 import { PublicKey } from '@solana/web3.js';
 import { StrategyWithAddress } from '../models';
+import { RebalanceRaw } from '../kamino-client/types';
 
 export const DefaultMaxNumberOfExpansions = new Decimal(10);
 export const DefaultExpansionSizeBPS = new Decimal(100);
@@ -162,4 +163,24 @@ export function getDefaultExpanderRebalanceFieldInfos(price: Decimal): Rebalance
   return fieldInfos;
 }
 
-export function readxpanderRebalanceFieldInfosFromStrategy(strategy: PublicKey | StrategyWithAddress) {}
+export function readExpanderRebalanceFieldInfosFromStrategy(price: Decimal, rebalanceRaw: RebalanceRaw) {
+  let paramsBuffer = Buffer.from(rebalanceRaw.params);
+
+  let lowerRangeBps = new Decimal(paramsBuffer.readUInt16LE(0));
+  let upperRangeBps = new Decimal(paramsBuffer.readUInt16LE(2));
+  let lowerResetRatioBps = new Decimal(paramsBuffer.readUInt16LE(4));
+  let upperResetRatioBps = new Decimal(paramsBuffer.readUInt16LE(6));
+  let expansionBps = new Decimal(paramsBuffer.readUInt16LE(8));
+  let maxNumberOfExpansions = new Decimal(paramsBuffer.readUInt16LE(10));
+  let _swapUnevenAllowed = new Decimal(paramsBuffer.readUInt8(12));
+
+  return getExpanderRebalanceFieldInfos(
+    price,
+    lowerRangeBps,
+    upperRangeBps,
+    lowerResetRatioBps,
+    upperResetRatioBps,
+    expansionBps,
+    maxNumberOfExpansions
+  );
+}

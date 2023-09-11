@@ -5,6 +5,7 @@ import {
   DefaultUpperPercentageBPSDecimal,
   FullBPSDecimal,
 } from '../utils/CreationParameters';
+import { RebalanceRaw } from '../kamino-client/types';
 
 export const PricePercentageRebalanceTypeName = 'pricePercentage';
 
@@ -77,4 +78,16 @@ export function getDefaultPricePercentageRebalanceFieldInfos(price: Decimal): Re
     DefaultUpperPercentageBPSDecimal
   );
   return fieldInfos;
+}
+
+export function deserializePricePercentageRebalanceFromOnchainParams(
+  price: Decimal,
+  rebalanceRaw: RebalanceRaw
+): RebalanceFieldInfo[] {
+  let paramsBuffer = Buffer.from(rebalanceRaw.params);
+
+  let lowerRangeBPS = new Decimal(paramsBuffer.readUint16LE(0));
+  let upperRangeBPS = new Decimal(paramsBuffer.readUint16LE(2));
+
+  return getPricePercentageRebalanceFieldInfos(price, lowerRangeBPS, upperRangeBPS);
 }
