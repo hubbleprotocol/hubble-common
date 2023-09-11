@@ -63,6 +63,7 @@ export function getPeriodicRebalanceRebalanceFieldInfos(
   };
 
   return [
+    rebalanceType,
     periodRebalanceFieldInfo,
     lowerRangeBpsRebalanceFieldInfo,
     upperRangeBpsRebalanceFieldInfo,

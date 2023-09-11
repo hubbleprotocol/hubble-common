@@ -234,12 +234,12 @@ import { StrategyPrices } from './models/StrategyPrices';
 import { getDefaultManualRebalanceFieldInfos, getManualRebalanceFieldInfos } from './rebalance_methods/manualRebalance';
 import {
   getDefaultPricePercentageRebalanceFieldInfos,
-  getPositionRangeForPricePercentageRebalanceParams,
+  getPositionRangeFromPercentageRebalanceParams,
   getPricePercentageRebalanceFieldInfos,
 } from './rebalance_methods/pricePercentageRebalance';
 import {
   getDefaultPricePercentageWithResetRebalanceFieldInfos,
-  getPositionRangeForPricePercentageWithResetRebalanceParams,
+  getPositionRangeFromPricePercentageWithResetParams,
   getPricePercentageWithResetRebalanceFieldInfos,
 } from './rebalance_methods/pricePercentageWithResetRebalance';
 import {
@@ -253,6 +253,7 @@ import {
   getDefaultTakeProfitRebalanceFieldsInfos,
   getExpanderRebalanceFieldInfos,
   getPeriodicRebalanceRebalanceFieldInfos,
+  getPositionRangeFromExpanderParams,
   getTakeProfitRebalanceFieldsInfos,
 } from './rebalance_methods';
 export const KAMINO_IDL = KaminoIdl;
@@ -3499,6 +3500,8 @@ export class Kamino {
       );
     }
 
+    let price = await this.getCurrentPriceFromPool(dex, pool);
+
     let tokenMintA: PublicKey;
     let tokenMintB: PublicKey;
     if (dex == 'ORCA') {
@@ -3518,6 +3521,9 @@ export class Kamino {
     } else {
       throw new Error(`Dex ${dex} is not supported`);
     }
+
+    let tokenADecimals = await getMintDecimals(this._connection, tokenAMint);
+    let tokenBDecimals = await getMintDecimals(this._connection, tokenBMint);
 
     let initStrategyIx: TransactionInstruction = await this.createStrategy(strategy, pool, strategyAdmin, dex);
 
@@ -3550,44 +3556,52 @@ export class Kamino {
     if (rebalanceKind.kind == RebalanceType.Manual.kind) {
       lowerPrice = rebalanceParams[0];
       upperPrice = rebalanceParams[1];
-    } else if (
-      rebalanceKind.kind == RebalanceType.PricePercentage.kind ||
-      rebalanceKind.kind == RebalanceType.PricePercentageWithReset.kind
-    ) {
-      let positionPrices = await this.getPriceRangePercentageBasedFromPool(
-        dex,
-        pool,
+    } else if (rebalanceKind.kind == RebalanceType.PricePercentage.kind) {
+      let { lowerPrice: posLowerPrice, upperPrice: posUpperPrice } = getPositionRangeFromPercentageRebalanceParams(
+        price,
         rebalanceParams[0],
         rebalanceParams[1]
       );
-      lowerPrice = positionPrices[0];
-      upperPrice = positionPrices[1];
-      // todo: implement these rebalance types
+      lowerPrice = posLowerPrice;
+      upperPrice = posUpperPrice;
+    } else if (rebalanceKind.kind == RebalanceType.PricePercentageWithReset.kind) {
+      let { lowerPrice: posLowerPrice, upperPrice: posUpperPrice } = getPositionRangeFromPricePercentageWithResetParams(
+        price,
+        rebalanceParams[0],
+        rebalanceParams[1]
+      );
+      lowerPrice = posLowerPrice;
+      upperPrice = posUpperPrice;
     } else if (rebalanceKind.kind == RebalanceType.Drift.kind) {
-      // todo: understand how to calculate prices from this, the impl below is not correct
-      lowerPrice = rebalanceParams[0];
-      upperPrice = rebalanceParams[1];
+      let { lowerPrice: posLowerPrice, upperPrice: posUpperPrice } = getPositionRangeFromDriftParams(
+        dex,
+        tokenADecimals,
+        tokenBDecimals,
+        rebalanceParams[0],
+        rebalanceParams[1],
+        rebalanceParams[2]
+      );
+      lowerPrice = posLowerPrice;
+      upperPrice = posUpperPrice;
     } else if (rebalanceKind.kind == RebalanceType.TakeProfit.kind) {
       lowerPrice = rebalanceParams[0];
       upperPrice = rebalanceParams[1];
     } else if (rebalanceKind.kind == RebalanceType.PeriodicRebalance.kind) {
-      let positionPrices = await this.getPriceRangePercentageBasedFromPool(
-        dex,
-        pool,
+      let { lowerPrice: posLowerPrice, upperPrice: posUpperPrice } = getPositionRangeFromExpanderParams(
+        price,
         rebalanceParams[0],
         rebalanceParams[1]
       );
-      lowerPrice = positionPrices[0];
-      upperPrice = positionPrices[1];
+      lowerPrice = posLowerPrice;
+      upperPrice = posUpperPrice;
     } else if (rebalanceKind.kind == RebalanceType.Expander.kind) {
-      let positionPrices = await this.getPriceRangePercentageBasedFromPool(
-        dex,
-        pool,
+      let { lowerPrice: posLowerPrice, upperPrice: posUpperPrice } = getPositionRangeFromExpanderParams(
+        price,
         rebalanceParams[0],
         rebalanceParams[1]
       );
-      lowerPrice = positionPrices[0];
-      upperPrice = positionPrices[1];
+      lowerPrice = posLowerPrice;
+      upperPrice = posUpperPrice;
     } else {
       throw new Error(`Rebalance type ${rebalanceKind} is not supported`);
     }
@@ -3637,13 +3651,19 @@ export class Kamino {
 
   async getCurrentPrice(strategy: PublicKey | StrategyWithAddress): Promise<Decimal> {
     const strategyWithAddress = await this.getStrategyStateIfNotFetched(strategy);
+    const pool = strategyWithAddress.strategy.pool;
+    const dex = numberToDex(strategyWithAddress.strategy.strategyDex.toNumber());
 
-    if (strategyWithAddress.strategy.strategyDex.toNumber() == dexToNumber('ORCA')) {
-      return this.getOrcaPoolPrice(strategyWithAddress.strategy.pool);
-    } else if (strategyWithAddress.strategy.strategyDex.toNumber() == dexToNumber('RAYDIUM')) {
-      return this.getRaydiumPoolPrice(strategyWithAddress.strategy.pool);
+    return this.getCurrentPriceFromPool(dex, pool);
+  }
+
+  async getCurrentPriceFromPool(dex: Dex, pool: PublicKey): Promise<Decimal> {
+    if (dex == 'ORCA') {
+      return this.getOrcaPoolPrice(pool);
+    } else if (dex == 'RAYDIUM') {
+      return this.getRaydiumPoolPrice(pool);
     } else {
-      throw new Error(`Strategy dex ${strategyWithAddress.strategy.strategyDex} is not supported`);
+      throw new Error(`Dex ${dex} is not supported`);
     }
   }
 

@@ -33,7 +33,7 @@ export function getPricePercentageRebalanceFieldInfos(
     enabled,
   };
 
-  let { lowerPrice, upperPrice } = getPositionRangeForPricePercentageRebalanceParams(
+  let { lowerPrice, upperPrice } = getPositionRangeFromPercentageRebalanceParams(
     poolPrice,
     lowerPercentageBPS,
     upperPercentageBPS
@@ -60,7 +60,7 @@ export function getPricePercentageRebalanceFieldInfos(
   ];
 }
 
-export function getPositionRangeForPricePercentageRebalanceParams(
+export function getPositionRangeFromPercentageRebalanceParams(
   price: Decimal,
   lowerPercentageBPS: Decimal,
   upperPercentageBPS: Decimal
@@ -71,11 +71,6 @@ export function getPositionRangeForPricePercentageRebalanceParams(
 }
 
 export function getDefaultPricePercentageRebalanceFieldInfos(price: Decimal): RebalanceFieldInfo[] {
-  let { lowerPrice, upperPrice } = getPositionRangeForPricePercentageRebalanceParams(
-    price,
-    DefaultLowerPercentageBPSDecimal,
-    DefaultUpperPercentageBPSDecimal
-  );
   let fieldInfos = getPricePercentageRebalanceFieldInfos(
     price,
     DefaultLowerPercentageBPSDecimal,

@@ -47,7 +47,7 @@ export function getPricePercentageWithResetRebalanceFieldInfos(
     enabled,
   };
 
-  let { lowerPrice, upperPrice } = getPositionRangeForPricePercentageWithResetRebalanceParams(
+  let { lowerPrice, upperPrice } = getPositionRangeFromPricePercentageWithResetParams(
     price,
     lowerPercentageBPS,
     upperPercentageBPS
@@ -66,7 +66,7 @@ export function getPricePercentageWithResetRebalanceFieldInfos(
   };
 
   let { lowerPrice: resetLowerPrice, upperPrice: resetUpperPrice } =
-    getPositionResetRangeForPricePercentageWithResetRebalanceParams(
+    getPositionResetRangeFromPricePercentageWithResetParams(
       price,
       lowerPercentageBPS,
       upperPercentageBPS,
@@ -99,7 +99,7 @@ export function getPricePercentageWithResetRebalanceFieldInfos(
   ];
 }
 
-export function getPositionRangeForPricePercentageWithResetRebalanceParams(
+export function getPositionRangeFromPricePercentageWithResetParams(
   price: Decimal,
   lowerPercentageBPS: Decimal,
   upperPercentageBPS: Decimal
@@ -109,7 +109,7 @@ export function getPositionRangeForPricePercentageWithResetRebalanceParams(
   return { lowerPrice, upperPrice };
 }
 
-export function getPositionResetRangeForPricePercentageWithResetRebalanceParams(
+export function getPositionResetRangeFromPricePercentageWithResetParams(
   price: Decimal,
   lowerPercentageBPS: Decimal,
   upperPercentageBPS: Decimal,

@@ -67,11 +67,7 @@ export function getExpanderRebalanceFieldInfos(
     enabled,
   };
 
-  let { lowerPrice, upperPrice } = getPositionRangeFromPriceAndExpanderParams(
-    price,
-    lowerPercentageBPS,
-    upperPercentageBPS
-  );
+  let { lowerPrice, upperPrice } = getPositionRangeFromExpanderParams(price, lowerPercentageBPS, upperPercentageBPS);
   let lowerRangeRebalanceFieldInfo: RebalanceFieldInfo = {
     label: 'priceLower',
     type: 'number',
@@ -85,7 +81,7 @@ export function getExpanderRebalanceFieldInfos(
     enabled: false,
   };
 
-  let { lowerPrice: resetLowerPrice, upperPrice: resetUpperPrice } = getPositionResetRangeFronPriceAndExpanderParams(
+  let { lowerPrice: resetLowerPrice, upperPrice: resetUpperPrice } = getPositionResetRangeFromExpanderParams(
     price,
     lowerPercentageBPS,
     upperPercentageBPS,
@@ -120,7 +116,7 @@ export function getExpanderRebalanceFieldInfos(
   ];
 }
 
-export function getPositionRangeFromPriceAndExpanderParams(
+export function getPositionRangeFromExpanderParams(
   price: Decimal,
   lowerPriceDifferenceBPS: Decimal,
   upperPriceDifferenceBPS: Decimal
@@ -132,7 +128,7 @@ export function getPositionRangeFromPriceAndExpanderParams(
   return { lowerPrice, upperPrice };
 }
 
-export function getPositionResetRangeFronPriceAndExpanderParams(
+export function getPositionResetRangeFromExpanderParams(
   price: Decimal,
   lowerPriceDifferenceBPS: Decimal,
   upperPriceDifferenceBPS: Decimal,
@@ -149,7 +145,7 @@ export function getPositionResetRangeFronPriceAndExpanderParams(
 }
 
 export function getDefaultExpanderRebalanceFieldInfos(price: Decimal): RebalanceFieldInfo[] {
-  let { lowerPrice, upperPrice } = getPositionRangeFromPriceAndExpanderParams(
+  let { lowerPrice, upperPrice } = getPositionRangeFromExpanderParams(
     price,
     DefaultLowerPercentageBPSDecimal,
     DefaultUpperPercentageBPSDecimal
