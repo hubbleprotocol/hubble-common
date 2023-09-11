@@ -48,7 +48,7 @@ export function getPeriodicRebalanceRebalanceFieldInfos(
     enabled,
   };
 
-  let { lowerPrice, upperPrice } = getPositionRangeForPeriodicRebalanceParams(price, lowerRangeBps, upperRangeBps);
+  let { lowerPrice, upperPrice } = getPositionRangeFromPeriodicRebalanceParams(price, lowerRangeBps, upperRangeBps);
 
   let lowerRangeRebalanceFieldInfo: RebalanceFieldInfo = {
     label: 'priceLower',
@@ -73,7 +73,7 @@ export function getPeriodicRebalanceRebalanceFieldInfos(
   ];
 }
 
-export function getPositionRangeForPeriodicRebalanceParams(
+export function getPositionRangeFromPeriodicRebalanceParams(
   price: Decimal,
   lowerPercentageBPS: Decimal,
   upperPercentageBPS: Decimal
@@ -84,7 +84,7 @@ export function getPositionRangeForPeriodicRebalanceParams(
 }
 
 export function getDefaultPeriodicRebalanceFieldInfos(price: Decimal): RebalanceFieldInfo[] {
-  let { lowerPrice, upperPrice } = getPositionRangeForPeriodicRebalanceParams(
+  let { lowerPrice, upperPrice } = getPositionRangeFromPeriodicRebalanceParams(
     price,
     DEFAULT_LOWER_RANGE_PRICE_DIFF_BPS_PERIODIC_REBALANCE,
     DEFAULT_UPPER_RANGE_PRICE_DIFF_BPS_PERIODIC_REBALANCE
@@ -106,3 +106,4 @@ export function deserializePeriodicRebalanceFromOnchainParams(price: Decimal, re
 
   return getPeriodicRebalanceRebalanceFieldInfos(price, period, lowerRangeBps, upperRangeBps);
 }
+

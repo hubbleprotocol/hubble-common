@@ -81,15 +81,16 @@ export function buildStrategyRebalanceParams(params: Array<Decimal>, rebalance_t
     buffer.writeUint8(params[2].toNumber(), 32);
   } else if (rebalance_type.kind == RebalanceType.PeriodicRebalance.kind) {
     buffer.writeBigUint64LE(BigInt(params[0].toString()), 0);
-    buffer.writeInt32LE(params[1].toNumber(), 8);
-    buffer.writeInt32LE(params[2].toNumber(), 10);
+    buffer.writeUInt16LE(params[1].toNumber(), 8);
+    buffer.writeUInt16LE(params[2].toNumber(), 10);
   } else if (rebalance_type.kind == RebalanceType.Expander.kind) {
-    buffer.writeInt32LE(params[0].toNumber(), 0);
-    buffer.writeInt32LE(params[1].toNumber(), 2);
-    buffer.writeInt32LE(params[2].toNumber(), 4);
-    buffer.writeInt32LE(params[3].toNumber(), 6);
-    buffer.writeInt32LE(params[4].toNumber(), 8);
-    buffer.writeInt32LE(params[5].toNumber(), 10);
+    buffer.writeUInt16LE(params[0].toNumber(), 0);
+    buffer.writeUInt16LE(params[1].toNumber(), 2);
+    buffer.writeUInt16LE(params[2].toNumber(), 4);
+    buffer.writeUInt16LE(params[3].toNumber(), 6);
+    buffer.writeUInt16LE(params[4].toNumber(), 8);
+    buffer.writeUInt16LE(params[5].toNumber(), 10);
+    buffer.writeUInt8(params[6].toNumber(), 12);
   } else {
     throw 'Rebalance type not valid ' + rebalance_type;
   }

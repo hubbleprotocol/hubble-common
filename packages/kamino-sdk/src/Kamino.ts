@@ -259,6 +259,7 @@ import {
   getExpanderRebalanceFieldInfos,
   getPeriodicRebalanceRebalanceFieldInfos,
   getPositionRangeFromExpanderParams,
+  getPositionRangeFromPeriodicRebalanceParams,
   getTakeProfitRebalanceFieldsInfos,
   readExpanderRebalanceFieldInfosFromStrategy,
 } from './rebalance_methods';
@@ -398,22 +399,23 @@ export class Kamino {
     tokenAMint: PublicKey,
     tokenBMint: PublicKey
   ): Promise<RebalanceFieldInfo[]> => {
-    if (rebalanceMethod == ManualRebalanceMethod) {
-      return this.getFieldsForManualRebalanceMethod(dex, fieldOverrides, tokenAMint, tokenBMint);
-    } else if (rebalanceMethod == PricePercentageRebalanceMethod) {
-      return this.getFieldsForPricePercentageMethod(dex, fieldOverrides, tokenAMint, tokenBMint);
-    } else if (rebalanceMethod == PricePercentageWithResetRangeRebalanceMethod) {
-      return this.getFieldsForPricePercentageWithResetMethod(dex, fieldOverrides, tokenAMint, tokenBMint);
-    } else if (rebalanceMethod == DriftRebalanceMethod) {
-      return this.getFieldsForDriftRebalanceMethod(dex, fieldOverrides, tokenAMint, tokenBMint);
-    } else if (rebalanceMethod == TakeProfitMethod) {
-      return this.getFieldsForTakeProfitRebalanceMethod(dex, fieldOverrides, tokenAMint, tokenBMint);
-    } else if (rebalanceMethod == PeriodicRebalanceMethod) {
-      return this.getFieldsForPeriodicRebalanceMethod(dex, fieldOverrides, tokenAMint, tokenBMint);
-    } else if (rebalanceMethod == ExpanderMethod) {
-      return this.getFieldsForExpanderRebalanceMethod(dex, fieldOverrides, tokenAMint, tokenBMint);
-    } else {
-      throw new Error(`Rebalance method ${rebalanceMethod} is not supported`);
+    switch (rebalanceMethod) {
+      case ManualRebalanceMethod:
+        return this.getFieldsForManualRebalanceMethod(dex, fieldOverrides, tokenAMint, tokenBMint);
+      case PricePercentageRebalanceMethod:
+        return this.getFieldsForPricePercentageMethod(dex, fieldOverrides, tokenAMint, tokenBMint);
+      case PricePercentageWithResetRangeRebalanceMethod:
+        return this.getFieldsForPricePercentageWithResetMethod(dex, fieldOverrides, tokenAMint, tokenBMint);
+      case DriftRebalanceMethod:
+        return this.getFieldsForDriftRebalanceMethod(dex, fieldOverrides, tokenAMint, tokenBMint);
+      case TakeProfitMethod:
+        return this.getFieldsForTakeProfitRebalanceMethod(dex, fieldOverrides, tokenAMint, tokenBMint);
+      case PeriodicRebalanceMethod:
+        return this.getFieldsForPeriodicRebalanceMethod(dex, fieldOverrides, tokenAMint, tokenBMint);
+      case ExpanderMethod:
+        return this.getFieldsForExpanderRebalanceMethod(dex, fieldOverrides, tokenAMint, tokenBMint);
+      default:
+        throw new Error(`Rebalance method ${rebalanceMethod} is not supported`);
     }
   };
 
@@ -733,24 +735,25 @@ export class Kamino {
   ): Promise<RebalanceFieldInfo[]> => {
     let price = new Decimal(await this.getPriceForPair(dex, poolTokenA, poolTokenB));
 
-    if (rebalanceMethod == ManualRebalanceMethod) {
-      return getDefaultManualRebalanceFieldInfos(price);
-    } else if (rebalanceMethod == PricePercentageRebalanceMethod) {
-      return getDefaultPricePercentageRebalanceFieldInfos(price);
-    } else if (rebalanceMethod == PricePercentageWithResetRangeRebalanceMethod) {
-      return getDefaultPricePercentageWithResetRebalanceFieldInfos(price);
-    } else if (rebalanceMethod == DriftRebalanceMethod) {
-      let tokenADecimals = await getMintDecimals(this._connection, poolTokenA);
-      let tokenBDecimals = await getMintDecimals(this._connection, poolTokenB);
-      return getDefaultDriftRebalanceFieldInfos(dex, price, tokenADecimals, tokenBDecimals);
-    } else if (rebalanceMethod == TakeProfitMethod) {
-      return getDefaultTakeProfitRebalanceFieldsInfos(price);
-    } else if (rebalanceMethod == PeriodicRebalanceMethod) {
-      return getDefaultPeriodicRebalanceFieldInfos(price);
-    } else if (rebalanceMethod == ExpanderMethod) {
-      return getDefaultExpanderRebalanceFieldInfos(price);
-    } else {
-      throw new Error(`Rebalance method ${rebalanceMethod} is not supported`);
+    switch (rebalanceMethod) {
+      case ManualRebalanceMethod:
+        return getDefaultManualRebalanceFieldInfos(price);
+      case PricePercentageRebalanceMethod:
+        return getDefaultPricePercentageRebalanceFieldInfos(price);
+      case PricePercentageWithResetRangeRebalanceMethod:
+        return getDefaultPricePercentageWithResetRebalanceFieldInfos(price);
+      case DriftRebalanceMethod:
+        let tokenADecimals = await getMintDecimals(this._connection, poolTokenA);
+        let tokenBDecimals = await getMintDecimals(this._connection, poolTokenB);
+        return getDefaultDriftRebalanceFieldInfos(dex, price, tokenADecimals, tokenBDecimals);
+      case TakeProfitMethod:
+        return getDefaultTakeProfitRebalanceFieldsInfos(price);
+      case PeriodicRebalanceMethod:
+        return getDefaultPeriodicRebalanceFieldInfos(price);
+      case ExpanderMethod:
+        return getDefaultExpanderRebalanceFieldInfos(price);
+      default:
+        throw new Error(`Rebalance method ${rebalanceMethod} is not supported`);
     }
   };
 
@@ -3528,9 +3531,6 @@ export class Kamino {
       throw new Error(`Dex ${dex} is not supported`);
     }
 
-    let tokenADecimals = await getMintDecimals(this._connection, tokenAMint);
-    let tokenBDecimals = await getMintDecimals(this._connection, tokenBMint);
-
     let initStrategyIx: TransactionInstruction = await this.createStrategy(strategy, pool, strategyAdmin, dex);
 
     let rebalanceKind = numberToRebalanceType(rebalanceType.toNumber());
@@ -3557,60 +3557,14 @@ export class Kamino {
     let tokenAVault = programAddresses.tokenAVault;
     let tokenBVault = programAddresses.tokenBVault;
 
-    let lowerPrice: Decimal;
-    let upperPrice: Decimal;
-    if (rebalanceKind.kind == RebalanceType.Manual.kind) {
-      lowerPrice = rebalanceParams[0];
-      upperPrice = rebalanceParams[1];
-    } else if (rebalanceKind.kind == RebalanceType.PricePercentage.kind) {
-      let { lowerPrice: posLowerPrice, upperPrice: posUpperPrice } = getPositionRangeFromPercentageRebalanceParams(
-        price,
-        rebalanceParams[0],
-        rebalanceParams[1]
-      );
-      lowerPrice = posLowerPrice;
-      upperPrice = posUpperPrice;
-    } else if (rebalanceKind.kind == RebalanceType.PricePercentageWithReset.kind) {
-      let { lowerPrice: posLowerPrice, upperPrice: posUpperPrice } = getPositionRangeFromPricePercentageWithResetParams(
-        price,
-        rebalanceParams[0],
-        rebalanceParams[1]
-      );
-      lowerPrice = posLowerPrice;
-      upperPrice = posUpperPrice;
-    } else if (rebalanceKind.kind == RebalanceType.Drift.kind) {
-      let { lowerPrice: posLowerPrice, upperPrice: posUpperPrice } = getPositionRangeFromDriftParams(
-        dex,
-        tokenADecimals,
-        tokenBDecimals,
-        rebalanceParams[0],
-        rebalanceParams[1],
-        rebalanceParams[2]
-      );
-      lowerPrice = posLowerPrice;
-      upperPrice = posUpperPrice;
-    } else if (rebalanceKind.kind == RebalanceType.TakeProfit.kind) {
-      lowerPrice = rebalanceParams[0];
-      upperPrice = rebalanceParams[1];
-    } else if (rebalanceKind.kind == RebalanceType.PeriodicRebalance.kind) {
-      let { lowerPrice: posLowerPrice, upperPrice: posUpperPrice } = getPositionRangeFromExpanderParams(
-        price,
-        rebalanceParams[0],
-        rebalanceParams[1]
-      );
-      lowerPrice = posLowerPrice;
-      upperPrice = posUpperPrice;
-    } else if (rebalanceKind.kind == RebalanceType.Expander.kind) {
-      let { lowerPrice: posLowerPrice, upperPrice: posUpperPrice } = getPositionRangeFromExpanderParams(
-        price,
-        rebalanceParams[0],
-        rebalanceParams[1]
-      );
-      lowerPrice = posLowerPrice;
-      upperPrice = posUpperPrice;
-    } else {
-      throw new Error(`Rebalance type ${rebalanceKind} is not supported`);
-    }
+    let { lowerPrice, upperPrice } = await this.getRebalancePositionRange(
+      dex,
+      price,
+      tokenAMint,
+      tokenBMint,
+      rebalanceKind,
+      rebalanceParams
+    );
 
     let openPositionIx: TransactionInstruction;
     if (dex == 'ORCA') {
@@ -3654,6 +3608,49 @@ export class Kamino {
 
     return [initStrategyIx, updateStrategyParamsIx, updateRebalanceParamsIx, openPositionIx];
   };
+
+  private async getRebalancePositionRange(
+    dex: Dex,
+    price: Decimal,
+    tokenAMint: PublicKey,
+    tokenBMint: PublicKey,
+    rebalanceKind: RebalanceTypeKind,
+    rebalanceParams: Decimal[]
+  ): Promise<PositionRange> {
+    switch (rebalanceKind.kind) {
+      case RebalanceType.Manual.kind:
+        return { lowerPrice: rebalanceParams[0], upperPrice: rebalanceParams[1] };
+      case RebalanceType.TakeProfit.kind:
+        return { lowerPrice: rebalanceParams[0], upperPrice: rebalanceParams[1] };
+
+      case RebalanceType.PricePercentage.kind:
+        return getPositionRangeFromPercentageRebalanceParams(price, rebalanceParams[0], rebalanceParams[1]);
+
+      case RebalanceType.PricePercentageWithReset.kind:
+        return getPositionRangeFromPricePercentageWithResetParams(price, rebalanceParams[0], rebalanceParams[1]);
+
+      case RebalanceType.Drift.kind:
+        let tokenADecimals = await getMintDecimals(this._connection, tokenAMint);
+        let tokenBDecimals = await getMintDecimals(this._connection, tokenBMint);
+        return getPositionRangeFromDriftParams(
+          dex,
+          tokenADecimals,
+          tokenBDecimals,
+          rebalanceParams[0],
+          rebalanceParams[1],
+          rebalanceParams[2]
+        );
+
+      case RebalanceType.PeriodicRebalance.kind:
+        return getPositionRangeFromPeriodicRebalanceParams(price, rebalanceParams[0], rebalanceParams[1]);
+
+      case RebalanceType.Expander.kind:
+        return getPositionRangeFromExpanderParams(price, rebalanceParams[0], rebalanceParams[1]);
+
+      default:
+        throw new Error(`Rebalance type ${rebalanceKind} is not supported`);
+    }
+  }
 
   async getCurrentPrice(strategy: PublicKey | StrategyWithAddress): Promise<Decimal> {
     const strategyWithAddress = await this.getStrategyStateIfNotFetched(strategy);
