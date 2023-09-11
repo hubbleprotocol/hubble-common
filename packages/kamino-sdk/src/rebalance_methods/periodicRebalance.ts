@@ -13,6 +13,7 @@ import BN from 'bn.js';
 export const DEFAULT_LOWER_RANGE_PRICE_DIFF_BPS_PERIODIC_REBALANCE = new Decimal(500);
 export const DEFAULT_UPPER_RANGE_PRICE_DIFF_BPS_PERIODIC_REBALANCE = new Decimal(500);
 export const DEFAULT_REBALANCE_PERIOD = new Decimal(3600 * 24 * 3); // 3 days
+export const PeriodicRebalanceTypeName = 'periodicRebalance';
 
 export function getPeriodicRebalanceRebalanceFieldInfos(
   price: Decimal,
@@ -21,6 +22,12 @@ export function getPeriodicRebalanceRebalanceFieldInfos(
   upperRangeBps: Decimal,
   enabled: boolean = true
 ): RebalanceFieldInfo[] {
+  let rebalanceType: RebalanceFieldInfo = {
+    label: 'rebalanceType',
+    type: 'string',
+    value: PeriodicRebalanceTypeName,
+    enabled,
+  };
   let periodRebalanceFieldInfo: RebalanceFieldInfo = {
     label: 'period',
     type: 'number',

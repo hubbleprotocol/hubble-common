@@ -6,11 +6,19 @@ import {
   FullBPSDecimal,
 } from '../utils/CreationParameters';
 
+export const ManualRebalanceTypeName = 'manual';
+
 export function getManualRebalanceFieldInfos(
   lowerPrice: Decimal,
   upperPrice: Decimal,
   enabled: boolean = true
 ): RebalanceFieldInfo[] {
+  let rebalanceType: RebalanceFieldInfo = {
+    label: 'rebalanceType',
+    type: 'string',
+    value: ManualRebalanceTypeName,
+    enabled,
+  };
   let lowerRangeRebalanceFieldInfo: RebalanceFieldInfo = {
     label: 'priceLower',
     type: 'number',
@@ -23,7 +31,7 @@ export function getManualRebalanceFieldInfos(
     value: upperPrice,
     enabled,
   };
-  return [lowerRangeRebalanceFieldInfo, upperRangeRebalanceFieldInfo];
+  return [rebalanceType, lowerRangeRebalanceFieldInfo, upperRangeRebalanceFieldInfo];
 }
 
 export function getDefaultManualRebalanceFieldInfos(price: Decimal): RebalanceFieldInfo[] {

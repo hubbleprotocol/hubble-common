@@ -5,7 +5,8 @@ import {
   DefaultUpperPercentageBPSDecimal,
   FullBPSDecimal,
 } from '../utils/CreationParameters';
-import { getManualRebalanceFieldInfos } from './manualRebalance';
+
+export const PricePercentageWithResetRebalanceTypeName = 'pricePercentageWithReset';
 
 export function getPricePercentageWithResetRebalanceFieldInfos(
   price: Decimal,
@@ -15,26 +16,32 @@ export function getPricePercentageWithResetRebalanceFieldInfos(
   resetUpperPercentageBPS: Decimal,
   enabled: boolean = true
 ): RebalanceFieldInfo[] {
+  let rebalanceType: RebalanceFieldInfo = {
+    label: 'rebalanceType',
+    type: 'string',
+    value: PricePercentageWithResetRebalanceTypeName,
+    enabled,
+  };
   let lowerBpsRebalanceFieldInfo: RebalanceFieldInfo = {
-    label: 'lowerThresholdBps',
+    label: 'lowerRangeBps',
     type: 'number',
     value: lowerPercentageBPS,
     enabled,
   };
   let upperBpsRebalanceFieldInfo: RebalanceFieldInfo = {
-    label: 'upperThresholdBps',
+    label: 'upperRangeBps',
     type: 'number',
     value: upperPercentageBPS,
     enabled,
   };
   let resetLowerBpsRebalanceFieldInfo: RebalanceFieldInfo = {
-    label: 'resetLowerThresholdBps',
+    label: 'resetLowerRangeBps',
     type: 'number',
     value: resetLowerPercentageBPS,
     enabled,
   };
   let resetUpperBpsRebalanceFieldInfo: RebalanceFieldInfo = {
-    label: 'resetUpperThresholdBps',
+    label: 'resetUpperRangeBps',
     type: 'number',
     value: resetUpperPercentageBPS,
     enabled,
@@ -80,6 +87,7 @@ export function getPricePercentageWithResetRebalanceFieldInfos(
   };
 
   return [
+    rebalanceType,
     lowerBpsRebalanceFieldInfo,
     upperBpsRebalanceFieldInfo,
     resetLowerBpsRebalanceFieldInfo,

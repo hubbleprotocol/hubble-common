@@ -7,12 +7,12 @@ import {
   FullBPSDecimal,
 } from '../utils/CreationParameters';
 import { getManualRebalanceFieldInfos } from './manualRebalance';
-import { Dex } from '../utils';
-import { sqrtPriceX64ToPrice } from '@orca-so/whirlpool-sdk';
-import BN from 'bn.js';
+import { PublicKey } from '@solana/web3.js';
+import { StrategyWithAddress } from '../models';
 
 export const DefaultMaxNumberOfExpansions = new Decimal(10);
 export const DefaultExpansionSizeBPS = new Decimal(100);
+export const ExpanderRebalanceTypeName = 'expander';
 
 export function getExpanderRebalanceFieldInfos(
   price: Decimal,
@@ -24,26 +24,32 @@ export function getExpanderRebalanceFieldInfos(
   maxNumberOfExpansions: Decimal,
   enabled: boolean = true
 ): RebalanceFieldInfo[] {
+  let rebalanceType: RebalanceFieldInfo = {
+    label: 'rebalanceType',
+    type: 'string',
+    value: ExpanderRebalanceTypeName,
+    enabled,
+  };
   let lowerBpsRebalanceFieldInfo: RebalanceFieldInfo = {
-    label: 'lowerThresholdBps',
+    label: 'lowerRangeBps',
     type: 'number',
     value: lowerPercentageBPS,
     enabled,
   };
   let upperBpsRebalanceFieldInfo: RebalanceFieldInfo = {
-    label: 'upperThresholdBps',
+    label: 'upperRangeBps',
     type: 'number',
     value: upperPercentageBPS,
     enabled,
   };
   let resetLowerBpsRebalanceFieldInfo: RebalanceFieldInfo = {
-    label: 'resetLowerThresholdBps',
+    label: 'resetLowerRangeBps',
     type: 'number',
     value: resetLowerPercentageBPS,
     enabled,
   };
   let resetUpperBpsRebalanceFieldInfo: RebalanceFieldInfo = {
-    label: 'resetUpperThresholdBps',
+    label: 'resetUpperRangeBps',
     type: 'number',
     value: resetUpperPercentageBPS,
     enabled,
@@ -79,7 +85,28 @@ export function getExpanderRebalanceFieldInfos(
     enabled: false,
   };
 
+  let { lowerPrice: resetLowerPrice, upperPrice: resetUpperPrice } = getPositionResetRangeFronPriceAndExpanderParams(
+    price,
+    lowerPercentageBPS,
+    upperPercentageBPS,
+    resetLowerPercentageBPS,
+    resetUpperPercentageBPS
+  );
+  let resetLowerRangeRebalanceFieldInfo: RebalanceFieldInfo = {
+    label: 'resetPriceLower',
+    type: 'number',
+    value: resetLowerPrice,
+    enabled: false,
+  };
+  let resetUpperRangeRebalanceFieldInfo: RebalanceFieldInfo = {
+    label: 'resetPriceUpper',
+    type: 'number',
+    value: resetUpperPrice,
+    enabled: false,
+  };
+
   return [
+    rebalanceType,
     lowerBpsRebalanceFieldInfo,
     upperBpsRebalanceFieldInfo,
     resetLowerBpsRebalanceFieldInfo,
@@ -88,6 +115,8 @@ export function getExpanderRebalanceFieldInfos(
     maxNumberOfExpansionsRebalanceFieldInfo,
     lowerRangeRebalanceFieldInfo,
     upperRangeRebalanceFieldInfo,
+    resetLowerRangeRebalanceFieldInfo,
+    resetUpperRangeRebalanceFieldInfo,
   ];
 }
 
@@ -101,6 +130,22 @@ export function getPositionRangeFromPriceAndExpanderParams(
   let upperPrice = price.mul(fullBPSDecimal.add(upperPriceDifferenceBPS)).div(fullBPSDecimal);
 
   return { lowerPrice, upperPrice };
+}
+
+export function getPositionResetRangeFronPriceAndExpanderParams(
+  price: Decimal,
+  lowerPriceDifferenceBPS: Decimal,
+  upperPriceDifferenceBPS: Decimal,
+  resetLowerPriceDifferenceBPS: Decimal,
+  resetUpperPriceDifferenceBPS: Decimal
+): PositionRange {
+  let resetLowerPrice = price
+    .mul(FullBPSDecimal.sub(resetLowerPriceDifferenceBPS.mul(lowerPriceDifferenceBPS).div(FullBPSDecimal)))
+    .div(FullBPSDecimal);
+  let resetUpperPrice = price
+    .mul(FullBPSDecimal.add(resetUpperPriceDifferenceBPS.mul(upperPriceDifferenceBPS).div(FullBPSDecimal)))
+    .div(FullBPSDecimal);
+  return { lowerPrice: resetLowerPrice, upperPrice: resetUpperPrice };
 }
 
 export function getDefaultExpanderRebalanceFieldInfos(price: Decimal): RebalanceFieldInfo[] {
@@ -120,3 +165,5 @@ export function getDefaultExpanderRebalanceFieldInfos(price: Decimal): Rebalance
   ).concat(getManualRebalanceFieldInfos(lowerPrice, upperPrice, false));
   return fieldInfos;
 }
+
+export function readxpanderRebalanceFieldInfosFromStrategy(strategy: PublicKey | StrategyWithAddress) {}

@@ -15,6 +15,7 @@ export const DEFAULT_TICKS_BELOW_MID = new Decimal(10);
 export const DEFAULT_TICKS_ABOVE_MID = new Decimal(10);
 export const DEFAULT_SECONDS_PER_TICK = new Decimal(60 * 60 * 24 * 3); // 3 days; todo: get a reasonable default from Matt
 export const DEFAULT_DIRECTION = new Decimal(1);
+export const DriftRebalanceTypeName = 'drift';
 
 export function getDriftRebalanceFieldInfos(
   dex: Dex,
@@ -27,6 +28,12 @@ export function getDriftRebalanceFieldInfos(
   direction: Decimal,
   enabled: boolean = true
 ): RebalanceFieldInfo[] {
+  let rebalanceType: RebalanceFieldInfo = {
+    label: 'rebalanceType',
+    type: 'string',
+    value: DriftRebalanceTypeName,
+    enabled,
+  };
   let startMidTickRebalanceFieldInfo: RebalanceFieldInfo = {
     label: 'startMidTick',
     type: 'number',
@@ -76,6 +83,7 @@ export function getDriftRebalanceFieldInfos(
   ];
 }
 
+// todo(silviu): see if this is needed
 export function getPositionRangeFromTakeProfitFieldInfos(fieldInfos: RebalanceFieldInfo[]) {}
 
 export function getPositionRangeFromDriftParams(

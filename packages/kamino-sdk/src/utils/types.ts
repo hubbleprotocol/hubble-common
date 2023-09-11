@@ -248,6 +248,6 @@ export interface PerformanceFees {
 export interface RebalanceFieldInfo {
   label: string;
   type: string;
-  value: Decimal;
+  value: Decimal | string;
   enabled: boolean;
 }

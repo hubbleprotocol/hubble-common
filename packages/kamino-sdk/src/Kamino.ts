@@ -251,6 +251,9 @@ import {
   getDefaultExpanderRebalanceFieldInfos,
   getDefaultPeriodicRebalanceFieldInfos,
   getDefaultTakeProfitRebalanceFieldsInfos,
+  getExpanderRebalanceFieldInfos,
+  getPeriodicRebalanceRebalanceFieldInfos,
+  getTakeProfitRebalanceFieldsInfos,
 } from './rebalance_methods';
 export const KAMINO_IDL = KaminoIdl;
 
@@ -387,7 +390,7 @@ export class Kamino {
     fieldOverrides: RebalanceFieldInfo[],
     tokenAMint: PublicKey,
     tokenBMint: PublicKey
-  ) => {
+  ): Promise<RebalanceFieldInfo[]> => {
     if (rebalanceMethod == ManualRebalanceMethod) {
       return this.getFieldsForManualRebalanceMethod(dex, fieldOverrides, tokenAMint, tokenBMint);
     } else if (rebalanceMethod == PricePercentageRebalanceMethod) {
@@ -429,7 +432,7 @@ export class Kamino {
       upperPrice = upperPriceInput.value;
     }
 
-    return getManualRebalanceFieldInfos(lowerPrice, upperPrice);
+    return getManualRebalanceFieldInfos(new Decimal(lowerPrice), new Decimal(upperPrice));
   };
 
   getFieldsForPricePercentageMethod = async (
@@ -441,19 +444,23 @@ export class Kamino {
     const price = new Decimal(await this.getPriceForPair(dex, tokenAMint, tokenBMint));
 
     const defaultFields = getDefaultPricePercentageRebalanceFieldInfos(price);
-    let lowerPriceDifferenceBPS = defaultFields.find((x) => x.label == 'lowerThresholdBps')!.value;
-    const lowerPriceDifferenceBPSInput = fieldOverrides.find((x) => x.label == 'lowerThresholdBps');
+    let lowerPriceDifferenceBPS = defaultFields.find((x) => x.label == 'lowerRangeBps')!.value;
+    const lowerPriceDifferenceBPSInput = fieldOverrides.find((x) => x.label == 'lowerRangeBps');
     if (lowerPriceDifferenceBPSInput) {
       lowerPriceDifferenceBPS = lowerPriceDifferenceBPSInput.value;
     }
 
-    let upperPriceDifferenceBPS = defaultFields.find((x) => x.label == 'upperThresholdBps')!.value;
-    const upperPriceDifferenceBPSInput = fieldOverrides.find((x) => x.label == 'upperThresholdBps');
+    let upperPriceDifferenceBPS = defaultFields.find((x) => x.label == 'upperRangeBps')!.value;
+    const upperPriceDifferenceBPSInput = fieldOverrides.find((x) => x.label == 'upperRangeBps');
     if (upperPriceDifferenceBPSInput) {
       upperPriceDifferenceBPS = upperPriceDifferenceBPSInput.value;
     }
 
-    return getPricePercentageRebalanceFieldInfos(price, lowerPriceDifferenceBPS, upperPriceDifferenceBPS);
+    return getPricePercentageRebalanceFieldInfos(
+      price,
+      new Decimal(lowerPriceDifferenceBPS),
+      new Decimal(upperPriceDifferenceBPS)
+    );
   };
 
   getFieldsForPricePercentageWithResetMethod = async (
@@ -466,36 +473,36 @@ export class Kamino {
 
     const defaultFields = getDefaultPricePercentageWithResetRebalanceFieldInfos(price);
 
-    let lowerPriceDifferenceBPS = defaultFields.find((x) => x.label == 'lowerThresholdBps')!.value;
-    let lowerPriceDifferenceBPSInput = fieldOverrides.find((x) => x.label == 'lowerThresholdBps');
+    let lowerPriceDifferenceBPS = defaultFields.find((x) => x.label == 'lowerRangeBps')!.value;
+    let lowerPriceDifferenceBPSInput = fieldOverrides.find((x) => x.label == 'lowerRangeBps');
     if (lowerPriceDifferenceBPSInput) {
       lowerPriceDifferenceBPS = lowerPriceDifferenceBPSInput.value;
     }
 
-    let upperPriceDifferenceBPS = defaultFields.find((x) => x.label == 'upperThresholdBps')!.value;
-    let upperPriceDifferenceBPSInput = fieldOverrides.find((x) => x.label == 'upperThresholdBps');
+    let upperPriceDifferenceBPS = defaultFields.find((x) => x.label == 'upperRangeBps')!.value;
+    let upperPriceDifferenceBPSInput = fieldOverrides.find((x) => x.label == 'upperRangeBps');
     if (upperPriceDifferenceBPSInput) {
       upperPriceDifferenceBPS = upperPriceDifferenceBPSInput.value;
     }
 
-    let lowerReferencePriceDifferenceBPS = defaultFields.find((x) => x.label == 'resetLowerThresholdBps')!.value;
-    let lowerResetPriceDifferenceBPSInput = fieldOverrides.find((x) => x.label == 'resetLowerThresholdBps');
+    let lowerResetPriceDifferenceBPS = defaultFields.find((x) => x.label == 'resetLowerRangeBps')!.value;
+    let lowerResetPriceDifferenceBPSInput = fieldOverrides.find((x) => x.label == 'resetLowerRangeBps');
     if (lowerResetPriceDifferenceBPSInput) {
-      lowerReferencePriceDifferenceBPS = lowerResetPriceDifferenceBPSInput.value;
+      lowerResetPriceDifferenceBPS = lowerResetPriceDifferenceBPSInput.value;
     }
 
-    let upperResetPriceDifferenceBPS = defaultFields.find((x) => x.label == 'resetUpperThresholdBps')!.value;
-    let upperResetPriceDifferenceBPSInput = fieldOverrides.find((x) => x.label == 'resetUpperThresholdBps');
+    let upperResetPriceDifferenceBPS = defaultFields.find((x) => x.label == 'resetUpperRangeBps')!.value;
+    let upperResetPriceDifferenceBPSInput = fieldOverrides.find((x) => x.label == 'resetUpperRangeBps');
     if (upperResetPriceDifferenceBPSInput) {
       upperResetPriceDifferenceBPS = upperResetPriceDifferenceBPSInput.value;
     }
 
     return getPricePercentageWithResetRebalanceFieldInfos(
       price,
-      lowerPriceDifferenceBPS,
-      upperPriceDifferenceBPS,
-      lowerReferencePriceDifferenceBPS,
-      upperResetPriceDifferenceBPS
+      new Decimal(lowerPriceDifferenceBPS),
+      new Decimal(upperPriceDifferenceBPS),
+      new Decimal(lowerResetPriceDifferenceBPS),
+      new Decimal(upperResetPriceDifferenceBPS)
     );
   };
 
@@ -511,37 +518,31 @@ export class Kamino {
 
     const defaultFields = getDefaultDriftRebalanceFieldInfos(dex, price, tokenADecimals, tokenBDecimals);
 
-    // pub start_mid_tick: i32,
-    // pub ticks_below_mid: i32,
-    // pub ticks_above_mid: i32,
-    // pub seconds_per_tick: u64,
-    // pub direction: DriftDirection,
-
     let startMidTick = defaultFields.find((x) => x.label == 'startMidTick')!.value;
     let startMidTickInput = fieldOverrides.find((x) => x.label == 'startMidTick');
     if (startMidTickInput) {
       startMidTick = startMidTickInput.value;
     }
 
-    let ticksBelowMid: Decimal = ZERO;
+    let ticksBelowMid = defaultFields.find((x) => x.label == 'ticksBelowMid')!.value;
     let ticksBelowMidInput = fieldOverrides.find((x) => x.label == 'ticksBelowMid');
     if (ticksBelowMidInput) {
       ticksBelowMid = ticksBelowMidInput.value;
     }
 
-    let ticksAboveMid: Decimal = ZERO;
+    let ticksAboveMid = defaultFields.find((x) => x.label == 'ticksAboveMid')!.value;
     let ticksAboveMidInput = fieldOverrides.find((x) => x.label == 'ticksAboveMid');
     if (ticksAboveMidInput) {
       ticksAboveMid = ticksAboveMidInput.value;
     }
 
-    let secondsPerTick: Decimal = ZERO;
+    let secondsPerTick = defaultFields.find((x) => x.label == 'secondsPerTick')!.value;
     let secondsPerTickInput = fieldOverrides.find((x) => x.label == 'secondsPerTick');
     if (secondsPerTickInput) {
       secondsPerTick = secondsPerTickInput.value;
     }
 
-    let direction: Decimal = ZERO;
+    let direction = defaultFields.find((x) => x.label == 'direction')!.value;
     let directionInput = fieldOverrides.find((x) => x.label == 'direction');
     if (directionInput) {
       direction = directionInput.value;
@@ -551,24 +552,25 @@ export class Kamino {
       dex,
       tokenADecimals,
       tokenBDecimals,
-      startMidTick,
-      ticksBelowMid,
-      ticksAboveMid,
-      secondsPerTick,
-      direction
+      new Decimal(startMidTick),
+      new Decimal(ticksBelowMid),
+      new Decimal(ticksAboveMid),
+      new Decimal(secondsPerTick),
+      new Decimal(direction)
     );
 
     return fieldInfos;
   };
 
-  // todo: implement this
   getFieldsForTakeProfitRebalanceMethod = async (
     dex: Dex,
     fieldOverrides: RebalanceFieldInfo[],
     tokenAMint: PublicKey,
     tokenBMint: PublicKey
   ): Promise<RebalanceFieldInfo[]> => {
-    let price = await this.getPriceForPair(dex, tokenAMint, tokenBMint);
+    let price = new Decimal(await this.getPriceForPair(dex, tokenAMint, tokenBMint));
+
+    const defaultFields = getDefaultTakeProfitRebalanceFieldsInfos(price);
 
     // pub lower_range_price: u128,
     // pub upper_range_price: u128,
@@ -576,43 +578,126 @@ export class Kamino {
     // // Will wait until the position is fully in this token (0 or 1, representing A or B)
     // pub destination_token: RebalanceTakeProfitToken,
 
-    let lowerRangePrice: Decimal = ZERO;
-    let lowerRangePriceInput = fieldOverrides.find((x) => x.label == 'lowerRangePrice');
+    let lowerRangePrice = defaultFields.find((x) => x.label == 'priceLower')!.value;
+    let lowerRangePriceInput = fieldOverrides.find((x) => x.label == 'priceLower');
     if (lowerRangePriceInput) {
       lowerRangePrice = lowerRangePriceInput.value;
     }
 
-    let upperRangePrice: Decimal = ZERO;
-    let upperRangePriceInput = fieldOverrides.find((x) => x.label == 'upperRangePrice');
+    let upperRangePrice = defaultFields.find((x) => x.label == 'priceUpper')!.value;
+    let upperRangePriceInput = fieldOverrides.find((x) => x.label == 'priceUpper');
     if (upperRangePriceInput) {
       upperRangePrice = upperRangePriceInput.value;
     }
 
+    let destinationToken = defaultFields.find((x) => x.label == 'destinationToken')!.value;
+    let destinationTokenInput = fieldOverrides.find((x) => x.label == 'destinationToken');
+    if (destinationTokenInput) {
+      destinationToken = destinationTokenInput.value;
+    }
     // don't do the commented code, we need to repesent the price directly in numerical value. not x64
     // let tokenADecimals = await getMintDecimals(this._connection, tokenAMint);
     // let tokenBDecimals = await getMintDecimals(this._connection, tokenBMint);
     // let positionPriceRange = getPositionRangeFromTakeProfitParams(dex, tokenADecimals, tokenBDecimals, )
-    return getManualRebalanceFieldInfos(lowerRangePrice, upperRangePrice, true);
+    return getTakeProfitRebalanceFieldsInfos(
+      new Decimal(lowerRangePrice),
+      new Decimal(upperRangePrice),
+      new Decimal(destinationToken),
+      true
+    );
   };
 
-  // todo: implement this
   getFieldsForPeriodicRebalanceMethod = async (
     dex: Dex,
     fieldOverrides: RebalanceFieldInfo[],
     tokenAMint: PublicKey,
     tokenBMint: PublicKey
-  ) => {
-    let price = await this.getPriceForPair(dex, tokenAMint, tokenBMint);
+  ): Promise<RebalanceFieldInfo[]> => {
+    let price = new Decimal(await this.getPriceForPair(dex, tokenAMint, tokenBMint));
+
+    const defaultFields = getDefaultPeriodicRebalanceFieldInfos(price);
+
+    let period: Decimal = new Decimal(defaultFields.find((x) => x.label == 'period')!.value);
+    let periodInput = fieldOverrides.find((x) => x.label == 'period');
+    if (periodInput) {
+      period = new Decimal(periodInput.value);
+    }
+
+    let lowerPriceDifferenceBPS = defaultFields.find((x) => x.label == 'lowerRangeBps')!.value;
+    let lowerPriceDifferenceBPSInput = fieldOverrides.find((x) => x.label == 'lowerRangeBps');
+    if (lowerPriceDifferenceBPSInput) {
+      lowerPriceDifferenceBPS = lowerPriceDifferenceBPSInput.value;
+    }
+
+    let upperPriceDifferenceBPS = defaultFields.find((x) => x.label == 'upperRangeBps')!.value;
+    let upperPriceDifferenceBPSInput = fieldOverrides.find((x) => x.label == 'upperRangeBps');
+    if (upperPriceDifferenceBPSInput) {
+      upperPriceDifferenceBPS = upperPriceDifferenceBPSInput.value;
+    }
+
+    return getPeriodicRebalanceRebalanceFieldInfos(
+      price,
+      period,
+      new Decimal(lowerPriceDifferenceBPS),
+      new Decimal(upperPriceDifferenceBPS)
+    );
   };
 
-  // todo: implement this
   getFieldsForExpanderRebalanceMethod = async (
     dex: Dex,
     fieldOverrides: RebalanceFieldInfo[],
     tokenAMint: PublicKey,
     tokenBMint: PublicKey
-  ) => {
-    let price = await this.getPriceForPair(dex, tokenAMint, tokenBMint);
+  ): Promise<RebalanceFieldInfo[]> => {
+    let price = new Decimal(await this.getPriceForPair(dex, tokenAMint, tokenBMint));
+
+    const defaultFields = getDefaultExpanderRebalanceFieldInfos(price);
+
+    let lowerPriceDifferenceBPS = defaultFields.find((x) => x.label == 'lowerRangeBps')!.value;
+    let lowerPriceDifferenceBPSInput = fieldOverrides.find((x) => x.label == 'lowerRangeBps');
+    if (lowerPriceDifferenceBPSInput) {
+      lowerPriceDifferenceBPS = lowerPriceDifferenceBPSInput.value;
+    }
+
+    let upperPriceDifferenceBPS = defaultFields.find((x) => x.label == 'upperRangeBps')!.value;
+    let upperPriceDifferenceBPSInput = fieldOverrides.find((x) => x.label == 'upperRangeBps');
+    if (upperPriceDifferenceBPSInput) {
+      upperPriceDifferenceBPS = upperPriceDifferenceBPSInput.value;
+    }
+
+    let lowerResetPriceDifferenceBPS = defaultFields.find((x) => x.label == 'resetLowerRangeBps')!.value;
+    let lowerResetPriceDifferenceBPSInput = fieldOverrides.find((x) => x.label == 'resetLowerRangeBps');
+    if (lowerResetPriceDifferenceBPSInput) {
+      lowerResetPriceDifferenceBPS = lowerResetPriceDifferenceBPSInput.value;
+    }
+
+    let upperResetPriceDifferenceBPS = defaultFields.find((x) => x.label == 'resetUpperRangeBps')!.value;
+    let upperResetPriceDifferenceBPSInput = fieldOverrides.find((x) => x.label == 'resetUpperRangeBps');
+    if (upperResetPriceDifferenceBPSInput) {
+      upperResetPriceDifferenceBPS = upperResetPriceDifferenceBPSInput.value;
+    }
+
+    let expansionBPS = defaultFields.find((x) => x.label == 'expansionBps')!.value;
+    let expansionBPSInput = fieldOverrides.find((x) => x.label == 'expansionBps');
+    if (expansionBPSInput) {
+      expansionBPS = expansionBPSInput.value;
+    }
+
+    let maxNumberOfExpansions = defaultFields.find((x) => x.label == 'maxNumberOfExpansions')!.value;
+    let maxNumberOfExpansionsInput = fieldOverrides.find((x) => x.label == 'maxNumberOfExpansions');
+    if (maxNumberOfExpansionsInput) {
+      maxNumberOfExpansions = maxNumberOfExpansionsInput.value;
+    }
+
+    return getExpanderRebalanceFieldInfos(
+      price,
+      new Decimal(lowerPriceDifferenceBPS),
+      new Decimal(upperPriceDifferenceBPS),
+      new Decimal(lowerResetPriceDifferenceBPS),
+      new Decimal(upperResetPriceDifferenceBPS),
+      new Decimal(expansionBPS),
+      new Decimal(maxNumberOfExpansions)
+    );
   };
 
   getPriceForPair = async (dex: Dex, poolTokenA: PublicKey, poolTokenB: PublicKey): Promise<number> => {
@@ -3975,15 +4060,10 @@ export class Kamino {
   };
 
   /**
-   * Get a list of rebalancing params
-   * @param rebalanceType the RebalanceTypeKind of the strategy
-   * @param rebalanceParams the raw rebalancing params
-   * @returns list of decoded rebalancing params
+   * Get the rebalance method and params for a strategy
+   * @param strategy the strategy address or decoded
+   * @returns list of decoded and processed rebalancing params
    */
-
-  readPercentageRebalanceParams = async (strategy: PublicKey | StrategyWithAddress): Promise<RebalanceParams> => {
-    return this.readRebalanceParams(strategy);
-  };
 
   readRebalanceParams = async (strategy: PublicKey | StrategyWithAddress): Promise<RebalanceParams> => {
     const strategyWithAddress = await this.getStrategyStateIfNotFetched(strategy);
@@ -4086,10 +4166,6 @@ export class Kamino {
     } else {
       throw new Error(`Invalid rebalance type ${rebalanceType}`);
     }
-  };
-
-  readStrategyRebalanceParams = async (strategy: PublicKey | StrategyWithAddress): Promise<RebalanceParams> => {
-    return this.readPercentageRebalanceParams(strategy);
   };
 
   /**
