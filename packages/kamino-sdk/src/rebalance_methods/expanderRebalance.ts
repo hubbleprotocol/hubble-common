@@ -15,6 +15,7 @@ export const DefaultMaxNumberOfExpansions = new Decimal(10);
 export const DefaultExpansionSizeBPS = new Decimal(100);
 
 export function getExpanderRebalanceFieldInfos(
+  price: Decimal,
   lowerPercentageBPS: Decimal,
   upperPercentageBPS: Decimal,
   resetLowerPercentageBPS: Decimal,
@@ -60,6 +61,24 @@ export function getExpanderRebalanceFieldInfos(
     enabled,
   };
 
+  let { lowerPrice, upperPrice } = getPositionRangeFromPriceAndExpanderParams(
+    price,
+    lowerPercentageBPS,
+    upperPercentageBPS
+  );
+  let lowerRangeRebalanceFieldInfo: RebalanceFieldInfo = {
+    label: 'priceLower',
+    type: 'number',
+    value: lowerPrice,
+    enabled: false,
+  };
+  let upperRangeRebalanceFieldInfo: RebalanceFieldInfo = {
+    label: 'priceUpper',
+    type: 'number',
+    value: upperPrice,
+    enabled: false,
+  };
+
   return [
     lowerBpsRebalanceFieldInfo,
     upperBpsRebalanceFieldInfo,
@@ -67,6 +86,8 @@ export function getExpanderRebalanceFieldInfos(
     resetUpperBpsRebalanceFieldInfo,
     expansionBpsRebalanceFieldInfo,
     maxNumberOfExpansionsRebalanceFieldInfo,
+    lowerRangeRebalanceFieldInfo,
+    upperRangeRebalanceFieldInfo,
   ];
 }
 
@@ -89,6 +110,7 @@ export function getDefaultExpanderRebalanceFieldInfos(price: Decimal): Rebalance
     DefaultUpperPercentageBPSDecimal
   );
   let fieldInfos = getExpanderRebalanceFieldInfos(
+    price,
     DefaultLowerPercentageBPSDecimal,
     DefaultUpperPercentageBPSDecimal,
     DefaultLowerPercentageBPSDecimal,

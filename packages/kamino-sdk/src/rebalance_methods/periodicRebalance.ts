@@ -15,6 +15,7 @@ export const DEFAULT_UPPER_RANGE_PRICE_DIFF_BPS_PERIODIC_REBALANCE = new Decimal
 export const DEFAULT_REBALANCE_PERIOD = new Decimal(3600 * 24 * 3); // 3 days
 
 export function getPeriodicRebalanceRebalanceFieldInfos(
+  price: Decimal,
   period: Decimal, // seconds
   lowerRangeBps: Decimal,
   upperRangeBps: Decimal,
@@ -39,7 +40,28 @@ export function getPeriodicRebalanceRebalanceFieldInfos(
     enabled,
   };
 
-  return [periodRebalanceFieldInfo, lowerRangeBpsRebalanceFieldInfo, upperRangeBpsRebalanceFieldInfo];
+  let { lowerPrice, upperPrice } = getPositionRangeForPeriodicRebalanceParams(price, lowerRangeBps, upperRangeBps);
+
+  let lowerRangeRebalanceFieldInfo: RebalanceFieldInfo = {
+    label: 'priceLower',
+    type: 'number',
+    value: lowerPrice,
+    enabled: false,
+  };
+  let upperRangeRebalanceFieldInfo: RebalanceFieldInfo = {
+    label: 'priceUpper',
+    type: 'number',
+    value: upperPrice,
+    enabled: false,
+  };
+
+  return [
+    periodRebalanceFieldInfo,
+    lowerRangeBpsRebalanceFieldInfo,
+    upperRangeBpsRebalanceFieldInfo,
+    lowerRangeRebalanceFieldInfo,
+    upperRangeRebalanceFieldInfo,
+  ];
 }
 
 export function getPositionRangeForPeriodicRebalanceParams(
@@ -59,6 +81,7 @@ export function getDefaultPeriodicRebalanceFieldInfos(price: Decimal): Rebalance
     DEFAULT_UPPER_RANGE_PRICE_DIFF_BPS_PERIODIC_REBALANCE
   );
   return getPeriodicRebalanceRebalanceFieldInfos(
+    price,
     DEFAULT_REBALANCE_PERIOD,
     DEFAULT_LOWER_RANGE_PRICE_DIFF_BPS_PERIODIC_REBALANCE,
     DEFAULT_UPPER_RANGE_PRICE_DIFF_BPS_PERIODIC_REBALANCE

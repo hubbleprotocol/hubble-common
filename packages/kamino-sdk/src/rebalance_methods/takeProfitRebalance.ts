@@ -21,13 +21,13 @@ export function getTakeProfitRebalanceFieldsInfos(
   enabled: boolean = true
 ): RebalanceFieldInfo[] {
   let lowerRangePriceRebalanceFieldInfo: RebalanceFieldInfo = {
-    label: 'lowerRangePrice',
+    label: 'priceLower',
     type: 'number',
     value: lowerRangePrice,
     enabled,
   };
   let upperRangePriceRebalanceFieldInfo: RebalanceFieldInfo = {
-    label: 'upperRangePrice',
+    label: 'priceUpper',
     type: 'number',
     value: upperRangePrice,
     enabled,
