@@ -7,7 +7,7 @@
   "scripts": {
     "build": "tsc",
     "build:watch": "tsc -w",
-    "codegen": "yarn anchor-client-gen ../hubble-idl/src/scope.json ./src/ --program-id HFn8GnPADiny6XqUoWE8uRPPxb29ikn4yTuPa9MF2fWJ"
+    "codegen": "anchor-client-gen ../hubble-idl/src/scope.json ./src/ --program-id HFn8GnPADiny6XqUoWE8uRPPxb29ikn4yTuPa9MF2fWJ"
   },
   "repository": {
     "type": "git",

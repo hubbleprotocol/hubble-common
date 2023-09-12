@@ -41,7 +41,7 @@ describe('Scope SDK Tests', async () => {
       console.log(`Error: ${JSON.stringify(e)}`);
       throw e;
     }
-    const [, config] = await scope.getFeedConfiguration(env.priceFeed);
+    const [, config] = await scope.getFeedConfiguration({ feed: env.priceFeed });
     expect(config).to.not.be.null;
   });
 
@@ -60,7 +60,7 @@ describe('Scope SDK Tests', async () => {
       throw e;
     }
 
-    const newMappings = await scope.getOracleMappings(env.priceFeed);
+    const newMappings = await scope.getOracleMappings({ feed: env.priceFeed });
     const newPriceTypeMapping = newMappings.priceTypes[SupportedTokens.indexOf('ETH')];
     const newPriceAccountMapping = newMappings.priceInfoAccounts[SupportedTokens.indexOf('ETH')];
     expect(newPriceTypeMapping).to.equal(new OracleType.Pyth().discriminator);
@@ -76,15 +76,15 @@ describe('Scope SDK Tests', async () => {
       new OracleType.Pyth(),
       new PublicKey('Gnt27xtC473ZT2Mw5u8wZ68Z3gULkSTb5DuxJy7eJotD')
     );
-    const originalOraclePrices = await scope.getOraclePrices(env.priceFeed);
+    const originalOraclePrices = await scope.getOraclePrices({ feed: env.priceFeed });
     const originalPrice = originalOraclePrices.prices[SupportedTokens.indexOf('ETH')];
     try {
-      await scope.refreshPriceList(env.admin, env.priceFeed, [SupportedTokens.indexOf('ETH')]);
+      await scope.refreshPriceList(env.admin, { feed: env.priceFeed }, [SupportedTokens.indexOf('ETH')]);
     } catch (e) {
       console.log(`Error: ${JSON.stringify(e)}`);
       throw e;
     }
-    const newOraclePrices = await scope.getOraclePrices(env.priceFeed);
+    const newOraclePrices = await scope.getOraclePrices({ feed: env.priceFeed });
     const newPrice = newOraclePrices.prices[SupportedTokens.indexOf('ETH')];
     expect(newPrice.lastUpdatedSlot.toNumber()).gt(originalPrice.lastUpdatedSlot.toNumber());
   });
