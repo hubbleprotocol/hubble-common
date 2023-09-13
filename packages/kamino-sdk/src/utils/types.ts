@@ -105,50 +105,6 @@ export function getStrategyCreationStatusFromStrategy(strategy: WhirlpoolStrateg
   }
 }
 
-export interface RebalanceFieldInfo {
-  label: string;
-  type: string;
-  value: number;
-  enabled: boolean;
-}
-
-export function getManualRebalanceFieldInfos(lowerPrice: number, upperPrice: number, enabled: boolean = true) {
-  let lowerRangeRebalanceFieldInfo: RebalanceFieldInfo = {
-    label: 'priceLower',
-    type: 'number',
-    value: lowerPrice,
-    enabled,
-  };
-  let upperRangeRebalanceFieldInfo: RebalanceFieldInfo = {
-    label: 'priceUpper',
-    type: 'number',
-    value: upperPrice,
-    enabled,
-  };
-  return [lowerRangeRebalanceFieldInfo, upperRangeRebalanceFieldInfo];
-}
-
-export function getPricePercentageRebalanceFieldInfos(
-  lowerPercentageBPS: number,
-  upperPercentageBPS: number,
-  enabled: boolean = true
-) {
-  let lowerBpsRebalanceFieldInfo: RebalanceFieldInfo = {
-    label: 'lowerThresholdBps',
-    type: 'number',
-    value: lowerPercentageBPS,
-    enabled,
-  };
-  let upperBpsRebalanceFieldInfo: RebalanceFieldInfo = {
-    label: 'upperThresholdBps',
-    type: 'number',
-    value: upperPercentageBPS,
-    enabled,
-  };
-
-  return [lowerBpsRebalanceFieldInfo, upperBpsRebalanceFieldInfo];
-}
-
 export interface GenericPoolInfo {
   dex: Dex;
   address: PublicKey;
@@ -209,10 +165,19 @@ export function depositAmountsForSwapToLamports(
 
 export interface RebalanceParams {
   rebalanceType: RebalanceTypeKind;
-  lowerRangeBps: Decimal;
-  upperRangeBps: Decimal;
+  lowerRangeBps?: Decimal;
+  upperRangeBps?: Decimal;
   resetRangeLowerBps?: Decimal;
   resetRangeUpperBps?: Decimal;
+  startMidTick?: Decimal;
+  ticksBelowMid?: Decimal;
+  ticksAboveMid?: Decimal;
+  secondsPerTick?: Decimal;
+  driftDirection?: Decimal;
+  period?: Decimal;
+  lowerRangePrice?: Decimal;
+  upperRangePrice?: Decimal;
+  destinationToken?: Decimal;
 }
 
 export interface RebalanceParamsAsPrices {
@@ -278,4 +243,11 @@ export interface PerformanceFees {
   reward0FeeBPS: Decimal;
   reward1FeeBPS: Decimal;
   reward2FeeBPS: Decimal;
+}
+
+export interface RebalanceFieldInfo {
+  label: string;
+  type: string;
+  value: Decimal | string;
+  enabled: boolean;
 }

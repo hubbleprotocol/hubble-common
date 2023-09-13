@@ -9,6 +9,8 @@ import {
   UpdateStrategyConfigArgs,
   updateStrategyConfig,
 } from '../kamino-client/instructions';
+import { SqrtPriceMath } from '@raydium-io/raydium-sdk';
+import { token } from '@project-serum/anchor/dist/cjs/utils';
 
 export const DolarBasedMintingMethod = new Decimal(0);
 export const ProportionalMintingMethod = new Decimal(1);
@@ -57,7 +59,12 @@ export function getStrategyConfigValue(value: Decimal): number[] {
   return [...buffer];
 }
 
-export function buildStrategyRebalanceParams(params: Array<Decimal>, rebalance_type: RebalanceTypeKind): number[] {
+export function buildStrategyRebalanceParams(
+  params: Array<Decimal>,
+  rebalance_type: RebalanceTypeKind,
+  tokenADecimals?: number,
+  tokenBDecimals?: number
+): number[] {
   let buffer = Buffer.alloc(128);
   if (rebalance_type.kind == RebalanceType.Manual.kind) {
     // Manual has no params
@@ -69,6 +76,30 @@ export function buildStrategyRebalanceParams(params: Array<Decimal>, rebalance_t
     buffer.writeUint16LE(params[1].toNumber(), 2);
     buffer.writeUint16LE(params[2].toNumber(), 4);
     buffer.writeUint16LE(params[3].toNumber(), 6);
+  } else if (rebalance_type.kind == RebalanceType.Drift.kind) {
+    buffer.writeInt32LE(params[0].toNumber());
+    buffer.writeInt32LE(params[1].toNumber(), 4);
+    buffer.writeInt32LE(params[2].toNumber(), 8);
+    buffer.writeBigUint64LE(BigInt(params[3].toString()), 12);
+    buffer.writeUint8(params[4].toNumber(), 20);
+  } else if (rebalance_type.kind == RebalanceType.TakeProfit.kind) {
+    const lowerPrice = SqrtPriceMath.priceToSqrtPriceX64(params[0], tokenADecimals!, tokenBDecimals!);
+    const upperPrice = SqrtPriceMath.priceToSqrtPriceX64(params[1], tokenADecimals!, tokenBDecimals!);
+    writeBigUint128LE(buffer, BigInt(lowerPrice.toString()), 0);
+    writeBigUint128LE(buffer, BigInt(upperPrice.toString()), 16);
+    buffer.writeUint8(params[2].toNumber(), 32);
+  } else if (rebalance_type.kind == RebalanceType.PeriodicRebalance.kind) {
+    buffer.writeBigUint64LE(BigInt(params[0].toString()), 0);
+    buffer.writeUInt16LE(params[1].toNumber(), 8);
+    buffer.writeUInt16LE(params[2].toNumber(), 10);
+  } else if (rebalance_type.kind == RebalanceType.Expander.kind) {
+    buffer.writeUInt16LE(params[0].toNumber(), 0);
+    buffer.writeUInt16LE(params[1].toNumber(), 2);
+    buffer.writeUInt16LE(params[2].toNumber(), 4);
+    buffer.writeUInt16LE(params[3].toNumber(), 6);
+    buffer.writeUInt16LE(params[4].toNumber(), 8);
+    buffer.writeUInt16LE(params[5].toNumber(), 10);
+    buffer.writeUInt8(params[6].toNumber(), 12);
   } else {
     throw 'Rebalance type not valid ' + rebalance_type;
   }
@@ -82,6 +113,14 @@ export function numberToRebalanceType(rebalance_type: number): RebalanceTypeKind
     return new RebalanceType.PricePercentage();
   } else if (rebalance_type == 2) {
     return new RebalanceType.PricePercentageWithReset();
+  } else if (rebalance_type == 3) {
+    return new RebalanceType.Drift();
+  } else if (rebalance_type == 4) {
+    return new RebalanceType.TakeProfit();
+  } else if (rebalance_type == 5) {
+    return new RebalanceType.PeriodicRebalance();
+  } else if (rebalance_type == 6) {
+    return new RebalanceType.Expander();
   } else {
     throw new Error(`Invalid rebalance type ${rebalance_type.toString()}`);
   }
@@ -123,4 +162,11 @@ export function lamportsToNumberDecimal(amount: Decimal.Value, decimals: number)
 
 export function readBigUint128LE(buffer: Buffer, offset: number): bigint {
   return buffer.readBigUint64LE(offset) + (buffer.readBigUint64LE(offset + 8) << BigInt(64));
+}
+
+function writeBigUint128LE(buffer: Buffer, value: bigint, offset: number) {
+  const lower_half = value & ((BigInt(1) << BigInt(64)) - BigInt(64));
+  const upper_half = value >> BigInt(64);
+  buffer.writeBigUint64LE(lower_half, offset);
+  buffer.writeBigUint64LE(upper_half, offset + 8);
 }
