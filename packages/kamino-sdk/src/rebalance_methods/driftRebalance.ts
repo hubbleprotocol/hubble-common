@@ -1,15 +1,8 @@
 import Decimal from 'decimal.js';
 import { PositionRange, RebalanceFieldInfo } from '../utils/types';
-import {
-  DefaultLowerPercentageBPSDecimal,
-  DefaultUpperPercentageBPSDecimal,
-  FullBPSDecimal,
-} from '../utils/CreationParameters';
-import { getManualRebalanceFieldInfos } from './manualRebalance';
 import { Dex } from '../utils';
 import { priceToTickIndex, sqrtPriceX64ToPrice, tickIndexToPrice } from '@orca-so/whirlpool-sdk';
 import { SqrtPriceMath } from '@raydium-io/raydium-sdk';
-import { token } from '@project-serum/anchor/dist/cjs/utils';
 import { RebalanceRaw } from '../kamino-client/types';
 
 export const DEFAULT_TICKS_BELOW_MID = new Decimal(10);

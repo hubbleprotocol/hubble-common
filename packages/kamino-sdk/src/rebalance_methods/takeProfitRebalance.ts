@@ -1,11 +1,6 @@
 import Decimal from 'decimal.js';
 import { PositionRange, RebalanceFieldInfo } from '../utils/types';
-import {
-  DefaultLowerPercentageBPSDecimal,
-  DefaultUpperPercentageBPSDecimal,
-  FullBPSDecimal,
-} from '../utils/CreationParameters';
-import { getManualRebalanceFieldInfos } from './manualRebalance';
+import { FullBPSDecimal } from '../utils/CreationParameters';
 import { Dex, readBigUint128LE } from '../utils';
 import { sqrtPriceX64ToPrice } from '@orca-so/whirlpool-sdk';
 import BN from 'bn.js';
@@ -48,7 +43,12 @@ export function getTakeProfitRebalanceFieldsInfos(
     enabled,
   };
 
-  return [rebalanceType, lowerRangePriceRebalanceFieldInfo, upperRangePriceRebalanceFieldInfo, destinationTokenRebalanceFieldInfo];
+  return [
+    rebalanceType,
+    lowerRangePriceRebalanceFieldInfo,
+    upperRangePriceRebalanceFieldInfo,
+    destinationTokenRebalanceFieldInfo,
+  ];
 }
 
 export function getPositionRangeFromTakeProfitParams(
