@@ -106,4 +106,3 @@ export function deserializePeriodicRebalanceFromOnchainParams(price: Decimal, re
 
   return getPeriodicRebalanceRebalanceFieldInfos(price, period, lowerRangeBps, upperRangeBps);
 }
-

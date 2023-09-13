@@ -698,6 +698,12 @@ export class Kamino {
       maxNumberOfExpansions = maxNumberOfExpansionsInput.value;
     }
 
+    let swapUnevenAllowed = defaultFields.find((x) => x.label == 'swapUnevenAllowed')!.value;
+    let swapUnevenAllowedInput = fieldOverrides.find((x) => x.label == 'swapUnevenAllowed');
+    if (swapUnevenAllowedInput) {
+      swapUnevenAllowed = swapUnevenAllowedInput.value;
+    }
+
     return getExpanderRebalanceFieldInfos(
       price,
       new Decimal(lowerPriceDifferenceBPS),
@@ -705,7 +711,8 @@ export class Kamino {
       new Decimal(lowerResetPriceDifferenceBPS),
       new Decimal(upperResetPriceDifferenceBPS),
       new Decimal(expansionBPS),
-      new Decimal(maxNumberOfExpansions)
+      new Decimal(maxNumberOfExpansions),
+      new Decimal(swapUnevenAllowed)
     );
   };
 
@@ -3437,13 +3444,40 @@ export class Kamino {
     strategyAdmin: PublicKey,
     strategy: PublicKey,
     rebalanceParams: Decimal[],
-    rebalanceType?: RebalanceTypeKind
+    rebalanceType?: RebalanceTypeKind,
+    tokenADecimals?: number,
+    tokenBDecimals?: number
   ): Promise<TransactionInstruction> => {
     if (!rebalanceType) {
       const { strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
       rebalanceType = numberToRebalanceType(strategyState.rebalanceType);
     }
-    const value = buildStrategyRebalanceParams(rebalanceParams, rebalanceType);
+
+    const value = buildStrategyRebalanceParams(rebalanceParams, rebalanceType, tokenADecimals, tokenBDecimals);
+    let args: UpdateStrategyConfigArgs = {
+      mode: StrategyConfigOption.UpdateRebalanceParams.discriminator,
+      value,
+    };
+
+    let accounts: UpdateStrategyConfigAccounts = {
+      adminAuthority: strategyAdmin,
+      newAccount: PublicKey.default, // not used
+      globalConfig: this._globalConfig,
+      strategy,
+      systemProgram: SystemProgram.programId,
+    };
+    return updateStrategyConfig(args, accounts);
+  };
+
+  getUpdateRebalancingParamsForUninitializedStratIx = async (
+    strategyAdmin: PublicKey,
+    strategy: PublicKey,
+    rebalanceParams: Decimal[],
+    rebalanceType: RebalanceTypeKind,
+    tokenADecimals: number,
+    tokenBDecimals: number
+  ): Promise<TransactionInstruction> => {
+    const value = buildStrategyRebalanceParams(rebalanceParams, rebalanceType, tokenADecimals, tokenBDecimals);
     let args: UpdateStrategyConfigArgs = {
       mode: StrategyConfigOption.UpdateRebalanceParams.discriminator,
       value,
@@ -3533,12 +3567,16 @@ export class Kamino {
 
     let initStrategyIx: TransactionInstruction = await this.createStrategy(strategy, pool, strategyAdmin, dex);
 
+    let tokenADecimals = await getMintDecimals(this._connection, tokenMintA);
+    let tokenBDecimals = await getMintDecimals(this._connection, tokenMintB);
     let rebalanceKind = numberToRebalanceType(rebalanceType.toNumber());
-    let updateRebalanceParamsIx = await this.getUpdateRebalancingParmsIxns(
+    let updateRebalanceParamsIx = await this.getUpdateRebalancingParamsForUninitializedStratIx(
       strategyAdmin,
       strategy,
       rebalanceParams,
-      rebalanceKind
+      rebalanceKind,
+      tokenADecimals,
+      tokenBDecimals
     );
 
     let updateStrategyParamsIx = await this.getUpdateStrategyParamsIxs(

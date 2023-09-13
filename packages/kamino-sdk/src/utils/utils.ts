@@ -9,6 +9,8 @@ import {
   UpdateStrategyConfigArgs,
   updateStrategyConfig,
 } from '../kamino-client/instructions';
+import { SqrtPriceMath } from '@raydium-io/raydium-sdk';
+import { token } from '@project-serum/anchor/dist/cjs/utils';
 
 export const DolarBasedMintingMethod = new Decimal(0);
 export const ProportionalMintingMethod = new Decimal(1);
@@ -57,7 +59,12 @@ export function getStrategyConfigValue(value: Decimal): number[] {
   return [...buffer];
 }
 
-export function buildStrategyRebalanceParams(params: Array<Decimal>, rebalance_type: RebalanceTypeKind): number[] {
+export function buildStrategyRebalanceParams(
+  params: Array<Decimal>,
+  rebalance_type: RebalanceTypeKind,
+  tokenADecimals?: number,
+  tokenBDecimals?: number
+): number[] {
   let buffer = Buffer.alloc(128);
   if (rebalance_type.kind == RebalanceType.Manual.kind) {
     // Manual has no params
@@ -76,8 +83,10 @@ export function buildStrategyRebalanceParams(params: Array<Decimal>, rebalance_t
     buffer.writeBigUint64LE(BigInt(params[3].toString()), 12);
     buffer.writeUint8(params[4].toNumber(), 20);
   } else if (rebalance_type.kind == RebalanceType.TakeProfit.kind) {
-    writeBigUint128LE(buffer, BigInt(params[0].toString()), 0);
-    writeBigUint128LE(buffer, BigInt(params[1].toString()), 16);
+    const lowerPrice = SqrtPriceMath.priceToSqrtPriceX64(params[0], tokenADecimals!, tokenBDecimals!);
+    const upperPrice = SqrtPriceMath.priceToSqrtPriceX64(params[1], tokenADecimals!, tokenBDecimals!);
+    writeBigUint128LE(buffer, BigInt(lowerPrice.toString()), 0);
+    writeBigUint128LE(buffer, BigInt(upperPrice.toString()), 16);
     buffer.writeUint8(params[2].toNumber(), 32);
   } else if (rebalance_type.kind == RebalanceType.PeriodicRebalance.kind) {
     buffer.writeBigUint64LE(BigInt(params[0].toString()), 0);

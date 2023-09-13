@@ -48,7 +48,7 @@ export function getTakeProfitRebalanceFieldsInfos(
     enabled,
   };
 
-  return [lowerRangePriceRebalanceFieldInfo, upperRangePriceRebalanceFieldInfo, destinationTokenRebalanceFieldInfo];
+  return [rebalanceType, lowerRangePriceRebalanceFieldInfo, upperRangePriceRebalanceFieldInfo, destinationTokenRebalanceFieldInfo];
 }
 
 export function getPositionRangeFromTakeProfitParams(

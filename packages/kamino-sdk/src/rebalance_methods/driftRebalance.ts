@@ -75,12 +75,28 @@ export function getDriftRebalanceFieldInfos(
     ticksAboveMid
   );
 
+  let lowerRangeRebalanceFieldInfo: RebalanceFieldInfo = {
+    label: 'priceLower',
+    type: 'number',
+    value: lowerPrice,
+    enabled: false,
+  };
+  let upperRangeRebalanceFieldInfo: RebalanceFieldInfo = {
+    label: 'priceUpper',
+    type: 'number',
+    value: upperPrice,
+    enabled: false,
+  };
+
   return [
+    rebalanceType,
     startMidTickRebalanceFieldInfo,
     ticksBelowMidRebalanceFieldInfo,
     ticksAboveMidRebalanceFieldInfo,
     secondsPerTickRebalanceFieldInfo,
     directionRebalanceFieldInfo,
+    lowerRangeRebalanceFieldInfo,
+    upperRangeRebalanceFieldInfo,
   ];
 }
 
@@ -96,7 +112,7 @@ export function getPositionRangeFromDriftParams(
   ticksAboveMid: Decimal
 ): PositionRange {
   let lowerTickIndex = startMidTick.sub(ticksBelowMid);
-  let upperTickIndex = startMidTick.sub(ticksAboveMid);
+  let upperTickIndex = startMidTick.add(ticksAboveMid);
 
   if (dex == 'ORCA') {
     let lowerPrice = tickIndexToPrice(lowerTickIndex.toNumber(), tokenADecimals, tokenBDecimals);

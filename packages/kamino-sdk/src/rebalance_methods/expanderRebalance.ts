@@ -13,6 +13,7 @@ import { RebalanceRaw } from '../kamino-client/types';
 
 export const DefaultMaxNumberOfExpansions = new Decimal(10);
 export const DefaultExpansionSizeBPS = new Decimal(100);
+export const DefaultSwapUnevenAllowed = new Decimal(1);
 export const ExpanderRebalanceTypeName = 'expander';
 
 export function getExpanderRebalanceFieldInfos(
@@ -23,6 +24,7 @@ export function getExpanderRebalanceFieldInfos(
   resetUpperPercentageBPS: Decimal,
   expansionBPS: Decimal,
   maxNumberOfExpansions: Decimal,
+  swapUnevenAllowed: Decimal,
   enabled: boolean = true
 ): RebalanceFieldInfo[] {
   let rebalanceType: RebalanceFieldInfo = {
@@ -65,6 +67,12 @@ export function getExpanderRebalanceFieldInfos(
     label: 'maxNumberOfExpansions',
     type: 'number',
     value: maxNumberOfExpansions,
+    enabled,
+  };
+  let swapUnevenAllowedFieldInfo: RebalanceFieldInfo = {
+    label: 'swapUnevenAllowed',
+    type: 'number',
+    value: swapUnevenAllowed,
     enabled,
   };
 
@@ -110,6 +118,7 @@ export function getExpanderRebalanceFieldInfos(
     resetUpperBpsRebalanceFieldInfo,
     expansionBpsRebalanceFieldInfo,
     maxNumberOfExpansionsRebalanceFieldInfo,
+    swapUnevenAllowedFieldInfo,
     lowerRangeRebalanceFieldInfo,
     upperRangeRebalanceFieldInfo,
     resetLowerRangeRebalanceFieldInfo,
@@ -158,7 +167,8 @@ export function getDefaultExpanderRebalanceFieldInfos(price: Decimal): Rebalance
     DefaultLowerPercentageBPSDecimal,
     DefaultUpperPercentageBPSDecimal,
     DefaultLowerPercentageBPSDecimal,
-    DefaultMaxNumberOfExpansions
+    DefaultMaxNumberOfExpansions,
+    DefaultSwapUnevenAllowed
   ).concat(getManualRebalanceFieldInfos(lowerPrice, upperPrice, false));
   return fieldInfos;
 }
@@ -172,7 +182,7 @@ export function readExpanderRebalanceFieldInfosFromStrategy(price: Decimal, reba
   let upperResetRatioBps = new Decimal(paramsBuffer.readUInt16LE(6));
   let expansionBps = new Decimal(paramsBuffer.readUInt16LE(8));
   let maxNumberOfExpansions = new Decimal(paramsBuffer.readUInt16LE(10));
-  let _swapUnevenAllowed = new Decimal(paramsBuffer.readUInt8(12));
+  let swapUnevenAllowed = new Decimal(paramsBuffer.readUInt8(12));
 
   return getExpanderRebalanceFieldInfos(
     price,
@@ -181,6 +191,7 @@ export function readExpanderRebalanceFieldInfosFromStrategy(price: Decimal, reba
     lowerResetRatioBps,
     upperResetRatioBps,
     expansionBps,
-    maxNumberOfExpansions
+    maxNumberOfExpansions,
+    swapUnevenAllowed
   );
 }
