@@ -10,6 +10,7 @@ import { Dex } from '../utils';
 import { sqrtPriceX64ToPrice } from '@orca-so/whirlpool-sdk';
 import BN from 'bn.js';
 import { RebalanceRaw } from '../kamino-client/types';
+import { RebalanceTypeLabelName } from './consts';
 
 export const DEFAULT_LOWER_RANGE_PRICE_DIFF_BPS_PERIODIC_REBALANCE = new Decimal(500);
 export const DEFAULT_UPPER_RANGE_PRICE_DIFF_BPS_PERIODIC_REBALANCE = new Decimal(500);
@@ -24,7 +25,7 @@ export function getPeriodicRebalanceRebalanceFieldInfos(
   enabled: boolean = true
 ): RebalanceFieldInfo[] {
   let rebalanceType: RebalanceFieldInfo = {
-    label: 'rebalanceType',
+    label: RebalanceTypeLabelName,
     type: 'string',
     value: PeriodicRebalanceTypeName,
     enabled,

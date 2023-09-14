@@ -257,3 +257,8 @@ export interface PriceReferenceType {
   descriptionShort?: string;
   description?: string;
 }
+
+export interface InputRebalanceFieldInfo {
+  label: string;
+  value: Decimal;
+}

@@ -4,6 +4,7 @@ import { Dex } from '../utils';
 import { priceToTickIndex, sqrtPriceX64ToPrice, tickIndexToPrice } from '@orca-so/whirlpool-sdk';
 import { SqrtPriceMath } from '@raydium-io/raydium-sdk';
 import { RebalanceRaw } from '../kamino-client/types';
+import { RebalanceTypeLabelName } from './consts';
 
 export const DEFAULT_TICKS_BELOW_MID = new Decimal(10);
 export const DEFAULT_TICKS_ABOVE_MID = new Decimal(10);
@@ -23,7 +24,7 @@ export function getDriftRebalanceFieldInfos(
   enabled: boolean = true
 ): RebalanceFieldInfo[] {
   let rebalanceType: RebalanceFieldInfo = {
-    label: 'rebalanceType',
+    label: RebalanceTypeLabelName,
     type: 'string',
     value: DriftRebalanceTypeName,
     enabled,

@@ -7,6 +7,7 @@ import {
   VersionedTransaction,
 } from '@solana/web3.js';
 import {
+  Dex,
   DriftRebalanceTypeName,
   ExpanderRebalanceTypeName,
   Kamino,
@@ -32,17 +33,23 @@ import {
 } from '../src/kamino-client/types/RebalanceType';
 import { getComputeBudgetAndPriorityFeeIxns } from '../src/utils/transactions';
 import { POOL, TWAP } from '../src/kamino-client/types/ReferencePriceType';
+import { MAINNET_GLOBAL_LOOKUP_TABLE } from '../src/constants/pubkeys';
+import { getRebalanceTypeFromRebalanceFields, rebalanceTypeToRebalanceMethod } from '../src/rebalance_methods/utils';
 
 describe('Kamino strategy creation SDK Tests', () => {
   let connection: Connection;
   const cluster = 'mainnet-beta';
 
-  const clusterUrl: string = 'https://api.mainnet-beta.solana.com';
+  const clusterUrl: string = 'https://hubble.rpc.p2p.world/QkCzjLJowsNfhoXk9ir2P0mHXlcPCHxYbANfsM0rN';
 
   connection = new Connection(clusterUrl, 'processed');
 
   // use your private key here
-  const signerPrivateKey = [];
+  const signerPrivateKey = [
+    178, 65, 98, 152, 172, 223, 56, 136, 242, 32, 177, 181, 183, 67, 173, 24, 65, 117, 155, 205, 15, 234, 161, 244, 50,
+    68, 101, 44, 121, 17, 172, 226, 252, 121, 151, 204, 91, 236, 195, 244, 71, 187, 116, 212, 30, 169, 243, 124, 216,
+    184, 28, 167, 65, 210, 113, 11, 177, 219, 79, 127, 243, 194, 2, 2,
+  ];
   const signer = Keypair.fromSecretKey(Uint8Array.from(signerPrivateKey));
 
   it.skip('build manual strategy Raydium SOL-USDC', async () => {
@@ -56,7 +63,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     );
 
     const newStrategy = Keypair.generate();
-    const newPosition = Keypair.generate();
+    let newPosition = Keypair.generate();
     const createRaydiumStrategyAccountIx = await kamino.createStrategyAccount(signer.publicKey, newStrategy.publicKey);
     console.log('newStrategy.publicKey', newStrategy.publicKey.toString());
 
@@ -146,9 +153,67 @@ describe('Kamino strategy creation SDK Tests', () => {
     expect(stratFields[1]['value'].toString() == priceLower.toString());
     expect(stratFields[2]['label'] == 'priceUpper');
     expect(stratFields[2]['value'] == priceUpper.toString());
+
+    // update the rebalance params with new values; in the UI these should come from the user
+    let newPriceLower = new Decimal(17.3);
+    let newPriceUpper = new Decimal(30.0);
+    let newPriceLowerInput = { label: 'priceLower', value: newPriceLower };
+    let newPriceUpperInput = { label: 'priceUpper', value: newPriceUpper };
+    const updateStratFields = kamino.updateRebalanceFieldInfos(stratFields, [newPriceLowerInput, newPriceUpperInput]);
+
+    expect(updateStratFields.length == 3);
+    expect(updateStratFields[0]['label'] == 'rebalanceType');
+    expect(updateStratFields[0]['value'] == ManualRebalanceTypeName);
+    expect(updateStratFields[1]['label'] == 'priceLower');
+    expect(updateStratFields[1]['value'].toString() == newPriceLower.toString());
+    expect(updateStratFields[2]['label'] == 'priceUpper');
+    expect(updateStratFields[2]['value'] == newPriceUpper.toString());
+
+    let updateStratIx = await kamino.getUpdateRebalancingParamsFromRebalanceFieldsIx(
+      signer.publicKey,
+      newStrategy.publicKey,
+      updateStratFields
+    );
+
+    const updateStratTx = await kamino.getTransactionV2Message(signer.publicKey, [updateStratIx]);
+    const updateStratTransactionV0 = new VersionedTransaction(updateStratTx);
+    updateStratTransactionV0.sign([signer]);
+    //@ts-ignore
+    txHash = await sendAndConfirmTransaction(kamino._connection, updateStratTransactionV0);
+    console.log('update strategy rebalance params tx hash', txHash);
+
+    // rebalance with new range
+    newPosition = Keypair.generate();
+    const rebalanceIxns = await kamino.rebalance(
+      newStrategy.publicKey,
+      newPosition.publicKey,
+      newPriceLower,
+      newPriceUpper,
+      signer.publicKey
+    );
+    const rebalanceMessage = await kamino.getTransactionV2Message(
+      signer.publicKey,
+      [...getComputeBudgetAndPriorityFeeIxns(1_400_000), ...rebalanceIxns],
+      [MAINNET_GLOBAL_LOOKUP_TABLE, strategyLookupTable]
+    );
+    const rebalanceTx = new VersionedTransaction(rebalanceMessage);
+    rebalanceTx.sign([signer, newPosition]);
+
+    //@ts-ignore
+    const rebalanceTxId = await sendAndConfirmTransaction(kamino._connection, rebalanceTx);
+    console.log('rebalanceTxId', rebalanceTxId);
+
+    stratFields = await kamino.readRebalancingParams(newStrategy.publicKey);
+    expect(stratFields.length == 3);
+    expect(stratFields[0]['label'] == 'rebalanceType');
+    expect(stratFields[0]['value'] == ManualRebalanceTypeName);
+    expect(stratFields[1]['label'] == 'priceLower');
+    expect(stratFields[1]['value'].toString() == newPriceLower.toString());
+    expect(stratFields[2]['label'] == 'priceUpper');
+    expect(stratFields[2]['value'] == newPriceUpper.toString());
   });
 
-  it.skip('build percentage strategy Orca SOL-USDC', async () => {
+  it('build percentage strategy Orca SOL-USDC', async () => {
     let kamino = new Kamino(
       cluster,
       connection,
@@ -159,22 +224,25 @@ describe('Kamino strategy creation SDK Tests', () => {
     );
 
     const newStrategy = Keypair.generate();
-    const newPosition = Keypair.generate();
+    let newPosition = Keypair.generate();
     const createStrategyAccountIx = await kamino.createStrategyAccount(signer.publicKey, newStrategy.publicKey);
     console.log('newStrategy.publicKey', newStrategy.publicKey.toString());
 
     let lowerRangeBPS = new Decimal(200.0);
     let upperRangeBPS = new Decimal(300.0);
+    let dex: Dex = 'ORCA';
+    let tokenAMint = new PublicKey('So11111111111111111111111111111111111111112');
+    let tokenBMint = new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v');
     let buildNewStrategyIxs = await kamino.getBuildStrategyIxns(
-      'ORCA',
+      dex,
       new Decimal('5'),
       newStrategy.publicKey,
       newPosition.publicKey,
       signer.publicKey,
       new Decimal(PricePercentage.discriminator),
       [lowerRangeBPS, upperRangeBPS],
-      new PublicKey('So11111111111111111111111111111111111111112'),
-      new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v')
+      tokenAMint,
+      tokenBMint
     );
 
     let ixs: TransactionInstruction[] = [];
@@ -241,13 +309,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     const openPositionTxId = await sendAndConfirmTransaction(kamino._connection, openPositionTx);
     console.log('openPositionTxId', openPositionTxId);
 
-    let poolPrice = new Decimal(
-      await kamino.getPriceForPair(
-        'ORCA',
-        new PublicKey('So11111111111111111111111111111111111111112'),
-        new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v')
-      )
-    );
+    let poolPrice = new Decimal(await kamino.getPriceForPair('ORCA', tokenAMint, tokenBMint));
 
     let stratFields = await kamino.readRebalancingParams(newStrategy.publicKey);
     console.log("stratFields[3]['value'].toString()", stratFields[3]['value'].toString());
@@ -264,9 +326,96 @@ describe('Kamino strategy creation SDK Tests', () => {
     expect(new Decimal(stratFields[3]['value'].toString()).lessThan(poolPrice)).to.be.true;
     expect(stratFields[4]['label'] == 'priceUpper').to.be.true;
     expect(new Decimal(stratFields[4]['value'].toString()).greaterThan(poolPrice)).to.be.true;
+
+    // update the rebalance params with new values; in the UI these should come from the user
+    let newLowerRangeBPS = new Decimal(800.0);
+    let newUpperRangeBPS = new Decimal(1000.0);
+    let newPriceLowerRangeBPSInput = { label: 'lowerRangeBps', value: newLowerRangeBPS };
+    let newPriceUpperRangeBPSInput = { label: 'upperRangeBps', value: newUpperRangeBPS };
+    const updateStratFields = kamino.updateRebalanceFieldInfos(stratFields, [
+      newPriceLowerRangeBPSInput,
+      newPriceUpperRangeBPSInput,
+    ]);
+
+    expect(updateStratFields.length == 5).to.be.true;
+    expect(updateStratFields[0]['label'] == 'rebalanceType').to.be.true;
+    expect(updateStratFields[0]['value'] == PricePercentageRebalanceTypeName).to.be.true;
+    expect(updateStratFields[1]['label'] == 'lowerRangeBps').to.be.true;
+    expect(updateStratFields[1]['value'].toString() == newLowerRangeBPS.toString()).to.be.true;
+    expect(updateStratFields[2]['label'] == 'upperRangeBps').to.be.true;
+    expect(updateStratFields[2]['value'] == newUpperRangeBPS.toString()).to.be.true;
+    expect(updateStratFields[3]['label'] == 'priceLower').to.be.true;
+    expect(new Decimal(updateStratFields[3]['value'].toString()).lessThan(poolPrice)).to.be.true;
+    expect(updateStratFields[4]['label'] == 'priceUpper').to.be.true;
+    expect(new Decimal(updateStratFields[4]['value'].toString()).greaterThan(poolPrice)).to.be.true;
+
+    let updateStratIx = await kamino.getUpdateRebalancingParamsFromRebalanceFieldsIx(
+      signer.publicKey,
+      newStrategy.publicKey,
+      updateStratFields
+    );
+
+    const updateStratTx = await kamino.getTransactionV2Message(signer.publicKey, [updateStratIx]);
+    const updateStratTransactionV0 = new VersionedTransaction(updateStratTx);
+    updateStratTransactionV0.sign([signer]);
+    //@ts-ignore
+    txHash = await sendAndConfirmTransaction(kamino._connection, updateStratTransactionV0);
+    console.log('update strategy rebalance params tx hash', txHash);
+
+    // rebalance with new range; the range is calculated using `getFieldsForRebalanceMethod` as it returns the range for all strategies
+    // if `rebalanceMethod` is available it can be used directly, otherwise we can get it from the fields
+    let rebalanceMethod = kamino.getRebalanceMethodFromRebalanceFields(updateStratFields);
+    let updatedAllRebalanceFieldInfos = await kamino.getFieldsForRebalanceMethod(
+      rebalanceMethod,
+      dex,
+      updateStratFields,
+      tokenAMint,
+      tokenBMint
+    );
+
+    let newPriceLower = new Decimal(updatedAllRebalanceFieldInfos.find((field) => field.label === 'priceLower')!.value);
+    let newPriceUpper = new Decimal(updatedAllRebalanceFieldInfos.find((field) => field.label === 'priceUpper')!.value);
+    console.log('newPriceLower.toString()', newPriceLower.toString());
+    console.log('newPriceUpper.toString()', newPriceUpper.toString());
+
+    newPosition = Keypair.generate();
+    const rebalanceIxns = await kamino.rebalance(
+      newStrategy.publicKey,
+      newPosition.publicKey,
+      newPriceLower,
+      newPriceUpper,
+      signer.publicKey
+    );
+    const rebalanceMessage = await kamino.getTransactionV2Message(
+      signer.publicKey,
+      [...getComputeBudgetAndPriorityFeeIxns(1_400_000), ...rebalanceIxns],
+      [MAINNET_GLOBAL_LOOKUP_TABLE, strategyLookupTable]
+    );
+    const rebalanceTx = new VersionedTransaction(rebalanceMessage);
+    rebalanceTx.sign([signer, newPosition]);
+
+    //@ts-ignore
+    const rebalanceTxId = await sendAndConfirmTransaction(kamino._connection, rebalanceTx);
+    console.log('rebalanceTxId', rebalanceTxId);
+
+    stratFields = await kamino.readRebalancingParams(newStrategy.publicKey);
+    console.log("stratFields[3]['value'].toString()", stratFields[3]['value'].toString());
+    console.log("stratFields[4]['value'].toString()", stratFields[4]['value'].toString());
+
+    expect(stratFields.length == 5).to.be.true;
+    expect(stratFields[0]['label'] == 'rebalanceType').to.be.true;
+    expect(stratFields[0]['value'] == PricePercentageRebalanceTypeName).to.be.true;
+    expect(stratFields[1]['label'] == 'lowerRangeBps').to.be.true;
+    expect(stratFields[1]['value'].toString() == newLowerRangeBPS.toString()).to.be.true;
+    expect(stratFields[2]['label'] == 'upperRangeBps').to.be.true;
+    expect(stratFields[2]['value'] == newUpperRangeBPS.toString()).to.be.true;
+    expect(stratFields[3]['label'] == 'priceLower').to.be.true;
+    expect(new Decimal(stratFields[3]['value'].toString()).lessThan(poolPrice)).to.be.true;
+    expect(stratFields[4]['label'] == 'priceUpper').to.be.true;
+    expect(new Decimal(stratFields[4]['value'].toString()).greaterThan(poolPrice)).to.be.true;
   });
 
-  it.skip('build percentage with reset range Orca SOL-USDC', async () => {
+  it('build percentage with reset range Orca SOL-USDC', async () => {
     let kamino = new Kamino(
       cluster,
       connection,
@@ -277,7 +426,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     );
 
     const newStrategy = Keypair.generate();
-    const newPosition = Keypair.generate();
+    let newPosition = Keypair.generate();
     const createStrategyAccountIx = await kamino.createStrategyAccount(signer.publicKey, newStrategy.publicKey);
     console.log('newStrategy.publicKey', newStrategy.publicKey.toString());
 
@@ -285,16 +434,21 @@ describe('Kamino strategy creation SDK Tests', () => {
     let upperRangeBPS = new Decimal(2000.0);
     let resetLowerRangeBPS = new Decimal(500.0);
     let resetUpperRangeBPS = new Decimal(300.0);
+
+    let tokenAMint = new PublicKey('So11111111111111111111111111111111111111112');
+    let tokenBMint = new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v');
+    let dex: Dex = 'ORCA';
+
     let buildNewStrategyIxs = await kamino.getBuildStrategyIxns(
-      'ORCA',
+      dex,
       new Decimal('5'),
       newStrategy.publicKey,
       newPosition.publicKey,
       signer.publicKey,
       new Decimal(PricePercentageWithReset.discriminator),
       [lowerRangeBPS, upperRangeBPS, resetLowerRangeBPS, resetUpperRangeBPS],
-      new PublicKey('So11111111111111111111111111111111111111112'),
-      new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v')
+      tokenAMint,
+      tokenBMint
     );
 
     let ixs: TransactionInstruction[] = [];
@@ -395,6 +549,107 @@ describe('Kamino strategy creation SDK Tests', () => {
     expect(new Decimal(stratFields[7]['value'].toString()).lessThan(poolPrice)).to.be.true;
     expect(stratFields[8]['label'] == 'resetPriceUpper').to.be.true;
     expect(new Decimal(stratFields[8]['value'].toString()).greaterThan(poolPrice)).to.be.true;
+
+    // update the rebalance params with new values; in the UI these should come from the user
+    let newLowerRangeBPS = new Decimal(500.0);
+    let newUpperRangeBPS = new Decimal(700.0);
+    let newResetLowerRangeBPS = new Decimal(1000.0);
+    let newResetUpperRangeBPS = new Decimal(2000.0);
+    let newPriceLowerRangeBPSInput = { label: 'lowerRangeBps', value: newLowerRangeBPS };
+    let newPriceUpperRangeBPSInput = { label: 'upperRangeBps', value: newUpperRangeBPS };
+    let newResetPriceLowerRangeBPSInput = { label: 'resetLowerRangeBps', value: newResetLowerRangeBPS };
+    let newResetPriceUpperRangeBPSInput = { label: 'resetUpperRangeBps', value: newResetUpperRangeBPS };
+
+    const updateStratFields = kamino.updateRebalanceFieldInfos(stratFields, [
+      newPriceLowerRangeBPSInput,
+      newPriceUpperRangeBPSInput,
+      newResetPriceLowerRangeBPSInput,
+      newResetPriceUpperRangeBPSInput,
+    ]);
+
+    expect(updateStratFields.length == 9).to.be.true;
+    expect(updateStratFields[0]['label'] == 'rebalanceType').to.be.true;
+    expect(updateStratFields[0]['value'] == PricePercentageWithResetRebalanceTypeName).to.be.true;
+    expect(updateStratFields[1]['label'] == 'lowerRangeBps').to.be.true;
+    expect(updateStratFields[1]['value'].toString() == newLowerRangeBPS.toString()).to.be.true;
+    expect(updateStratFields[2]['label'] == 'upperRangeBps').to.be.true;
+    expect(updateStratFields[2]['value'].toString() == newUpperRangeBPS.toString()).to.be.true;
+    expect(updateStratFields[3]['label'] == 'resetLowerRangeBps').to.be.true;
+    expect(updateStratFields[3]['value'].toString() == newResetLowerRangeBPS.toString()).to.be.true;
+    expect(updateStratFields[4]['label'] == 'resetUpperRangeBps').to.be.true;
+    expect(updateStratFields[4]['value'].toString() == newResetUpperRangeBPS.toString()).to.be.true;
+    expect(updateStratFields[5]['label'] == 'priceLower').to.be.true;
+    expect(new Decimal(updateStratFields[5]['value'].toString()).lessThan(poolPrice)).to.be.true;
+    expect(updateStratFields[6]['label'] == 'priceUpper').to.be.true;
+    expect(new Decimal(updateStratFields[6]['value'].toString()).greaterThan(poolPrice)).to.be.true;
+    expect(updateStratFields[7]['label'] == 'resetPriceLower').to.be.true;
+    expect(new Decimal(updateStratFields[7]['value'].toString()).lessThan(poolPrice)).to.be.true;
+    expect(updateStratFields[8]['label'] == 'resetPriceUpper').to.be.true;
+    expect(new Decimal(stratFields[8]['value'].toString()).greaterThan(poolPrice)).to.be.true;
+
+    let updateStratIx = await kamino.getUpdateRebalancingParamsFromRebalanceFieldsIx(
+      signer.publicKey,
+      newStrategy.publicKey,
+      updateStratFields
+    );
+
+    const updateStratTx = await kamino.getTransactionV2Message(signer.publicKey, [updateStratIx]);
+    const updateStratTransactionV0 = new VersionedTransaction(updateStratTx);
+    updateStratTransactionV0.sign([signer]);
+    //@ts-ignore
+    txHash = await sendAndConfirmTransaction(kamino._connection, updateStratTransactionV0);
+    console.log('update strategy rebalance params tx hash', txHash);
+
+    let rebalanceMethod = kamino.getRebalanceMethodFromRebalanceFields(updateStratFields);
+    let updatedAllRebalanceFieldInfos = await kamino.getFieldsForRebalanceMethod(
+      rebalanceMethod,
+      dex,
+      updateStratFields,
+      tokenAMint,
+      tokenBMint
+    );
+    let newPriceLower = new Decimal(updatedAllRebalanceFieldInfos.find((field) => field.label === 'priceLower')!.value);
+    let newPriceUpper = new Decimal(updatedAllRebalanceFieldInfos.find((field) => field.label === 'priceUpper')!.value);
+    newPosition = Keypair.generate();
+    const rebalanceIxns = await kamino.rebalance(
+      newStrategy.publicKey,
+      newPosition.publicKey,
+      newPriceLower,
+      newPriceUpper,
+      signer.publicKey
+    );
+    const rebalanceMessage = await kamino.getTransactionV2Message(
+      signer.publicKey,
+      [...getComputeBudgetAndPriorityFeeIxns(1_400_000), ...rebalanceIxns],
+      [MAINNET_GLOBAL_LOOKUP_TABLE, strategyLookupTable]
+    );
+    const rebalanceTx = new VersionedTransaction(rebalanceMessage);
+    rebalanceTx.sign([signer, newPosition]);
+
+    //@ts-ignore
+    const rebalanceTxId = await sendAndConfirmTransaction(kamino._connection, rebalanceTx);
+    console.log('rebalanceTxId', rebalanceTxId);
+
+    // read the updated strat fields
+    stratFields = await kamino.readRebalancingParams(newStrategy.publicKey);
+    expect(stratFields.length == 9).to.be.true;
+    expect(stratFields[0]['label'] == 'rebalanceType').to.be.true;
+    expect(stratFields[0]['value'] == PricePercentageWithResetRebalanceTypeName).to.be.true;
+    expect(stratFields[1]['label'] == 'lowerRangeBps').to.be.true;
+    expect(stratFields[1]['value'].toString() == newLowerRangeBPS.toString()).to.be.true;
+    expect(stratFields[2]['label'] == 'upperRangeBps').to.be.true;
+    expect(stratFields[2]['value'].toString() == newUpperRangeBPS.toString()).to.be.true;
+    expect(stratFields[3]['label'] == 'resetLowerRangeBps').to.be.true;
+    expect(stratFields[3]['value'].toString() == newResetLowerRangeBPS.toString()).to.be.true;
+    expect(stratFields[4]['label'] == 'resetUpperRangeBps').to.be.true;
+    expect(stratFields[4]['value'].toString() == newResetUpperRangeBPS.toString()).to.be.true;
+    expect(stratFields[5]['label'] == 'priceLower').to.be.true;
+    expect(new Decimal(stratFields[5]['value'].toString()).lessThan(poolPrice)).to.be.true;
+    expect(stratFields[6]['label'] == 'priceUpper').to.be.true;
+    expect(new Decimal(stratFields[6]['value'].toString()).greaterThan(poolPrice)).to.be.true;
+    expect(stratFields[7]['label'] == 'resetPriceLower').to.be.true;
+    expect(new Decimal(stratFields[7]['value'].toString()).lessThan(poolPrice)).to.be.true;
+    expect(stratFields[8]['label'] == 'resetPriceUpper').to.be.true;
   });
 
   it.skip('build percentage with periodic rebalance Orca SOL-USDC', async () => {
@@ -415,6 +670,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     let period = new Decimal(600.0);
     let lowerRangeBPS = new Decimal(345.0);
     let upperRangeBPS = new Decimal(500.0);
+
     let buildNewStrategyIxs = await kamino.getBuildStrategyIxns(
       'ORCA',
       new Decimal('5'),

@@ -102,6 +102,7 @@ import {
   ProportionalMintingMethod,
   PerformanceFees,
   PriceReferenceType,
+  InputRebalanceFieldInfo,
 } from './utils';
 import { ASSOCIATED_TOKEN_PROGRAM_ID, Token, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import {
@@ -268,6 +269,8 @@ import {
   readExpanderRebalanceFieldInfosFromStrategy,
 } from './rebalance_methods';
 import { PoolPriceReferenceType, TwapPriceReferenceType } from './utils/priceReferenceTypes';
+import { getRebalanceMethodFromRebalanceFields, getRebalanceTypeFromRebalanceFields } from './rebalance_methods/utils';
+import { RebalanceTypeLabelName } from './rebalance_methods/consts';
 export const KAMINO_IDL = KaminoIdl;
 
 export class Kamino {
@@ -399,6 +402,14 @@ export class Kamino {
       rebalancingParameters,
     };
     return defaultParameters;
+  };
+
+  getRebalanceTypeFromRebalanceFields = (rebalanceFields: RebalanceFieldInfo[]): RebalanceTypeKind => {
+    return getRebalanceTypeFromRebalanceFields(rebalanceFields);
+  };
+
+  getRebalanceMethodFromRebalanceFields = (rebalanceFields: RebalanceFieldInfo[]): RebalanceMethod => {
+    return getRebalanceMethodFromRebalanceFields(rebalanceFields);
   };
 
   getFieldsForRebalanceMethod = (
@@ -3474,6 +3485,19 @@ export class Kamino {
     return invest(accounts);
   };
 
+  getUpdateRebalancingParamsFromRebalanceFieldsIx = async (
+    strategyAdmin: PublicKey,
+    strategy: PublicKey,
+    rebalanceFieldInfos: RebalanceFieldInfo[]
+  ): Promise<TransactionInstruction> => {
+    let rebalanceType = getRebalanceTypeFromRebalanceFields(rebalanceFieldInfos);
+
+    let rebalanceParams = rebalanceFieldInfos
+      .filter((x) => x.label != RebalanceTypeLabelName && x.enabled)
+      .map((f) => new Decimal(f.value));
+    return this.getUpdateRebalancingParmsIxns(strategyAdmin, strategy, rebalanceParams, rebalanceType);
+  };
+
   getUpdateRebalancingParmsIxns = async (
     strategyAdmin: PublicKey,
     strategy: PublicKey,
@@ -3808,6 +3832,21 @@ export class Kamino {
     }
   }
 
+  updateRebalanceFieldInfos(
+    initialRebalanceFieldInfos: RebalanceFieldInfo[],
+    updatedFields: InputRebalanceFieldInfo[]
+  ): RebalanceFieldInfo[] {
+    let newRebalanceFieldInfos = initialRebalanceFieldInfos.map((f) => {
+      let updatedField = updatedFields.find((x) => x.label == f.label);
+      if (updatedField) {
+        return { ...f, value: updatedField.value };
+      } else {
+        return f;
+      }
+    });
+    return newRebalanceFieldInfos;
+  }
+
   getPriceRangePercentageBasedFromPrice(
     price: Decimal,
     lowerPriceBpsDifference: Decimal,
@@ -4138,7 +4177,7 @@ export class Kamino {
     // todo: refactor this to return an object, not a list
     const strategyWithAddress = await this.getStrategyStateIfNotFetched(strategy);
 
-    let ixs: TransactionInstruction[] = [await this.executiveWithdraw(strategyWithAddress, new Rebalance())];
+    let ixs: TransactionInstruction[] = [];
 
     // if there are no invested tokens we don't need to collect fees and rewards
     const stratTokenBalances = await this.getStrategyTokensBalances(strategyWithAddress.strategy);
