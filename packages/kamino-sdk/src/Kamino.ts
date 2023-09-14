@@ -121,6 +121,8 @@ import {
   checkExpectedVaultsBalances,
   CheckExpectedVaultsBalancesAccounts,
   CheckExpectedVaultsBalancesArgs,
+  closeStrategy,
+  CloseStrategyAccounts,
   collectFeesAndRewards,
   CollectFeesAndRewardsAccounts,
   deposit,
@@ -2862,6 +2864,42 @@ export class Kamino {
     };
 
     return initializeStrategy(strategyArgs, strategyAccounts);
+  };
+
+  /**
+   * Get transaction instruction to close Kamino strategy, including its position if there is any
+   * and strategy token accounts.
+   * @param strategy public key of the strategy
+   * @returns instruction to close the strategy
+   */
+  closeStrategy = async (strategy: PublicKey) => {
+    const { address: _strategyPubkey, strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
+
+    const poolProgram = getDexProgramId(strategyState);
+    let oldPositionOrBaseVaultAuthority = strategyState.baseVaultAuthority;
+    let oldPositionMintOrBaseVaultAuthority = strategyState.baseVaultAuthority;
+    let oldPositionTokenAccountOrBaseVaultAuthority = strategyState.baseVaultAuthority;
+    if (strategyState.position != new PublicKey(0)) {
+      oldPositionOrBaseVaultAuthority = strategyState.position;
+      oldPositionMintOrBaseVaultAuthority = strategyState.positionMint;
+      oldPositionTokenAccountOrBaseVaultAuthority = strategyState.positionTokenAccount;
+    }
+
+    const strategyAccounts: CloseStrategyAccounts = {
+      adminAuthority: strategyState.adminAuthority,
+      strategy,
+      oldPositionOrBaseVaultAuthority,
+      oldPositionMintOrBaseVaultAuthority,
+      oldPositionTokenAccountOrBaseVaultAuthority,
+      tokenAVault: strategyState.tokenAVault,
+      tokenBVault: strategyState.tokenBVault,
+      baseVaultAuthority: strategyState.baseVaultAuthority,
+      system: SystemProgram.programId,
+      tokenProgram: TOKEN_PROGRAM_ID,
+      poolProgram: poolProgram,
+    };
+
+    return closeStrategy(strategyAccounts);
   };
 
   /**
