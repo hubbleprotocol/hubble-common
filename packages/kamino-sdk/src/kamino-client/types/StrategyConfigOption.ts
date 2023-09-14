@@ -256,37 +256,14 @@ export class UpdateStrategyType {
   }
 }
 
-export interface UpdateDepositFeeJSON {
-  kind: "UpdateDepositFee"
-}
-
-export class UpdateDepositFee {
-  static readonly discriminator = 11
-  static readonly kind = "UpdateDepositFee"
-  readonly discriminator = 11
-  readonly kind = "UpdateDepositFee"
-
-  toJSON(): UpdateDepositFeeJSON {
-    return {
-      kind: "UpdateDepositFee",
-    }
-  }
-
-  toEncodable() {
-    return {
-      UpdateDepositFee: {},
-    }
-  }
-}
-
 export interface UpdateWithdrawFeeJSON {
   kind: "UpdateWithdrawFee"
 }
 
 export class UpdateWithdrawFee {
-  static readonly discriminator = 12
+  static readonly discriminator = 11
   static readonly kind = "UpdateWithdrawFee"
-  readonly discriminator = 12
+  readonly discriminator = 11
   readonly kind = "UpdateWithdrawFee"
 
   toJSON(): UpdateWithdrawFeeJSON {
@@ -307,9 +284,9 @@ export interface UpdateCollectFeesFeeJSON {
 }
 
 export class UpdateCollectFeesFee {
-  static readonly discriminator = 13
+  static readonly discriminator = 12
   static readonly kind = "UpdateCollectFeesFee"
-  readonly discriminator = 13
+  readonly discriminator = 12
   readonly kind = "UpdateCollectFeesFee"
 
   toJSON(): UpdateCollectFeesFeeJSON {
@@ -330,9 +307,9 @@ export interface UpdateReward0FeeJSON {
 }
 
 export class UpdateReward0Fee {
-  static readonly discriminator = 14
+  static readonly discriminator = 13
   static readonly kind = "UpdateReward0Fee"
-  readonly discriminator = 14
+  readonly discriminator = 13
   readonly kind = "UpdateReward0Fee"
 
   toJSON(): UpdateReward0FeeJSON {
@@ -353,9 +330,9 @@ export interface UpdateReward1FeeJSON {
 }
 
 export class UpdateReward1Fee {
-  static readonly discriminator = 15
+  static readonly discriminator = 14
   static readonly kind = "UpdateReward1Fee"
-  readonly discriminator = 15
+  readonly discriminator = 14
   readonly kind = "UpdateReward1Fee"
 
   toJSON(): UpdateReward1FeeJSON {
@@ -376,9 +353,9 @@ export interface UpdateReward2FeeJSON {
 }
 
 export class UpdateReward2Fee {
-  static readonly discriminator = 16
+  static readonly discriminator = 15
   static readonly kind = "UpdateReward2Fee"
-  readonly discriminator = 16
+  readonly discriminator = 15
   readonly kind = "UpdateReward2Fee"
 
   toJSON(): UpdateReward2FeeJSON {
@@ -399,9 +376,9 @@ export interface UpdateAdminAuthorityJSON {
 }
 
 export class UpdateAdminAuthority {
-  static readonly discriminator = 17
+  static readonly discriminator = 16
   static readonly kind = "UpdateAdminAuthority"
-  readonly discriminator = 17
+  readonly discriminator = 16
   readonly kind = "UpdateAdminAuthority"
 
   toJSON(): UpdateAdminAuthorityJSON {
@@ -422,9 +399,9 @@ export interface KaminoRewardIndex0TSJSON {
 }
 
 export class KaminoRewardIndex0TS {
-  static readonly discriminator = 18
+  static readonly discriminator = 17
   static readonly kind = "KaminoRewardIndex0TS"
-  readonly discriminator = 18
+  readonly discriminator = 17
   readonly kind = "KaminoRewardIndex0TS"
 
   toJSON(): KaminoRewardIndex0TSJSON {
@@ -445,9 +422,9 @@ export interface KaminoRewardIndex1TSJSON {
 }
 
 export class KaminoRewardIndex1TS {
-  static readonly discriminator = 19
+  static readonly discriminator = 18
   static readonly kind = "KaminoRewardIndex1TS"
-  readonly discriminator = 19
+  readonly discriminator = 18
   readonly kind = "KaminoRewardIndex1TS"
 
   toJSON(): KaminoRewardIndex1TSJSON {
@@ -468,9 +445,9 @@ export interface KaminoRewardIndex2TSJSON {
 }
 
 export class KaminoRewardIndex2TS {
-  static readonly discriminator = 20
+  static readonly discriminator = 19
   static readonly kind = "KaminoRewardIndex2TS"
-  readonly discriminator = 20
+  readonly discriminator = 19
   readonly kind = "KaminoRewardIndex2TS"
 
   toJSON(): KaminoRewardIndex2TSJSON {
@@ -491,9 +468,9 @@ export interface KaminoRewardIndex0RewardPerSecondJSON {
 }
 
 export class KaminoRewardIndex0RewardPerSecond {
-  static readonly discriminator = 21
+  static readonly discriminator = 20
   static readonly kind = "KaminoRewardIndex0RewardPerSecond"
-  readonly discriminator = 21
+  readonly discriminator = 20
   readonly kind = "KaminoRewardIndex0RewardPerSecond"
 
   toJSON(): KaminoRewardIndex0RewardPerSecondJSON {
@@ -514,9 +491,9 @@ export interface KaminoRewardIndex1RewardPerSecondJSON {
 }
 
 export class KaminoRewardIndex1RewardPerSecond {
-  static readonly discriminator = 22
+  static readonly discriminator = 21
   static readonly kind = "KaminoRewardIndex1RewardPerSecond"
-  readonly discriminator = 22
+  readonly discriminator = 21
   readonly kind = "KaminoRewardIndex1RewardPerSecond"
 
   toJSON(): KaminoRewardIndex1RewardPerSecondJSON {
@@ -537,9 +514,9 @@ export interface KaminoRewardIndex2RewardPerSecondJSON {
 }
 
 export class KaminoRewardIndex2RewardPerSecond {
-  static readonly discriminator = 23
+  static readonly discriminator = 22
   static readonly kind = "KaminoRewardIndex2RewardPerSecond"
-  readonly discriminator = 23
+  readonly discriminator = 22
   readonly kind = "KaminoRewardIndex2RewardPerSecond"
 
   toJSON(): KaminoRewardIndex2RewardPerSecondJSON {
@@ -560,9 +537,9 @@ export interface UpdateDepositBlockedJSON {
 }
 
 export class UpdateDepositBlocked {
-  static readonly discriminator = 24
+  static readonly discriminator = 23
   static readonly kind = "UpdateDepositBlocked"
-  readonly discriminator = 24
+  readonly discriminator = 23
   readonly kind = "UpdateDepositBlocked"
 
   toJSON(): UpdateDepositBlockedJSON {
@@ -583,9 +560,9 @@ export interface UpdateRaydiumProtocolPositionOrBaseVaultAuthorityJSON {
 }
 
 export class UpdateRaydiumProtocolPositionOrBaseVaultAuthority {
-  static readonly discriminator = 25
+  static readonly discriminator = 24
   static readonly kind = "UpdateRaydiumProtocolPositionOrBaseVaultAuthority"
-  readonly discriminator = 25
+  readonly discriminator = 24
   readonly kind = "UpdateRaydiumProtocolPositionOrBaseVaultAuthority"
 
   toJSON(): UpdateRaydiumProtocolPositionOrBaseVaultAuthorityJSON {
@@ -606,9 +583,9 @@ export interface UpdateRaydiumPoolConfigOrBaseVaultAuthorityJSON {
 }
 
 export class UpdateRaydiumPoolConfigOrBaseVaultAuthority {
-  static readonly discriminator = 26
+  static readonly discriminator = 25
   static readonly kind = "UpdateRaydiumPoolConfigOrBaseVaultAuthority"
-  readonly discriminator = 26
+  readonly discriminator = 25
   readonly kind = "UpdateRaydiumPoolConfigOrBaseVaultAuthority"
 
   toJSON(): UpdateRaydiumPoolConfigOrBaseVaultAuthorityJSON {
@@ -629,9 +606,9 @@ export interface UpdateInvestBlockedJSON {
 }
 
 export class UpdateInvestBlocked {
-  static readonly discriminator = 27
+  static readonly discriminator = 26
   static readonly kind = "UpdateInvestBlocked"
-  readonly discriminator = 27
+  readonly discriminator = 26
   readonly kind = "UpdateInvestBlocked"
 
   toJSON(): UpdateInvestBlockedJSON {
@@ -652,9 +629,9 @@ export interface UpdateWithdrawBlockedJSON {
 }
 
 export class UpdateWithdrawBlocked {
-  static readonly discriminator = 28
+  static readonly discriminator = 27
   static readonly kind = "UpdateWithdrawBlocked"
-  readonly discriminator = 28
+  readonly discriminator = 27
   readonly kind = "UpdateWithdrawBlocked"
 
   toJSON(): UpdateWithdrawBlockedJSON {
@@ -675,9 +652,9 @@ export interface UpdateLocalAdminBlockedJSON {
 }
 
 export class UpdateLocalAdminBlocked {
-  static readonly discriminator = 29
+  static readonly discriminator = 28
   static readonly kind = "UpdateLocalAdminBlocked"
-  readonly discriminator = 29
+  readonly discriminator = 28
   readonly kind = "UpdateLocalAdminBlocked"
 
   toJSON(): UpdateLocalAdminBlockedJSON {
@@ -698,9 +675,9 @@ export interface UpdateCollateralIdAJSON {
 }
 
 export class UpdateCollateralIdA {
-  static readonly discriminator = 30
+  static readonly discriminator = 29
   static readonly kind = "UpdateCollateralIdA"
-  readonly discriminator = 30
+  readonly discriminator = 29
   readonly kind = "UpdateCollateralIdA"
 
   toJSON(): UpdateCollateralIdAJSON {
@@ -721,9 +698,9 @@ export interface UpdateCollateralIdBJSON {
 }
 
 export class UpdateCollateralIdB {
-  static readonly discriminator = 31
+  static readonly discriminator = 30
   static readonly kind = "UpdateCollateralIdB"
-  readonly discriminator = 31
+  readonly discriminator = 30
   readonly kind = "UpdateCollateralIdB"
 
   toJSON(): UpdateCollateralIdBJSON {
@@ -744,9 +721,9 @@ export interface UpdateFlashVaultSwapJSON {
 }
 
 export class UpdateFlashVaultSwap {
-  static readonly discriminator = 32
+  static readonly discriminator = 31
   static readonly kind = "UpdateFlashVaultSwap"
-  readonly discriminator = 32
+  readonly discriminator = 31
   readonly kind = "UpdateFlashVaultSwap"
 
   toJSON(): UpdateFlashVaultSwapJSON {
@@ -767,9 +744,9 @@ export interface AllowDepositWithoutInvestJSON {
 }
 
 export class AllowDepositWithoutInvest {
-  static readonly discriminator = 33
+  static readonly discriminator = 32
   static readonly kind = "AllowDepositWithoutInvest"
-  readonly discriminator = 33
+  readonly discriminator = 32
   readonly kind = "AllowDepositWithoutInvest"
 
   toJSON(): AllowDepositWithoutInvestJSON {
@@ -790,9 +767,9 @@ export interface UpdateSwapVaultMaxSlippageFromRefJSON {
 }
 
 export class UpdateSwapVaultMaxSlippageFromRef {
-  static readonly discriminator = 34
+  static readonly discriminator = 33
   static readonly kind = "UpdateSwapVaultMaxSlippageFromRef"
-  readonly discriminator = 34
+  readonly discriminator = 33
   readonly kind = "UpdateSwapVaultMaxSlippageFromRef"
 
   toJSON(): UpdateSwapVaultMaxSlippageFromRefJSON {
@@ -813,9 +790,9 @@ export interface ResetReferencePricesJSON {
 }
 
 export class ResetReferencePrices {
-  static readonly discriminator = 35
+  static readonly discriminator = 34
   static readonly kind = "ResetReferencePrices"
-  readonly discriminator = 35
+  readonly discriminator = 34
   readonly kind = "ResetReferencePrices"
 
   toJSON(): ResetReferencePricesJSON {
@@ -836,9 +813,9 @@ export interface UpdateStrategyCreationStateJSON {
 }
 
 export class UpdateStrategyCreationState {
-  static readonly discriminator = 36
+  static readonly discriminator = 35
   static readonly kind = "UpdateStrategyCreationState"
-  readonly discriminator = 36
+  readonly discriminator = 35
   readonly kind = "UpdateStrategyCreationState"
 
   toJSON(): UpdateStrategyCreationStateJSON {
@@ -859,9 +836,9 @@ export interface UpdateIsCommunityJSON {
 }
 
 export class UpdateIsCommunity {
-  static readonly discriminator = 37
+  static readonly discriminator = 36
   static readonly kind = "UpdateIsCommunity"
-  readonly discriminator = 37
+  readonly discriminator = 36
   readonly kind = "UpdateIsCommunity"
 
   toJSON(): UpdateIsCommunityJSON {
@@ -882,9 +859,9 @@ export interface UpdateRebalanceTypeJSON {
 }
 
 export class UpdateRebalanceType {
-  static readonly discriminator = 38
+  static readonly discriminator = 37
   static readonly kind = "UpdateRebalanceType"
-  readonly discriminator = 38
+  readonly discriminator = 37
   readonly kind = "UpdateRebalanceType"
 
   toJSON(): UpdateRebalanceTypeJSON {
@@ -905,9 +882,9 @@ export interface UpdateRebalanceParamsJSON {
 }
 
 export class UpdateRebalanceParams {
-  static readonly discriminator = 39
+  static readonly discriminator = 38
   static readonly kind = "UpdateRebalanceParams"
-  readonly discriminator = 39
+  readonly discriminator = 38
   readonly kind = "UpdateRebalanceParams"
 
   toJSON(): UpdateRebalanceParamsJSON {
@@ -928,9 +905,9 @@ export interface UpdateDepositMintingMethodJSON {
 }
 
 export class UpdateDepositMintingMethod {
-  static readonly discriminator = 40
+  static readonly discriminator = 39
   static readonly kind = "UpdateDepositMintingMethod"
-  readonly discriminator = 40
+  readonly discriminator = 39
   readonly kind = "UpdateDepositMintingMethod"
 
   toJSON(): UpdateDepositMintingMethodJSON {
@@ -951,9 +928,9 @@ export interface UpdateLookupTableJSON {
 }
 
 export class UpdateLookupTable {
-  static readonly discriminator = 41
+  static readonly discriminator = 40
   static readonly kind = "UpdateLookupTable"
-  readonly discriminator = 41
+  readonly discriminator = 40
   readonly kind = "UpdateLookupTable"
 
   toJSON(): UpdateLookupTableJSON {
@@ -974,9 +951,9 @@ export interface UpdateReferencePriceTypeJSON {
 }
 
 export class UpdateReferencePriceType {
-  static readonly discriminator = 42
+  static readonly discriminator = 41
   static readonly kind = "UpdateReferencePriceType"
-  readonly discriminator = 42
+  readonly discriminator = 41
   readonly kind = "UpdateReferencePriceType"
 
   toJSON(): UpdateReferencePriceTypeJSON {
@@ -997,9 +974,9 @@ export interface UpdateReward0AmountJSON {
 }
 
 export class UpdateReward0Amount {
-  static readonly discriminator = 43
+  static readonly discriminator = 42
   static readonly kind = "UpdateReward0Amount"
-  readonly discriminator = 43
+  readonly discriminator = 42
   readonly kind = "UpdateReward0Amount"
 
   toJSON(): UpdateReward0AmountJSON {
@@ -1020,9 +997,9 @@ export interface UpdateReward1AmountJSON {
 }
 
 export class UpdateReward1Amount {
-  static readonly discriminator = 44
+  static readonly discriminator = 43
   static readonly kind = "UpdateReward1Amount"
-  readonly discriminator = 44
+  readonly discriminator = 43
   readonly kind = "UpdateReward1Amount"
 
   toJSON(): UpdateReward1AmountJSON {
@@ -1043,9 +1020,9 @@ export interface UpdateReward2AmountJSON {
 }
 
 export class UpdateReward2Amount {
-  static readonly discriminator = 45
+  static readonly discriminator = 44
   static readonly kind = "UpdateReward2Amount"
-  readonly discriminator = 45
+  readonly discriminator = 44
   readonly kind = "UpdateReward2Amount"
 
   toJSON(): UpdateReward2AmountJSON {
@@ -1099,9 +1076,6 @@ export function fromDecoded(obj: any): types.StrategyConfigOptionKind {
   }
   if ("UpdateStrategyType" in obj) {
     return new UpdateStrategyType()
-  }
-  if ("UpdateDepositFee" in obj) {
-    return new UpdateDepositFee()
   }
   if ("UpdateWithdrawFee" in obj) {
     return new UpdateWithdrawFee()
@@ -1246,9 +1220,6 @@ export function fromJSON(
     case "UpdateStrategyType": {
       return new UpdateStrategyType()
     }
-    case "UpdateDepositFee": {
-      return new UpdateDepositFee()
-    }
     case "UpdateWithdrawFee": {
       return new UpdateWithdrawFee()
     }
@@ -1367,7 +1338,6 @@ export function layout(property?: string) {
     borsh.struct([], "UpdateMaxDeviationBps"),
     borsh.struct([], "UpdateSwapVaultMaxSlippage"),
     borsh.struct([], "UpdateStrategyType"),
-    borsh.struct([], "UpdateDepositFee"),
     borsh.struct([], "UpdateWithdrawFee"),
     borsh.struct([], "UpdateCollectFeesFee"),
     borsh.struct([], "UpdateReward0Fee"),

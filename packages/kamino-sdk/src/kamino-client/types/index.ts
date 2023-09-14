@@ -137,7 +137,6 @@ export type StrategyConfigOptionKind =
   | StrategyConfigOption.UpdateMaxDeviationBps
   | StrategyConfigOption.UpdateSwapVaultMaxSlippage
   | StrategyConfigOption.UpdateStrategyType
-  | StrategyConfigOption.UpdateDepositFee
   | StrategyConfigOption.UpdateWithdrawFee
   | StrategyConfigOption.UpdateCollectFeesFee
   | StrategyConfigOption.UpdateReward0Fee
@@ -184,7 +183,6 @@ export type StrategyConfigOptionJSON =
   | StrategyConfigOption.UpdateMaxDeviationBpsJSON
   | StrategyConfigOption.UpdateSwapVaultMaxSlippageJSON
   | StrategyConfigOption.UpdateStrategyTypeJSON
-  | StrategyConfigOption.UpdateDepositFeeJSON
   | StrategyConfigOption.UpdateWithdrawFeeJSON
   | StrategyConfigOption.UpdateCollectFeesFeeJSON
   | StrategyConfigOption.UpdateReward0FeeJSON

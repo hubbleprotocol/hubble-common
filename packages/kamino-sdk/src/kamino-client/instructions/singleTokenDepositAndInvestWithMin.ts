@@ -25,8 +25,6 @@ export interface SingleTokenDepositAndInvestWithMinAccounts {
   tickArrayLower: PublicKey
   tickArrayUpper: PublicKey
   baseVaultAuthority: PublicKey
-  treasuryFeeTokenAVault: PublicKey
-  treasuryFeeTokenBVault: PublicKey
   tokenAAta: PublicKey
   tokenBAta: PublicKey
   tokenAMint: PublicKey
@@ -73,16 +71,6 @@ export function singleTokenDepositAndInvestWithMin(
     { pubkey: accounts.tickArrayLower, isSigner: false, isWritable: true },
     { pubkey: accounts.tickArrayUpper, isSigner: false, isWritable: true },
     { pubkey: accounts.baseVaultAuthority, isSigner: false, isWritable: true },
-    {
-      pubkey: accounts.treasuryFeeTokenAVault,
-      isSigner: false,
-      isWritable: true,
-    },
-    {
-      pubkey: accounts.treasuryFeeTokenBVault,
-      isSigner: false,
-      isWritable: true,
-    },
     { pubkey: accounts.tokenAAta, isSigner: false, isWritable: true },
     { pubkey: accounts.tokenBAta, isSigner: false, isWritable: true },
     { pubkey: accounts.tokenAMint, isSigner: false, isWritable: true },
