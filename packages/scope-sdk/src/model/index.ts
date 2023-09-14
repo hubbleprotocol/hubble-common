@@ -1,1 +1,1 @@
-export * from './ConfigurationWithAddress';
+export * from './Param';

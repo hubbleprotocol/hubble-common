@@ -170,15 +170,15 @@
             "type": "u64"
           },
           {
-            "name": "whirlpool",
+            "name": "pool",
             "type": "publicKey"
           },
           {
-            "name": "whirlpoolTokenVaultA",
+            "name": "poolTokenVaultA",
             "type": "publicKey"
           },
           {
-            "name": "whirlpoolTokenVaultB",
+            "name": "poolTokenVaultB",
             "type": "publicKey"
           },
           {
@@ -386,8 +386,12 @@
             "type": "u64"
           },
           {
-            "name": "swapUnevenMaxSlippage",
-            "type": "u64"
+            "name": "swapVaultMaxSlippageBps",
+            "type": "u32"
+          },
+          {
+            "name": "swapVaultMaxSlippageFromReferenceBps",
+            "type": "u32"
           },
           {
             "name": "strategyType",
@@ -422,29 +426,129 @@
             "type": "u64"
           },
           {
-            "name": "padding1",
+            "name": "kaminoRewards",
             "type": {
               "array": [
-                "u128",
-                20
+                {
+                  "defined": "KaminoRewardInfo"
+                },
+                3
               ]
             }
           },
           {
-            "name": "padding2",
+            "name": "strategyDex",
+            "type": "u64"
+          },
+          {
+            "name": "raydiumProtocolPositionOrBaseVaultAuthority",
+            "type": "publicKey"
+          },
+          {
+            "name": "allowDepositWithoutInvest",
+            "type": "u64"
+          },
+          {
+            "name": "raydiumPoolConfigOrBaseVaultAuthority",
+            "type": "publicKey"
+          },
+          {
+            "name": "depositBlocked",
+            "type": "u8"
+          },
+          {
+            "name": "creationStatus",
+            "type": "u8"
+          },
+          {
+            "name": "investBlocked",
+            "type": "u8"
+          },
+          {
+            "name": "shareCalculationMethod",
+            "docs": [
+              "share_calculation_method can be either DOLAR_BASED=0 or PROPORTION_BASED=1"
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "withdrawBlocked",
+            "type": "u8"
+          },
+          {
+            "name": "reservedFlag2",
+            "type": "u8"
+          },
+          {
+            "name": "localAdminBlocked",
+            "type": "u8"
+          },
+          {
+            "name": "flashVaultSwapAllowed",
+            "type": "u8"
+          },
+          {
+            "name": "referenceSwapPriceA",
+            "type": {
+              "defined": "KaminoPrice"
+            }
+          },
+          {
+            "name": "referenceSwapPriceB",
+            "type": {
+              "defined": "KaminoPrice"
+            }
+          },
+          {
+            "name": "isCommunity",
+            "type": "u8"
+          },
+          {
+            "name": "rebalanceType",
+            "type": "u8"
+          },
+          {
+            "name": "padding0",
             "type": {
               "array": [
-                "u128",
-                32
+                "u8",
+                6
               ]
             }
+          },
+          {
+            "name": "rebalanceRaw",
+            "type": {
+              "defined": "RebalanceRaw"
+            }
+          },
+          {
+            "name": "padding1",
+            "type": {
+              "array": [
+                "u8",
+                7
+              ]
+            }
+          },
+          {
+            "name": "tokenAFeesFromRewardsCumulative",
+            "type": "u64"
+          },
+          {
+            "name": "tokenBFeesFromRewardsCumulative",
+            "type": "u64"
+          },
+          {
+            "name": "strategyLookupTable",
+            "type": "publicKey"
           },
           {
             "name": "padding3",
             "type": {
               "array": [
                 "u128",
-                32
+                26
               ]
             }
           },
@@ -472,6 +576,128 @@
               "array": [
                 "u128",
                 32
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "GlobalConfig",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "emergencyMode",
+            "type": "u64"
+          },
+          {
+            "name": "blockDeposit",
+            "type": "u64"
+          },
+          {
+            "name": "blockInvest",
+            "type": "u64"
+          },
+          {
+            "name": "blockWithdraw",
+            "type": "u64"
+          },
+          {
+            "name": "blockCollectFees",
+            "type": "u64"
+          },
+          {
+            "name": "blockCollectRewards",
+            "type": "u64"
+          },
+          {
+            "name": "blockSwapRewards",
+            "type": "u64"
+          },
+          {
+            "name": "blockSwapUnevenVaults",
+            "type": "u32"
+          },
+          {
+            "name": "blockEmergencySwap",
+            "type": "u32"
+          },
+          {
+            "name": "feesBps",
+            "type": "u64"
+          },
+          {
+            "name": "scopeProgramId",
+            "type": "publicKey"
+          },
+          {
+            "name": "scopePriceId",
+            "type": "publicKey"
+          },
+          {
+            "name": "swapRewardsDiscountBps",
+            "type": {
+              "array": [
+                "u64",
+                256
+              ]
+            }
+          },
+          {
+            "name": "actionsAuthority",
+            "type": "publicKey"
+          },
+          {
+            "name": "adminAuthority",
+            "type": "publicKey"
+          },
+          {
+            "name": "treasuryFeeVaults",
+            "type": {
+              "array": [
+                "publicKey",
+                256
+              ]
+            }
+          },
+          {
+            "name": "tokenInfos",
+            "type": "publicKey"
+          },
+          {
+            "name": "blockLocalAdmin",
+            "type": "u64"
+          },
+          {
+            "name": "minPerformanceFeeBps",
+            "type": "u64"
+          },
+          {
+            "name": "padding",
+            "type": {
+              "array": [
+                "u64",
+                2042
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "CollateralInfos",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "infos",
+            "type": {
+              "array": [
+                {
+                  "defined": "CollateralInfo"
+                },
+                256
               ]
             }
           }
@@ -753,6 +979,180 @@
     }
   ],
   "types": [
+    {
+      "name": "RebalanceRaw",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "params",
+            "type": {
+              "array": [
+                "u8",
+                128
+              ]
+            }
+          },
+          {
+            "name": "state",
+            "type": {
+              "array": [
+                "u8",
+                256
+              ]
+            }
+          },
+          {
+            "name": "referencePriceType",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "KaminoRewardInfo",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "decimals",
+            "type": "u64"
+          },
+          {
+            "name": "rewardVault",
+            "type": "publicKey"
+          },
+          {
+            "name": "rewardMint",
+            "type": "publicKey"
+          },
+          {
+            "name": "rewardCollateralId",
+            "type": "u64"
+          },
+          {
+            "name": "lastIssuanceTs",
+            "type": "u64"
+          },
+          {
+            "name": "rewardPerSecond",
+            "type": "u64"
+          },
+          {
+            "name": "amountUncollected",
+            "type": "u64"
+          },
+          {
+            "name": "amountIssuedCumulative",
+            "type": "u64"
+          },
+          {
+            "name": "amountAvailable",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "CollateralInfo",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "mint",
+            "type": "publicKey"
+          },
+          {
+            "name": "lowerHeuristic",
+            "type": "u64"
+          },
+          {
+            "name": "upperHeuristic",
+            "type": "u64"
+          },
+          {
+            "name": "expHeuristic",
+            "type": "u64"
+          },
+          {
+            "name": "maxTwapDivergenceBps",
+            "type": "u64"
+          },
+          {
+            "name": "scopePriceIdTwap",
+            "type": "u64"
+          },
+          {
+            "name": "scopePriceChain",
+            "type": {
+              "array": [
+                "u16",
+                4
+              ]
+            }
+          },
+          {
+            "name": "name",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "maxAgePriceSeconds",
+            "type": "u64"
+          },
+          {
+            "name": "maxAgeTwapSeconds",
+            "type": "u64"
+          },
+          {
+            "name": "maxIgnorableAmountAsReward",
+            "type": "u64"
+          },
+          {
+            "name": "disabled",
+            "type": "u8"
+          },
+          {
+            "name": "padding0",
+            "type": {
+              "array": [
+                "u8",
+                7
+              ]
+            }
+          },
+          {
+            "name": "padding",
+            "type": {
+              "array": [
+                "u64",
+                9
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "KaminoPrice",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "value",
+            "type": "u64"
+          },
+          {
+            "name": "exp",
+            "type": "u64"
+          }
+        ]
+      }
+    },
     {
       "name": "WithdrawalCaps",
       "type": {

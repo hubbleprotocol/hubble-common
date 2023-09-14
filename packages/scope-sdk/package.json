@@ -3,11 +3,11 @@
   "description": "Scope Oracle SDK",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "version": "2.1.9",
+  "version": "2.2.0",
   "scripts": {
     "build": "tsc",
     "build:watch": "tsc -w",
-    "codegen": "yarn anchor-client-gen ../hubble-idl/src/scope.json ./src/ --program-id HFn8GnPADiny6XqUoWE8uRPPxb29ikn4yTuPa9MF2fWJ"
+    "codegen": "anchor-client-gen ../hubble-idl/src/scope.json ./src/ --program-id HFn8GnPADiny6XqUoWE8uRPPxb29ikn4yTuPa9MF2fWJ"
   },
   "repository": {
     "type": "git",

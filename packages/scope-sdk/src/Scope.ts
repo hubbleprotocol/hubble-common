@@ -1,5 +1,6 @@
 import { getConfigByCluster, HubbleConfig, SolanaCluster } from '@hubbleprotocol/hubble-config';
 import {
+  AccountMeta,
   Connection,
   Keypair,
   PublicKey,
@@ -9,14 +10,15 @@ import {
   Transaction,
 } from '@solana/web3.js';
 import Decimal from 'decimal.js';
-import { Configuration, OracleMappings, OraclePrices } from './accounts';
-import { OracleTypeKind, Price } from './types';
+import { Configuration, GlobalConfig, OracleMappings, OraclePrices, WhirlpoolStrategy } from './accounts';
+import { OracleType, OracleTypeKind, Price } from './types';
 import { mintToScopeToken, scopeTokenToMint, SupportedToken, U16_MAX } from './constants';
 import { ScopeToken } from './ScopeToken';
 import * as ScopeIx from './instructions';
 import { Provider, Wallet } from '@project-serum/anchor';
 import { getConfigurationPda, ORACLE_MAPPINGS_LEN, ORACLE_PRICES_LEN } from './utils';
 import BN from 'bn.js';
+import { FeedParam, PricesParam, validateFeedParam, validatePricesParam } from './model';
 
 export class Scope {
   private readonly _cluster: SolanaCluster;
@@ -169,14 +171,17 @@ export class Scope {
 
   /**
    * Get the deserialised OraclePrices account for a given feed
-   * @param feed
+   * @param feed - either the feed PDA seed or the configuration account address
    * @returns OraclePrices
    */
-  async getOraclePrices(feed?: string): Promise<OraclePrices> {
+  async getOraclePrices(feed?: PricesParam): Promise<OraclePrices> {
+    validatePricesParam(feed);
     let oraclePrices: PublicKey;
-    if (feed) {
-      const [config, configAccount] = await this.getFeedConfiguration(feed);
+    if (feed?.feed || feed?.config) {
+      const [, configAccount] = await this.getFeedConfiguration(feed);
       oraclePrices = configAccount.oraclePrices;
+    } else if (feed?.prices) {
+      oraclePrices = feed.prices;
     } else {
       oraclePrices = this._config.scope.oraclePrices;
     }
@@ -188,25 +193,62 @@ export class Scope {
   }
 
   /**
+   * Get the deserialised OraclePrices accounts for a given `OraclePrices` account pubkeys
+   * Optimised to filter duplicate keys from the network request but returns the same size response as requested in the same order
+   * @throws Error if any of the accounts cannot be fetched
+   * @param prices - public keys of the `OraclePrices` accounts
+   * @returns [PublicKey, OraclePrices][]
+   */
+  async getMultipleOraclePrices(prices: PublicKey[]): Promise<[PublicKey, OraclePrices][]> {
+    const priceStrings = prices.map((price) => price.toBase58());
+    const uniqueScopePrices = [...new Set(priceStrings)].map((value) => new PublicKey(value));
+    if (uniqueScopePrices.length === 1) {
+      return [[uniqueScopePrices[0], await this.getOraclePrices({ prices: uniqueScopePrices[0] })]];
+    }
+    const oraclePrices = await OraclePrices.fetchMultiple(this._connection, prices, this._config.scope.programId);
+    const oraclePricesMap: Record<string, OraclePrices> = oraclePrices
+      .map((price, i) => {
+        if (price === null) {
+          throw Error(`Could not get scope oracle prices for ${uniqueScopePrices[i].toBase58()}`);
+        }
+        return price;
+      })
+      .reduce((map, price, i) => {
+        map[uniqueScopePrices[i].toBase58()] = price;
+        return map;
+      }, {});
+    return prices.map((price) => [price, oraclePricesMap[price.toBase58()]]);
+  }
+
+  /**
    * Get the deserialised Configuration account for a given feed
-   * @param feed
+   * @param feedParam - either the feed PDA seed or the configuration account address
    * @returns [configuration account address, deserialised configuration]
    */
-  async getFeedConfiguration(feed: string): Promise<[PublicKey, Configuration]> {
-    const config = getConfigurationPda(feed);
-    const configAccount = await Configuration.fetch(this._connection, config, this._config.scope.programId);
-    if (!configAccount) {
-      throw new Error(`Could not find configuration account for ${feed}`);
+  async getFeedConfiguration(feedParam?: FeedParam): Promise<[PublicKey, Configuration]> {
+    validateFeedParam(feedParam);
+    const { feed, config } = feedParam || {};
+    let configPubkey: PublicKey;
+    if (feed) {
+      configPubkey = getConfigurationPda(feed);
+    } else if (config) {
+      configPubkey = config;
+    } else {
+      configPubkey = this._config.scope.configurationAccount;
     }
-    return [config, configAccount];
+    const configAccount = await Configuration.fetch(this._connection, configPubkey, this._config.scope.programId);
+    if (!configAccount) {
+      throw new Error(`Could not find configuration account for ${feed || configPubkey.toBase58()}`);
+    }
+    return [configPubkey, configAccount];
   }
 
   /**
    * Get the deserialised OracleMappings account for a given feed
-   * @param feed
+   * @param feed - either the feed PDA seed or the configuration account address
    * @returns OracleMappings
    */
-  async getOracleMappings(feed: string): Promise<OracleMappings> {
+  async getOracleMappings(feed: FeedParam): Promise<OracleMappings> {
     const [config, configAccount] = await this.getFeedConfiguration(feed);
     const oracleMappings = await OracleMappings.fetch(
       this._connection,
@@ -287,7 +329,7 @@ export class Scope {
   /**
    * Get the price of a token from a chain of token prices
    * @param chain
-   * @param oraclePrices
+   * @param prices
    */
   public static getPriceFromScopeChain(chain: Array<number>, prices: OraclePrices) {
     // Protect from bad defaults
@@ -322,7 +364,7 @@ export class Scope {
    * @param oraclePrices
    */
   async getPriceFromChain(chain: Array<number>, oraclePrices?: OraclePrices): Promise<Decimal> {
-    let prices;
+    let prices: OraclePrices;
     if (oraclePrices) {
       prices = oraclePrices;
     } else {
@@ -409,7 +451,7 @@ export class Scope {
     oracleType: OracleTypeKind,
     mapping: PublicKey
   ): Promise<string> {
-    const [config, configAccount] = await this.getFeedConfiguration(feed);
+    const [config, configAccount] = await this.getFeedConfiguration({ feed });
     const updateIx = ScopeIx.updateMapping(
       {
         feedName: feed,
@@ -430,7 +472,7 @@ export class Scope {
     return provider.send(new Transaction().add(updateIx), [admin]);
   }
 
-  async refreshPriceList(payer: Keypair, feed: string, tokens: number[]) {
+  async refreshPriceList(payer: Keypair, feed: FeedParam, tokens: number[]) {
     const [, configAccount] = await this.getFeedConfiguration(feed);
     const refreshIx = ScopeIx.refreshPriceList(
       {
@@ -448,14 +490,63 @@ export class Scope {
       commitment: this._connection.commitment,
     });
     const mappings = await this.getOracleMappings(feed);
-    tokens.forEach((token) => {
-      refreshIx.keys.push({
-        isSigner: false,
-        isWritable: false,
-        pubkey: mappings.priceInfoAccounts[token],
-      });
-    });
+    for (const token of tokens) {
+      refreshIx.keys.push(
+        ...(await Scope.getRefreshAccounts(this._connection, this._config.kamino.programId, mappings, token))
+      );
+    }
     return provider.send(new Transaction().add(refreshIx), [payer]);
+  }
+
+  static async getRefreshAccounts(
+    connection: Connection,
+    kaminoProgramId: PublicKey,
+    mappings: OracleMappings,
+    token: number
+  ): Promise<AccountMeta[]> {
+    const keys: AccountMeta[] = [];
+    keys.push({
+      isSigner: false,
+      isWritable: false,
+      pubkey: mappings.priceInfoAccounts[token],
+    });
+    switch (mappings.priceTypes[token]) {
+      case new OracleType.KToken().discriminator:
+        keys.push(...(await Scope.getKTokenRefreshAccounts(connection, kaminoProgramId, mappings, token)));
+        break;
+    }
+    return keys;
+  }
+
+  static async getKTokenRefreshAccounts(
+    connection: Connection,
+    kaminoProgramId: PublicKey,
+    mappings: OracleMappings,
+    token: number
+  ): Promise<AccountMeta[]> {
+    const strategy = await WhirlpoolStrategy.fetch(connection, mappings.priceInfoAccounts[token], kaminoProgramId);
+    if (!strategy) {
+      throw Error(
+        `Could not get Kamino strategy ${mappings.priceInfoAccounts[token].toBase58()} to refresh token index ${token}`
+      );
+    }
+    const globalConfig = await GlobalConfig.fetch(connection, strategy.globalConfig, kaminoProgramId);
+    if (!globalConfig) {
+      throw Error(
+        `Could not get global config for Kamino strategy ${mappings.priceInfoAccounts[
+          token
+        ].toBase58()} to refresh token index ${token}`
+      );
+    }
+    return [strategy.globalConfig, globalConfig.tokenInfos, strategy.pool, strategy.position, strategy.scopePrices].map(
+      (acc) => {
+        return {
+          isSigner: false,
+          isWritable: false,
+          pubkey: acc,
+        };
+      }
+    );
   }
 }
 

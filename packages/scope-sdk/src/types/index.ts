@@ -1,6 +1,17 @@
 import * as OracleType from "./OracleType"
 import * as ScopeChainError from "./ScopeChainError"
 
+export { RebalanceRaw } from "./RebalanceRaw"
+export type { RebalanceRawFields, RebalanceRawJSON } from "./RebalanceRaw"
+export { KaminoRewardInfo } from "./KaminoRewardInfo"
+export type {
+  KaminoRewardInfoFields,
+  KaminoRewardInfoJSON,
+} from "./KaminoRewardInfo"
+export { CollateralInfo } from "./CollateralInfo"
+export type { CollateralInfoFields, CollateralInfoJSON } from "./CollateralInfo"
+export { KaminoPrice } from "./KaminoPrice"
+export type { KaminoPriceFields, KaminoPriceJSON } from "./KaminoPrice"
 export { WithdrawalCaps } from "./WithdrawalCaps"
 export type { WithdrawalCapsFields, WithdrawalCapsJSON } from "./WithdrawalCaps"
 export { PositionRewardInfo } from "./PositionRewardInfo"
