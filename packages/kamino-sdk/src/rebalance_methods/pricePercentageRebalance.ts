@@ -42,13 +42,13 @@ export function getPricePercentageRebalanceFieldInfos(
   let lowerRangeRebalanceFieldInfo: RebalanceFieldInfo = {
     label: 'priceLower',
     type: 'number',
-    value: lowerPrice,
+    value: lowerPrice!,
     enabled: false,
   };
   let upperRangeRebalanceFieldInfo: RebalanceFieldInfo = {
     label: 'priceUpper',
     type: 'number',
-    value: upperPrice,
+    value: upperPrice!,
     enabled: false,
   };
 

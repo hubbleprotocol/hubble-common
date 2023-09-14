@@ -101,6 +101,7 @@ import {
   MaybeTokensBalances,
   ProportionalMintingMethod,
   PerformanceFees,
+  PriceReferenceType,
 } from './utils';
 import { ASSOCIATED_TOKEN_PROGRAM_ID, Token, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import {
@@ -146,6 +147,8 @@ import {
   ExecutiveWithdrawActionKind,
   RebalanceType,
   RebalanceTypeKind,
+  ReferencePriceType,
+  ReferencePriceTypeKind,
   StrategyConfigOption,
   StrategyStatusKind,
 } from './kamino-client/types';
@@ -175,6 +178,7 @@ import {
   UpdateRebalanceType,
   UpdateLookupTable,
   UpdateDepositMintingMethod,
+  UpdateReferencePriceType,
 } from './kamino-client/types/StrategyConfigOption';
 import {
   DefaultDepositCap,
@@ -263,6 +267,7 @@ import {
   getTakeProfitRebalanceFieldsInfos,
   readExpanderRebalanceFieldInfosFromStrategy,
 } from './rebalance_methods';
+import { PoolPriceReferenceType, TwapPriceReferenceType } from './utils/priceReferenceTypes';
 export const KAMINO_IDL = KaminoIdl;
 
 export class Kamino {
@@ -371,6 +376,10 @@ export class Kamino {
       PeriodicRebalanceMethod,
       ExpanderMethod,
     ];
+  };
+
+  getPriceReferenceTypes = (): PriceReferenceType[] => {
+    return [PoolPriceReferenceType, TwapPriceReferenceType];
   };
 
   getDefaultRebalanceMethod = (): RebalanceMethod => PricePercentageRebalanceMethod;
@@ -604,10 +613,7 @@ export class Kamino {
     if (destinationTokenInput) {
       destinationToken = destinationTokenInput.value;
     }
-    // don't do the commented code, we need to repesent the price directly in numerical value. not x64
-    // let tokenADecimals = await getMintDecimals(this._connection, tokenAMint);
-    // let tokenBDecimals = await getMintDecimals(this._connection, tokenBMint);
-    // let positionPriceRange = getPositionRangeFromTakeProfitParams(dex, tokenADecimals, tokenBDecimals, )
+
     return getTakeProfitRebalanceFieldsInfos(
       new Decimal(lowerRangePrice),
       new Decimal(upperRangePrice),
@@ -1591,21 +1597,29 @@ export class Kamino {
   getStrategyRangeOrca = async (strategy: PublicKey | StrategyWithAddress): Promise<PositionRange> => {
     const { strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
 
-    return this.getPositionRangeOrca(
-      strategyState.position,
-      strategyState.tokenAMintDecimals.toNumber(),
-      strategyState.tokenBMintDecimals.toNumber()
-    );
+    if (strategyState.position == PublicKey.default) {
+      return { lowerPrice: ZERO, upperPrice: ZERO };
+    } else {
+      return this.getPositionRangeOrca(
+        strategyState.position,
+        strategyState.tokenAMintDecimals.toNumber(),
+        strategyState.tokenBMintDecimals.toNumber()
+      );
+    }
   };
 
   getStrategyRangeRaydium = async (strategy: PublicKey | StrategyWithAddress): Promise<PositionRange> => {
     const { strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
 
-    return this.getPositionRangeRaydium(
-      strategyState.position,
-      strategyState.tokenAMintDecimals.toNumber(),
-      strategyState.tokenBMintDecimals.toNumber()
-    );
+    if (strategyState.position == PublicKey.default) {
+      return { lowerPrice: ZERO, upperPrice: ZERO };
+    } else {
+      return this.getPositionRangeRaydium(
+        strategyState.position,
+        strategyState.tokenAMintDecimals.toNumber(),
+        strategyState.tokenBMintDecimals.toNumber()
+      );
+    }
   };
 
   getPositionRange = async (
@@ -3413,11 +3427,31 @@ export class Kamino {
   };
 
   /**
+   * Get a an instruction to update the reference price type of a strategy
+   * @param strategy strategy pubkey or object
+   * @param referencePriceType new reference price type
+   */
+  getUpdateReferencePriceTypeIx = async (
+    strategy: PublicKey | StrategyWithAddress,
+    referencePriceType: ReferencePriceTypeKind
+  ): Promise<TransactionInstruction> => {
+    const { address, strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
+
+    return getUpdateStrategyConfigIx(
+      strategyState.adminAuthority,
+      this._globalConfig,
+      address,
+      new UpdateReferencePriceType(),
+      new Decimal(referencePriceType.discriminator)
+    );
+  };
+
+  /**
    * Get a transaction to invest funds from the Kamino vaults and put them into the DEX pool as liquidity.
    * @param strategy strategy pubkey or object
    * @param payer transaction payer
    */
-  invest = async (strategy: PublicKey, payer: PublicKey) => {
+  invest = async (strategy: PublicKey, payer: PublicKey): Promise<TransactionInstruction> => {
     const strategyState: WhirlpoolStrategy | null = await this.getStrategyByAddress(strategy);
     if (!strategyState) {
       throw Error(`Could not fetch strategy state with pubkey ${strategy.toString()}`);

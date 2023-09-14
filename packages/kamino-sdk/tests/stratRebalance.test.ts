@@ -31,6 +31,7 @@ import {
   TakeProfit,
 } from '../src/kamino-client/types/RebalanceType';
 import { getComputeBudgetAndPriorityFeeIxns } from '../src/utils/transactions';
+import { POOL, TWAP } from '../src/kamino-client/types/ReferencePriceType';
 
 describe('Kamino strategy creation SDK Tests', () => {
   let connection: Connection;
@@ -922,5 +923,140 @@ describe('Kamino strategy creation SDK Tests', () => {
     expect(new Decimal(stratFields[6]['value'].toString()).lessThan(poolPrice)).to.be.true;
     expect(stratFields[7]['label'] == 'priceUpper').to.be.true;
     expect(new Decimal(stratFields[7]['value'].toString()).greaterThan(poolPrice)).to.be.true;
+  });
+
+  it.skip('update price reference type', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      GlobalConfigMainnet,
+      KaminoProgramIdMainnet,
+      WHIRLPOOL_PROGRAM_ID,
+      RAYDIUM_PROGRAM_ID
+    );
+
+    const newStrategy = Keypair.generate();
+    const newPosition = Keypair.generate();
+    const createRaydiumStrategyAccountIx = await kamino.createStrategyAccount(signer.publicKey, newStrategy.publicKey);
+    console.log('newStrategy.publicKey', newStrategy.publicKey.toString());
+
+    let priceLower = new Decimal(15.0);
+    let priceUpper = new Decimal(21.0);
+    let buildNewStrategyIxs = await kamino.getBuildStrategyIxns(
+      'RAYDIUM',
+      new Decimal('5'),
+      newStrategy.publicKey,
+      newPosition.publicKey,
+      signer.publicKey,
+      new Decimal(Manual.discriminator),
+      [priceLower, priceUpper],
+      new PublicKey('So11111111111111111111111111111111111111112'),
+      new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v')
+    );
+
+    let ixs: TransactionInstruction[] = [];
+    ixs.push(createRaydiumStrategyAccountIx);
+    ixs.push(buildNewStrategyIxs[0]);
+    console.log('ixs', ixs.length);
+    const createStratTx = await kamino.getTransactionV2Message(signer.publicKey, ixs);
+    const createStratTransactionV0 = new VersionedTransaction(createStratTx);
+    createStratTransactionV0.sign([newStrategy, signer]);
+    //@ts-ignore
+    let txHash = await sendAndConfirmTransaction(kamino._connection, createStratTransactionV0);
+    console.log('create strategy tx hash', txHash);
+
+    let strategySetupIxs: TransactionInstruction[] = [];
+    buildNewStrategyIxs[1].slice(0, 4).map((ix) => strategySetupIxs.push(ix));
+    const setupStratTx = await kamino.getTransactionV2Message(signer.publicKey, strategySetupIxs);
+    const setupStratTransactionV0 = new VersionedTransaction(setupStratTx);
+    setupStratTransactionV0.sign([signer]);
+
+    //@ts-ignore
+    txHash = await sendAndConfirmTransaction(kamino._connection, setupStratTransactionV0);
+    console.log('setup strategy tx hash', txHash);
+
+    let strategySetupFeesIxs: TransactionInstruction[] = [];
+    buildNewStrategyIxs[1].slice(4).map((ix) => strategySetupFeesIxs.push(ix));
+    strategySetupFeesIxs.push(buildNewStrategyIxs[2]);
+    const setupStratFeesTx = await kamino.getTransactionV2Message(signer.publicKey, strategySetupFeesIxs);
+    const setupStratFeesTransactionV0 = new VersionedTransaction(setupStratFeesTx);
+    setupStratFeesTransactionV0.sign([signer]);
+    //@ts-ignore
+    txHash = await sendAndConfirmTransaction(kamino._connection, setupStratFeesTransactionV0);
+    console.log('setup strategy fees tx hash', txHash);
+
+    // after strategy creation we have to set the reward mappings so it autocompounds
+    let updateRewardMappingIxs = await kamino.getUpdateRewardsIxs(signer.publicKey, newStrategy.publicKey);
+    console.log('updateRewardMappingIxs', updateRewardMappingIxs.length);
+
+    // set up lookup table for strategy
+    let strategyLookupTable = await kamino.setupStrategyLookupTable(signer, newStrategy.publicKey);
+
+    for (let ix of updateRewardMappingIxs) {
+      const updateRewardMappingTx = await kamino.getTransactionV2Message(
+        signer.publicKey,
+        [ix[0]],
+        [strategyLookupTable]
+      );
+      const updateRewardMappingsTransactionV0 = new VersionedTransaction(updateRewardMappingTx);
+      updateRewardMappingsTransactionV0.sign([signer, ix[1]]);
+      //@ts-ignore
+      txHash = await sendAndConfirmTransaction(kamino._connection, updateRewardMappingsTransactionV0);
+      console.log('setup strategy reward mapping', txHash);
+    }
+
+    // open position
+    const openPositionIxn = buildNewStrategyIxs[3];
+    const openPositionMessage = await kamino.getTransactionV2Message(signer.publicKey, [
+      ...getComputeBudgetAndPriorityFeeIxns(1_400_000),
+      openPositionIxn,
+    ]);
+    const openPositionTx = new VersionedTransaction(openPositionMessage);
+    openPositionTx.sign([signer, newPosition]);
+
+    //@ts-ignore
+    const openPositionTxId = await sendAndConfirmTransaction(kamino._connection, openPositionTx);
+    console.log('openPositionTxId', openPositionTxId);
+
+    let strategyState = (await kamino.getStrategies([newStrategy.publicKey]))[0];
+    if (!strategyState) {
+      throw new Error('strategy not found');
+    }
+
+    expect(strategyState!.rebalanceRaw.referencePriceType).to.be.eq(POOL.discriminator);
+
+    let updatePriceReferenceTypeIx = await kamino.getUpdateReferencePriceTypeIx(newStrategy.publicKey, new TWAP());
+    let updatePriceReferenceTypeTxMsg = await kamino.getTransactionV2Message(signer.publicKey, [
+      updatePriceReferenceTypeIx,
+    ]);
+    let updatePriceReferenceTypeTx = new VersionedTransaction(updatePriceReferenceTypeTxMsg);
+    updatePriceReferenceTypeTx.sign([signer]);
+
+    //@ts-ignore
+    let updatePriceReferenceTypeTxId = await sendAndConfirmTransaction(kamino._connection, updatePriceReferenceTypeTx);
+    console.log('update reference price to TWAP tx', updatePriceReferenceTypeTxId);
+
+    strategyState = (await kamino.getStrategies([newStrategy.publicKey]))[0];
+    if (!strategyState) {
+      throw new Error('strategy not found');
+    }
+    expect(strategyState!.rebalanceRaw.referencePriceType).to.be.eq(TWAP.discriminator);
+
+    updatePriceReferenceTypeIx = await kamino.getUpdateReferencePriceTypeIx(newStrategy.publicKey, new POOL());
+    updatePriceReferenceTypeTxMsg = await kamino.getTransactionV2Message(signer.publicKey, [
+      updatePriceReferenceTypeIx,
+    ]);
+    updatePriceReferenceTypeTx = new VersionedTransaction(updatePriceReferenceTypeTxMsg);
+    updatePriceReferenceTypeTx.sign([signer]);
+
+    //@ts-ignore
+    updatePriceReferenceTypeTxId = await sendAndConfirmTransaction(kamino._connection, updatePriceReferenceTypeTx);
+    console.log('update reference price to POOL tx', updatePriceReferenceTypeTxId);
+
+    strategyState = (await kamino.getStrategies([newStrategy.publicKey]))[0];
+    if (!strategyState) {
+      throw new Error('strategy not found');
+    }
+    expect(strategyState!.rebalanceRaw.referencePriceType).to.be.eq(POOL.discriminator);
   });
 });
