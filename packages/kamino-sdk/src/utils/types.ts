@@ -251,3 +251,9 @@ export interface RebalanceFieldInfo {
   value: Decimal | string;
   enabled: boolean;
 }
+
+export interface PriceReferenceType {
+  name: string;
+  descriptionShort?: string;
+  description?: string;
+}
