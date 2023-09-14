@@ -1017,11 +1017,16 @@ export class Kamino {
     strategyFilters: StrategiesFilters | PublicKey[]
   ): Promise<Array<ShareDataWithAddress>> => {
     const result: Array<ShareDataWithAddress> = [];
-    const prices = await this._scope.getOraclePrices();
     const strategiesWithAddresses = Array.isArray(strategyFilters)
       ? await this.getStrategiesWithAddresses(strategyFilters)
       : await this.getAllStrategiesWithFilters(strategyFilters);
     const fetchBalances: Promise<StrategyBalanceWithAddress>[] = [];
+    const allScopePrices = strategiesWithAddresses.map((x) => x.strategy.scopePrices);
+    const scopePrices = await this._scope.getMultipleOraclePrices(allScopePrices);
+    const scopePricesMap: Record<string, OraclePrices> = scopePrices.reduce((map, [address, price]) => {
+      map[address.toBase58()] = price;
+      return map;
+    }, {});
 
     const raydiumStrategies = strategiesWithAddresses.filter(
       (x) =>
@@ -1043,7 +1048,11 @@ export class Kamino {
     );
     const collateralInfos = await this.getCollateralInfos();
     for (const { strategy, address } of inactiveStrategies) {
-      const strategyPrices = await this.getStrategyPrices(strategy, collateralInfos, prices);
+      const strategyPrices = await this.getStrategyPrices(
+        strategy,
+        collateralInfos,
+        scopePricesMap[strategy.scopePrices.toBase58()]
+      );
       result.push({
         address,
         strategy,
@@ -1063,7 +1072,7 @@ export class Kamino {
         raydiumPositions,
         this.getRaydiumBalances,
         collateralInfos,
-        prices
+        scopePricesMap
       )
     );
 
@@ -1074,7 +1083,7 @@ export class Kamino {
         orcaPositions,
         this.getOrcaBalances,
         collateralInfos,
-        prices
+        scopePricesMap
       )
     );
 
@@ -1113,7 +1122,7 @@ export class Kamino {
       prices?: OraclePrices
     ) => Promise<StrategyBalances>,
     collateralInfos: CollateralInfo[],
-    prices?: OraclePrices
+    prices?: Record<string, OraclePrices>
   ): Promise<StrategyBalanceWithAddress>[] => {
     const fetchBalances: Promise<StrategyBalanceWithAddress>[] = [];
     for (let i = 0; i < strategies.length; i++) {
@@ -1127,7 +1136,13 @@ export class Kamino {
         throw new Error(`Position ${strategy.position.toString()} could not be found.`);
       }
       fetchBalances.push(
-        fetchBalance(strategy, pool as PoolT, position as PositionT, collateralInfos, prices).then((balance) => {
+        fetchBalance(
+          strategy,
+          pool as PoolT,
+          position as PositionT,
+          collateralInfos,
+          prices ? prices[strategy.scopePrices.toBase58()] : undefined
+        ).then((balance) => {
           return { balance, strategyWithAddress: { strategy, address } };
         })
       );
@@ -1501,7 +1516,7 @@ export class Kamino {
     if (scopePrices) {
       prices = scopePrices;
     } else {
-      prices = await this._scope.getOraclePrices();
+      prices = await this._scope.getOraclePrices({ prices: strategy.scopePrices });
     }
     const aPrice = await this._scope.getPriceFromChain(tokenA.scopePriceChain, prices);
     const bPrice = await this._scope.getPriceFromChain(tokenB.scopePriceChain, prices);
