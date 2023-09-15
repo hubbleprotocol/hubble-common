@@ -1,14 +1,7 @@
 import Decimal from 'decimal.js';
 import { PositionRange, RebalanceFieldInfo } from '../utils/types';
-import {
-  DefaultLowerPercentageBPSDecimal,
-  DefaultUpperPercentageBPSDecimal,
-  FullBPSDecimal,
-} from '../utils/CreationParameters';
+import { FullBPSDecimal } from '../utils/CreationParameters';
 import { getManualRebalanceFieldInfos } from './manualRebalance';
-import { Dex } from '../utils';
-import { sqrtPriceX64ToPrice } from '@orca-so/whirlpool-sdk';
-import BN from 'bn.js';
 import { RebalanceRaw } from '../kamino-client/types';
 import { RebalanceTypeLabelName } from './consts';
 

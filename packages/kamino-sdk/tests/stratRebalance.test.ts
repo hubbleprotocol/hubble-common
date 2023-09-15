@@ -794,11 +794,11 @@ describe('Kamino strategy creation SDK Tests', () => {
     expect(updateStratFields[0]['label'] == 'rebalanceType').to.be.true;
     expect(updateStratFields[0]['value'] == PeriodicRebalanceTypeName).to.be.true;
     expect(updateStratFields[1]['label'] == 'period').to.be.true;
-    expect(updateStratFields[1]['value'] == period.toString()).to.be.true;
+    expect(updateStratFields[1]['value'] == newPeriod.toString()).to.be.true;
     expect(updateStratFields[2]['label'] == 'lowerRangeBps').to.be.true;
-    expect(updateStratFields[2]['value'].toString() == lowerRangeBPS.toString()).to.be.true;
+    expect(updateStratFields[2]['value'].toString() == newLowerRangeBPS.toString()).to.be.true;
     expect(updateStratFields[3]['label'] == 'upperRangeBps').to.be.true;
-    expect(updateStratFields[3]['value'].toString() == upperRangeBPS.toString()).to.be.true;
+    expect(updateStratFields[3]['value'].toString() == newUpperRangeBPS.toString()).to.be.true;
     expect(updateStratFields[4]['label'] == 'priceLower').to.be.true;
     expect(new Decimal(updateStratFields[4]['value'].toString()).lessThan(poolPrice)).to.be.true;
     expect(updateStratFields[5]['label'] == 'priceUpper').to.be.true;
@@ -863,9 +863,9 @@ describe('Kamino strategy creation SDK Tests', () => {
     expect(stratFields[0]['label'] == 'rebalanceType').to.be.true;
     expect(stratFields[0]['value'] == PeriodicRebalanceTypeName).to.be.true;
     expect(stratFields[1]['label'] == 'period').to.be.true;
-    expect(stratFields[1]['value'] == period.toString()).to.be.true;
+    expect(stratFields[1]['value'] == newPeriod.toString()).to.be.true;
     expect(stratFields[2]['label'] == 'lowerRangeBps').to.be.true;
-    expect(stratFields[2]['value'].toString() == lowerRangeBPS.toString()).to.be.true;
+    expect(stratFields[2]['value'].toString() == newLowerRangeBPS.toString()).to.be.true;
     expect(stratFields[3]['label'] == 'upperRangeBps').to.be.true;
     expect(stratFields[3]['value'].toString() == upperRangeBPS.toString()).to.be.true;
     expect(stratFields[4]['label'] == 'priceLower').to.be.true;

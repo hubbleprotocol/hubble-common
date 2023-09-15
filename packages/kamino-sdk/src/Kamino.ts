@@ -3771,7 +3771,7 @@ export class Kamino {
         );
 
       case RebalanceType.PeriodicRebalance.kind:
-        return getPositionRangeFromPeriodicRebalanceParams(price, rebalanceParams[0], rebalanceParams[1]);
+        return getPositionRangeFromPeriodicRebalanceParams(price, rebalanceParams[1], rebalanceParams[2]);
 
       case RebalanceType.Expander.kind:
         return getPositionRangeFromExpanderParams(price, rebalanceParams[0], rebalanceParams[1]);
