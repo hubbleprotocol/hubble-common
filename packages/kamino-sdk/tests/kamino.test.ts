@@ -1071,7 +1071,7 @@ describe('Kamino SDK Tests', () => {
     // New position to rebalance into
     const newPosition = Keypair.generate();
 
-    const [executiveWithdrawIx, collectFeesIx, openPositionIx] = await kamino.rebalance(
+    const [collectFeesIx, openPositionIx] = await kamino.rebalance(
       fixtures.newOrcaStrategy,
       newPosition.publicKey,
       new Decimal(0.99),
@@ -1081,7 +1081,7 @@ describe('Kamino SDK Tests', () => {
 
     {
       const increaseBudgetIx = createAddExtraComputeUnitsTransaction(signer.publicKey, 1_000_000);
-      let tx = new Transaction().add(increaseBudgetIx, executiveWithdrawIx, collectFeesIx);
+      let tx = new Transaction().add(increaseBudgetIx, collectFeesIx);
       let sig = await sendTransactionWithLogs(connection, tx, signer.publicKey, [signer]);
       expect(sig).to.not.be.null;
       console.log('executive withdraw and collect fees have been executed ');
@@ -1151,19 +1151,12 @@ describe('Kamino SDK Tests', () => {
     );
 
     let openPositionIx: TransactionInstruction;
-    if (rebalanceIxns.length == 2) {
+    if (rebalanceIxns.length == 1) {
+      openPositionIx = rebalanceIxns[0];
+    } else {
       openPositionIx = rebalanceIxns[1];
 
       let tx = createTransactionWithExtraBudget(signer.publicKey, 1_000_000).add(rebalanceIxns[0]);
-      let sig = await sendTransactionWithLogs(connection, tx, signer.publicKey, [signer]);
-      expect(sig).to.not.be.null;
-      console.log('executive withdraw and collect fees have been executed');
-    } else {
-      openPositionIx = rebalanceIxns[2];
-
-      let tx = createTransactionWithExtraBudget(signer.publicKey, 1_000_000)
-        .add(rebalanceIxns[0])
-        .add(rebalanceIxns[1]);
       let sig = await sendTransactionWithLogs(connection, tx, signer.publicKey, [signer]);
       expect(sig).to.not.be.null;
       console.log('executive withdraw and collect fees have been executed');

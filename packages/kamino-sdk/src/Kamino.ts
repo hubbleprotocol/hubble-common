@@ -30,6 +30,8 @@ import {
   AddLiquidityQuoteParam,
   defaultSlippagePercentage,
   getNearestValidTickIndexFromTickIndex,
+  getNextValidTickIndex,
+  getPrevValidTickIndex,
   getRemoveLiquidityQuote,
   getStartTickIndex,
   OrcaNetwork,
@@ -102,6 +104,7 @@ import {
   ProportionalMintingMethod,
   PerformanceFees,
   PriceReferenceType,
+  InputRebalanceFieldInfo,
 } from './utils';
 import { ASSOCIATED_TOKEN_PROGRAM_ID, Token, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import {
@@ -268,6 +271,8 @@ import {
   readExpanderRebalanceFieldInfosFromStrategy,
 } from './rebalance_methods';
 import { PoolPriceReferenceType, TwapPriceReferenceType } from './utils/priceReferenceTypes';
+import { getRebalanceMethodFromRebalanceFields, getRebalanceTypeFromRebalanceFields } from './rebalance_methods/utils';
+import { RebalanceTypeLabelName } from './rebalance_methods/consts';
 export const KAMINO_IDL = KaminoIdl;
 
 export class Kamino {
@@ -401,28 +406,37 @@ export class Kamino {
     return defaultParameters;
   };
 
+  getRebalanceTypeFromRebalanceFields = (rebalanceFields: RebalanceFieldInfo[]): RebalanceTypeKind => {
+    return getRebalanceTypeFromRebalanceFields(rebalanceFields);
+  };
+
+  getRebalanceMethodFromRebalanceFields = (rebalanceFields: RebalanceFieldInfo[]): RebalanceMethod => {
+    return getRebalanceMethodFromRebalanceFields(rebalanceFields);
+  };
+
   getFieldsForRebalanceMethod = (
     rebalanceMethod: RebalanceMethod,
     dex: Dex,
     fieldOverrides: RebalanceFieldInfo[],
     tokenAMint: PublicKey,
-    tokenBMint: PublicKey
+    tokenBMint: PublicKey,
+    poolPrice?: Decimal
   ): Promise<RebalanceFieldInfo[]> => {
     switch (rebalanceMethod) {
       case ManualRebalanceMethod:
-        return this.getFieldsForManualRebalanceMethod(dex, fieldOverrides, tokenAMint, tokenBMint);
+        return this.getFieldsForManualRebalanceMethod(dex, fieldOverrides, tokenAMint, tokenBMint, poolPrice);
       case PricePercentageRebalanceMethod:
-        return this.getFieldsForPricePercentageMethod(dex, fieldOverrides, tokenAMint, tokenBMint);
+        return this.getFieldsForPricePercentageMethod(dex, fieldOverrides, tokenAMint, tokenBMint, poolPrice);
       case PricePercentageWithResetRangeRebalanceMethod:
-        return this.getFieldsForPricePercentageWithResetMethod(dex, fieldOverrides, tokenAMint, tokenBMint);
+        return this.getFieldsForPricePercentageWithResetMethod(dex, fieldOverrides, tokenAMint, tokenBMint, poolPrice);
       case DriftRebalanceMethod:
-        return this.getFieldsForDriftRebalanceMethod(dex, fieldOverrides, tokenAMint, tokenBMint);
+        return this.getFieldsForDriftRebalanceMethod(dex, fieldOverrides, tokenAMint, tokenBMint, poolPrice);
       case TakeProfitMethod:
-        return this.getFieldsForTakeProfitRebalanceMethod(dex, fieldOverrides, tokenAMint, tokenBMint);
+        return this.getFieldsForTakeProfitRebalanceMethod(dex, fieldOverrides, tokenAMint, tokenBMint, poolPrice);
       case PeriodicRebalanceMethod:
-        return this.getFieldsForPeriodicRebalanceMethod(dex, fieldOverrides, tokenAMint, tokenBMint);
+        return this.getFieldsForPeriodicRebalanceMethod(dex, fieldOverrides, tokenAMint, tokenBMint, poolPrice);
       case ExpanderMethod:
-        return this.getFieldsForExpanderRebalanceMethod(dex, fieldOverrides, tokenAMint, tokenBMint);
+        return this.getFieldsForExpanderRebalanceMethod(dex, fieldOverrides, tokenAMint, tokenBMint, poolPrice);
       default:
         throw new Error(`Rebalance method ${rebalanceMethod} is not supported`);
     }
@@ -432,9 +446,10 @@ export class Kamino {
     dex: Dex,
     fieldOverrides: RebalanceFieldInfo[],
     tokenAMint: PublicKey,
-    tokenBMint: PublicKey
+    tokenBMint: PublicKey,
+    poolPrice?: Decimal
   ): Promise<RebalanceFieldInfo[]> => {
-    const price = new Decimal(await this.getPriceForPair(dex, tokenAMint, tokenBMint));
+    let price = poolPrice ? poolPrice : new Decimal(await this.getPriceForPair(dex, tokenAMint, tokenBMint));
 
     const defaultFields = getDefaultManualRebalanceFieldInfos(price);
 
@@ -457,9 +472,10 @@ export class Kamino {
     dex: Dex,
     fieldOverrides: RebalanceFieldInfo[],
     tokenAMint: PublicKey,
-    tokenBMint: PublicKey
+    tokenBMint: PublicKey,
+    poolPrice?: Decimal
   ): Promise<RebalanceFieldInfo[]> => {
-    const price = new Decimal(await this.getPriceForPair(dex, tokenAMint, tokenBMint));
+    const price = poolPrice ? poolPrice : new Decimal(await this.getPriceForPair(dex, tokenAMint, tokenBMint));
 
     const defaultFields = getDefaultPricePercentageRebalanceFieldInfos(price);
     let lowerPriceDifferenceBPS = defaultFields.find((x) => x.label == 'lowerRangeBps')!.value;
@@ -485,9 +501,10 @@ export class Kamino {
     dex: Dex,
     fieldOverrides: RebalanceFieldInfo[],
     tokenAMint: PublicKey,
-    tokenBMint: PublicKey
+    tokenBMint: PublicKey,
+    poolPrice?: Decimal
   ): Promise<RebalanceFieldInfo[]> => {
-    const price = new Decimal(await this.getPriceForPair(dex, tokenAMint, tokenBMint));
+    const price = poolPrice ? poolPrice : new Decimal(await this.getPriceForPair(dex, tokenAMint, tokenBMint));
 
     const defaultFields = getDefaultPricePercentageWithResetRebalanceFieldInfos(price);
 
@@ -528,11 +545,12 @@ export class Kamino {
     dex: Dex,
     fieldOverrides: RebalanceFieldInfo[],
     tokenAMint: PublicKey,
-    tokenBMint: PublicKey
+    tokenBMint: PublicKey,
+    poolPrice?: Decimal
   ): Promise<RebalanceFieldInfo[]> => {
     const tokenADecimals = await getMintDecimals(this._connection, tokenAMint);
     const tokenBDecimals = await getMintDecimals(this._connection, tokenBMint);
-    let price = new Decimal(await this.getPriceForPair(dex, tokenAMint, tokenBMint));
+    const price = poolPrice ? poolPrice : new Decimal(await this.getPriceForPair(dex, tokenAMint, tokenBMint));
 
     const defaultFields = getDefaultDriftRebalanceFieldInfos(dex, price, tokenADecimals, tokenBDecimals);
 
@@ -584,10 +602,10 @@ export class Kamino {
     dex: Dex,
     fieldOverrides: RebalanceFieldInfo[],
     tokenAMint: PublicKey,
-    tokenBMint: PublicKey
+    tokenBMint: PublicKey,
+    poolPrice?: Decimal
   ): Promise<RebalanceFieldInfo[]> => {
-    let price = new Decimal(await this.getPriceForPair(dex, tokenAMint, tokenBMint));
-
+    const price = poolPrice ? poolPrice : new Decimal(await this.getPriceForPair(dex, tokenAMint, tokenBMint));
     const defaultFields = getDefaultTakeProfitRebalanceFieldsInfos(price);
 
     // pub lower_range_price: u128,
@@ -626,10 +644,10 @@ export class Kamino {
     dex: Dex,
     fieldOverrides: RebalanceFieldInfo[],
     tokenAMint: PublicKey,
-    tokenBMint: PublicKey
+    tokenBMint: PublicKey,
+    poolPrice?: Decimal
   ): Promise<RebalanceFieldInfo[]> => {
-    let price = new Decimal(await this.getPriceForPair(dex, tokenAMint, tokenBMint));
-
+    const price = poolPrice ? poolPrice : new Decimal(await this.getPriceForPair(dex, tokenAMint, tokenBMint));
     const defaultFields = getDefaultPeriodicRebalanceFieldInfos(price);
 
     let period: Decimal = new Decimal(defaultFields.find((x) => x.label == 'period')!.value);
@@ -662,10 +680,10 @@ export class Kamino {
     dex: Dex,
     fieldOverrides: RebalanceFieldInfo[],
     tokenAMint: PublicKey,
-    tokenBMint: PublicKey
+    tokenBMint: PublicKey,
+    poolPrice?: Decimal
   ): Promise<RebalanceFieldInfo[]> => {
-    let price = new Decimal(await this.getPriceForPair(dex, tokenAMint, tokenBMint));
-
+    const price = poolPrice ? poolPrice : new Decimal(await this.getPriceForPair(dex, tokenAMint, tokenBMint));
     const defaultFields = getDefaultExpanderRebalanceFieldInfos(price);
 
     let lowerPriceDifferenceBPS = defaultFields.find((x) => x.label == 'lowerRangeBps')!.value;
@@ -3142,18 +3160,18 @@ export class Kamino {
     let decimalsA = await getMintDecimals(this._connection, whirlpool.tokenMintA);
     let decimalsB = await getMintDecimals(this._connection, whirlpool.tokenMintB);
 
-    const tickLowerIndex = getNearestValidTickIndexFromTickIndex(
+    const tickLowerIndex = getNextValidTickIndex(
       priceToTickIndex(priceLower, decimalsA, decimalsB),
       whirlpool.tickSpacing
     );
-    const tickUpperIndex = getNearestValidTickIndexFromTickIndex(
+    const tickUpperIndex = getNextValidTickIndex(
       priceToTickIndex(priceUpper, decimalsA, decimalsB),
       whirlpool.tickSpacing
     );
 
     const { position, positionBump, positionMetadata } = this.getMetadataProgramAddressesOrca(positionMint);
 
-    const positionTokenAccount = await getAssociatedTokenAddress(positionMint, baseVaultAuthority);
+    const positionTokenAccount = getAssociatedTokenAddress(positionMint, baseVaultAuthority);
 
     const args: OpenLiquidityPositionArgs = {
       tickLowerIndex: new BN(tickLowerIndex),
@@ -3489,6 +3507,30 @@ export class Kamino {
     return invest(accounts);
   };
 
+  getUpdateRebalancingParamsFromRebalanceFieldsIx = async (
+    strategyAdmin: PublicKey,
+    strategy: PublicKey,
+    rebalanceFieldInfos: RebalanceFieldInfo[]
+  ): Promise<TransactionInstruction> => {
+    let rebalanceType = getRebalanceTypeFromRebalanceFields(rebalanceFieldInfos);
+    const strategyState: WhirlpoolStrategy | null = await this.getStrategyByAddress(strategy);
+    if (!strategyState) {
+      throw Error(`Could not fetch strategy state with pubkey ${strategy.toString()}`);
+    }
+
+    let rebalanceParams = rebalanceFieldInfos
+      .filter((x) => x.label != RebalanceTypeLabelName && x.enabled)
+      .map((f) => new Decimal(f.value));
+    return this.getUpdateRebalancingParmsIxns(
+      strategyAdmin,
+      strategy,
+      rebalanceParams,
+      rebalanceType,
+      strategyState.tokenAMintDecimals.toNumber(),
+      strategyState.tokenBMintDecimals.toNumber()
+    );
+  };
+
   getUpdateRebalancingParmsIxns = async (
     strategyAdmin: PublicKey,
     strategy: PublicKey,
@@ -3729,7 +3771,7 @@ export class Kamino {
         );
 
       case RebalanceType.PeriodicRebalance.kind:
-        return getPositionRangeFromPeriodicRebalanceParams(price, rebalanceParams[0], rebalanceParams[1]);
+        return getPositionRangeFromPeriodicRebalanceParams(price, rebalanceParams[1], rebalanceParams[2]);
 
       case RebalanceType.Expander.kind:
         return getPositionRangeFromExpanderParams(price, rebalanceParams[0], rebalanceParams[1]);
@@ -3821,6 +3863,21 @@ export class Kamino {
     } else {
       throw new Error(`Rebalance type ${rebalanceKind} is not supported`);
     }
+  }
+
+  updateRebalanceFieldInfos(
+    initialRebalanceFieldInfos: RebalanceFieldInfo[],
+    updatedFields: InputRebalanceFieldInfo[]
+  ): RebalanceFieldInfo[] {
+    let newRebalanceFieldInfos = initialRebalanceFieldInfos.map((f) => {
+      let updatedField = updatedFields.find((x) => x.label == f.label);
+      if (updatedField) {
+        return { ...f, value: updatedField.value };
+      } else {
+        return f;
+      }
+    });
+    return newRebalanceFieldInfos;
   }
 
   getPriceRangePercentageBasedFromPrice(
@@ -4153,7 +4210,7 @@ export class Kamino {
     // todo: refactor this to return an object, not a list
     const strategyWithAddress = await this.getStrategyStateIfNotFetched(strategy);
 
-    let ixs: TransactionInstruction[] = [await this.executiveWithdraw(strategyWithAddress, new Rebalance())];
+    let ixs: TransactionInstruction[] = [];
 
     // if there are no invested tokens we don't need to collect fees and rewards
     const stratTokenBalances = await this.getStrategyTokensBalances(strategyWithAddress.strategy);

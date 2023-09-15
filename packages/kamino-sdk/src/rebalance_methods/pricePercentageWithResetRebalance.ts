@@ -6,6 +6,7 @@ import {
   FullBPSDecimal,
 } from '../utils/CreationParameters';
 import { RebalanceRaw } from '../kamino-client/types';
+import { RebalanceTypeLabelName } from './consts';
 
 export const PricePercentageWithResetRebalanceTypeName = 'pricePercentageWithReset';
 
@@ -18,7 +19,7 @@ export function getPricePercentageWithResetRebalanceFieldInfos(
   enabled: boolean = true
 ): RebalanceFieldInfo[] {
   let rebalanceType: RebalanceFieldInfo = {
-    label: 'rebalanceType',
+    label: RebalanceTypeLabelName,
     type: 'string',
     value: PricePercentageWithResetRebalanceTypeName,
     enabled,

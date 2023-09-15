@@ -5,6 +5,7 @@ import {
   DefaultUpperPercentageBPSDecimal,
   FullBPSDecimal,
 } from '../utils/CreationParameters';
+import { RebalanceTypeLabelName } from './consts';
 
 export const ManualRebalanceTypeName = 'manual';
 
@@ -14,7 +15,7 @@ export function getManualRebalanceFieldInfos(
   enabled: boolean = true
 ): RebalanceFieldInfo[] {
   let rebalanceType: RebalanceFieldInfo = {
-    label: 'rebalanceType',
+    label: RebalanceTypeLabelName,
     type: 'string',
     value: ManualRebalanceTypeName,
     enabled,

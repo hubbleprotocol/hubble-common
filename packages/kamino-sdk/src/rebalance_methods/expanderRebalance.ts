@@ -10,6 +10,7 @@ import { getManualRebalanceFieldInfos } from './manualRebalance';
 import { PublicKey } from '@solana/web3.js';
 import { StrategyWithAddress } from '../models';
 import { RebalanceRaw } from '../kamino-client/types';
+import { RebalanceTypeLabelName } from './consts';
 
 export const DefaultMaxNumberOfExpansions = new Decimal(10);
 export const DefaultExpansionSizeBPS = new Decimal(100);
@@ -28,7 +29,7 @@ export function getExpanderRebalanceFieldInfos(
   enabled: boolean = true
 ): RebalanceFieldInfo[] {
   let rebalanceType: RebalanceFieldInfo = {
-    label: 'rebalanceType',
+    label: RebalanceTypeLabelName,
     type: 'string',
     value: ExpanderRebalanceTypeName,
     enabled,
