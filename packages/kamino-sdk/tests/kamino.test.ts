@@ -1710,6 +1710,41 @@ describe('Kamino SDK Tests', () => {
     expect(performanceFees.reward1FeeBPS.eq(new Decimal(700))).to.be.true;
     expect(performanceFees.reward2FeeBPS.eq(new Decimal(800))).to.be.true;
   });
+
+  it('closes the strategy with position open', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      fixtures.globalConfig,
+      fixtures.kaminoProgramId,
+      WHIRLPOOL_PROGRAM_ID,
+      LOCAL_RAYDIUM_PROGRAM_ID
+    );
+    const strategyBefore = (await kamino.getStrategyByAddress(fixtures.newOrcaStrategy))!;
+
+    let tx = createTransactionWithExtraBudget(signer.publicKey, 1000000);
+    const closeIx = await kamino.closeStrategy(fixtures.newOrcaStrategy);
+    tx.add(closeIx);
+    tx = await assignBlockInfoToTransaction(connection, tx, signer.publicKey);
+    const txHash = await sendAndConfirmTransaction(connection, tx, [signer], {
+      commitment: 'processed',
+      skipPreflight: true,
+    });
+    console.log(txHash);
+
+    const strategy = await kamino.getStrategyByAddress(fixtures.newOrcaStrategy);
+    expect(strategy).to.be.null;
+    try {
+      const position = await kamino.getPositionRangeOrca(
+        strategyBefore.position,
+        strategyBefore.tokenAMintDecimals.toNumber(),
+        strategyBefore.tokenBMintDecimals.toNumber()
+      );
+      expect(position).to.be.null;
+    } catch (error) {
+      console.log(`Fetching closed position got err ${error}`);
+    }
+  });
 });
 
 export async function createStrategy(kamino: Kamino, owner: Keypair, pool: PublicKey, dex: Dex): Promise<PublicKey> {
