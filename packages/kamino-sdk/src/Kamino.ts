@@ -3865,7 +3865,7 @@ export class Kamino {
     }
   }
 
-   /**
+  /**
    * Get a list of updated rebalance field infos.
    * @param initialRebalanceFieldInfos the initial list of rebalance field infos
    * @param updatedFields the fields to be updated, with label and value
