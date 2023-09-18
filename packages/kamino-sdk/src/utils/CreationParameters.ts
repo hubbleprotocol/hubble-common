@@ -32,7 +32,7 @@ export const DefaultDex: Dex = 'ORCA';
 export interface RebalanceMethod {
   label: String;
   value: number;
-  enabled: boolean;
+  enabled: boolean; // represents if the strategy should be displayed in the UI and it is currently supported or not
   descriptionShort?: string;
   description?: string;
 }
