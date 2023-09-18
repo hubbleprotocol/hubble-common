@@ -1662,7 +1662,7 @@ export class Kamino {
   ): Promise<PositionRange> => {
     let position = await Position.fetch(this._connection, positionPk);
     if (!position) {
-      throw Error(`Could not find Orca position ${positionPk}`);
+      return { lowerPrice: ZERO, upperPrice: ZERO };
     }
     let lowerPrice = tickIndexToPrice(position.tickLowerIndex, decimalsA, decimalsB);
     let upperPrice = tickIndexToPrice(position.tickUpperIndex, decimalsA, decimalsB);
@@ -1679,7 +1679,7 @@ export class Kamino {
   ): Promise<PositionRange> => {
     let position = await PersonalPositionState.fetch(this._connection, positionPk);
     if (!position) {
-      throw Error(`Could not find Orca position ${positionPk}`);
+      return { lowerPrice: ZERO, upperPrice: ZERO };
     }
     let lowerPrice = sqrtPriceX64ToPrice(
       SqrtPriceMath.getSqrtPriceX64FromTick(position.tickLowerIndex),
