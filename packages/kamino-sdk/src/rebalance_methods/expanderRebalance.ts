@@ -7,8 +7,6 @@ import {
   FullBPSDecimal,
 } from '../utils/CreationParameters';
 import { getManualRebalanceFieldInfos } from './manualRebalance';
-import { PublicKey } from '@solana/web3.js';
-import { StrategyWithAddress } from '../models';
 import { RebalanceRaw } from '../kamino-client/types';
 import { RebalanceTypeLabelName } from './consts';
 
