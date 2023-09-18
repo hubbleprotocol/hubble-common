@@ -1660,6 +1660,9 @@ export class Kamino {
     decimalsA: number,
     decimalsB: number
   ): Promise<PositionRange> => {
+    if (positionPk.toString() === PublicKey.default.toString()) {
+      return { lowerPrice: ZERO, upperPrice: ZERO };
+    }
     let position = await Position.fetch(this._connection, positionPk);
     if (!position) {
       return { lowerPrice: ZERO, upperPrice: ZERO };
@@ -1677,6 +1680,9 @@ export class Kamino {
     decimalsA: number,
     decimalsB: number
   ): Promise<PositionRange> => {
+    if (positionPk.toString() === PublicKey.default.toString()) {
+      return { lowerPrice: ZERO, upperPrice: ZERO };
+    }
     let position = await PersonalPositionState.fetch(this._connection, positionPk);
     if (!position) {
       return { lowerPrice: ZERO, upperPrice: ZERO };
