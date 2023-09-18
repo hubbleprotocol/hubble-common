@@ -92,11 +92,6 @@
           "name": "tokenProgram",
           "isMut": false,
           "isSigner": false
-        },
-        {
-          "name": "associatedTokenProgram",
-          "isMut": false,
-          "isSigner": false
         }
       ],
       "args": [
@@ -210,21 +205,6 @@
         {
           "name": "rewardAta",
           "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "rent",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "associatedTokenProgram",
-          "isMut": false,
           "isSigner": false
         },
         {
@@ -587,7 +567,7 @@
       "name": "updateRewardMapping",
       "accounts": [
         {
-          "name": "adminAuthority",
+          "name": "payer",
           "isMut": true,
           "isSigner": true
         },
@@ -906,21 +886,6 @@
           "isSigner": false
         },
         {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "rent",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "associatedTokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "tokenProgram",
           "isMut": false,
           "isSigner": false
@@ -1171,16 +1136,6 @@
         },
         {
           "name": "tokenInfos",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "associatedTokenProgram",
           "isMut": false,
           "isSigner": false
         },
@@ -1860,6 +1815,314 @@
       ]
     },
     {
+      "name": "checkExpectedVaultsBalances",
+      "accounts": [
+        {
+          "name": "user",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "tokenAAta",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenBAta",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "tokenAAtaBalance",
+          "type": "u64"
+        },
+        {
+          "name": "tokenBAtaBalance",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "singleTokenDepositAndInvestWithMin",
+      "accounts": [
+        {
+          "name": "user",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "strategy",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "globalConfig",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "pool",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "check that the pool is owned either by orca or by raydium"
+          ]
+        },
+        {
+          "name": "position",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "raydiumProtocolPositionOrBaseVaultAuthority",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "positionTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenAVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenBVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "poolTokenVaultA",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "poolTokenVaultB",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tickArrayLower",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tickArrayUpper",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "baseVaultAuthority",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "treasuryFeeTokenAVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "treasuryFeeTokenBVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenAAta",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenBAta",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenAMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenBMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userSharesAta",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "sharesMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "sharesMintAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "scopePrices",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenInfos",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "poolProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "instructionSysvarAccount",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "tokenAMinPostDepositBalance",
+          "type": "u64"
+        },
+        {
+          "name": "tokenBMinPostDepositBalance",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "singleTokenDepositWithMin",
+      "accounts": [
+        {
+          "name": "user",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "strategy",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "globalConfig",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "pool",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "position",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenAVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenBVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "baseVaultAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "treasuryFeeTokenAVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "treasuryFeeTokenBVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenAAta",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenBAta",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenAMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenBMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "userSharesAta",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "sharesMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "sharesMintAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "scopePrices",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenInfos",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "instructionSysvarAccount",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "tokenAMinPostDepositBalance",
+          "type": "u64"
+        },
+        {
+          "name": "tokenBMinPostDepositBalance",
+          "type": "u64"
+        }
+      ]
+    },
+    {
       "name": "flashSwapUnevenVaultsStart",
       "docs": [
         "Start of a Flash swap uneven vaults.",
@@ -1874,7 +2137,7 @@
       ],
       "accounts": [
         {
-          "name": "actionsAuthority",
+          "name": "swapper",
           "isMut": true,
           "isSigner": true
         },
@@ -1968,7 +2231,7 @@
       ],
       "accounts": [
         {
-          "name": "actionsAuthority",
+          "name": "swapper",
           "isMut": true,
           "isSigner": true
         },
@@ -2585,33 +2848,6 @@
       }
     },
     {
-      "name": "TickArray",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "startTickIndex",
-            "type": "i32"
-          },
-          {
-            "name": "ticks",
-            "type": {
-              "array": [
-                {
-                  "defined": "Tick"
-                },
-                88
-              ]
-            }
-          },
-          {
-            "name": "whirlpool",
-            "type": "publicKey"
-          }
-        ]
-      }
-    },
-    {
       "name": "PoolState",
       "type": {
         "kind": "struct",
@@ -2932,6 +3168,98 @@
                 {
                   "defined": "PositionRewardInfo"
                 },
+                3
+              ]
+            }
+          },
+          {
+            "name": "padding",
+            "type": {
+              "array": [
+                "u64",
+                8
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "ProtocolPositionState",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bump",
+            "docs": [
+              "Bump to identify PDA"
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "poolId",
+            "docs": [
+              "The ID of the pool with which this token is connected"
+            ],
+            "type": "publicKey"
+          },
+          {
+            "name": "tickLowerIndex",
+            "docs": [
+              "The lower bound tick of the position"
+            ],
+            "type": "i32"
+          },
+          {
+            "name": "tickUpperIndex",
+            "docs": [
+              "The upper bound tick of the position"
+            ],
+            "type": "i32"
+          },
+          {
+            "name": "liquidity",
+            "docs": [
+              "The amount of liquidity owned by this position"
+            ],
+            "type": "u128"
+          },
+          {
+            "name": "feeGrowthInside0LastX64",
+            "docs": [
+              "The token_0 fee growth per unit of liquidity as of the last update to liquidity or fees owed"
+            ],
+            "type": "u128"
+          },
+          {
+            "name": "feeGrowthInside1LastX64",
+            "docs": [
+              "The token_1 fee growth per unit of liquidity as of the last update to liquidity or fees owed"
+            ],
+            "type": "u128"
+          },
+          {
+            "name": "tokenFeesOwed0",
+            "docs": [
+              "The fees owed to the position owner in token_0"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "tokenFeesOwed1",
+            "docs": [
+              "The fees owed to the position owner in token_1"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "rewardGrowthInside",
+            "docs": [
+              "The reward growth per unit of liquidity as of the last update to liquidity"
+            ],
+            "type": {
+              "array": [
+                "u128",
                 3
               ]
             }
@@ -3327,7 +3655,7 @@
             "type": {
               "array": [
                 "u8",
-                8
+                7
               ]
             }
           },
@@ -3344,11 +3672,19 @@
             "type": "publicKey"
           },
           {
+            "name": "lastSwapUnevenStepTimestamp",
+            "type": "u64"
+          },
+          {
+            "name": "padding2",
+            "type": "u64"
+          },
+          {
             "name": "padding3",
             "type": {
               "array": [
                 "u128",
-                26
+                25
               ]
             }
           },
@@ -3470,65 +3806,15 @@
             "type": "u64"
           },
           {
+            "name": "minPerformanceFeeBps",
+            "type": "u64"
+          },
+          {
             "name": "padding",
             "type": {
               "array": [
                 "u64",
-                1024
-              ]
-            }
-          },
-          {
-            "name": "padding2",
-            "type": {
-              "array": [
-                "u64",
-                512
-              ]
-            }
-          },
-          {
-            "name": "padding3",
-            "type": {
-              "array": [
-                "u64",
-                256
-              ]
-            }
-          },
-          {
-            "name": "padding4",
-            "type": {
-              "array": [
-                "u64",
-                128
-              ]
-            }
-          },
-          {
-            "name": "padding5",
-            "type": {
-              "array": [
-                "u64",
-                64
-              ]
-            }
-          },
-          {
-            "name": "padding6",
-            "type": {
-              "array": [
-                "u64",
-                30
-              ]
-            }
-          },
-          {
-            "name": "padding7",
-            "type": {
-              "array": [
-                "u64",
-                29
+                2042
               ]
             }
           }
@@ -3656,43 +3942,6 @@
       }
     },
     {
-      "name": "Tick",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "initialized",
-            "type": "bool"
-          },
-          {
-            "name": "liquidityNet",
-            "type": "i128"
-          },
-          {
-            "name": "liquidityGross",
-            "type": "u128"
-          },
-          {
-            "name": "feeGrowthOutsideA",
-            "type": "u128"
-          },
-          {
-            "name": "feeGrowthOutsideB",
-            "type": "u128"
-          },
-          {
-            "name": "rewardGrowthsOutside",
-            "type": {
-              "array": [
-                "u128",
-                3
-              ]
-            }
-          }
-        ]
-      }
-    },
-    {
       "name": "RewardInfo",
       "type": {
         "kind": "struct",
@@ -3800,6 +4049,10 @@
                 256
               ]
             }
+          },
+          {
+            "name": "referencePriceType",
+            "type": "u8"
           }
         ]
       }
@@ -3864,11 +4117,24 @@
             "type": "u64"
           },
           {
+            "name": "disabled",
+            "type": "u8"
+          },
+          {
+            "name": "padding0",
+            "type": {
+              "array": [
+                "u8",
+                7
+              ]
+            }
+          },
+          {
             "name": "padding",
             "type": {
               "array": [
                 "u64",
-                10
+                9
               ]
             }
           }
@@ -3969,6 +4235,24 @@
           },
           {
             "name": "ResetAccumulator"
+          }
+        ]
+      }
+    },
+    {
+      "name": "RebalanceEffects",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "NewRange",
+            "fields": [
+              "i32",
+              "i32"
+            ]
+          },
+          {
+            "name": "WithdrawAndFreeze"
           }
         ]
       }
@@ -4082,6 +4366,9 @@
           },
           {
             "name": "ScopePriceId"
+          },
+          {
+            "name": "MinPerformanceFeeBps"
           }
         ]
       }
@@ -4216,6 +4503,18 @@
           },
           {
             "name": "UpdateLookupTable"
+          },
+          {
+            "name": "UpdateReferencePriceType"
+          },
+          {
+            "name": "UpdateReward0Amount"
+          },
+          {
+            "name": "UpdateReward1Amount"
+          },
+          {
+            "name": "UpdateReward2Amount"
           }
         ]
       }
@@ -4236,6 +4535,9 @@
           },
           {
             "name": "Rebalancing"
+          },
+          {
+            "name": "NoPosition"
           }
         ]
       }
@@ -4258,6 +4560,29 @@
       }
     },
     {
+      "name": "CreationStatus",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "IGNORED"
+          },
+          {
+            "name": "SHADOW"
+          },
+          {
+            "name": "LIVE"
+          },
+          {
+            "name": "DEPRECATED"
+          },
+          {
+            "name": "STAGING"
+          }
+        ]
+      }
+    },
+    {
       "name": "ExecutiveWithdrawAction",
       "type": {
         "kind": "enum",
@@ -4270,6 +4595,20 @@
           },
           {
             "name": "Rebalance"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ReferencePriceType",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "POOL"
+          },
+          {
+            "name": "TWAP"
           }
         ]
       }
@@ -4322,6 +4661,9 @@
           },
           {
             "name": "UpdateTwapMaxAge"
+          },
+          {
+            "name": "UpdateDisabled"
           }
         ]
       }
@@ -4341,6 +4683,107 @@
       }
     },
     {
+      "name": "DriftDirection",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Increasing"
+          },
+          {
+            "name": "Decreasing"
+          }
+        ]
+      }
+    },
+    {
+      "name": "RebalanceDriftStep",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Uninitialized"
+          },
+          {
+            "name": "Drifting"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ExpanderStep",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "ExpandOrContract",
+            "fields": [
+              "u16"
+            ]
+          },
+          {
+            "name": "Recenter"
+          }
+        ]
+      }
+    },
+    {
+      "name": "RebalanceTakeProfitToken",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "A"
+          },
+          {
+            "name": "B"
+          }
+        ]
+      }
+    },
+    {
+      "name": "RebalanceTakeProfitStep",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Uninitialized"
+          },
+          {
+            "name": "TakingProfit"
+          },
+          {
+            "name": "Finished"
+          }
+        ]
+      }
+    },
+    {
+      "name": "RebalanceAction",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "NewSqrtPriceRange",
+            "fields": [
+              "u128",
+              "u128"
+            ]
+          },
+          {
+            "name": "NewTickRange",
+            "fields": [
+              "i32",
+              "i32"
+            ]
+          },
+          {
+            "name": "WithdrawAndFreeze"
+          }
+        ]
+      }
+    },
+    {
       "name": "RebalanceType",
       "type": {
         "kind": "enum",
@@ -4350,6 +4793,21 @@
           },
           {
             "name": "PricePercentage"
+          },
+          {
+            "name": "PricePercentageWithReset"
+          },
+          {
+            "name": "Drift"
+          },
+          {
+            "name": "TakeProfit"
+          },
+          {
+            "name": "PeriodicRebalance"
+          },
+          {
+            "name": "Expander"
           }
         ]
       }
@@ -5292,6 +5750,41 @@
       "code": 6121,
       "name": "DecimalOperationFailed",
       "msg": "Decimal operation failed"
+    },
+    {
+      "code": 6122,
+      "name": "VaultBalancesCausesWrongSharesIssuance",
+      "msg": "Deposit is not allowed as the strategy is not fully invested in the pool "
+    },
+    {
+      "code": 6123,
+      "name": "TokenDisabled",
+      "msg": "Token cannot be used in strategy creation"
+    },
+    {
+      "code": 6124,
+      "name": "InvalidReferencePriceType",
+      "msg": "Invalid reference price type"
+    },
+    {
+      "code": 6125,
+      "name": "TokenToSwapNotEnough",
+      "msg": "Token amount to be swapped is not enough"
+    },
+    {
+      "code": 6126,
+      "name": "TokenAccountBalanceMismatch",
+      "msg": "Token amount in ata is different than the expected amount"
+    },
+    {
+      "code": 6127,
+      "name": "UnexpectedProgramIdForPrerequisiteIx",
+      "msg": "Unexpected programID for prerequisite ix"
+    },
+    {
+      "code": 6128,
+      "name": "ComputeFeesAndRewardsUpdateError",
+      "msg": "Got an error from the dex specific function while computing the fees/rewards update"
     }
   ]
 }
