@@ -70,13 +70,13 @@ export function getDriftRebalanceFieldInfos(
   );
 
   let lowerRangeRebalanceFieldInfo: RebalanceFieldInfo = {
-    label: 'priceLower',
+    label: 'rangePriceLower',
     type: 'number',
     value: lowerPrice,
     enabled: false,
   };
   let upperRangeRebalanceFieldInfo: RebalanceFieldInfo = {
-    label: 'priceUpper',
+    label: 'rangePriceUpper',
     type: 'number',
     value: upperPrice,
     enabled: false,

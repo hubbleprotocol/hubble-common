@@ -153,16 +153,16 @@ describe('Kamino strategy creation SDK Tests', () => {
     expect(stratFields.length == 3);
     expect(stratFields[0]['label'] == 'rebalanceType');
     expect(stratFields[0]['value'] == ManualRebalanceTypeName);
-    expect(stratFields[1]['label'] == 'priceLower');
+    expect(stratFields[1]['label'] == 'rangePriceLower');
     expect(stratFields[1]['value'].toString() == priceLower.toString());
-    expect(stratFields[2]['label'] == 'priceUpper');
+    expect(stratFields[2]['label'] == 'rangePriceUpper');
     expect(stratFields[2]['value'] == priceUpper.toString());
 
     // update the rebalance params with new values; in the UI these should come from the user
     let newPriceLower = new Decimal(17.3);
     let newPriceUpper = new Decimal(30.0);
-    let newPriceLowerInput = { label: 'priceLower', value: newPriceLower };
-    let newPriceUpperInput = { label: 'priceUpper', value: newPriceUpper };
+    let newPriceLowerInput = { label: 'rangePriceLower', value: newPriceLower };
+    let newPriceUpperInput = { label: 'rangePriceUpper', value: newPriceUpper };
     const updateStratFields = kamino.getUpdatedRebalanceFieldInfos(stratFields, [
       newPriceLowerInput,
       newPriceUpperInput,
@@ -171,9 +171,9 @@ describe('Kamino strategy creation SDK Tests', () => {
     expect(updateStratFields.length == 3);
     expect(updateStratFields[0]['label'] == 'rebalanceType');
     expect(updateStratFields[0]['value'] == ManualRebalanceTypeName);
-    expect(updateStratFields[1]['label'] == 'priceLower');
+    expect(updateStratFields[1]['label'] == 'rangePriceLower');
     expect(updateStratFields[1]['value'].toString() == newPriceLower.toString());
-    expect(updateStratFields[2]['label'] == 'priceUpper');
+    expect(updateStratFields[2]['label'] == 'rangePriceUpper');
     expect(updateStratFields[2]['value'] == newPriceUpper.toString());
 
     let updateStratIx = await kamino.getUpdateRebalancingParamsFromRebalanceFieldsIx(
@@ -214,9 +214,9 @@ describe('Kamino strategy creation SDK Tests', () => {
     expect(stratFields.length == 3);
     expect(stratFields[0]['label'] == 'rebalanceType');
     expect(stratFields[0]['value'] == ManualRebalanceTypeName);
-    expect(stratFields[1]['label'] == 'priceLower');
+    expect(stratFields[1]['label'] == 'rangePriceLower');
     expect(stratFields[1]['value'].toString() == newPriceLower.toString());
-    expect(stratFields[2]['label'] == 'priceUpper');
+    expect(stratFields[2]['label'] == 'rangePriceUpper');
     expect(stratFields[2]['value'] == newPriceUpper.toString());
   });
 
@@ -329,9 +329,9 @@ describe('Kamino strategy creation SDK Tests', () => {
     expect(stratFields[1]['value'].toString() == lowerRangeBPS.toString()).to.be.true;
     expect(stratFields[2]['label'] == 'upperRangeBps').to.be.true;
     expect(stratFields[2]['value'] == upperRangeBPS.toString()).to.be.true;
-    expect(stratFields[3]['label'] == 'priceLower').to.be.true;
+    expect(stratFields[3]['label'] == 'rangePriceLower').to.be.true;
     expect(new Decimal(stratFields[3]['value'].toString()).lessThan(poolPrice)).to.be.true;
-    expect(stratFields[4]['label'] == 'priceUpper').to.be.true;
+    expect(stratFields[4]['label'] == 'rangePriceUpper').to.be.true;
     expect(new Decimal(stratFields[4]['value'].toString()).greaterThan(poolPrice)).to.be.true;
 
     // update the rebalance params with new values; in the UI these should come from the user
@@ -351,9 +351,9 @@ describe('Kamino strategy creation SDK Tests', () => {
     expect(updateStratFields[1]['value'].toString() == newLowerRangeBPS.toString()).to.be.true;
     expect(updateStratFields[2]['label'] == 'upperRangeBps').to.be.true;
     expect(updateStratFields[2]['value'] == newUpperRangeBPS.toString()).to.be.true;
-    expect(updateStratFields[3]['label'] == 'priceLower').to.be.true;
+    expect(updateStratFields[3]['label'] == 'rangePriceLower').to.be.true;
     expect(new Decimal(updateStratFields[3]['value'].toString()).lessThan(poolPrice)).to.be.true;
-    expect(updateStratFields[4]['label'] == 'priceUpper').to.be.true;
+    expect(updateStratFields[4]['label'] == 'rangePriceUpper').to.be.true;
     expect(new Decimal(updateStratFields[4]['value'].toString()).greaterThan(poolPrice)).to.be.true;
 
     let updateStratIx = await kamino.getUpdateRebalancingParamsFromRebalanceFieldsIx(
@@ -384,8 +384,12 @@ describe('Kamino strategy creation SDK Tests', () => {
       poolPrice
     );
 
-    let newPriceLower = new Decimal(updatedAllRebalanceFieldInfos.find((field) => field.label === 'priceLower')!.value);
-    let newPriceUpper = new Decimal(updatedAllRebalanceFieldInfos.find((field) => field.label === 'priceUpper')!.value);
+    let newPriceLower = new Decimal(
+      updatedAllRebalanceFieldInfos.find((field) => field.label === 'rangePriceLower')!.value
+    );
+    let newPriceUpper = new Decimal(
+      updatedAllRebalanceFieldInfos.find((field) => field.label === 'rangePriceUpper')!.value
+    );
     console.log('newPriceLower.toString()', newPriceLower.toString());
     console.log('newPriceUpper.toString()', newPriceUpper.toString());
 
@@ -420,9 +424,9 @@ describe('Kamino strategy creation SDK Tests', () => {
     expect(stratFields[1]['value'].toString() == newLowerRangeBPS.toString()).to.be.true;
     expect(stratFields[2]['label'] == 'upperRangeBps').to.be.true;
     expect(stratFields[2]['value'] == newUpperRangeBPS.toString()).to.be.true;
-    expect(stratFields[3]['label'] == 'priceLower').to.be.true;
+    expect(stratFields[3]['label'] == 'rangePriceLower').to.be.true;
     expect(new Decimal(stratFields[3]['value'].toString()).lessThan(poolPrice)).to.be.true;
-    expect(stratFields[4]['label'] == 'priceUpper').to.be.true;
+    expect(stratFields[4]['label'] == 'rangePriceUpper').to.be.true;
     expect(new Decimal(stratFields[4]['value'].toString()).greaterThan(poolPrice)).to.be.true;
   });
 
@@ -552,9 +556,9 @@ describe('Kamino strategy creation SDK Tests', () => {
     expect(stratFields[3]['value'].toString() == resetLowerRangeBPS.toString()).to.be.true;
     expect(stratFields[4]['label'] == 'resetUpperRangeBps').to.be.true;
     expect(stratFields[4]['value'].toString() == resetUpperRangeBPS.toString()).to.be.true;
-    expect(stratFields[5]['label'] == 'priceLower').to.be.true;
+    expect(stratFields[5]['label'] == 'rangePriceLower').to.be.true;
     expect(new Decimal(stratFields[5]['value'].toString()).lessThan(poolPrice)).to.be.true;
-    expect(stratFields[6]['label'] == 'priceUpper').to.be.true;
+    expect(stratFields[6]['label'] == 'rangePriceUpper').to.be.true;
     expect(new Decimal(stratFields[6]['value'].toString()).greaterThan(poolPrice)).to.be.true;
     expect(stratFields[7]['label'] == 'resetPriceLower').to.be.true;
     expect(new Decimal(stratFields[7]['value'].toString()).lessThan(poolPrice)).to.be.true;
@@ -589,9 +593,9 @@ describe('Kamino strategy creation SDK Tests', () => {
     expect(updateStratFields[3]['value'].toString() == newResetLowerRangeBPS.toString()).to.be.true;
     expect(updateStratFields[4]['label'] == 'resetUpperRangeBps').to.be.true;
     expect(updateStratFields[4]['value'].toString() == newResetUpperRangeBPS.toString()).to.be.true;
-    expect(updateStratFields[5]['label'] == 'priceLower').to.be.true;
+    expect(updateStratFields[5]['label'] == 'rangePriceLower').to.be.true;
     expect(new Decimal(updateStratFields[5]['value'].toString()).lessThan(poolPrice)).to.be.true;
-    expect(updateStratFields[6]['label'] == 'priceUpper').to.be.true;
+    expect(updateStratFields[6]['label'] == 'rangePriceUpper').to.be.true;
     expect(new Decimal(updateStratFields[6]['value'].toString()).greaterThan(poolPrice)).to.be.true;
     expect(updateStratFields[7]['label'] == 'resetPriceLower').to.be.true;
     expect(new Decimal(updateStratFields[7]['value'].toString()).lessThan(poolPrice)).to.be.true;
@@ -622,8 +626,12 @@ describe('Kamino strategy creation SDK Tests', () => {
       tokenBMint,
       poolPrice
     );
-    let newPriceLower = new Decimal(updatedAllRebalanceFieldInfos.find((field) => field.label === 'priceLower')!.value);
-    let newPriceUpper = new Decimal(updatedAllRebalanceFieldInfos.find((field) => field.label === 'priceUpper')!.value);
+    let newPriceLower = new Decimal(
+      updatedAllRebalanceFieldInfos.find((field) => field.label === 'rangePriceLower')!.value
+    );
+    let newPriceUpper = new Decimal(
+      updatedAllRebalanceFieldInfos.find((field) => field.label === 'rangePriceUpper')!.value
+    );
     newPosition = Keypair.generate();
     const rebalanceIxns = await kamino.rebalance(
       newStrategy.publicKey,
@@ -657,9 +665,9 @@ describe('Kamino strategy creation SDK Tests', () => {
     expect(stratFields[3]['value'].toString() == newResetLowerRangeBPS.toString()).to.be.true;
     expect(stratFields[4]['label'] == 'resetUpperRangeBps').to.be.true;
     expect(stratFields[4]['value'].toString() == newResetUpperRangeBPS.toString()).to.be.true;
-    expect(stratFields[5]['label'] == 'priceLower').to.be.true;
+    expect(stratFields[5]['label'] == 'rangePriceLower').to.be.true;
     expect(new Decimal(stratFields[5]['value'].toString()).lessThan(poolPrice)).to.be.true;
-    expect(stratFields[6]['label'] == 'priceUpper').to.be.true;
+    expect(stratFields[6]['label'] == 'rangePriceUpper').to.be.true;
     expect(new Decimal(stratFields[6]['value'].toString()).greaterThan(poolPrice)).to.be.true;
     expect(stratFields[7]['label'] == 'resetPriceLower').to.be.true;
     expect(new Decimal(stratFields[7]['value'].toString()).lessThan(poolPrice)).to.be.true;
@@ -784,9 +792,9 @@ describe('Kamino strategy creation SDK Tests', () => {
     expect(stratFields[2]['value'].toString() == lowerRangeBPS.toString()).to.be.true;
     expect(stratFields[3]['label'] == 'upperRangeBps').to.be.true;
     expect(stratFields[3]['value'].toString() == upperRangeBPS.toString()).to.be.true;
-    expect(stratFields[4]['label'] == 'priceLower').to.be.true;
+    expect(stratFields[4]['label'] == 'rangePriceLower').to.be.true;
     expect(new Decimal(stratFields[4]['value'].toString()).lessThan(poolPrice)).to.be.true;
-    expect(stratFields[5]['label'] == 'priceUpper').to.be.true;
+    expect(stratFields[5]['label'] == 'rangePriceUpper').to.be.true;
     expect(new Decimal(stratFields[5]['value'].toString()).greaterThan(poolPrice)).to.be.true;
 
     // update the rebalance params with new values; in the UI these should come from the user
@@ -811,9 +819,9 @@ describe('Kamino strategy creation SDK Tests', () => {
     expect(updateStratFields[2]['value'].toString() == newLowerRangeBPS.toString()).to.be.true;
     expect(updateStratFields[3]['label'] == 'upperRangeBps').to.be.true;
     expect(updateStratFields[3]['value'].toString() == newUpperRangeBPS.toString()).to.be.true;
-    expect(updateStratFields[4]['label'] == 'priceLower').to.be.true;
+    expect(updateStratFields[4]['label'] == 'rangePriceLower').to.be.true;
     expect(new Decimal(updateStratFields[4]['value'].toString()).lessThan(poolPrice)).to.be.true;
-    expect(updateStratFields[5]['label'] == 'priceUpper').to.be.true;
+    expect(updateStratFields[5]['label'] == 'rangePriceUpper').to.be.true;
     expect(new Decimal(updateStratFields[5]['value'].toString()).greaterThan(poolPrice)).to.be.true;
 
     let updateStratIx = await kamino.getUpdateRebalancingParamsFromRebalanceFieldsIx(
@@ -844,8 +852,12 @@ describe('Kamino strategy creation SDK Tests', () => {
       poolPrice
     );
 
-    let newPriceLower = new Decimal(updatedAllRebalanceFieldInfos.find((field) => field.label === 'priceLower')!.value);
-    let newPriceUpper = new Decimal(updatedAllRebalanceFieldInfos.find((field) => field.label === 'priceUpper')!.value);
+    let newPriceLower = new Decimal(
+      updatedAllRebalanceFieldInfos.find((field) => field.label === 'rangePriceLower')!.value
+    );
+    let newPriceUpper = new Decimal(
+      updatedAllRebalanceFieldInfos.find((field) => field.label === 'rangePriceUpper')!.value
+    );
     console.log('newPriceLower.toString()', newPriceLower.toString());
     console.log('newPriceUpper.toString()', newPriceUpper.toString());
 
@@ -880,9 +892,9 @@ describe('Kamino strategy creation SDK Tests', () => {
     expect(stratFields[2]['value'].toString() == newLowerRangeBPS.toString()).to.be.true;
     expect(stratFields[3]['label'] == 'upperRangeBps').to.be.true;
     expect(stratFields[3]['value'].toString() == upperRangeBPS.toString()).to.be.true;
-    expect(stratFields[4]['label'] == 'priceLower').to.be.true;
+    expect(stratFields[4]['label'] == 'rangePriceLower').to.be.true;
     expect(new Decimal(stratFields[4]['value'].toString()).lessThan(poolPrice)).to.be.true;
-    expect(stratFields[5]['label'] == 'priceUpper').to.be.true;
+    expect(stratFields[5]['label'] == 'rangePriceUpper').to.be.true;
     expect(new Decimal(stratFields[5]['value'].toString()).greaterThan(poolPrice)).to.be.true;
   });
 
@@ -994,9 +1006,9 @@ describe('Kamino strategy creation SDK Tests', () => {
     expect(stratFields.length == 4).to.be.true;
     expect(stratFields[0]['label'] == 'rebalanceType').to.be.true;
     expect(stratFields[0]['value'] == TakeProfitRebalanceTypeName).to.be.true;
-    expect(stratFields[1]['label'] == 'priceLower').to.be.true;
+    expect(stratFields[1]['label'] == 'rangePriceLower').to.be.true;
     expect(new Decimal(stratFields[1]['value'].toString()).lessThan(poolPrice)).to.be.true;
-    expect(stratFields[2]['label'] == 'priceUpper').to.be.true;
+    expect(stratFields[2]['label'] == 'rangePriceUpper').to.be.true;
     expect(new Decimal(stratFields[2]['value'].toString()).greaterThan(poolPrice)).to.be.true;
     expect(stratFields[3]['label'] == 'destinationToken').to.be.true;
     expect(stratFields[3]['value'].toString() == destinationToken.toString()).to.be.true;
@@ -1005,8 +1017,8 @@ describe('Kamino strategy creation SDK Tests', () => {
     let newPriceLower = new Decimal(0.98);
     let newPriceUpper = new Decimal(1.01);
     let newDestinationToken = new Decimal(1);
-    let newPriceLowerInput = { label: 'priceLower', value: newPriceLower };
-    let newPriceUpperInput = { label: 'priceUpper', value: newPriceUpper };
+    let newPriceLowerInput = { label: 'rangePriceLower', value: newPriceLower };
+    let newPriceUpperInput = { label: 'rangePriceUpper', value: newPriceUpper };
     let newDestinationTokenInput = { label: 'destinationToken', value: newDestinationToken };
     const updateStratFields = kamino.getUpdatedRebalanceFieldInfos(stratFields, [
       newPriceLowerInput,
@@ -1017,9 +1029,9 @@ describe('Kamino strategy creation SDK Tests', () => {
     expect(updateStratFields.length == 4).to.be.true;
     expect(updateStratFields[0]['label'] == 'rebalanceType').to.be.true;
     expect(updateStratFields[0]['value'] == TakeProfitRebalanceTypeName).to.be.true;
-    expect(updateStratFields[1]['label'] == 'priceLower').to.be.true;
+    expect(updateStratFields[1]['label'] == 'rangePriceLower').to.be.true;
     expect(new Decimal(updateStratFields[1]['value'].toString()).lessThan(poolPrice)).to.be.true;
-    expect(updateStratFields[2]['label'] == 'priceUpper').to.be.true;
+    expect(updateStratFields[2]['label'] == 'rangePriceUpper').to.be.true;
     expect(new Decimal(updateStratFields[2]['value'].toString()).greaterThan(poolPrice)).to.be.true;
     expect(updateStratFields[3]['label'] == 'destinationToken').to.be.true;
     expect(updateStratFields[3]['value'].toString() == newDestinationToken.toString()).to.be.true;
@@ -1061,9 +1073,9 @@ describe('Kamino strategy creation SDK Tests', () => {
     expect(stratFields.length == 4).to.be.true;
     expect(stratFields[0]['label'] == 'rebalanceType').to.be.true;
     expect(stratFields[0]['value'] == TakeProfitRebalanceTypeName).to.be.true;
-    expect(stratFields[1]['label'] == 'priceLower').to.be.true;
+    expect(stratFields[1]['label'] == 'rangePriceLower').to.be.true;
     expect(new Decimal(stratFields[1]['value'].toString()).lessThan(poolPrice)).to.be.true;
-    expect(stratFields[2]['label'] == 'priceUpper').to.be.true;
+    expect(stratFields[2]['label'] == 'rangePriceUpper').to.be.true;
     expect(new Decimal(stratFields[2]['value'].toString()).greaterThan(poolPrice)).to.be.true;
     expect(stratFields[3]['label'] == 'destinationToken').to.be.true;
     expect(stratFields[3]['value'].toString() == newDestinationToken.toString()).to.be.true;
@@ -1204,9 +1216,9 @@ describe('Kamino strategy creation SDK Tests', () => {
     expect(stratFields[6]['value'].toString() == maxNumberOfExpansions.toString()).to.be.true;
     expect(stratFields[7]['label'] == 'swapUnevenAllowed').to.be.true;
     expect(stratFields[7]['value'].toString() == swapUnevenAllowed.toString()).to.be.true;
-    expect(stratFields[8]['label'] == 'priceLower').to.be.true;
+    expect(stratFields[8]['label'] == 'rangePriceLower').to.be.true;
     expect(new Decimal(stratFields[8]['value'].toString()).lessThan(poolPrice)).to.be.true;
-    expect(stratFields[9]['label'] == 'priceUpper').to.be.true;
+    expect(stratFields[9]['label'] == 'rangePriceUpper').to.be.true;
     expect(new Decimal(stratFields[9]['value'].toString()).greaterThan(poolPrice)).to.be.true;
     expect(stratFields[10]['label'] == 'resetPriceLower').to.be.true;
     expect(new Decimal(stratFields[10]['value'].toString()).lessThan(poolPrice)).to.be.true;
@@ -1255,9 +1267,9 @@ describe('Kamino strategy creation SDK Tests', () => {
     expect(updateStratFields[6]['value'].toString() == newMaxNumberOfExpansions.toString()).to.be.true;
     expect(updateStratFields[7]['label'] == 'swapUnevenAllowed').to.be.true;
     expect(updateStratFields[7]['value'].toString() == newSwapUnevenAllowed.toString()).to.be.true;
-    expect(stratFields[8]['label'] == 'priceLower').to.be.true;
+    expect(stratFields[8]['label'] == 'rangePriceLower').to.be.true;
     expect(new Decimal(stratFields[8]['value'].toString()).lessThan(poolPrice)).to.be.true;
-    expect(stratFields[9]['label'] == 'priceUpper').to.be.true;
+    expect(stratFields[9]['label'] == 'rangePriceUpper').to.be.true;
     expect(new Decimal(stratFields[9]['value'].toString()).greaterThan(poolPrice)).to.be.true;
     expect(stratFields[10]['label'] == 'resetPriceLower').to.be.true;
     expect(new Decimal(stratFields[10]['value'].toString()).lessThan(poolPrice)).to.be.true;
@@ -1292,8 +1304,12 @@ describe('Kamino strategy creation SDK Tests', () => {
       poolPrice
     );
 
-    let newPriceLower = new Decimal(updatedAllRebalanceFieldInfos.find((field) => field.label === 'priceLower')!.value);
-    let newPriceUpper = new Decimal(updatedAllRebalanceFieldInfos.find((field) => field.label === 'priceUpper')!.value);
+    let newPriceLower = new Decimal(
+      updatedAllRebalanceFieldInfos.find((field) => field.label === 'rangePriceLower')!.value
+    );
+    let newPriceUpper = new Decimal(
+      updatedAllRebalanceFieldInfos.find((field) => field.label === 'rangePriceUpper')!.value
+    );
     newPosition = Keypair.generate();
     const rebalanceIxns = await kamino.rebalance(
       newStrategy.publicKey,
@@ -1336,9 +1352,9 @@ describe('Kamino strategy creation SDK Tests', () => {
     expect(stratFields[6]['value'].toString() == newMaxNumberOfExpansions.toString()).to.be.true;
     expect(stratFields[7]['label'] == 'swapUnevenAllowed').to.be.true;
     expect(stratFields[7]['value'].toString() == newSwapUnevenAllowed.toString()).to.be.true;
-    expect(stratFields[8]['label'] == 'priceLower').to.be.true;
+    expect(stratFields[8]['label'] == 'rangePriceLower').to.be.true;
     expect(new Decimal(stratFields[8]['value'].toString()).lessThan(poolPrice)).to.be.true;
-    expect(stratFields[9]['label'] == 'priceUpper').to.be.true;
+    expect(stratFields[9]['label'] == 'rangePriceUpper').to.be.true;
     expect(new Decimal(stratFields[9]['value'].toString()).greaterThan(poolPrice)).to.be.true;
     expect(stratFields[10]['label'] == 'resetPriceLower').to.be.true;
     expect(new Decimal(stratFields[10]['value'].toString()).lessThan(poolPrice)).to.be.true;
@@ -1467,9 +1483,9 @@ describe('Kamino strategy creation SDK Tests', () => {
     expect(stratFields[4]['value'].toString() == secondsPerTick.toString()).to.be.true;
     expect(stratFields[5]['label'] == 'direction').to.be.true;
     expect(stratFields[5]['value'].toString() == direction.toString()).to.be.true;
-    expect(stratFields[6]['label'] == 'priceLower').to.be.true;
+    expect(stratFields[6]['label'] == 'rangePriceLower').to.be.true;
     expect(new Decimal(stratFields[6]['value'].toString()).lessThan(poolPrice)).to.be.true;
-    expect(stratFields[7]['label'] == 'priceUpper').to.be.true;
+    expect(stratFields[7]['label'] == 'rangePriceUpper').to.be.true;
     expect(new Decimal(stratFields[7]['value'].toString()).greaterThan(poolPrice)).to.be.true;
 
     // update the rebalance params with new values; in the UI these should come from the user
@@ -1505,9 +1521,9 @@ describe('Kamino strategy creation SDK Tests', () => {
     expect(updateStratFields[4]['value'].toString() == newSecondsPerTick.toString()).to.be.true;
     expect(updateStratFields[5]['label'] == 'direction').to.be.true;
     expect(updateStratFields[5]['value'].toString() == newDirection.toString()).to.be.true;
-    expect(updateStratFields[6]['label'] == 'priceLower').to.be.true;
+    expect(updateStratFields[6]['label'] == 'rangePriceLower').to.be.true;
     expect(new Decimal(updateStratFields[6]['value'].toString()).lessThan(poolPrice)).to.be.true;
-    expect(updateStratFields[7]['label'] == 'priceUpper').to.be.true;
+    expect(updateStratFields[7]['label'] == 'rangePriceUpper').to.be.true;
     expect(new Decimal(updateStratFields[7]['value'].toString()).greaterThan(poolPrice)).to.be.true;
 
     let updateStratIx = await kamino.getUpdateRebalancingParamsFromRebalanceFieldsIx(
@@ -1534,8 +1550,12 @@ describe('Kamino strategy creation SDK Tests', () => {
       tokenBMint
     );
 
-    let newPriceLower = new Decimal(updatedAllRebalanceFieldInfos.find((field) => field.label === 'priceLower')!.value);
-    let newPriceUpper = new Decimal(updatedAllRebalanceFieldInfos.find((field) => field.label === 'priceUpper')!.value);
+    let newPriceLower = new Decimal(
+      updatedAllRebalanceFieldInfos.find((field) => field.label === 'rangePriceLower')!.value
+    );
+    let newPriceUpper = new Decimal(
+      updatedAllRebalanceFieldInfos.find((field) => field.label === 'rangePriceUpper')!.value
+    );
 
     newPosition = Keypair.generate();
     const rebalanceIxns = await kamino.rebalance(
@@ -1572,9 +1592,9 @@ describe('Kamino strategy creation SDK Tests', () => {
     expect(stratFields[4]['value'].toString() == newSecondsPerTick.toString()).to.be.true;
     expect(stratFields[5]['label'] == 'direction').to.be.true;
     expect(stratFields[5]['value'].toString() == newDirection.toString()).to.be.true;
-    expect(stratFields[6]['label'] == 'priceLower').to.be.true;
+    expect(stratFields[6]['label'] == 'rangePriceLower').to.be.true;
     expect(new Decimal(stratFields[6]['value'].toString()).lessThan(poolPrice)).to.be.true;
-    expect(stratFields[7]['label'] == 'priceUpper').to.be.true;
+    expect(stratFields[7]['label'] == 'rangePriceUpper').to.be.true;
     expect(new Decimal(stratFields[7]['value'].toString()).greaterThan(poolPrice)).to.be.true;
   });
 
@@ -1815,9 +1835,9 @@ describe('Kamino strategy creation SDK Tests', () => {
     expect(stratFields.length == 3);
     expect(stratFields[0]['label'] == 'rebalanceType');
     expect(stratFields[0]['value'] == ManualRebalanceTypeName);
-    expect(stratFields[1]['label'] == 'priceLower');
+    expect(stratFields[1]['label'] == 'rangePriceLower');
     expect(stratFields[1]['value'].toString() == priceLower.toString());
-    expect(stratFields[2]['label'] == 'priceUpper');
+    expect(stratFields[2]['label'] == 'rangePriceUpper');
     expect(stratFields[2]['value'] == priceUpper.toString());
 
     // 2. Update strategy to use percentage strategy
@@ -1853,8 +1873,12 @@ describe('Kamino strategy creation SDK Tests', () => {
       poolPrice
     );
 
-    let newPriceLower = new Decimal(updatedAllRebalanceFieldInfos.find((field) => field.label === 'priceLower')!.value);
-    let newPriceUpper = new Decimal(updatedAllRebalanceFieldInfos.find((field) => field.label === 'priceUpper')!.value);
+    let newPriceLower = new Decimal(
+      updatedAllRebalanceFieldInfos.find((field) => field.label === 'rangePriceLower')!.value
+    );
+    let newPriceUpper = new Decimal(
+      updatedAllRebalanceFieldInfos.find((field) => field.label === 'rangePriceUpper')!.value
+    );
     console.log(
       `rebalance to percentage strategy newPriceLower ${newPriceLower.toString()} newPriceUpper ${newPriceUpper.toString()}`
     );
@@ -1919,10 +1943,10 @@ describe('Kamino strategy creation SDK Tests', () => {
     );
 
     newPriceLower = new Decimal(
-      updatedAllPricePercentageWithResetRebalanceFieldInfos.find((field) => field.label === 'priceLower')!.value
+      updatedAllPricePercentageWithResetRebalanceFieldInfos.find((field) => field.label === 'rangePriceLower')!.value
     );
     newPriceUpper = new Decimal(
-      updatedAllPricePercentageWithResetRebalanceFieldInfos.find((field) => field.label === 'priceUpper')!.value
+      updatedAllPricePercentageWithResetRebalanceFieldInfos.find((field) => field.label === 'rangePriceUpper')!.value
     );
     console.log(
       `rebalance to percentage with reset strategy newPriceLower ${newPriceLower.toString()} newPriceUpper ${newPriceUpper.toString()}`
@@ -1985,8 +2009,8 @@ describe('Kamino strategy creation SDK Tests', () => {
       poolPrice
     );
 
-    newPriceLower = new Decimal(updatedAllDriftFieldInfos.find((field) => field.label === 'priceLower')!.value);
-    newPriceUpper = new Decimal(updatedAllDriftFieldInfos.find((field) => field.label === 'priceUpper')!.value);
+    newPriceLower = new Decimal(updatedAllDriftFieldInfos.find((field) => field.label === 'rangePriceLower')!.value);
+    newPriceUpper = new Decimal(updatedAllDriftFieldInfos.find((field) => field.label === 'rangePriceUpper')!.value);
     console.log(
       `rebalance to drift newPriceLower ${newPriceLower.toString()} newPriceUpper ${newPriceUpper.toString()}`
     );
@@ -2048,8 +2072,12 @@ describe('Kamino strategy creation SDK Tests', () => {
       poolPrice
     );
 
-    newPriceLower = new Decimal(updatedAllTakeProfitFieldInfos.find((field) => field.label === 'priceLower')!.value);
-    newPriceUpper = new Decimal(updatedAllTakeProfitFieldInfos.find((field) => field.label === 'priceUpper')!.value);
+    newPriceLower = new Decimal(
+      updatedAllTakeProfitFieldInfos.find((field) => field.label === 'rangePriceLower')!.value
+    );
+    newPriceUpper = new Decimal(
+      updatedAllTakeProfitFieldInfos.find((field) => field.label === 'rangePriceUpper')!.value
+    );
     console.log(
       `rebalance to takeProfit newPriceLower ${newPriceLower.toString()} newPriceUpper ${newPriceUpper.toString()}`
     );
@@ -2118,10 +2146,10 @@ describe('Kamino strategy creation SDK Tests', () => {
     );
 
     newPriceLower = new Decimal(
-      updatedAllPeriodicRebalanceFieldInfos.find((field) => field.label === 'priceLower')!.value
+      updatedAllPeriodicRebalanceFieldInfos.find((field) => field.label === 'rangePriceLower')!.value
     );
     newPriceUpper = new Decimal(
-      updatedAllPeriodicRebalanceFieldInfos.find((field) => field.label === 'priceUpper')!.value
+      updatedAllPeriodicRebalanceFieldInfos.find((field) => field.label === 'rangePriceUpper')!.value
     );
     console.log(
       `rebalance to periodic rebalance newPriceLower ${newPriceLower.toString()} newPriceUpper ${newPriceUpper.toString()}`
@@ -2186,8 +2214,8 @@ describe('Kamino strategy creation SDK Tests', () => {
       poolPrice
     );
 
-    newPriceLower = new Decimal(updatedAllExpanderFieldInfos.find((field) => field.label === 'priceLower')!.value);
-    newPriceUpper = new Decimal(updatedAllExpanderFieldInfos.find((field) => field.label === 'priceUpper')!.value);
+    newPriceLower = new Decimal(updatedAllExpanderFieldInfos.find((field) => field.label === 'rangePriceLower')!.value);
+    newPriceUpper = new Decimal(updatedAllExpanderFieldInfos.find((field) => field.label === 'rangePriceUpper')!.value);
     console.log(
       `rebalance to expander rebalance newPriceLower ${newPriceLower.toString()} newPriceUpper ${newPriceUpper.toString()}`
     );

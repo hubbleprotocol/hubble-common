@@ -453,14 +453,14 @@ export class Kamino {
 
     const defaultFields = getDefaultManualRebalanceFieldInfos(price);
 
-    let lowerPrice = defaultFields.find((x) => x.label == 'priceLower')!.value;
-    const lowerPriceInput = fieldOverrides.find((x) => x.label == 'priceLower');
+    let lowerPrice = defaultFields.find((x) => x.label == 'rangePriceLower')!.value;
+    const lowerPriceInput = fieldOverrides.find((x) => x.label == 'rangePriceLower');
     if (lowerPriceInput) {
       lowerPrice = lowerPriceInput.value;
     }
 
-    let upperPrice = defaultFields.find((x) => x.label == 'priceUpper')!.value;
-    const upperPriceInput = fieldOverrides.find((x) => x.label == 'priceUpper');
+    let upperPrice = defaultFields.find((x) => x.label == 'rangePriceUpper')!.value;
+    const upperPriceInput = fieldOverrides.find((x) => x.label == 'rangePriceUpper');
     if (upperPriceInput) {
       upperPrice = upperPriceInput.value;
     }
@@ -614,14 +614,14 @@ export class Kamino {
     // // Will wait until the position is fully in this token (0 or 1, representing A or B)
     // pub destination_token: RebalanceTakeProfitToken,
 
-    let lowerRangePrice = defaultFields.find((x) => x.label == 'priceLower')!.value;
-    let lowerRangePriceInput = fieldOverrides.find((x) => x.label == 'priceLower');
+    let lowerRangePrice = defaultFields.find((x) => x.label == 'rangePriceLower')!.value;
+    let lowerRangePriceInput = fieldOverrides.find((x) => x.label == 'rangePriceLower');
     if (lowerRangePriceInput) {
       lowerRangePrice = lowerRangePriceInput.value;
     }
 
-    let upperRangePrice = defaultFields.find((x) => x.label == 'priceUpper')!.value;
-    let upperRangePriceInput = fieldOverrides.find((x) => x.label == 'priceUpper');
+    let upperRangePrice = defaultFields.find((x) => x.label == 'rangePriceUpper')!.value;
+    let upperRangePriceInput = fieldOverrides.find((x) => x.label == 'rangePriceUpper');
     if (upperRangePriceInput) {
       upperRangePrice = upperRangePriceInput.value;
     }

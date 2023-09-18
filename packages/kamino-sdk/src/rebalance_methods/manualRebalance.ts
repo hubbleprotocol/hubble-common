@@ -21,13 +21,13 @@ export function getManualRebalanceFieldInfos(
     enabled,
   };
   let lowerRangeRebalanceFieldInfo: RebalanceFieldInfo = {
-    label: 'priceLower',
+    label: 'rangePriceLower',
     type: 'number',
     value: lowerPrice,
     enabled,
   };
   let upperRangeRebalanceFieldInfo: RebalanceFieldInfo = {
-    label: 'priceUpper',
+    label: 'rangePriceUpper',
     type: 'number',
     value: upperPrice,
     enabled,
