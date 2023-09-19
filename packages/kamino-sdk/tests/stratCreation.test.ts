@@ -39,6 +39,30 @@ describe('Kamino strategy creation SDK Tests', () => {
   const signerPrivateKey = [];
   const signer = Keypair.fromSecretKey(Uint8Array.from(signerPrivateKey));
 
+  it('calculate amounts', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      GlobalConfigMainnet,
+      KaminoProgramIdMainnet,
+      WHIRLPOOL_PROGRAM_ID,
+      RAYDIUM_PROGRAM_ID
+    );
+
+    let amounts = await kamino.calculateAmountsToBeDepositedWithSwap(
+      new PublicKey('Cfuy5T6osdazUeLego5LFycBQebm9PP3H7VNdCndXXEN'),
+      new Decimal(0),
+      new Decimal(400)
+    );
+
+    let holdings = await kamino.getStrategyTokensHoldings(
+      new PublicKey('Cfuy5T6osdazUeLego5LFycBQebm9PP3H7VNdCndXXEN')
+    );
+
+    console.log('amounts', amounts);
+    console.log('holdings', holdings);
+  });
+
   it.skip('get pools for Raydium SOL-USDC pair', async () => {
     let kamino = new Kamino(
       cluster,
@@ -1714,6 +1738,33 @@ describe('Kamino strategy creation SDK Tests', () => {
 
     console.log('tokenAAmount', tokenAAmount.toString());
     console.log('tokenBAmount', tokenBAmount.toString());
+  });
+
+  // example of successed tx: 5q5u6buXUVbN2N8heGwecrdWDXJpKRMiuSe9RmXhmS73P3Ex41zYu5XXDBiAP8YWpHErFegpcyijvRDYFjsMUhhb
+  it.skip('initialize tick for Orca pool', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      GlobalConfigMainnet,
+      KaminoProgramIdMainnet,
+      WHIRLPOOL_PROGRAM_ID,
+      RAYDIUM_PROGRAM_ID
+    );
+
+    let ix = await kamino.initializeTickForOrcaPool(
+      signer.publicKey,
+      new PublicKey('7qbRF6YsyGuLUVs6Y1q64bdVrfe4ZcUUz1JRdoVNUJnm'),
+      new Decimal(0.1)
+    );
+
+    if (ix) {
+      const initTickIx = await kamino.getTransactionV2Message(signer.publicKey, [ix]);
+      const txV0 = new VersionedTransaction(initTickIx);
+      txV0.sign([signer]);
+      //@ts-ignore
+      const txHash = await sendAndConfirmTransaction(kamino._connection, txV0);
+      console.log('init tick tx hash', txHash);
+    }
   });
 });
 

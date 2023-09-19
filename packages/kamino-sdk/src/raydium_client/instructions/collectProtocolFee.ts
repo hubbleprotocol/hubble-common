@@ -20,12 +20,18 @@ export interface CollectProtocolFeeAccounts {
   tokenVault0: PublicKey;
   /** The address that holds pool tokens for token_1 */
   tokenVault1: PublicKey;
+  /** The mint of token vault 0 */
+  vault0Mint: PublicKey;
+  /** The mint of token vault 1 */
+  vault1Mint: PublicKey;
   /** The address that receives the collected token_0 protocol fees */
   recipientTokenAccount0: PublicKey;
   /** The address that receives the collected token_1 protocol fees */
   recipientTokenAccount1: PublicKey;
   /** The SPL program to perform token transfers */
   tokenProgram: PublicKey;
+  /** The SPL program 2022 to perform token transfers */
+  tokenProgram2022: PublicKey;
 }
 
 export const layout = borsh.struct([borsh.u64('amount0Requested'), borsh.u64('amount1Requested')]);
@@ -47,6 +53,8 @@ export function collectProtocolFee(args: CollectProtocolFeeArgs, accounts: Colle
     { pubkey: accounts.ammConfig, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenVault0, isSigner: false, isWritable: true },
     { pubkey: accounts.tokenVault1, isSigner: false, isWritable: true },
+    { pubkey: accounts.vault0Mint, isSigner: false, isWritable: false },
+    { pubkey: accounts.vault1Mint, isSigner: false, isWritable: false },
     {
       pubkey: accounts.recipientTokenAccount0,
       isSigner: false,
@@ -58,6 +66,7 @@ export function collectProtocolFee(args: CollectProtocolFeeArgs, accounts: Colle
       isWritable: true,
     },
     { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
+    { pubkey: accounts.tokenProgram2022, isSigner: false, isWritable: false },
   ];
   const identifier = Buffer.from([136, 136, 252, 221, 194, 66, 126, 89]);
   const buffer = Buffer.alloc(1000);

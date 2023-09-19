@@ -37,7 +37,10 @@ export type CustomError =
   | InvalidRewardInputAccountNumber
   | InvalidRewardPeriod
   | NotApproveUpdateRewardEmissiones
-  | UnInitializedRewardInfo;
+  | UnInitializedRewardInfo
+  | NotSupportMint
+  | MissingTickArrayBitmapExtensionAccount
+  | InsufficientLiquidityForDirection;
 
 export class LOK extends Error {
   static readonly code = 6000;
@@ -468,6 +471,39 @@ export class UnInitializedRewardInfo extends Error {
   }
 }
 
+export class NotSupportMint extends Error {
+  static readonly code = 6039;
+  readonly code = 6039;
+  readonly name = 'NotSupportMint';
+  readonly msg = 'Not support token_2022 mint extension';
+
+  constructor(readonly logs?: string[]) {
+    super('6039: Not support token_2022 mint extension');
+  }
+}
+
+export class MissingTickArrayBitmapExtensionAccount extends Error {
+  static readonly code = 6040;
+  readonly code = 6040;
+  readonly name = 'MissingTickArrayBitmapExtensionAccount';
+  readonly msg = 'Missing tickarray bitmap extension account';
+
+  constructor(readonly logs?: string[]) {
+    super('6040: Missing tickarray bitmap extension account');
+  }
+}
+
+export class InsufficientLiquidityForDirection extends Error {
+  static readonly code = 6041;
+  readonly code = 6041;
+  readonly name = 'InsufficientLiquidityForDirection';
+  readonly msg = 'Insufficient liquidity for this direction';
+
+  constructor(readonly logs?: string[]) {
+    super('6041: Insufficient liquidity for this direction');
+  }
+}
+
 export function fromCode(code: number, logs?: string[]): CustomError | null {
   switch (code) {
     case 6000:
@@ -548,6 +584,12 @@ export function fromCode(code: number, logs?: string[]): CustomError | null {
       return new NotApproveUpdateRewardEmissiones(logs);
     case 6038:
       return new UnInitializedRewardInfo(logs);
+    case 6039:
+      return new NotSupportMint(logs);
+    case 6040:
+      return new MissingTickArrayBitmapExtensionAccount(logs);
+    case 6041:
+      return new InsufficientLiquidityForDirection(logs);
   }
 
   return null;

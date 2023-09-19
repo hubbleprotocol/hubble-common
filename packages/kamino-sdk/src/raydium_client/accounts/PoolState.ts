@@ -6,7 +6,7 @@ import { PROGRAM_ID } from '../programId';
 
 export interface PoolStateFields {
   /** Bump to identify PDA */
-  bump: number;
+  bump: Array<number>;
   ammConfig: PublicKey;
   owner: PublicKey;
   /** Token pair of the pool, where token_mint_0 address < token_mint_1 address */
@@ -74,7 +74,7 @@ export interface PoolStateFields {
 
 export interface PoolStateJSON {
   /** Bump to identify PDA */
-  bump: number;
+  bump: Array<number>;
   ammConfig: string;
   owner: string;
   /** Token pair of the pool, where token_mint_0 address < token_mint_1 address */
@@ -148,7 +148,7 @@ export interface PoolStateJSON {
  */
 export class PoolState {
   /** Bump to identify PDA */
-  readonly bump: number;
+  readonly bump: Array<number>;
   readonly ammConfig: PublicKey;
   readonly owner: PublicKey;
   /** Token pair of the pool, where token_mint_0 address < token_mint_1 address */
@@ -216,7 +216,7 @@ export class PoolState {
   static readonly discriminator = Buffer.from([247, 237, 227, 245, 215, 195, 222, 70]);
 
   static readonly layout = borsh.struct([
-    borsh.u8('bump'),
+    borsh.array(borsh.u8(), 1, 'bump'),
     borsh.publicKey('ammConfig'),
     borsh.publicKey('owner'),
     borsh.publicKey('tokenMint0'),
@@ -310,6 +310,7 @@ export class PoolState {
 
   static async fetchMultiple(c: Connection, addresses: PublicKey[]): Promise<Array<PoolState | null>> {
     const infos = await c.getMultipleAccountsInfo(addresses);
+
     return infos.map((info) => {
       if (info === null) {
         return null;

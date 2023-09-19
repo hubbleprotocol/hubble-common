@@ -22,7 +22,7 @@ export interface InitializeRewardAccounts {
   rewardTokenMint: PublicKey;
   /** A pda, reward vault */
   rewardTokenVault: PublicKey;
-  tokenProgram: PublicKey;
+  rewardTokenProgram: PublicKey;
   systemProgram: PublicKey;
   rent: PublicKey;
 }
@@ -50,7 +50,7 @@ export function initializeReward(args: InitializeRewardArgs, accounts: Initializ
     { pubkey: accounts.operationState, isSigner: false, isWritable: false },
     { pubkey: accounts.rewardTokenMint, isSigner: false, isWritable: false },
     { pubkey: accounts.rewardTokenVault, isSigner: false, isWritable: true },
-    { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
+    { pubkey: accounts.rewardTokenProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.systemProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.rent, isSigner: false, isWritable: false },
   ];

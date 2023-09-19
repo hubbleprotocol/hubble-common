@@ -14,8 +14,13 @@ export interface SwapRouterBaseInAccounts {
   payer: PublicKey;
   /** The token account that pays input tokens for the swap */
   inputTokenAccount: PublicKey;
+  /** The mint of input token */
+  inputTokenMint: PublicKey;
   /** SPL program for token transfers */
   tokenProgram: PublicKey;
+  /** SPL program 2022 for token transfers */
+  tokenProgram2022: PublicKey;
+  memoProgram: PublicKey;
 }
 
 export const layout = borsh.struct([borsh.u64('amountIn'), borsh.u64('amountOutMinimum')]);
@@ -34,7 +39,10 @@ export function swapRouterBaseIn(args: SwapRouterBaseInArgs, accounts: SwapRoute
   const keys: Array<AccountMeta> = [
     { pubkey: accounts.payer, isSigner: true, isWritable: false },
     { pubkey: accounts.inputTokenAccount, isSigner: false, isWritable: true },
+    { pubkey: accounts.inputTokenMint, isSigner: false, isWritable: true },
     { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
+    { pubkey: accounts.tokenProgram2022, isSigner: false, isWritable: false },
+    { pubkey: accounts.memoProgram, isSigner: false, isWritable: false },
   ];
   const identifier = Buffer.from([69, 125, 115, 218, 245, 186, 242, 196]);
   const buffer = Buffer.alloc(1000);
