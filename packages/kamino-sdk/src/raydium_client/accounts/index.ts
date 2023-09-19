@@ -12,5 +12,3 @@ export { ProtocolPositionState } from './ProtocolPositionState';
 export type { ProtocolPositionStateFields, ProtocolPositionStateJSON } from './ProtocolPositionState';
 export { TickArrayState } from './TickArrayState';
 export type { TickArrayStateFields, TickArrayStateJSON } from './TickArrayState';
-export { TickArrayBitmapExtension } from './TickArrayBitmapExtension';
-export type { TickArrayBitmapExtensionFields, TickArrayBitmapExtensionJSON } from './TickArrayBitmapExtension';

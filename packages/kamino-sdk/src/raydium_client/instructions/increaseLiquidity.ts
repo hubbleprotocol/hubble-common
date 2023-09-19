@@ -43,7 +43,7 @@ export const layout = borsh.struct([borsh.u128('liquidity'), borsh.u64('amount0M
  * # Arguments
  *
  * * `ctx` - The context of accounts
- * * `liquidity` - The desired liquidity to be added, can't be zero
+ * * `liquidity` - The desired liquidity to be added
  * * `amount_0_max` - The max amount of token_0 to spend, which serves as a slippage check
  * * `amount_1_max` - The max amount of token_1 to spend, which serves as a slippage check
  *

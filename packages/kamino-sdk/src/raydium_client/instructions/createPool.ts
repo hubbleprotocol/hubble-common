@@ -25,12 +25,8 @@ export interface CreatePoolAccounts {
   /** Token_1 vault for the pool */
   tokenVault1: PublicKey;
   observationState: PublicKey;
-  /** Initialize an account to store if a tick array is initialized. */
-  tickArrayBitmap: PublicKey;
-  /** Spl token program or token program 2022 */
-  tokenProgram0: PublicKey;
-  /** Spl token program or token program 2022 */
-  tokenProgram1: PublicKey;
+  /** Spl token program */
+  tokenProgram: PublicKey;
   /** To create a new program account */
   systemProgram: PublicKey;
   /** Sysvar for program account */
@@ -57,10 +53,8 @@ export function createPool(args: CreatePoolArgs, accounts: CreatePoolAccounts) {
     { pubkey: accounts.tokenMint1, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenVault0, isSigner: false, isWritable: true },
     { pubkey: accounts.tokenVault1, isSigner: false, isWritable: true },
-    { pubkey: accounts.observationState, isSigner: false, isWritable: false },
-    { pubkey: accounts.tickArrayBitmap, isSigner: false, isWritable: true },
-    { pubkey: accounts.tokenProgram0, isSigner: false, isWritable: false },
-    { pubkey: accounts.tokenProgram1, isSigner: false, isWritable: false },
+    { pubkey: accounts.observationState, isSigner: false, isWritable: true },
+    { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.systemProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.rent, isSigner: false, isWritable: false },
   ];

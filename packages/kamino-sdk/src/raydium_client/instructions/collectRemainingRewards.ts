@@ -17,13 +17,7 @@ export interface CollectRemainingRewardsAccounts {
   poolState: PublicKey;
   /** Reward vault transfer remaining token to founder token account */
   rewardTokenVault: PublicKey;
-  /** The mint of reward token vault */
-  rewardVaultMint: PublicKey;
   tokenProgram: PublicKey;
-  /** Token program 2022 */
-  tokenProgram2022: PublicKey;
-  /** memo program */
-  memoProgram: PublicKey;
 }
 
 export const layout = borsh.struct([borsh.u8('rewardIndex')]);
@@ -43,10 +37,7 @@ export function collectRemainingRewards(args: CollectRemainingRewardsArgs, accou
     { pubkey: accounts.funderTokenAccount, isSigner: false, isWritable: true },
     { pubkey: accounts.poolState, isSigner: false, isWritable: true },
     { pubkey: accounts.rewardTokenVault, isSigner: false, isWritable: false },
-    { pubkey: accounts.rewardVaultMint, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
-    { pubkey: accounts.tokenProgram2022, isSigner: false, isWritable: false },
-    { pubkey: accounts.memoProgram, isSigner: false, isWritable: false },
   ];
   const identifier = Buffer.from([18, 237, 166, 197, 34, 16, 213, 144]);
   const buffer = Buffer.alloc(1000);

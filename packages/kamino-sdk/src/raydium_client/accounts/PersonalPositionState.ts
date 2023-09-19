@@ -116,6 +116,7 @@ export class PersonalPositionState {
     if (info === null) {
       return null;
     }
+
     if (!info.owner.equals(PROGRAM_ID)) {
       throw new Error("account doesn't belong to this program");
     }
