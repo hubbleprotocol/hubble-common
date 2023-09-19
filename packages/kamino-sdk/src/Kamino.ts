@@ -24,7 +24,14 @@ import {
   CollateralInfos,
 } from './kamino-client/accounts';
 import Decimal from 'decimal.js';
-import { Position, Whirlpool } from './whirpools-client';
+import {
+  initializeTickArray,
+  InitializeTickArrayAccounts,
+  InitializeTickArrayArgs,
+  Position,
+  TickArray,
+  Whirlpool,
+} from './whirpools-client';
 import {
   AddLiquidityQuote,
   AddLiquidityQuoteParam,
@@ -105,6 +112,7 @@ import {
   PerformanceFees,
   PriceReferenceType,
   InputRebalanceFieldInfo,
+  getTickArray,
 } from './utils';
 import { ASSOCIATED_TOKEN_PROGRAM_ID, Token, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import {
@@ -273,6 +281,8 @@ import {
 import { PoolPriceReferenceType, TwapPriceReferenceType } from './utils/priceReferenceTypes';
 import { getRebalanceMethodFromRebalanceFields, getRebalanceTypeFromRebalanceFields } from './rebalance_methods/utils';
 import { RebalanceTypeLabelName } from './rebalance_methods/consts';
+import WhirlpoolWithAddress from './models/WhirlpoolWithAddress';
+import RaydiumPoollWithAddress from './models/RaydiumPoolWithAddress';
 export const KAMINO_IDL = KaminoIdl;
 
 export class Kamino {
@@ -1927,6 +1937,42 @@ export class Kamino {
     }
   };
 
+  private getWhirlpoolStateIfNotFetched = async (
+    whirlpool: PublicKey | WhirlpoolWithAddress
+  ): Promise<WhirlpoolWithAddress> => {
+    const hasWhirlpoolBeenFetched = (object: PublicKey | WhirlpoolWithAddress): object is WhirlpoolWithAddress => {
+      return 'whirlpool' in object;
+    };
+
+    if (hasWhirlpoolBeenFetched(whirlpool)) {
+      return whirlpool;
+    } else {
+      const whirlpoolState = await this.getWhirlpoolByAddress(whirlpool);
+      if (!whirlpoolState) {
+        throw Error(`Could not fetch whirlpool state with pubkey ${whirlpool.toString()}`);
+      }
+      return { whirlpool: whirlpoolState, address: whirlpool };
+    }
+  };
+
+  private getRaydiumPoolStateIfNotFetched = async (
+    pool: PublicKey | RaydiumPoollWithAddress
+  ): Promise<RaydiumPoollWithAddress> => {
+    const hasPoolBeenFetched = (object: PublicKey | RaydiumPoollWithAddress): object is RaydiumPoollWithAddress => {
+      return 'poolState' in object;
+    };
+
+    if (hasPoolBeenFetched(pool)) {
+      return pool;
+    } else {
+      const poolState = await this.getRaydiumPoolByAddress(pool);
+      if (!poolState) {
+        throw Error(`Could not fetch pool state with pubkey ${pool.toString()}`);
+      }
+      return { poolState: poolState, address: pool };
+    }
+  };
+
   /**
    * Get treasury fee vault program addresses from for token A and B mints
    * @param tokenAMint
@@ -2651,6 +2697,7 @@ export class Kamino {
     console.log('getJupSwapIxsV6', JSON.stringify(input));
 
     let extraAccountsBuffer = 5;
+
     const currentAccounts = new Set<PublicKey>(existingAccounts).size;
     const duplicatedAccounts =
       1 + // tokenProgram
@@ -5210,6 +5257,35 @@ export class Kamino {
       throw new Error(`Dex ${strategyState.strategyDex} not supported`);
     }
   };
+
+  async initializeTickForOrcaPool(
+    payer: PublicKey,
+    pool: PublicKey | WhirlpoolWithAddress,
+    price: Decimal
+  ): Promise<TransactionInstruction | undefined> {
+    const { address: poolAddress, whirlpool: whilrpoolState } = await this.getWhirlpoolStateIfNotFetched(pool);
+
+    const decimalsA = await getMintDecimals(this._connection, whilrpoolState.tokenMintA);
+    const decimalsB = await getMintDecimals(this._connection, whilrpoolState.tokenMintB);
+    const tickIndex = priceToTickIndex(price, decimalsA, decimalsB);
+    const startTickIndex = getStartTickIndex(tickIndex, whilrpoolState.tickSpacing);
+
+    const [startTickIndexPk, _startTickIndexBump] = getTickArray(WHIRLPOOL_PROGRAM_ID, poolAddress, startTickIndex);
+    let tick = await TickArray.fetch(this._connection, startTickIndexPk);
+    // initialize tick if it doesn't exist
+    if (!tick) {
+      let initTickArrayArgs: InitializeTickArrayArgs = {
+        startTickIndex,
+      };
+      let initTickArrayAccounts: InitializeTickArrayAccounts = {
+        whirlpool: poolAddress,
+        funder: payer,
+        tickArray: startTickIndexPk,
+        systemProgram: SystemProgram.programId,
+      };
+      return initializeTickArray(initTickArrayArgs, initTickArrayAccounts);
+    }
+  }
 }
 
 export default Kamino;
