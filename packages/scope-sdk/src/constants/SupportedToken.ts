@@ -106,5 +106,13 @@ export const SupportedTokens = [
   'BLZETwap',
   'EUROE',
   'EUROETwap',
+  'kSOLBSOLOrca',
+  'kMNDEMSOLOrca',
+  'kSTSOLUSDCOrca',
+  'kUSDHUSDTOrca',
+  'kSOLJITOSOLOrca',
+  'kbSOLMSOLOrca',
+  'kMSOLJITOSOLOrca',
+  'kSOLUSDCOrca',
 ] as const;
 export type SupportedToken = (typeof SupportedTokens)[number];
