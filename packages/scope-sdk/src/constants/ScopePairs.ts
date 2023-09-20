@@ -107,5 +107,13 @@ export const ScopePairs = [
   'BLZETwap/USD',
   'EUROE/USD',
   'EUROETwap/USD',
+  'kSOLBSOLOrca/USD',
+  'kMNDEMSOLOrca/USD',
+  'kSTSOLUSDCOrca/USD',
+  'kUSDHUSDTOrca/USD',
+  'kSOLJITOSOLOrca/USD',
+  'kbSOLMSOLOrca/USD',
+  'kMSOLJITOSOLOrca/USD',
+  'kSOLUSDCOrca/USD',
 ] as const;
 export type ScopePair = (typeof ScopePairs)[number];

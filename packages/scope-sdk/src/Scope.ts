@@ -133,6 +133,14 @@ export class Scope {
     { id: 105, pair: 'BLZETwap/USD', name: 'BLZETwap', price: new Decimal(0) },
     { id: 106, pair: 'EUROE/USD', name: 'EUROE', price: new Decimal(0) },
     { id: 107, pair: 'EUROETwap/USD', name: 'EUROETwap', price: new Decimal(0) },
+    { id: 108, pair: 'kSOLBSOLOrca/USD', name: 'kSOLBSOLOrca', price: new Decimal(0) },
+    { id: 109, pair: 'kMNDEMSOLOrca/USD', name: 'kMNDEMSOLOrca', price: new Decimal(0) },
+    { id: 110, pair: 'kSTSOLUSDCOrca/USD', name: 'kSTSOLUSDCOrca', price: new Decimal(0) },
+    { id: 111, pair: 'kUSDHUSDTOrca/USD', name: 'kUSDHUSDTOrca', price: new Decimal(0) },
+    { id: 112, pair: 'kSOLJITOSOLOrca/USD', name: 'kSOLJITOSOLOrca', price: new Decimal(0) },
+    { id: 113, pair: 'kbSOLMSOLOrca/USD', name: 'kbSOLMSOLOrca', price: new Decimal(0) },
+    { id: 114, pair: 'kMSOLJITOSOLOrca/USD', name: 'kMSOLJITOSOLOrca', price: new Decimal(0) },
+    { id: 115, pair: 'kSOLUSDCOrca/USD', name: 'kSOLUSDCOrca', price: new Decimal(0) },
   ];
 
   /**
