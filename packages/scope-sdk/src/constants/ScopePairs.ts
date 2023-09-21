@@ -115,5 +115,6 @@ export const ScopePairs = [
   'kbSOLMSOLOrca/USD',
   'kMSOLJITOSOLOrca/USD',
   'kSOLUSDCOrca/USD',
+  'kJITOSOLUSDCOrca/USD',
 ] as const;
 export type ScopePair = (typeof ScopePairs)[number];
