@@ -11,6 +11,7 @@ import {
 } from '../kamino-client/instructions';
 import { SqrtPriceMath } from '@raydium-io/raydium-sdk';
 import { token } from '@project-serum/anchor/dist/cjs/utils';
+import { RebalanceFieldInfo, RebalanceFieldsDict } from './types';
 
 export const DolarBasedMintingMethod = new Decimal(0);
 export const ProportionalMintingMethod = new Decimal(1);
@@ -169,4 +170,18 @@ function writeBigUint128LE(buffer: Buffer, value: bigint, offset: number) {
   const upper_half = value >> BigInt(64);
   buffer.writeBigUint64LE(lower_half, offset);
   buffer.writeBigUint64LE(upper_half, offset + 8);
+}
+
+export function rebalanceFieldsDictToInfo(rebalanceFields: RebalanceFieldsDict): RebalanceFieldInfo[] {
+  let rebalanceFieldsInfo: RebalanceFieldInfo[] = [];
+  for (let key in rebalanceFields) {
+    let value = rebalanceFields[key];
+    rebalanceFieldsInfo.push({
+      label: key,
+      type: 'number',
+      value: value,
+      enabled: false,
+    });
+  }
+  return rebalanceFieldsInfo;
 }

@@ -252,6 +252,8 @@ export interface RebalanceFieldInfo {
   enabled: boolean; // if true, the field is editable and it is one of the rebalancing fields; if false it is a field that is calculated/generated from the rebalancing fields + other data (price, fee tier, etc)
 }
 
+export type RebalanceFieldsDict = { [key: string]: Decimal };
+
 export interface PriceReferenceType {
   name: string;
   descriptionShort?: string;

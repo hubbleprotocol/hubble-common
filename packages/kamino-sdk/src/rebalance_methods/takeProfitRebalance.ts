@@ -1,5 +1,5 @@
 import Decimal from 'decimal.js';
-import { PositionRange, RebalanceFieldInfo } from '../utils/types';
+import { PositionRange, RebalanceFieldInfo, RebalanceFieldsDict } from '../utils/types';
 import { FullBPSDecimal } from '../utils/CreationParameters';
 import { Dex, readBigUint128LE } from '../utils';
 import { sqrtPriceX64ToPrice } from '@orca-so/whirlpool-sdk';
@@ -78,19 +78,44 @@ export function getDefaultTakeProfitRebalanceFieldsInfos(price: Decimal): Rebala
   return getTakeProfitRebalanceFieldsInfos(lowerPrice, upperPrice, price);
 }
 
+export function readTakeProfitRebalanceParamsFromStrategy(
+  tokenADecimals: number,
+  tokenBDecimals: number,
+  rebalanceRaw: RebalanceRaw
+) {
+  let paramsBuffer = Buffer.from(rebalanceRaw.params);
+  let params: RebalanceFieldsDict = {};
+
+  params['lowerRangePrice'] = SqrtPriceMath.sqrtPriceX64ToPrice(
+    new BN(readBigUint128LE(paramsBuffer, 0).toString()),
+    tokenADecimals,
+    tokenBDecimals
+  );
+  params['upperRangePrice'] = SqrtPriceMath.sqrtPriceX64ToPrice(
+    new BN(readBigUint128LE(paramsBuffer, 16).toString()),
+    tokenADecimals,
+    tokenBDecimals
+  );
+  params['destinationToken'] = new Decimal(paramsBuffer.readUint8(32));
+
+  return params;
+}
+
+export function readTakeProfitRebalanceStateFromStrategy(rebalanceRaw: RebalanceRaw) {
+  let stateBuffer = Buffer.from(rebalanceRaw.state);
+  let state: RebalanceFieldsDict = {};
+
+  state['step'] = new Decimal(stateBuffer.readUInt8(0));
+
+  return state;
+}
+
 export function deserializeTakeProfitRebalanceFromOnchainParams(
   tokenADecimals: number,
   tokenBDecimals: number,
   rebalanceRaw: RebalanceRaw
 ): RebalanceFieldInfo[] {
-  let paramsBuffer = Buffer.from(rebalanceRaw.params);
+  let params = readTakeProfitRebalanceParamsFromStrategy(tokenADecimals, tokenBDecimals, rebalanceRaw);
 
-  let rawLowerRangePrice = new BN(readBigUint128LE(paramsBuffer, 0).toString());
-  let rawUpperRangePrice = new BN(readBigUint128LE(paramsBuffer, 16).toString());
-  let destinationToken = new Decimal(paramsBuffer.readUint8(32));
-
-  let lowerPrice = SqrtPriceMath.sqrtPriceX64ToPrice(rawLowerRangePrice, tokenADecimals, tokenBDecimals);
-  let upperPrice = SqrtPriceMath.sqrtPriceX64ToPrice(rawUpperRangePrice, tokenADecimals, tokenBDecimals);
-
-  return getTakeProfitRebalanceFieldsInfos(lowerPrice, upperPrice, destinationToken);
+  return getTakeProfitRebalanceFieldsInfos(params['lowerPrice'], params['upperPrice'], params['destinationToken']);
 }

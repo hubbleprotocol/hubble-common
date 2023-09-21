@@ -1,5 +1,5 @@
 import Decimal from 'decimal.js';
-import { PositionRange, RebalanceFieldInfo } from '../utils/types';
+import { PositionRange, RebalanceFieldInfo, RebalanceFieldsDict } from '../utils/types';
 import {
   DefaultLowerPercentageBPSDecimal,
   DefaultUpperPercentageBPSDecimal,
@@ -7,6 +7,7 @@ import {
 } from '../utils/CreationParameters';
 import { RebalanceRaw } from '../kamino-client/types';
 import { RebalanceTypeLabelName } from './consts';
+import { readBigUint128LE } from '../utils';
 
 export const PricePercentageRebalanceTypeName = 'pricePercentage';
 
@@ -81,14 +82,31 @@ export function getDefaultPricePercentageRebalanceFieldInfos(price: Decimal): Re
   return fieldInfos;
 }
 
+export function readPricePercentageRebalanceParamsFromStrategy(rebalanceRaw: RebalanceRaw) {
+  let paramsBuffer = Buffer.from(rebalanceRaw.params);
+  let params: RebalanceFieldsDict = {};
+
+  params['lowerRangeBPS'] = new Decimal(paramsBuffer.readUint16LE(0));
+  params['upperRangeBPS'] = new Decimal(paramsBuffer.readUint16LE(2));
+
+  return params;
+}
+
+export function readPricePercentageRebalanceStateFromStrategy(rebalanceRaw: RebalanceRaw) {
+  let stateBuffer = Buffer.from(rebalanceRaw.state);
+  let state: RebalanceFieldsDict = {};
+
+  state['lastRebalanceLowerPoolPrice'] = new Decimal(readBigUint128LE(stateBuffer, 0).toString());
+  state['lastRebalanceUpperPoolPrice'] = new Decimal(readBigUint128LE(stateBuffer, 16).toString());
+
+  return state;
+}
+
 export function deserializePricePercentageRebalanceFromOnchainParams(
   price: Decimal,
   rebalanceRaw: RebalanceRaw
 ): RebalanceFieldInfo[] {
-  let paramsBuffer = Buffer.from(rebalanceRaw.params);
+  let params = readPricePercentageRebalanceParamsFromStrategy(rebalanceRaw);
 
-  let lowerRangeBPS = new Decimal(paramsBuffer.readUint16LE(0));
-  let upperRangeBPS = new Decimal(paramsBuffer.readUint16LE(2));
-
-  return getPricePercentageRebalanceFieldInfos(price, lowerRangeBPS, upperRangeBPS);
+  return getPricePercentageRebalanceFieldInfos(price, params['lowerRangeBPS'], params['upperRangeBPS']);
 }
