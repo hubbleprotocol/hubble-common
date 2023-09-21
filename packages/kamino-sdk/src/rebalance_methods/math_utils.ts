@@ -20,17 +20,11 @@ export function getResetRangeFromPriceAndDiffBPS(
   resetLowerDiffBPS: Decimal,
   resetUpperDiffBPS: Decimal
 ): PositionRange {
-  let { lowerPrice, upperPrice } = getPriceRangeFromPriceAndDiffBPS(price, lowerDiffBPS, upperDiffBPS);
-
-  let lowerPriceBPSPercentage = FullBPSDecimal.sub(lowerDiffBPS).div(FullBPSDecimal);
-  let lowerResetPriceBPSPercentage = FullBPSDecimal.sub(resetLowerDiffBPS)
-    .div(FullBPSDecimal)
-    .mul(lowerPriceBPSPercentage);
-  let resetLowerPrice = price.mul(FullBPSDecimal.sub(lowerResetPriceBPSPercentage)).div(FullBPSDecimal);
-
-  let upperPriceBPSPercentage = FullBPSDecimal.add(upperDiffBPS);
-  let upperResetPriceBPSPercentage = FullBPSDecimal.sub(resetUpperDiffBPS).mul(upperPriceBPSPercentage);
-  let resetUpperPrice = lowerPrice.mul(FullBPSDecimal.sub(lowerResetPriceBPSPercentage)).div(FullBPSDecimal);
-
+  let resetLowerPrice = price
+    .mul(FullBPSDecimal.sub(resetLowerDiffBPS.mul(lowerDiffBPS).div(FullBPSDecimal)))
+    .div(FullBPSDecimal);
+  let resetUpperPrice = price
+    .mul(FullBPSDecimal.add(resetUpperDiffBPS.mul(upperDiffBPS).div(FullBPSDecimal)))
+    .div(FullBPSDecimal);
   return { lowerPrice: resetLowerPrice, upperPrice: resetUpperPrice };
 }

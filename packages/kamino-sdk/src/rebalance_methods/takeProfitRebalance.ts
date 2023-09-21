@@ -42,26 +42,12 @@ export function getTakeProfitRebalanceFieldsInfos(
     value: destinationToken,
     enabled,
   };
-  let resetLowerBpsRebalanceFieldInfo: RebalanceFieldInfo = {
-    label: 'resetPriceLower',
-    type: 'number',
-    value: lowerRangePrice,
-    enabled,
-  };
-  let resetUpperBpsRebalanceFieldInfo: RebalanceFieldInfo = {
-    label: 'resetPriceUpper',
-    type: 'number',
-    value: upperRangePrice,
-    enabled,
-  };
 
   return [
     rebalanceType,
     lowerRangePriceRebalanceFieldInfo,
     upperRangePriceRebalanceFieldInfo,
     destinationTokenRebalanceFieldInfo,
-    resetLowerBpsRebalanceFieldInfo,
-    resetUpperBpsRebalanceFieldInfo,
   ];
 }
 
@@ -131,5 +117,9 @@ export function deserializeTakeProfitRebalanceFromOnchainParams(
 ): RebalanceFieldInfo[] {
   let params = readTakeProfitRebalanceParamsFromStrategy(tokenADecimals, tokenBDecimals, rebalanceRaw);
 
-  return getTakeProfitRebalanceFieldsInfos(params['lowerPrice'], params['upperPrice'], params['destinationToken']);
+  return getTakeProfitRebalanceFieldsInfos(
+    params['lowerRangePrice'],
+    params['upperRangePrice'],
+    params['destinationToken']
+  );
 }

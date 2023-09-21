@@ -164,7 +164,9 @@ export function deserializePricePercentageRebalanceFromOnchainParams(
 ): RebalanceFieldInfo[] {
   let params = readPricePercentageRebalanceParamsFromStrategy(rebalanceRaw);
 
-  return getPricePercentageRebalanceFieldInfos(price, params['lowerRangeBPS'], params['upperRangeBPS']);
+  let lowerRangeBPS = new Decimal(params.find((param) => param.label == 'lowerRangeBps')?.value!);
+  let upperRangeBPS = new Decimal(params.find((param) => param.label == 'upperRangeBps')?.value!);
+  return getPricePercentageRebalanceFieldInfos(price, lowerRangeBPS, upperRangeBPS);
 }
 
 export function deserializePricePercentageRebalanceWithStateOverride(

@@ -11,7 +11,7 @@ import { Dex, readBigUint128LE } from '../utils';
 import { sqrtPriceX64ToPrice } from '@orca-so/whirlpool-sdk';
 import BN from 'bn.js';
 import { upsertManyRebalanceFieldInfos } from './utils';
-import { getPriceRangeFromPriceAndDiffBPS } from './math_utils';
+import { getPriceRangeFromPriceAndDiffBPS, getResetRangeFromPriceAndDiffBPS } from './math_utils';
 
 export const PricePercentageWithResetRebalanceTypeName = 'pricePercentageWithReset';
 
@@ -121,13 +121,13 @@ export function getPositionResetRangeFromPricePercentageWithResetParams(
   resetLowerPercentageBPS: Decimal,
   resetUpperPercentageBPS: Decimal
 ): PositionRange {
-  let resetLowerPrice = price
-    .mul(FullBPSDecimal.sub(resetLowerPercentageBPS.mul(lowerPercentageBPS).div(FullBPSDecimal)))
-    .div(FullBPSDecimal);
-  let resetUpperPrice = price
-    .mul(FullBPSDecimal.add(resetUpperPercentageBPS.mul(upperPercentageBPS).div(FullBPSDecimal)))
-    .div(FullBPSDecimal);
-  return { lowerPrice: resetLowerPrice, upperPrice: resetUpperPrice };
+  return getResetRangeFromPriceAndDiffBPS(
+    price,
+    lowerPercentageBPS,
+    upperPercentageBPS,
+    resetLowerPercentageBPS,
+    resetUpperPercentageBPS
+  );
 }
 
 export function getDefaultPricePercentageWithResetRebalanceFieldInfos(price: Decimal): RebalanceFieldInfo[] {
@@ -266,12 +266,18 @@ export function deserializePricePercentageWithResetRebalanceFromOnchainParams(
   rebalanceRaw: RebalanceRaw
 ): RebalanceFieldInfo[] {
   let params = readPricePercentageWithResetRebalanceParamsFromStrategy(rebalanceRaw);
+
+  let lowerRangeBps = new Decimal(params.find((param) => param.label == 'lowerRangeBps')?.value.toString()!);
+  let upperRangeBps = new Decimal(params.find((param) => param.label == 'upperRangeBps')?.value.toString()!);
+  let lowerResetRangeBps = new Decimal(params.find((param) => param.label == 'resetLowerRangeBps')?.value.toString()!);
+  let upperResetRangeBps = new Decimal(params.find((param) => param.label == 'resetUpperRangeBps')?.value.toString()!);
+
   return getPricePercentageWithResetRebalanceFieldInfos(
     price,
-    params['lowerRangeBPS'],
-    params['upperRangeBPS'],
-    params['lowerResetRangeBps'],
-    params['upperResetRangeBps']
+    lowerRangeBps,
+    upperRangeBps,
+    lowerResetRangeBps,
+    upperResetRangeBps
   );
 }
 

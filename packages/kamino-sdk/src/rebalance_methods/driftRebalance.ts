@@ -83,19 +83,6 @@ export function getDriftRebalanceFieldInfos(
     enabled: false,
   };
 
-  let resetLowerRangeRebalanceFieldInfo: RebalanceFieldInfo = {
-    label: 'resetPriceLower',
-    type: 'number',
-    value: lowerPrice,
-    enabled: false,
-  };
-  let resetUpperRangeRebalanceFieldInfo: RebalanceFieldInfo = {
-    label: 'resetPriceUpper',
-    type: 'number',
-    value: upperPrice,
-    enabled: false,
-  };
-
   return [
     rebalanceType,
     startMidTickRebalanceFieldInfo,
@@ -105,8 +92,6 @@ export function getDriftRebalanceFieldInfos(
     directionRebalanceFieldInfo,
     lowerRangeRebalanceFieldInfo,
     upperRangeRebalanceFieldInfo,
-    resetLowerRangeRebalanceFieldInfo,
-    resetUpperRangeRebalanceFieldInfo,
   ];
 }
 
@@ -243,25 +228,7 @@ export function readDriftRebalanceStateFromStrategy(
     enabled: false,
   };
 
-  let resetUpperRangeRebalanceFieldInfo: RebalanceFieldInfo = {
-    label: 'resetPriceLower',
-    type: 'number',
-    value: lowerPrice,
-    enabled: false,
-  };
-  let resetUpperBpsRebalanceFieldInfo: RebalanceFieldInfo = {
-    label: 'resetPriceUpper',
-    type: 'number',
-    value: upperPrice,
-    enabled: false,
-  };
-
-  return [
-    lowerRangeRebalanceFieldInfo,
-    upperRangeRebalanceFieldInfo,
-    resetUpperRangeRebalanceFieldInfo,
-    resetUpperBpsRebalanceFieldInfo,
-  ];
+  return [lowerRangeRebalanceFieldInfo, upperRangeRebalanceFieldInfo];
 }
 
 export function deserializeDriftRebalanceFromOnchainParams(

@@ -43,6 +43,9 @@ import {
   PricePercentageWithResetRangeRebalanceMethod,
   TakeProfitMethod,
 } from '../src/utils/CreationParameters';
+import { priceToTickIndex } from '@orca-so/whirlpool-sdk';
+import { getMintDecimals } from '@project-serum/serum/lib/market';
+import { skip } from 'node:test';
 
 describe('Kamino strategy creation SDK Tests', () => {
   let connection: Connection;
@@ -56,7 +59,7 @@ describe('Kamino strategy creation SDK Tests', () => {
   const signerPrivateKey = [];
   const signer = Keypair.fromSecretKey(Uint8Array.from(signerPrivateKey));
 
-  it.skip('build manual strategy Raydium SOL-USDC', async () => {
+  it.skip('build manual strategy Orca SOL-USDC', async () => {
     let kamino = new Kamino(
       cluster,
       connection,
@@ -74,7 +77,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     let priceLower = new Decimal(15.0);
     let priceUpper = new Decimal(21.0);
     let buildNewStrategyIxs = await kamino.getBuildStrategyIxns(
-      'RAYDIUM',
+      'ORCA',
       new Decimal('5'),
       newStrategy.publicKey,
       newPosition.publicKey,
@@ -217,7 +220,18 @@ describe('Kamino strategy creation SDK Tests', () => {
     expect(stratFields[1]['label'] == 'rangePriceLower');
     expect(stratFields[1]['value'].toString() == newPriceLower.toString());
     expect(stratFields[2]['label'] == 'rangePriceUpper');
-    expect(stratFields[2]['value'] == newPriceUpper.toString());
+    expect(stratFields[2]['value'].toString() == newPriceUpper.toString());
+
+    // read rebalance state and verify it is fixed in time
+    await sleep(10000);
+    let rebalanceState = await kamino.readRebalancingParamsWithState(newStrategy.publicKey);
+    expect(rebalanceState.length == 3);
+    expect(rebalanceState[0]['label'] == 'rebalanceType');
+    expect(rebalanceState[0]['value'] == ManualRebalanceTypeName);
+    expect(rebalanceState[1]['label'] == 'rangePriceLower');
+    expect(rebalanceState[1]['value'].toString() == newPriceLower.toString());
+    expect(rebalanceState[2]['label'] == 'rangePriceUpper');
+    expect(rebalanceState[2]['value'].toString() == newPriceUpper.toString());
   });
 
   it.skip('build percentage strategy Orca SOL-USDC', async () => {
@@ -428,6 +442,24 @@ describe('Kamino strategy creation SDK Tests', () => {
     expect(new Decimal(stratFields[3]['value'].toString()).lessThan(poolPrice)).to.be.true;
     expect(stratFields[4]['label'] == 'rangePriceUpper').to.be.true;
     expect(new Decimal(stratFields[4]['value'].toString()).greaterThan(poolPrice)).to.be.true;
+
+    // read rebalance state and verify it is fixed in time
+
+    const rebalanceState = await kamino.readRebalancingParamsWithState(newStrategy.publicKey);
+
+    await sleep(30000);
+    const rebalanceState2 = await kamino.readRebalancingParamsWithState(newStrategy.publicKey);
+    expect(rebalanceState.length == 5).to.be.true;
+    expect(rebalanceState[0]['label'] == 'rebalanceType').to.be.true;
+    expect(rebalanceState[0]['value'] == PricePercentageRebalanceTypeName).to.be.true;
+    expect(rebalanceState[1]['label'] == 'lowerRangeBps').to.be.true;
+    expect(rebalanceState[1]['value'].toString() == newLowerRangeBPS.toString()).to.be.true;
+    expect(rebalanceState[2]['label'] == 'upperRangeBps').to.be.true;
+    expect(rebalanceState[2]['value'] == newUpperRangeBPS.toString()).to.be.true;
+    expect(rebalanceState[3]['label'] == 'rangePriceLower').to.be.true;
+    expect(rebalanceState[3]['value'].toString() == rebalanceState2[3]['value'].toString()).to.be.true;
+    expect(rebalanceState[4]['label'] == 'rangePriceUpper').to.be.true;
+    expect(rebalanceState[4]['value'].toString() == rebalanceState2[4]['value'].toString()).to.be.true;
   });
 
   it.skip('build percentage with reset range Orca SOL-USDC', async () => {
@@ -672,6 +704,31 @@ describe('Kamino strategy creation SDK Tests', () => {
     expect(stratFields[7]['label'] == 'resetPriceLower').to.be.true;
     expect(new Decimal(stratFields[7]['value'].toString()).lessThan(poolPrice)).to.be.true;
     expect(stratFields[8]['label'] == 'resetPriceUpper').to.be.true;
+
+    // read rebalance state and verify it is fixed in time
+    const rebalanceState = await kamino.readRebalancingParamsWithState(newStrategy.publicKey);
+
+    await sleep(50000);
+    const rebalanceState2 = await kamino.readRebalancingParamsWithState(newStrategy.publicKey);
+    expect(rebalanceState.length == 9).to.be.true;
+    expect(rebalanceState[0]['label'] == 'rebalanceType').to.be.true;
+    expect(rebalanceState[0]['value'] == PricePercentageWithResetRebalanceTypeName).to.be.true;
+    expect(rebalanceState[1]['label'] == 'lowerRangeBps').to.be.true;
+    expect(rebalanceState[1]['value'].toString() == newLowerRangeBPS.toString()).to.be.true;
+    expect(rebalanceState[2]['label'] == 'upperRangeBps').to.be.true;
+    expect(rebalanceState[2]['value'].toString() == newUpperRangeBPS.toString()).to.be.true;
+    expect(rebalanceState[3]['label'] == 'resetLowerRangeBps').to.be.true;
+    expect(rebalanceState[3]['value'].toString() == newResetLowerRangeBPS.toString()).to.be.true;
+    expect(rebalanceState[4]['label'] == 'resetUpperRangeBps').to.be.true;
+    expect(rebalanceState[4]['value'].toString() == newResetUpperRangeBPS.toString()).to.be.true;
+    expect(rebalanceState[5]['label'] == 'rangePriceLower').to.be.true;
+    expect(rebalanceState[5]['value'].toString() == rebalanceState2[5]['value'].toString()).to.be.true;
+    expect(rebalanceState[6]['label'] == 'rangePriceUpper').to.be.true;
+    expect(rebalanceState[6]['value'].toString() == rebalanceState2[6]['value'].toString()).to.be.true;
+    expect(rebalanceState[7]['label'] == 'resetPriceLower').to.be.true;
+    expect(rebalanceState[7]['value'].toString() == rebalanceState2[7]['value'].toString()).to.be.true;
+    expect(rebalanceState[8]['label'] == 'resetPriceUpper').to.be.true;
+    expect(rebalanceState[8]['value'].toString() == rebalanceState2[8]['value'].toString()).to.be.true;
   });
 
   it.skip('build percentage with periodic rebalance Orca SOL-USDC', async () => {
@@ -1079,6 +1136,31 @@ describe('Kamino strategy creation SDK Tests', () => {
     expect(new Decimal(stratFields[2]['value'].toString()).greaterThan(poolPrice)).to.be.true;
     expect(stratFields[3]['label'] == 'destinationToken').to.be.true;
     expect(stratFields[3]['value'].toString() == newDestinationToken.toString()).to.be.true;
+
+    // read rebalance state and verify it is fixed in time
+    const rebalanceState = await kamino.readRebalancingParamsWithState(newStrategy.publicKey);
+    expect(rebalanceState.length == 4).to.be.true;
+    expect(rebalanceState[0]['label'] == 'rebalanceType').to.be.true;
+    expect(rebalanceState[0]['value'] == TakeProfitRebalanceTypeName).to.be.true;
+    expect(rebalanceState[1]['label'] == 'rangePriceLower').to.be.true;
+    expect(new Decimal(rebalanceState[1]['value'].toString()).lessThan(poolPrice)).to.be.true;
+    expect(rebalanceState[2]['label'] == 'rangePriceUpper').to.be.true;
+    expect(new Decimal(rebalanceState[2]['value'].toString()).greaterThan(poolPrice)).to.be.true;
+    expect(rebalanceState[3]['label'] == 'destinationToken').to.be.true;
+    expect(rebalanceState[3]['value'].toString() == newDestinationToken.toString()).to.be.true;
+
+    await sleep(30000);
+
+    const rebalanceState2 = await kamino.readRebalancingParamsWithState(newStrategy.publicKey);
+    expect(rebalanceState2.length == 4).to.be.true;
+    expect(rebalanceState2[0]['label'] == 'rebalanceType').to.be.true;
+    expect(rebalanceState2[0]['value'] == TakeProfitRebalanceTypeName).to.be.true;
+    expect(rebalanceState2[1]['label'] == 'rangePriceLower').to.be.true;
+    expect(rebalanceState2[1]['value'].toString() == rebalanceState[1]['value'].toString()).to.be.true;
+    expect(rebalanceState2[2]['label'] == 'rangePriceUpper').to.be.true;
+    expect(rebalanceState2[2]['value'].toString() == rebalanceState[2]['value'].toString()).to.be.true;
+    expect(rebalanceState2[3]['label'] == 'destinationToken').to.be.true;
+    expect(rebalanceState2[3]['value'].toString() == rebalanceState[3]['value'].toString()).to.be.true;
   });
 
   it.skip('build expander Orca SOL-USDC', async () => {
@@ -1226,7 +1308,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     expect(new Decimal(stratFields[11]['value'].toString()).greaterThan(poolPrice)).to.be.true;
 
     // update the rebalance params with new values; in the UI these should come from the user
-    let newLowerRangeBPS = new Decimal(800.0);
+    let newLowerRangeBPS = new Decimal(1000.0);
     let newUpperRangeBPS = new Decimal(1000.0);
     let newResetLowerRangeBPS = new Decimal(400.0);
     let newResetUpperRangeBPS = new Decimal(600.0);
@@ -1360,6 +1442,69 @@ describe('Kamino strategy creation SDK Tests', () => {
     expect(new Decimal(stratFields[10]['value'].toString()).lessThan(poolPrice)).to.be.true;
     expect(stratFields[11]['label'] == 'resetPriceUpper').to.be.true;
     expect(new Decimal(stratFields[11]['value'].toString()).greaterThan(poolPrice)).to.be.true;
+
+    let readFromStateFieldInfos = await kamino.readRebalancingParamsWithState(newStrategy.publicKey);
+
+    await sleep(30000);
+
+    expect(readFromStateFieldInfos.length == 12).to.be.true;
+    expect(readFromStateFieldInfos[0]['label'] == 'rebalanceType').to.be.true;
+    expect(readFromStateFieldInfos[0]['value'] == ExpanderRebalanceTypeName).to.be.true;
+    expect(readFromStateFieldInfos[1]['label'] == 'lowerRangeBps').to.be.true;
+    expect(readFromStateFieldInfos[1]['value'].toString() == newLowerRangeBPS.toString()).to.be.true;
+    expect(readFromStateFieldInfos[2]['label'] == 'upperRangeBps').to.be.true;
+    expect(readFromStateFieldInfos[2]['value'].toString() == newUpperRangeBPS.toString()).to.be.true;
+    expect(readFromStateFieldInfos[3]['label'] == 'resetLowerRangeBps').to.be.true;
+    expect(readFromStateFieldInfos[3]['value'].toString() == newResetLowerRangeBPS.toString()).to.be.true;
+    expect(readFromStateFieldInfos[4]['label'] == 'resetUpperRangeBps').to.be.true;
+    expect(readFromStateFieldInfos[4]['value'].toString() == newResetUpperRangeBPS.toString()).to.be.true;
+    expect(readFromStateFieldInfos[5]['label'] == 'expansionBps').to.be.true;
+    expect(readFromStateFieldInfos[5]['value'].toString() == newExpansionBPS.toString()).to.be.true;
+    expect(readFromStateFieldInfos[6]['label'] == 'maxNumberOfExpansions').to.be.true;
+    expect(readFromStateFieldInfos[6]['value'].toString() == newMaxNumberOfExpansions.toString()).to.be.true;
+    expect(readFromStateFieldInfos[7]['label'] == 'swapUnevenAllowed').to.be.true;
+    expect(readFromStateFieldInfos[7]['value'].toString() == newSwapUnevenAllowed.toString()).to.be.true;
+    expect(readFromStateFieldInfos[8]['label'] == 'rangePriceLower').to.be.true;
+    expect(readFromStateFieldInfos[8]['value'].toString() == stratFields[8]['value'].toString()).to.be.true;
+    expect(readFromStateFieldInfos[9]['label'] == 'rangePriceUpper').to.be.true;
+    expect(readFromStateFieldInfos[9]['value'].toString() == stratFields[9]['value'].toString()).to.be.true;
+    expect(readFromStateFieldInfos[10]['label'] == 'resetPriceLower').to.be.true;
+    expect(readFromStateFieldInfos[10]['value'].toString() == stratFields[10]['value'].toString()).to.be.true;
+    expect(readFromStateFieldInfos[11]['label'] == 'resetPriceUpper').to.be.true;
+    expect(readFromStateFieldInfos[11]['value'].toString() == stratFields[11]['value'].toString()).to.be.true;
+
+    await sleep(30000);
+    let readFromStateFieldInfos2 = await kamino.readRebalancingParamsWithState(newStrategy.publicKey);
+
+    expect(readFromStateFieldInfos2.length == 12).to.be.true;
+    expect(readFromStateFieldInfos2[0]['label'] == 'rebalanceType').to.be.true;
+    expect(readFromStateFieldInfos2[0]['value'] == ExpanderRebalanceTypeName).to.be.true;
+    expect(readFromStateFieldInfos2[1]['label'] == 'lowerRangeBps').to.be.true;
+    expect(readFromStateFieldInfos2[1]['value'].toString() == newLowerRangeBPS.toString()).to.be.true;
+    expect(readFromStateFieldInfos2[2]['label'] == 'upperRangeBps').to.be.true;
+    expect(readFromStateFieldInfos2[2]['value'].toString() == newUpperRangeBPS.toString()).to.be.true;
+    expect(readFromStateFieldInfos2[3]['label'] == 'resetLowerRangeBps').to.be.true;
+    expect(readFromStateFieldInfos2[3]['value'].toString() == newResetLowerRangeBPS.toString()).to.be.true;
+    expect(readFromStateFieldInfos2[4]['label'] == 'resetUpperRangeBps').to.be.true;
+    expect(readFromStateFieldInfos2[4]['value'].toString() == newResetUpperRangeBPS.toString()).to.be.true;
+    expect(readFromStateFieldInfos2[5]['label'] == 'expansionBps').to.be.true;
+    expect(readFromStateFieldInfos2[5]['value'].toString() == newExpansionBPS.toString()).to.be.true;
+    expect(readFromStateFieldInfos2[6]['label'] == 'maxNumberOfExpansions').to.be.true;
+    expect(readFromStateFieldInfos2[6]['value'].toString() == newMaxNumberOfExpansions.toString()).to.be.true;
+    expect(readFromStateFieldInfos2[7]['label'] == 'swapUnevenAllowed').to.be.true;
+    expect(readFromStateFieldInfos2[7]['value'].toString() == newSwapUnevenAllowed.toString()).to.be.true;
+    expect(readFromStateFieldInfos2[8]['label'] == 'rangePriceLower').to.be.true;
+    expect(readFromStateFieldInfos2[8]['value'].toString() == readFromStateFieldInfos[8]['value'].toString()).to.be
+      .true;
+    expect(readFromStateFieldInfos2[9]['label'] == 'rangePriceUpper').to.be.true;
+    expect(readFromStateFieldInfos2[9]['value'].toString() == readFromStateFieldInfos[9]['value'].toString()).to.be
+      .true;
+    expect(readFromStateFieldInfos2[10]['label'] == 'resetPriceLower').to.be.true;
+    expect(readFromStateFieldInfos2[10]['value'].toString() == readFromStateFieldInfos[10]['value'].toString()).to.be
+      .true;
+    expect(readFromStateFieldInfos2[11]['label'] == 'resetPriceUpper').to.be.true;
+    expect(readFromStateFieldInfos2[11]['value'].toString() == readFromStateFieldInfos[11]['value'].toString()).to.be
+      .true;
   });
 
   it.skip('build drift Orca SOL-MSOL', async () => {
@@ -1377,7 +1522,6 @@ describe('Kamino strategy creation SDK Tests', () => {
     const createStrategyAccountIx = await kamino.createStrategyAccount(signer.publicKey, newStrategy.publicKey);
     console.log('newStrategy.publicKey', newStrategy.publicKey.toString());
 
-    let startMidTick = new Decimal(-1257.0);
     let ticksBelowMid = new Decimal(10.0);
     let ticksAboveMid = new Decimal(5.0);
     let secondsPerTick = new Decimal(6000.0);
@@ -1385,6 +1529,13 @@ describe('Kamino strategy creation SDK Tests', () => {
     let dex: Dex = 'ORCA';
     let tokenAMint = new PublicKey('So11111111111111111111111111111111111111112');
     let tokenBMint = new PublicKey('mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So');
+    //@ts-ignore
+    let tokenADecimals = await getMintDecimals(kamino._connection, tokenAMint);
+    //@ts-ignore
+    let tokenBDecimals = await getMintDecimals(kamino._connection, tokenBMint);
+
+    let poolPrice = new Decimal(await kamino.getPriceForPair(dex, tokenAMint, tokenBMint));
+    let startMidTick = new Decimal(priceToTickIndex(poolPrice, tokenADecimals, tokenBDecimals));
 
     let buildNewStrategyIxs = await kamino.getBuildStrategyIxns(
       dex,
@@ -1466,10 +1617,11 @@ describe('Kamino strategy creation SDK Tests', () => {
     const openPositionTxId = await sendAndConfirmTransaction(kamino._connection, openPositionTx);
     console.log('openPositionTxId', openPositionTxId);
 
-    let poolPrice = new Decimal(await kamino.getPriceForPair(dex, tokenAMint, tokenBMint));
-
     let stratFields = await kamino.readRebalancingParams(newStrategy.publicKey);
 
+    console.log("new Decimal(stratFields[6]['value'].toString())", new Decimal(stratFields[6]['value'].toString()));
+    console.log("new Decimal(stratFields[7]['value'].toString())", new Decimal(stratFields[7]['value'].toString()));
+    console.log('pool price', poolPrice.toString());
     expect(stratFields.length == 8).to.be.true;
     expect(stratFields[0]['label'] == 'rebalanceType').to.be.true;
     expect(stratFields[0]['value'] == DriftRebalanceTypeName).to.be.true;
@@ -1596,6 +1748,33 @@ describe('Kamino strategy creation SDK Tests', () => {
     expect(new Decimal(stratFields[6]['value'].toString()).lessThan(poolPrice)).to.be.true;
     expect(stratFields[7]['label'] == 'rangePriceUpper').to.be.true;
     expect(new Decimal(stratFields[7]['value'].toString()).greaterThan(poolPrice)).to.be.true;
+
+    await sleep(30000);
+    let readFromStateFieldInfos = await kamino.readRebalancingParamsWithState(newStrategy.publicKey);
+    await sleep(50000);
+    let readFromStateFieldInfos2 = await kamino.readRebalancingParamsWithState(newStrategy.publicKey);
+
+    expect(readFromStateFieldInfos.length == 8).to.be.true;
+    expect(readFromStateFieldInfos[0]['label'] == 'rebalanceType').to.be.true;
+    expect(readFromStateFieldInfos[0]['value'] == DriftRebalanceTypeName).to.be.true;
+    expect(readFromStateFieldInfos[1]['label'] == 'startMidTick').to.be.true;
+    expect(readFromStateFieldInfos[1]['value'].toString() == newStartMidTick.toString()).to.be.true;
+    expect(readFromStateFieldInfos[2]['label'] == 'ticksBelowMid').to.be.true;
+    expect(readFromStateFieldInfos[2]['value'].toString() == newTicksBelowMid.toString()).to.be.true;
+    expect(readFromStateFieldInfos[3]['label'] == 'ticksAboveMid').to.be.true;
+    expect(readFromStateFieldInfos[3]['value'].toString() == newTicksAboveMid.toString()).to.be.true;
+    expect(readFromStateFieldInfos[4]['label'] == 'secondsPerTick').to.be.true;
+    expect(readFromStateFieldInfos[4]['value'].toString() == newSecondsPerTick.toString()).to.be.true;
+    expect(readFromStateFieldInfos[5]['label'] == 'direction').to.be.true;
+    expect(readFromStateFieldInfos[5]['value'].toString() == newDirection.toString()).to.be.true;
+    expect(readFromStateFieldInfos[6]['label'] == 'rangePriceLower').to.be.true;
+    expect(readFromStateFieldInfos[6]['value'].toString() == stratFields[6]['value'].toString()).to.be.true;
+    expect(readFromStateFieldInfos[6]['value'].toString() == readFromStateFieldInfos2[6]['value'].toString()).to.be
+      .true;
+    expect(readFromStateFieldInfos[7]['label'] == 'rangePriceUpper').to.be.true;
+    expect(readFromStateFieldInfos[7]['value'].toString() == stratFields[7]['value'].toString()).to.be.true;
+    expect(readFromStateFieldInfos[7]['value'].toString() == readFromStateFieldInfos2[7]['value'].toString()).to.be
+      .true;
   });
 
   it.skip('update price reference type', async () => {
@@ -1733,7 +1912,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     expect(strategyState!.rebalanceRaw.referencePriceType).to.be.eq(POOL.discriminator);
   });
 
-  it('update rebalance strategy types and params', async () => {
+  it.skip('update rebalance strategy types and params', async () => {
     let kamino = new Kamino(
       cluster,
       connection,

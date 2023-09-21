@@ -13,6 +13,7 @@ import { Dex, readBigUint128LE } from '../utils';
 import { sqrtPriceX64ToPrice } from '@orca-so/whirlpool-sdk';
 import BN from 'bn.js';
 import { upsertManyRebalanceFieldInfos } from './utils';
+import { getPriceRangeFromPriceAndDiffBPS, getResetRangeFromPriceAndDiffBPS } from './math_utils';
 
 export const DefaultMaxNumberOfExpansions = new Decimal(10);
 export const DefaultExpansionSizeBPS = new Decimal(100);
@@ -134,11 +135,7 @@ export function getPositionRangeFromExpanderParams(
   lowerPriceDifferenceBPS: Decimal,
   upperPriceDifferenceBPS: Decimal
 ): PositionRange {
-  let fullBPSDecimal = new Decimal(FullBPS);
-  let lowerPrice = price.mul(fullBPSDecimal.sub(lowerPriceDifferenceBPS)).div(fullBPSDecimal);
-  let upperPrice = price.mul(fullBPSDecimal.add(upperPriceDifferenceBPS)).div(fullBPSDecimal);
-
-  return { lowerPrice, upperPrice };
+  return getPriceRangeFromPriceAndDiffBPS(price, lowerPriceDifferenceBPS, upperPriceDifferenceBPS);
 }
 
 export function getPositionResetRangeFromExpanderParams(
@@ -148,22 +145,17 @@ export function getPositionResetRangeFromExpanderParams(
   resetLowerPriceDifferenceBPS: Decimal,
   resetUpperPriceDifferenceBPS: Decimal
 ): PositionRange {
-  let resetLowerPrice = price
-    .mul(FullBPSDecimal.sub(resetLowerPriceDifferenceBPS.mul(lowerPriceDifferenceBPS).div(FullBPSDecimal)))
-    .div(FullBPSDecimal);
-  let resetUpperPrice = price
-    .mul(FullBPSDecimal.add(resetUpperPriceDifferenceBPS.mul(upperPriceDifferenceBPS).div(FullBPSDecimal)))
-    .div(FullBPSDecimal);
-  return { lowerPrice: resetLowerPrice, upperPrice: resetUpperPrice };
+  return getResetRangeFromPriceAndDiffBPS(
+    price,
+    lowerPriceDifferenceBPS,
+    upperPriceDifferenceBPS,
+    resetLowerPriceDifferenceBPS,
+    resetUpperPriceDifferenceBPS
+  );
 }
 
 export function getDefaultExpanderRebalanceFieldInfos(price: Decimal): RebalanceFieldInfo[] {
-  let { lowerPrice, upperPrice } = getPositionRangeFromExpanderParams(
-    price,
-    DefaultLowerPercentageBPSDecimal,
-    DefaultUpperPercentageBPSDecimal
-  );
-  let fieldInfos = getExpanderRebalanceFieldInfos(
+  return getExpanderRebalanceFieldInfos(
     price,
     DefaultLowerPercentageBPSDecimal,
     DefaultUpperPercentageBPSDecimal,
@@ -172,8 +164,7 @@ export function getDefaultExpanderRebalanceFieldInfos(price: Decimal): Rebalance
     DefaultLowerPercentageBPSDecimal,
     DefaultMaxNumberOfExpansions,
     DefaultSwapUnevenAllowed
-  ).concat(getManualRebalanceFieldInfos(lowerPrice, upperPrice, false));
-  return fieldInfos;
+  );
 }
 
 export function readRawExpanderRebalanceParamsFromStrategy(rebalanceRaw: RebalanceRaw) {
@@ -274,17 +265,18 @@ export function readExpanderRebalanceStateFromStrategy(
 ): RebalanceFieldInfo[] {
   let stateBuffer = Buffer.from(rebalanceRaw.state);
 
-  let paramsBuffer = Buffer.from(rebalanceRaw.params);
+  let params = readRawExpanderRebalanceParamsFromStrategy(rebalanceRaw);
 
-  let lowerRangeBps = new Decimal(paramsBuffer.readUInt16LE(0));
-  let upperRangeBps = new Decimal(paramsBuffer.readUInt16LE(2));
-  let lowerResetRatioBps = new Decimal(paramsBuffer.readUInt16LE(4));
-  let upperResetRatioBps = new Decimal(paramsBuffer.readUInt16LE(6));
-  let expansionBps = new Decimal(paramsBuffer.readUInt16LE(8));
+  let lowerRangeBps = params['lowerRangeBps'];
+  let upperRangeBps = params['upperRangeBps'];
+  let lowerResetRatioBps = params['lowerResetRatioBps'];
+  let upperResetRatioBps = params['upperResetRatioBps'];
+  let expansionBps = params['expansionBps'];
 
+  let state = readRawExpanderRebalanceStateFromStrategy(rebalanceRaw);
 
-  let initialPriceX64 = new Decimal(readBigUint128LE(stateBuffer, 0).toString());
-  let expansionCount = new Decimal(stateBuffer.readUInt16LE(16));
+  let initialPriceX64 = state['initialPoolPrice'];
+  let expansionCount = state['expansionCount'];
 
   let initialPrice: Decimal;
   if (dex == 'ORCA') {
@@ -295,25 +287,11 @@ export function readExpanderRebalanceStateFromStrategy(
     throw new Error(`Unknown DEX ${dex}`);
   }
 
-  // let lowerRangeFactorBPS = lowerRangeBps.add(expansionBps.mul(expansionCount));
-  // let upperRangeFactorBPS = upperRangeBps.add(expansionBps.mul(expansionCount));
-  // let lowerRangeExpandedBPS = FullBPSDecimal.sub(lowerRangeFactorBPS).div(FullBPSDecimal);
-  // let upperRangeExpandedBPS = FullBPSDecimal.add(upperRangeFactorBPS).div(FullBPSDecimal);
-  // let expandedLowerResetRatioBps = lowerResetRatioBps.add(expansionBps.mul(expansionCount));
-  // let expandedUpperResetRatioBps = upperResetRatioBps.add(expansionBps.mul(expansionCount));
-  // let lowerResetRangeExpanderBPS = lowerRangeFactorBPS.mul(expandedLowerResetRatioBps).div(FullBPSDecimal);
-  // let upperResetRangeExpanderBPS = upperRangeFactorBPS.mul(expandedUpperResetRatioBps).div(FullBPSDecimal);
-
-  // let lowerPrice = initialPrice.mul(lowerRangeExpandedBPS);
-  // let upperPrice = initialPrice.mul(upperRangeExpandedBPS);
-
-  // let lowerResetPrice = initialPrice.mul(lowerResetRangeExpanderBPS);
-  // let upperResetPrice = initialPrice.mul(upperResetRangeExpanderBPS);
-
   let lowerRangeFactorBPS = lowerRangeBps.add(expansionBps.mul(expansionCount));
   let upperRangeFactorBPS = upperRangeBps.add(expansionBps.mul(expansionCount));
   let lowerRangeExpandedBPS = FullBPSDecimal.sub(lowerRangeFactorBPS).div(FullBPSDecimal);
   let upperRangeExpandedBPS = FullBPSDecimal.add(upperRangeFactorBPS).div(FullBPSDecimal);
+
   let lowerResetRangeExpanderBPS = lowerRangeFactorBPS.mul(lowerResetRatioBps).div(FullBPSDecimal);
   let upperResetRangeExpanderBPS = upperRangeFactorBPS.mul(upperResetRatioBps).div(FullBPSDecimal);
   let lowerResetRangeExpandedBPS = FullBPSDecimal.sub(lowerResetRangeExpanderBPS).div(FullBPSDecimal);

@@ -4009,7 +4009,7 @@ export class Kamino {
   /**
    * Get the rebalancing params from chain, alongside the current details of the position, reset range, etc
    */
-  async readRebalancingParamsWithStateRange(strategy: PublicKey | StrategyWithAddress): Promise<RebalanceFieldInfo[]> {
+  async readRebalancingParamsWithState(strategy: PublicKey | StrategyWithAddress): Promise<RebalanceFieldInfo[]> {
     const strategyWithAddress = await this.getStrategyStateIfNotFetched(strategy);
     let rebalanceKind = numberToRebalanceType(strategyWithAddress.strategy.rebalanceType);
     let dex = numberToDex(strategyWithAddress.strategy.strategyDex.toNumber());
