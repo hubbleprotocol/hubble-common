@@ -1,5 +1,5 @@
 import Decimal from 'decimal.js';
-import { PositionRange, RebalanceFieldInfo } from '../utils/types';
+import { PositionRange, RebalanceFieldInfo, RebalanceFieldsDict } from '../utils/types';
 import {
   DefaultLowerPercentageBPSDecimal,
   DefaultUpperPercentageBPSDecimal,
@@ -9,6 +9,7 @@ import {
 import { getManualRebalanceFieldInfos } from './manualRebalance';
 import { RebalanceRaw } from '../kamino-client/types';
 import { RebalanceTypeLabelName } from './consts';
+import { readBigUint128LE } from '../utils';
 
 export const DefaultMaxNumberOfExpansions = new Decimal(10);
 export const DefaultExpansionSizeBPS = new Decimal(100);
@@ -172,25 +173,42 @@ export function getDefaultExpanderRebalanceFieldInfos(price: Decimal): Rebalance
   return fieldInfos;
 }
 
-export function readExpanderRebalanceFieldInfosFromStrategy(price: Decimal, rebalanceRaw: RebalanceRaw) {
+export function readExpanderRebalanceParamsFromStrategy(rebalanceRaw: RebalanceRaw) {
   let paramsBuffer = Buffer.from(rebalanceRaw.params);
+  let params: RebalanceFieldsDict = {};
 
-  let lowerRangeBps = new Decimal(paramsBuffer.readUInt16LE(0));
-  let upperRangeBps = new Decimal(paramsBuffer.readUInt16LE(2));
-  let lowerResetRatioBps = new Decimal(paramsBuffer.readUInt16LE(4));
-  let upperResetRatioBps = new Decimal(paramsBuffer.readUInt16LE(6));
-  let expansionBps = new Decimal(paramsBuffer.readUInt16LE(8));
-  let maxNumberOfExpansions = new Decimal(paramsBuffer.readUInt16LE(10));
-  let swapUnevenAllowed = new Decimal(paramsBuffer.readUInt8(12));
+  params['lowerRangeBps'] = new Decimal(paramsBuffer.readUInt16LE(0));
+  params['upperRangeBps'] = new Decimal(paramsBuffer.readUInt16LE(2));
+  params['lowerResetRatioBps'] = new Decimal(paramsBuffer.readUInt16LE(4));
+  params['upperResetRatioBps'] = new Decimal(paramsBuffer.readUInt16LE(6));
+  params['expansionBps'] = new Decimal(paramsBuffer.readUInt16LE(8));
+  params['maxNumberOfExpansions'] = new Decimal(paramsBuffer.readUInt16LE(10));
+  params['swapUnevenAllowed'] = new Decimal(paramsBuffer.readUInt8(12));
+
+  return params;
+}
+
+export function readExpanderRebalanceStateFromStrategy(rebalanceRaw: RebalanceRaw) {
+  let stateBuffer = Buffer.from(rebalanceRaw.state);
+  let state: RebalanceFieldsDict = {};
+
+  state['initialPoolPrice'] = new Decimal(readBigUint128LE(stateBuffer, 0).toString());
+  state['expansionCount'] = new Decimal(stateBuffer.readUInt16LE(16));
+
+  return state;
+}
+
+export function readExpanderRebalanceFieldInfosFromStrategy(price: Decimal, rebalanceRaw: RebalanceRaw) {
+  const params = readExpanderRebalanceParamsFromStrategy(rebalanceRaw);
 
   return getExpanderRebalanceFieldInfos(
     price,
-    lowerRangeBps,
-    upperRangeBps,
-    lowerResetRatioBps,
-    upperResetRatioBps,
-    expansionBps,
-    maxNumberOfExpansions,
-    swapUnevenAllowed
+    params['lowerRangeBps'],
+    params['upperRangeBps'],
+    params['lowerResetRatioBps'],
+    params['upperResetRatioBps'],
+    params['expansionBps'],
+    params['maxNumberOfExpansions'],
+    params['swapUnevenAllowed']
   );
 }

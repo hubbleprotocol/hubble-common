@@ -1,5 +1,5 @@
 import Decimal from 'decimal.js';
-import { PositionRange, RebalanceFieldInfo } from '../utils/types';
+import { PositionRange, RebalanceFieldInfo, RebalanceFieldsDict } from '../utils/types';
 import { FullBPSDecimal } from '../utils/CreationParameters';
 import { getManualRebalanceFieldInfos } from './manualRebalance';
 import { RebalanceRaw } from '../kamino-client/types';
@@ -91,12 +91,33 @@ export function getDefaultPeriodicRebalanceFieldInfos(price: Decimal): Rebalance
   ).concat(getManualRebalanceFieldInfos(lowerPrice, upperPrice, false));
 }
 
-export function deserializePeriodicRebalanceFromOnchainParams(price: Decimal, rebalanceRaw: RebalanceRaw) {
+export function readPeriodicRebalanceRebalanceParamsFromStrategy(rebalanceRaw: RebalanceRaw) {
   let paramsBuffer = Buffer.from(rebalanceRaw.params);
+  let params: RebalanceFieldsDict = {};
 
-  let period = new Decimal(paramsBuffer.readBigUint64LE(0).toString());
-  let lowerRangeBps = new Decimal(paramsBuffer.readUInt16LE(8));
-  let upperRangeBps = new Decimal(paramsBuffer.readUInt16LE(10));
+  params['period'] = new Decimal(paramsBuffer.readBigUint64LE(0).toString());
+  params['lowerRangeBps'] = new Decimal(paramsBuffer.readUInt16LE(8));
+  params['upperRangeBps'] = new Decimal(paramsBuffer.readUInt16LE(10));
 
-  return getPeriodicRebalanceRebalanceFieldInfos(price, period, lowerRangeBps, upperRangeBps);
+  return params;
+}
+
+export function readPeriodicRebalanceRebalanceStateFromStrategy(rebalanceRaw: RebalanceRaw) {
+  let stateBuffer = Buffer.from(rebalanceRaw.state);
+  let state: RebalanceFieldsDict = {};
+
+  state['lastRebalanceTimestamp'] = new Decimal(stateBuffer.readBigUint64LE(0).toString());
+
+  return state;
+}
+
+export function deserializePeriodicRebalanceFromOnchainParams(price: Decimal, rebalanceRaw: RebalanceRaw) {
+  let params = readPeriodicRebalanceRebalanceParamsFromStrategy(rebalanceRaw);
+
+  return getPeriodicRebalanceRebalanceFieldInfos(
+    price,
+    params['period'],
+    params['lowerRangeBps'],
+    params['upperRangeBps']
+  );
 }

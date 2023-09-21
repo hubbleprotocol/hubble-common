@@ -1,5 +1,5 @@
 import Decimal from 'decimal.js';
-import { PositionRange, RebalanceFieldInfo } from '../utils/types';
+import { PositionRange, RebalanceFieldInfo, RebalanceFieldsDict } from '../utils/types';
 import {
   DefaultLowerPercentageBPSDecimal,
   DefaultUpperPercentageBPSDecimal,
@@ -7,6 +7,7 @@ import {
 } from '../utils/CreationParameters';
 import { RebalanceRaw } from '../kamino-client/types';
 import { RebalanceTypeLabelName } from './consts';
+import { readBigUint128LE } from '../utils';
 
 export const PricePercentageWithResetRebalanceTypeName = 'pricePercentageWithReset';
 
@@ -138,22 +139,38 @@ export function getDefaultPricePercentageWithResetRebalanceFieldInfos(price: Dec
   return fieldInfos;
 }
 
+export function readPricePercentageWithResetRebalanceParamsFromStrategy(rebalanceRaw: RebalanceRaw) {
+  let paramsBuffer = Buffer.from(rebalanceRaw.params);
+  let params: RebalanceFieldsDict = {};
+
+  params['lowerRangeBPS'] = new Decimal(paramsBuffer.readUint16LE(0));
+  params['upperRangeBPS'] = new Decimal(paramsBuffer.readUint16LE(2));
+  params['lowerResetRangeBps'] = new Decimal(paramsBuffer.readUint16LE(4));
+  params['upperResetRangeBps'] = new Decimal(paramsBuffer.readUint16LE(6));
+
+  return params;
+}
+
+export function readPricePercentageWithResetRebalanceStateFromStrategy(rebalanceRaw: RebalanceRaw) {
+  let stateBuffer = Buffer.from(rebalanceRaw.state);
+  let state: RebalanceFieldsDict = {};
+
+  state['lastRebalanceLowerResetPoolPrice'] = new Decimal(readBigUint128LE(stateBuffer, 0).toString());
+  state['lastRebalanceUpperResetPoolPrice'] = new Decimal(readBigUint128LE(stateBuffer, 16).toString());
+
+  return state;
+}
+
 export function deserializePricePercentageWithResetRebalanceFromOnchainParams(
   price: Decimal,
   rebalanceRaw: RebalanceRaw
 ): RebalanceFieldInfo[] {
-  let paramsBuffer = Buffer.from(rebalanceRaw.params);
-
-  let lowerRangeBPS = new Decimal(paramsBuffer.readUint16LE(0));
-  let upperRangeBPS = new Decimal(paramsBuffer.readUint16LE(2));
-  let lowerResetRangeBps = new Decimal(paramsBuffer.readUint16LE(4));
-  let upperResetRangeBps = new Decimal(paramsBuffer.readUint16LE(6));
-
+  let params = readPricePercentageWithResetRebalanceParamsFromStrategy(rebalanceRaw);
   return getPricePercentageWithResetRebalanceFieldInfos(
     price,
-    lowerRangeBPS,
-    upperRangeBPS,
-    lowerResetRangeBps,
-    upperResetRangeBps
+    params['lowerRangeBPS'],
+    params['upperRangeBPS'],
+    params['lowerResetRangeBps'],
+    params['upperResetRangeBps']
   );
 }

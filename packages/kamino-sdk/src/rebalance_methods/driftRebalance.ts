@@ -1,5 +1,5 @@
 import Decimal from 'decimal.js';
-import { PositionRange, RebalanceFieldInfo } from '../utils/types';
+import { PositionRange, RebalanceFieldInfo, RebalanceFieldsDict } from '../utils/types';
 import { Dex } from '../utils';
 import { priceToTickIndex, sqrtPriceX64ToPrice, tickIndexToPrice } from '@orca-so/whirlpool-sdk';
 import { SqrtPriceMath } from '@raydium-io/raydium-sdk';
@@ -153,28 +153,46 @@ export function getDefaultDriftRebalanceFieldInfos(
   );
 }
 
+export function readDriftRebalanceParamsFromStrategy(rebalanceRaw: RebalanceRaw) {
+  let paramsBuffer = Buffer.from(rebalanceRaw.params);
+  let params: RebalanceFieldsDict = {};
+
+  params['startMidTick'] = new Decimal(paramsBuffer.readInt32LE(0));
+  params['ticksBelowMid'] = new Decimal(paramsBuffer.readInt32LE(4));
+  params['ticksAboveMid'] = new Decimal(paramsBuffer.readInt32LE(8));
+  params['secondsPerTick'] = new Decimal(paramsBuffer.readBigUint64LE(12).toString());
+  params['direction'] = new Decimal(paramsBuffer.readUint8(20));
+
+  return params;
+}
+
+export function readDriftRebalanceStateFromStrategy(rebalanceRaw: RebalanceRaw) {
+  let stateBuffer = Buffer.from(rebalanceRaw.state);
+  let state: RebalanceFieldsDict = {};
+
+  state['step'] = new Decimal(stateBuffer.readUInt8(0));
+  state['lastDriftTimestamp'] = new Decimal(stateBuffer.readBigUint64LE(1).toString());
+  state['lastMidTick'] = new Decimal(stateBuffer.readInt32LE(9));
+
+  return state;
+}
+
 export function deserializeDriftRebalanceFromOnchainParams(
   dex: Dex,
   tokenADecimals: number,
   tokenBDecimals: number,
   rebalanceRaw: RebalanceRaw
 ): RebalanceFieldInfo[] {
-  let paramsBuffer = Buffer.from(rebalanceRaw.params);
-
-  let startMidTick = new Decimal(paramsBuffer.readInt32LE(0));
-  let ticksBelowMid = new Decimal(paramsBuffer.readInt32LE(4));
-  let ticksAboveMid = new Decimal(paramsBuffer.readInt32LE(8));
-  let secondsPerTick = new Decimal(paramsBuffer.readBigUint64LE(12).toString());
-  let direction = new Decimal(paramsBuffer.readUint8(20));
+  let params = readDriftRebalanceParamsFromStrategy(rebalanceRaw);
 
   return getDriftRebalanceFieldInfos(
     dex,
     tokenADecimals,
     tokenBDecimals,
-    startMidTick,
-    ticksBelowMid,
-    ticksAboveMid,
-    secondsPerTick,
-    direction
+    params['startMidTick'],
+    params['ticksBelowMid'],
+    params['ticksAboveMid'],
+    params['secondsPerTick'],
+    params['direction']
   );
 }

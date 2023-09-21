@@ -113,6 +113,7 @@ import {
   PriceReferenceType,
   InputRebalanceFieldInfo,
   getTickArray,
+  RebalanceFieldsDict,
 } from './utils';
 import { ASSOCIATED_TOKEN_PROGRAM_ID, Token, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import {
@@ -252,18 +253,24 @@ import {
   getDefaultPricePercentageRebalanceFieldInfos,
   getPositionRangeFromPercentageRebalanceParams,
   getPricePercentageRebalanceFieldInfos,
+  readPricePercentageRebalanceParamsFromStrategy,
+  readPricePercentageRebalanceStateFromStrategy,
 } from './rebalance_methods/pricePercentageRebalance';
 import {
   deserializePricePercentageWithResetRebalanceFromOnchainParams,
   getDefaultPricePercentageWithResetRebalanceFieldInfos,
   getPositionRangeFromPricePercentageWithResetParams,
   getPricePercentageWithResetRebalanceFieldInfos,
+  readPricePercentageWithResetRebalanceParamsFromStrategy,
+  readPricePercentageWithResetRebalanceStateFromStrategy,
 } from './rebalance_methods/pricePercentageWithResetRebalance';
 import {
   deserializeDriftRebalanceFromOnchainParams,
   getDefaultDriftRebalanceFieldInfos,
   getDriftRebalanceFieldInfos,
   getPositionRangeFromDriftParams,
+  readDriftRebalanceParamsFromStrategy,
+  readDriftRebalanceStateFromStrategy,
 } from './rebalance_methods/driftRebalance';
 import {
   deserializePeriodicRebalanceFromOnchainParams,
@@ -277,6 +284,12 @@ import {
   getPositionRangeFromPeriodicRebalanceParams,
   getTakeProfitRebalanceFieldsInfos,
   readExpanderRebalanceFieldInfosFromStrategy,
+  readExpanderRebalanceParamsFromStrategy,
+  readExpanderRebalanceStateFromStrategy,
+  readPeriodicRebalanceRebalanceParamsFromStrategy,
+  readPeriodicRebalanceRebalanceStateFromStrategy,
+  readTakeProfitRebalanceParamsFromStrategy,
+  readTakeProfitRebalanceStateFromStrategy,
 } from './rebalance_methods';
 import { PoolPriceReferenceType, TwapPriceReferenceType } from './utils/priceReferenceTypes';
 import { getRebalanceMethodFromRebalanceFields, getRebalanceTypeFromRebalanceFields } from './rebalance_methods/utils';
@@ -3868,6 +3881,64 @@ export class Kamino {
     }
 
     return this.getPriceRangePercentageBasedFromPrice(poolPrice, lowerPriceBpsDifference, upperPriceBpsDifference);
+  }
+
+  /**
+   * Get the raw rebalancing params given the strategy type
+   */
+  async readRebalancingParamsFromChain(strategy: PublicKey | StrategyWithAddress): Promise<RebalanceFieldsDict> {
+    const strategyWithAddress = await this.getStrategyStateIfNotFetched(strategy);
+    let rebalanceKind = numberToRebalanceType(strategyWithAddress.strategy.rebalanceType);
+
+    if (rebalanceKind.kind === Manual.kind) {
+      return {};
+    } else if (rebalanceKind.kind === PricePercentage.kind) {
+      return readPricePercentageRebalanceParamsFromStrategy(strategyWithAddress.strategy.rebalanceRaw);
+    } else if (rebalanceKind.kind === PricePercentageWithReset.kind) {
+      return readPricePercentageWithResetRebalanceParamsFromStrategy(strategyWithAddress.strategy.rebalanceRaw);
+    } else if (rebalanceKind.kind === Drift.kind) {
+      return readDriftRebalanceParamsFromStrategy(strategyWithAddress.strategy.rebalanceRaw);
+    } else if (rebalanceKind.kind === TakeProfit.kind) {
+      let tokenADecimals = await getMintDecimals(this._connection, strategyWithAddress.strategy.tokenAMint);
+      let tokenBDecimals = await getMintDecimals(this._connection, strategyWithAddress.strategy.tokenBMint);
+      return readTakeProfitRebalanceParamsFromStrategy(
+        tokenADecimals,
+        tokenBDecimals,
+        strategyWithAddress.strategy.rebalanceRaw
+      );
+    } else if (rebalanceKind.kind === PeriodicRebalance.kind) {
+      return readPeriodicRebalanceRebalanceParamsFromStrategy(strategyWithAddress.strategy.rebalanceRaw);
+    } else if (rebalanceKind.kind === Expander.kind) {
+      return readExpanderRebalanceParamsFromStrategy(strategyWithAddress.strategy.rebalanceRaw);
+    } else {
+      throw new Error(`Rebalance type ${rebalanceKind} is not supported`);
+    }
+  }
+
+  /**
+   * Get the raw rebalancing params given the strategy type
+   */
+  async readRebalancingStateFromChain(strategy: PublicKey | StrategyWithAddress): Promise<RebalanceFieldsDict> {
+    const strategyWithAddress = await this.getStrategyStateIfNotFetched(strategy);
+    let rebalanceKind = numberToRebalanceType(strategyWithAddress.strategy.rebalanceType);
+
+    if (rebalanceKind.kind === Manual.kind) {
+      return {};
+    } else if (rebalanceKind.kind === PricePercentage.kind) {
+      return readPricePercentageRebalanceStateFromStrategy(strategyWithAddress.strategy.rebalanceRaw);
+    } else if (rebalanceKind.kind === PricePercentageWithReset.kind) {
+      return readPricePercentageWithResetRebalanceStateFromStrategy(strategyWithAddress.strategy.rebalanceRaw);
+    } else if (rebalanceKind.kind === Drift.kind) {
+      return readDriftRebalanceStateFromStrategy(strategyWithAddress.strategy.rebalanceRaw);
+    } else if (rebalanceKind.kind === TakeProfit.kind) {
+      return readTakeProfitRebalanceStateFromStrategy(strategyWithAddress.strategy.rebalanceRaw);
+    } else if (rebalanceKind.kind === PeriodicRebalance.kind) {
+      return readPeriodicRebalanceRebalanceStateFromStrategy(strategyWithAddress.strategy.rebalanceRaw);
+    } else if (rebalanceKind.kind === Expander.kind) {
+      return readExpanderRebalanceStateFromStrategy(strategyWithAddress.strategy.rebalanceRaw);
+    } else {
+      throw new Error(`Rebalance type ${rebalanceKind} is not supported`);
+    }
   }
 
   /**
