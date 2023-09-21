@@ -141,6 +141,7 @@ export class Scope {
     { id: 113, pair: 'kbSOLMSOLOrca/USD', name: 'kbSOLMSOLOrca', price: new Decimal(0) },
     { id: 114, pair: 'kMSOLJITOSOLOrca/USD', name: 'kMSOLJITOSOLOrca', price: new Decimal(0) },
     { id: 115, pair: 'kSOLUSDCOrca/USD', name: 'kSOLUSDCOrca', price: new Decimal(0) },
+    { id: 116, pair: 'kJITOSOLUSDCOrca/USD', name: 'kJITOSOLUSDCOrca', price: new Decimal(0) },
   ];
 
   /**

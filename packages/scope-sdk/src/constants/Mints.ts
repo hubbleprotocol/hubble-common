@@ -83,6 +83,7 @@ export const ScopeMints: { cluster: SolanaCluster; mints: { token: SupportedToke
       { token: 'kbSOLMSOLOrca', mint: '9Lp1QjKTWCLhaVi73UbXMcgnvTAgn7HkgGddeynxnufQ' },
       { token: 'kMSOLJITOSOLOrca', mint: 'YuQA2srzPKt4dLVoWdiqGXkU5GgAErdNB2yMsecRYdW' },
       { token: 'kSOLUSDCOrca', mint: '8aRT9m1wJ63mnFxeZ3qyBCrwbNMuPKPCEYxpXB41WzYd' },
+      { token: 'kJITOSOLUSDCOrca', mint: '8Ak9JgLeTo6ubG5vfpuAR59ANpGjTB8HFDwYjpZbkPeB' },
     ],
   },
   {
