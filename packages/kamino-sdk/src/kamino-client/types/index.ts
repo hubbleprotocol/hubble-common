@@ -611,5 +611,5 @@ export type ScopePriceIdTestJSON =
 
 export { DEX }
 
-export type DEXKind = DEX.Orca | DEX.Raydium | DEX.Crema
-export type DEXJSON = DEX.OrcaJSON | DEX.RaydiumJSON | DEX.CremaJSON
+export type DEXKind = DEX.Orca | DEX.Raydium
+export type DEXJSON = DEX.OrcaJSON | DEX.RaydiumJSON

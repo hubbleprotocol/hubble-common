@@ -2092,8 +2092,6 @@ export class Kamino {
       tokenAVault: strategyState.strategy.tokenAVault,
       tokenBVault: strategyState.strategy.tokenBVault,
       baseVaultAuthority: strategyState.strategy.baseVaultAuthority,
-      treasuryFeeTokenAVault,
-      treasuryFeeTokenBVault,
       tokenAAta,
       tokenBAta,
       tokenAMint: strategyState.strategy.tokenAMint,
@@ -2479,8 +2477,6 @@ export class Kamino {
       tokenAVault: strategyState.tokenAVault,
       tokenBVault: strategyState.tokenBVault,
       baseVaultAuthority: strategyState.baseVaultAuthority,
-      treasuryFeeTokenAVault,
-      treasuryFeeTokenBVault,
       tokenAAta,
       tokenBAta,
       tokenAMint: strategyState.tokenAMint,
@@ -2874,6 +2870,7 @@ export class Kamino {
    */
   closeStrategy = async (strategy: PublicKey) => {
     const { address: _strategyPubkey, strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
+    let collInfos = await this.getCollateralInfos();
 
     const poolProgram = getDexProgramId(strategyState);
     let oldPositionOrBaseVaultAuthority = strategyState.baseVaultAuthority;
@@ -2883,6 +2880,71 @@ export class Kamino {
       oldPositionOrBaseVaultAuthority = strategyState.position;
       oldPositionMintOrBaseVaultAuthority = strategyState.positionMint;
       oldPositionTokenAccountOrBaseVaultAuthority = strategyState.positionTokenAccount;
+    }
+    let userTokenAAta = getAssociatedTokenAddress(strategyState.tokenAMint, strategyState.adminAuthority);
+    let userTokenBAta = getAssociatedTokenAddress(strategyState.tokenBMint, strategyState.adminAuthority);
+    let reward0Vault = strategyState.baseVaultAuthority;
+    let userReward0Ata = strategyState.baseVaultAuthority;
+    if (strategyState.reward0Vault != new PublicKey(0) && strategyState.reward0Decimals.toNumber() > 0) {
+      reward0Vault = strategyState.reward0Vault;
+      userReward0Ata = getAssociatedTokenAddress(
+        collInfos[strategyState.reward0CollateralId.toNumber()].mint,
+        strategyState.adminAuthority
+      );
+    }
+    let reward1Vault = strategyState.baseVaultAuthority;
+    let userReward1Ata = strategyState.baseVaultAuthority;
+    if (strategyState.reward1Vault != new PublicKey(0) && strategyState.reward1Decimals.toNumber() > 0) {
+      reward1Vault = strategyState.reward1Vault;
+      userReward1Ata = getAssociatedTokenAddress(
+        collInfos[strategyState.reward1CollateralId.toNumber()].mint,
+        strategyState.adminAuthority
+      );
+    }
+    let reward2Vault = strategyState.baseVaultAuthority;
+    let userReward2Ata = strategyState.baseVaultAuthority;
+    if (strategyState.reward2Vault != new PublicKey(0) && strategyState.reward2Decimals.toNumber() > 0) {
+      reward2Vault = strategyState.reward2Vault;
+      userReward2Ata = getAssociatedTokenAddress(
+        collInfos[strategyState.reward2CollateralId.toNumber()].mint,
+        strategyState.adminAuthority
+      );
+    }
+    let kaminoReward0Vault = strategyState.baseVaultAuthority;
+    let userKaminoReward0Ata = strategyState.baseVaultAuthority;
+    if (
+      strategyState.kaminoRewards[0].rewardVault != new PublicKey(0) &&
+      strategyState.kaminoRewards[0].decimals.toNumber() > 0
+    ) {
+      kaminoReward0Vault = strategyState.kaminoRewards[0].rewardVault;
+      userKaminoReward0Ata = getAssociatedTokenAddress(
+        strategyState.kaminoRewards[0].rewardMint,
+        strategyState.adminAuthority
+      );
+    }
+    let kaminoReward1Vault = strategyState.baseVaultAuthority;
+    let userKaminoReward1Ata = strategyState.baseVaultAuthority;
+    if (
+      strategyState.kaminoRewards[1].rewardVault != new PublicKey(0) &&
+      strategyState.kaminoRewards[1].decimals.toNumber() > 0
+    ) {
+      kaminoReward1Vault = strategyState.kaminoRewards[1].rewardVault;
+      userKaminoReward1Ata = getAssociatedTokenAddress(
+        strategyState.kaminoRewards[1].rewardMint,
+        strategyState.adminAuthority
+      );
+    }
+    let kaminoReward2Vault = strategyState.baseVaultAuthority;
+    let userKaminoReward2Ata = strategyState.baseVaultAuthority;
+    if (
+      strategyState.kaminoRewards[1].rewardVault != new PublicKey(0) &&
+      strategyState.kaminoRewards[1].decimals.toNumber() > 0
+    ) {
+      kaminoReward1Vault = strategyState.kaminoRewards[1].rewardVault;
+      userKaminoReward1Ata = getAssociatedTokenAddress(
+        strategyState.kaminoRewards[1].rewardMint,
+        strategyState.adminAuthority
+      );
     }
 
     const strategyAccounts: CloseStrategyAccounts = {
@@ -2897,6 +2959,20 @@ export class Kamino {
       system: SystemProgram.programId,
       tokenProgram: TOKEN_PROGRAM_ID,
       poolProgram: poolProgram,
+      userTokenAAta,
+      userTokenBAta,
+      reward0Vault,
+      reward1Vault,
+      reward2Vault,
+      kaminoReward0Vault,
+      kaminoReward1Vault,
+      kaminoReward2Vault,
+      userReward0Ata,
+      userReward1Ata,
+      userReward2Ata,
+      userKaminoReward0Ata,
+      userKaminoReward1Ata,
+      userKaminoReward2Ata,
     };
 
     return closeStrategy(strategyAccounts);
