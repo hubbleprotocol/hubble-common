@@ -83,6 +83,19 @@ export function getDriftRebalanceFieldInfos(
     enabled: false,
   };
 
+  let resetLowerRangeRebalanceFieldInfo: RebalanceFieldInfo = {
+    label: 'resetPriceLower',
+    type: 'number',
+    value: lowerPrice,
+    enabled: false,
+  };
+  let resetUpperRangeRebalanceFieldInfo: RebalanceFieldInfo = {
+    label: 'resetPriceUpper',
+    type: 'number',
+    value: upperPrice,
+    enabled: false,
+  };
+
   return [
     rebalanceType,
     startMidTickRebalanceFieldInfo,
@@ -92,6 +105,8 @@ export function getDriftRebalanceFieldInfos(
     directionRebalanceFieldInfo,
     lowerRangeRebalanceFieldInfo,
     upperRangeRebalanceFieldInfo,
+    resetLowerRangeRebalanceFieldInfo,
+    resetUpperRangeRebalanceFieldInfo,
   ];
 }
 
@@ -154,7 +169,7 @@ export function getDefaultDriftRebalanceFieldInfos(
   );
 }
 
-export function readDriftRebalanceParamsFromStrategy(rebalanceRaw: RebalanceRaw) {
+export function readDriftRebalanceParamsFromStrategy(rebalanceRaw: RebalanceRaw): RebalanceFieldsDict {
   let paramsBuffer = Buffer.from(rebalanceRaw.params);
   let params: RebalanceFieldsDict = {};
 
@@ -185,15 +200,9 @@ export function readDriftRebalanceStateFromStrategy(
   rebalanceRaw: RebalanceRaw
 ) {
   let stateBuffer = Buffer.from(rebalanceRaw.state);
-  let state: RebalanceFieldsDict = {};
-
-  let fields = deserializeDriftRebalanceFromOnchainParams(dex, tokenADecimals, tokenBDecimals, rebalanceRaw);
-
-  let step = new Decimal(stateBuffer.readUInt8(0));
-  let lastDriftTimestamp = new Decimal(stateBuffer.readBigUint64LE(1).toString());
-  let lastMidTick = new Decimal(stateBuffer.readInt32LE(9));
-
   let paramsBuffer = Buffer.from(rebalanceRaw.params);
+
+  let lastMidTick = new Decimal(stateBuffer.readInt32LE(9));
 
   let ticksBelowMid = new Decimal(paramsBuffer.readInt32LE(4));
   let ticksAboveMid = new Decimal(paramsBuffer.readInt32LE(8));
@@ -238,13 +247,13 @@ export function readDriftRebalanceStateFromStrategy(
     label: 'resetPriceLower',
     type: 'number',
     value: lowerPrice,
-    enabled: true,
+    enabled: false,
   };
   let resetUpperBpsRebalanceFieldInfo: RebalanceFieldInfo = {
     label: 'resetPriceUpper',
     type: 'number',
     value: upperPrice,
-    enabled: true,
+    enabled: false,
   };
 
   return [

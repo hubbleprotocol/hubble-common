@@ -11,6 +11,7 @@ import { Dex, readBigUint128LE } from '../utils';
 import { upsertManyRebalanceFieldInfos } from './utils';
 import { sqrtPriceX64ToPrice } from '@orca-so/whirlpool-sdk';
 import BN from 'bn.js';
+import { getPriceRangeFromPriceAndDiffBPS } from './math_utils';
 
 export const PricePercentageRebalanceTypeName = 'pricePercentage';
 
@@ -71,9 +72,7 @@ export function getPositionRangeFromPercentageRebalanceParams(
   lowerPercentageBPS: Decimal,
   upperPercentageBPS: Decimal
 ): PositionRange {
-  let lowerPrice = price.mul(FullBPSDecimal.sub(lowerPercentageBPS)).div(FullBPSDecimal);
-  let upperPrice = price.mul(FullBPSDecimal.add(upperPercentageBPS)).div(FullBPSDecimal);
-  return { lowerPrice, upperPrice };
+  return getPriceRangeFromPriceAndDiffBPS(price, lowerPercentageBPS, upperPercentageBPS);
 }
 
 export function getDefaultPricePercentageRebalanceFieldInfos(price: Decimal): RebalanceFieldInfo[] {

@@ -11,6 +11,7 @@ import { Dex, readBigUint128LE } from '../utils';
 import { sqrtPriceX64ToPrice } from '@orca-so/whirlpool-sdk';
 import BN from 'bn.js';
 import { upsertManyRebalanceFieldInfos } from './utils';
+import { getPriceRangeFromPriceAndDiffBPS } from './math_utils';
 
 export const PricePercentageWithResetRebalanceTypeName = 'pricePercentageWithReset';
 
@@ -110,9 +111,7 @@ export function getPositionRangeFromPricePercentageWithResetParams(
   lowerPercentageBPS: Decimal,
   upperPercentageBPS: Decimal
 ): PositionRange {
-  let lowerPrice = price.mul(FullBPSDecimal.sub(lowerPercentageBPS)).div(FullBPSDecimal);
-  let upperPrice = price.mul(FullBPSDecimal.add(upperPercentageBPS)).div(FullBPSDecimal);
-  return { lowerPrice, upperPrice };
+  return getPriceRangeFromPriceAndDiffBPS(price, lowerPercentageBPS, upperPercentageBPS);
 }
 
 export function getPositionResetRangeFromPricePercentageWithResetParams(
@@ -213,23 +212,21 @@ export function readPricePercentageWithResetRebalanceStateFromStrategy(
 
   let lowerResetSqrtPriceX64 = new Decimal(readBigUint128LE(stateBuffer, 0).toString());
   let upperResetSqrtPriceX64 = new Decimal(readBigUint128LE(stateBuffer, 16).toString());
-  let lowerResetPrice: Decimal, upperResetPrice: Decimal, lowerPositionPrice: Decimal, upperPositionPrice: Decimal;
+
+  let lowerResetPrice: Decimal, upperResetPrice: Decimal;
 
   if (dex == 'ORCA') {
     lowerResetPrice = sqrtPriceX64ToPrice(new BN(lowerResetSqrtPriceX64.toString()), tokenADecimals, tokenBDecimals);
     upperResetPrice = sqrtPriceX64ToPrice(new BN(upperResetSqrtPriceX64.toString()), tokenADecimals, tokenBDecimals);
-
-    lowerPositionPrice = lowerResetPrice.mul(FullBPSDecimal).div(resetLowerRangeBps);
-    upperPositionPrice = upperResetPrice.div(FullBPSDecimal).mul(resetUpperRangeBps);
   } else if (dex == 'RAYDIUM') {
     lowerResetPrice = sqrtPriceX64ToPrice(new BN(lowerResetSqrtPriceX64.toString()), tokenADecimals, tokenBDecimals);
     upperResetPrice = sqrtPriceX64ToPrice(new BN(upperResetSqrtPriceX64.toString()), tokenADecimals, tokenBDecimals);
-
-    lowerPositionPrice = lowerResetPrice.mul(FullBPSDecimal).div(resetLowerRangeBps);
-    upperPositionPrice = upperResetPrice.div(FullBPSDecimal).mul(resetUpperRangeBps);
   } else {
     throw new Error(`Unknown DEX ${dex}`);
   }
+
+  let lowerPositionPrice = lowerResetPrice.mul(FullBPSDecimal).div(resetLowerRangeBps);
+  let upperPositionPrice = upperResetPrice.div(FullBPSDecimal).mul(resetUpperRangeBps);
 
   let lowerBpsRebalanceFieldInfo: RebalanceFieldInfo = {
     label: 'rangePriceLower',

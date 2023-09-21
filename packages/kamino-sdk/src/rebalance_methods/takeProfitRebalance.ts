@@ -42,12 +42,26 @@ export function getTakeProfitRebalanceFieldsInfos(
     value: destinationToken,
     enabled,
   };
+  let resetLowerBpsRebalanceFieldInfo: RebalanceFieldInfo = {
+    label: 'resetPriceLower',
+    type: 'number',
+    value: lowerRangePrice,
+    enabled,
+  };
+  let resetUpperBpsRebalanceFieldInfo: RebalanceFieldInfo = {
+    label: 'resetPriceUpper',
+    type: 'number',
+    value: upperRangePrice,
+    enabled,
+  };
 
   return [
     rebalanceType,
     lowerRangePriceRebalanceFieldInfo,
     upperRangePriceRebalanceFieldInfo,
     destinationTokenRebalanceFieldInfo,
+    resetLowerBpsRebalanceFieldInfo,
+    resetUpperBpsRebalanceFieldInfo,
   ];
 }
 

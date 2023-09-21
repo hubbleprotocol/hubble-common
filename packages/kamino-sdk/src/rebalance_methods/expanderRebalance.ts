@@ -273,18 +273,15 @@ export function readExpanderRebalanceStateFromStrategy(
   rebalanceRaw: RebalanceRaw
 ): RebalanceFieldInfo[] {
   let stateBuffer = Buffer.from(rebalanceRaw.state);
-  let state: RebalanceFieldsDict = {};
 
   let paramsBuffer = Buffer.from(rebalanceRaw.params);
-  let params = readExpanderRebalanceParamsFromStrategy(rebalanceRaw);
 
   let lowerRangeBps = new Decimal(paramsBuffer.readUInt16LE(0));
   let upperRangeBps = new Decimal(paramsBuffer.readUInt16LE(2));
   let lowerResetRatioBps = new Decimal(paramsBuffer.readUInt16LE(4));
   let upperResetRatioBps = new Decimal(paramsBuffer.readUInt16LE(6));
   let expansionBps = new Decimal(paramsBuffer.readUInt16LE(8));
-  let maxNumberOfExpansions = new Decimal(paramsBuffer.readUInt16LE(10));
-  let swapUnevenAllowed = new Decimal(paramsBuffer.readUInt8(12));
+
 
   let initialPriceX64 = new Decimal(readBigUint128LE(stateBuffer, 0).toString());
   let expansionCount = new Decimal(stateBuffer.readUInt16LE(16));
