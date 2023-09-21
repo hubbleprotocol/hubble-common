@@ -4535,8 +4535,6 @@ export class Kamino {
   ): Promise<DepositAmountsForSwap> => {
     const strategyWithAddress = await this.getStrategyStateIfNotFetched(strategy);
     const strategyState = strategyWithAddress.strategy;
-    let tokenAMint = strategyState.tokenAMint;
-    let tokenBMint = strategyState.tokenBMint;
 
     if (!priceAInB) {
       priceAInB = await this.getCurrentPrice(strategyWithAddress);
