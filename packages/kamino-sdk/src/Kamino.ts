@@ -4533,12 +4533,11 @@ export class Kamino {
     profiler: ProfiledFunctionExecution = noopProfiledFunctionExecution,
     priceAInB?: Decimal
   ): Promise<DepositAmountsForSwap> => {
-    const { strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
-    let tokenAMint = strategyState.tokenAMint;
-    let tokenBMint = strategyState.tokenBMint;
+    const strategyWithAddress = await this.getStrategyStateIfNotFetched(strategy);
+    const strategyState = strategyWithAddress.strategy;
 
     if (!priceAInB) {
-      priceAInB = new Decimal(await this._jupService.getPrice(tokenAMint, tokenBMint));
+      priceAInB = await this.getCurrentPrice(strategyWithAddress);
     }
 
     const priceBInA = new Decimal(1).div(priceAInB);
