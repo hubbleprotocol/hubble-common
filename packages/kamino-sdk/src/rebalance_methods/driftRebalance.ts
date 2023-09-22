@@ -5,6 +5,7 @@ import { priceToTickIndex, sqrtPriceX64ToPrice, tickIndexToPrice } from '@orca-s
 import { SqrtPriceMath } from '@raydium-io/raydium-sdk';
 import { RebalanceRaw } from '../kamino-client/types';
 import { RebalanceTypeLabelName } from './consts';
+import { upsertManyRebalanceFieldInfos } from './utils';
 
 export const DEFAULT_TICKS_BELOW_MID = new Decimal(10);
 export const DEFAULT_TICKS_ABOVE_MID = new Decimal(10);
@@ -153,7 +154,7 @@ export function getDefaultDriftRebalanceFieldInfos(
   );
 }
 
-export function readDriftRebalanceParamsFromStrategy(rebalanceRaw: RebalanceRaw) {
+export function readDriftRebalanceParamsFromStrategy(rebalanceRaw: RebalanceRaw): RebalanceFieldsDict {
   let paramsBuffer = Buffer.from(rebalanceRaw.params);
   let params: RebalanceFieldsDict = {};
 
@@ -166,7 +167,7 @@ export function readDriftRebalanceParamsFromStrategy(rebalanceRaw: RebalanceRaw)
   return params;
 }
 
-export function readDriftRebalanceStateFromStrategy(rebalanceRaw: RebalanceRaw) {
+export function readRawDriftRebalanceStateFromStrategy(rebalanceRaw: RebalanceRaw) {
   let stateBuffer = Buffer.from(rebalanceRaw.state);
   let state: RebalanceFieldsDict = {};
 
@@ -175,6 +176,59 @@ export function readDriftRebalanceStateFromStrategy(rebalanceRaw: RebalanceRaw) 
   state['lastMidTick'] = new Decimal(stateBuffer.readInt32LE(9));
 
   return state;
+}
+
+export function readDriftRebalanceStateFromStrategy(
+  dex: Dex,
+  tokenADecimals: number,
+  tokenBDecimals: number,
+  rebalanceRaw: RebalanceRaw
+) {
+  let stateBuffer = Buffer.from(rebalanceRaw.state);
+  let paramsBuffer = Buffer.from(rebalanceRaw.params);
+
+  let lastMidTick = new Decimal(stateBuffer.readInt32LE(9));
+
+  let ticksBelowMid = new Decimal(paramsBuffer.readInt32LE(4));
+  let ticksAboveMid = new Decimal(paramsBuffer.readInt32LE(8));
+
+  let lowerTickIndex = lastMidTick.sub(ticksBelowMid);
+  let upperTickIndex = lastMidTick.add(ticksAboveMid);
+
+  let lowerPrice: Decimal, upperPrice: Decimal;
+  if (dex == 'ORCA') {
+    lowerPrice = tickIndexToPrice(lowerTickIndex.toNumber(), tokenADecimals, tokenBDecimals);
+    upperPrice = tickIndexToPrice(upperTickIndex.toNumber(), tokenADecimals, tokenBDecimals);
+  } else if (dex == 'RAYDIUM') {
+    lowerPrice = sqrtPriceX64ToPrice(
+      SqrtPriceMath.getSqrtPriceX64FromTick(lowerTickIndex.toNumber()),
+      tokenADecimals,
+      tokenBDecimals
+    );
+
+    upperPrice = sqrtPriceX64ToPrice(
+      SqrtPriceMath.getSqrtPriceX64FromTick(upperTickIndex.toNumber()),
+      tokenADecimals,
+      tokenBDecimals
+    );
+  } else {
+    throw new Error(`Unknown DEX ${dex}`);
+  }
+
+  let lowerRangeRebalanceFieldInfo: RebalanceFieldInfo = {
+    label: 'rangePriceLower',
+    type: 'number',
+    value: lowerPrice,
+    enabled: false,
+  };
+  let upperRangeRebalanceFieldInfo: RebalanceFieldInfo = {
+    label: 'rangePriceUpper',
+    type: 'number',
+    value: upperPrice,
+    enabled: false,
+  };
+
+  return [lowerRangeRebalanceFieldInfo, upperRangeRebalanceFieldInfo];
 }
 
 export function deserializeDriftRebalanceFromOnchainParams(
@@ -195,4 +249,17 @@ export function deserializeDriftRebalanceFromOnchainParams(
     params['secondsPerTick'],
     params['direction']
   );
+}
+
+export function deserializeDriftRebalanceWithStateOverride(
+  dex: Dex,
+  tokenADecimals: number,
+  tokenBDecimals: number,
+  rebalanceRaw: RebalanceRaw
+): RebalanceFieldInfo[] {
+  const stateFields = readDriftRebalanceStateFromStrategy(dex, tokenADecimals, tokenBDecimals, rebalanceRaw);
+
+  let fields = deserializeDriftRebalanceFromOnchainParams(dex, tokenADecimals, tokenBDecimals, rebalanceRaw);
+
+  return upsertManyRebalanceFieldInfos(fields, stateFields);
 }
