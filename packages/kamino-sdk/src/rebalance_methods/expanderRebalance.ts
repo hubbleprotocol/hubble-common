@@ -289,19 +289,23 @@ export function readExpanderRebalanceStateFromStrategy(
 
   let lowerRangeFactorBPS = lowerRangeBps.add(expansionBps.mul(expansionCount));
   let upperRangeFactorBPS = upperRangeBps.add(expansionBps.mul(expansionCount));
-  let lowerRangeExpandedBPS = FullBPSDecimal.sub(lowerRangeFactorBPS).div(FullBPSDecimal);
-  let upperRangeExpandedBPS = FullBPSDecimal.add(upperRangeFactorBPS).div(FullBPSDecimal);
 
   let lowerResetRangeExpanderBPS = lowerRangeFactorBPS.mul(lowerResetRatioBps).div(FullBPSDecimal);
   let upperResetRangeExpanderBPS = upperRangeFactorBPS.mul(upperResetRatioBps).div(FullBPSDecimal);
-  let lowerResetRangeExpandedBPS = FullBPSDecimal.sub(lowerResetRangeExpanderBPS).div(FullBPSDecimal);
-  let upperResetRangeExpandedBPS = FullBPSDecimal.add(upperResetRangeExpanderBPS).div(FullBPSDecimal);
 
-  let lowerPrice = initialPrice.mul(lowerRangeExpandedBPS);
-  let upperPrice = initialPrice.mul(upperRangeExpandedBPS);
+  let { lowerPrice, upperPrice } = getPriceRangeFromPriceAndDiffBPS(
+    initialPrice,
+    lowerRangeFactorBPS,
+    upperRangeFactorBPS
+  );
 
-  let lowerResetPrice = initialPrice.mul(lowerResetRangeExpandedBPS);
-  let upperResetPrice = initialPrice.mul(upperResetRangeExpandedBPS);
+  let { lowerPrice: lowerResetPrice, upperPrice: upperResetPrice } = getResetRangeFromPriceAndDiffBPS(
+    initialPrice,
+    lowerRangeFactorBPS,
+    upperRangeFactorBPS,
+    lowerResetRangeExpanderBPS,
+    upperResetRangeExpanderBPS
+  );
 
   let lowerRangeRebalanceFieldInfo: RebalanceFieldInfo = {
     label: 'rangePriceLower',
