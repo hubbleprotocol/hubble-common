@@ -33,7 +33,7 @@ export class RaydiumService {
   }
 
   async getRaydiumWhirlpools(): Promise<RaydiumPoolsResponse> {
-    return (await axios.get<RaydiumPoolsResponse>(`https://api.raydium.io/v2/ammV3/ammPools`)).data;
+    return (await axios.get<RaydiumPoolsResponse>(`https://api.hubbleprotocol.io/raydium/ammPools`)).data;
   }
 
   async getRaydiumPoolLiquidityDistribution(
@@ -43,7 +43,9 @@ export class RaydiumService {
     highestTick?: number
   ): Promise<LiquidityDistribution> {
     let raydiumLiqDistribution = (
-      await axios.get<RaydiumLiquidityDistribuion>(`https://api.raydium.io/v2/ammV3/positionLine/${pool.toString()}`)
+      await axios.get<RaydiumLiquidityDistribuion>(
+        `https://api.hubbleprotocol.io/raydium/positionLine/${pool.toString()}`
+      )
     ).data;
 
     const poolState = await PoolState.fetch(this._connection, pool);
