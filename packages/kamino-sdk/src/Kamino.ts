@@ -5411,11 +5411,11 @@ export class Kamino {
     }
   };
 
-  async initializeTickForOrcaPool(
+  initializeTickForOrcaPool = async (
     payer: PublicKey,
     pool: PublicKey | WhirlpoolWithAddress,
     price: Decimal
-  ): Promise<TransactionInstruction | undefined> {
+  ): Promise<TransactionInstruction | undefined> => {
     const { address: poolAddress, whirlpool: whilrpoolState } = await this.getWhirlpoolStateIfNotFetched(pool);
 
     const decimalsA = await getMintDecimals(this._connection, whilrpoolState.tokenMintA);
@@ -5438,7 +5438,7 @@ export class Kamino {
       };
       return initializeTickArray(initTickArrayArgs, initTickArrayAccounts);
     }
-  }
+  };
 }
 
 export default Kamino;
