@@ -121,7 +121,6 @@ describe('Kamino SDK Tests', () => {
     await setupAta(connection, signer, tokenAMint, signer);
     await setupAta(connection, signer, tokenBMint, signer);
 
-
     let globalConfig = await setUpGlobalConfig(kamino, signer, fixtures.scopeProgram, fixtures.scopePrices);
     console.log('globalConfig initialized ', globalConfig.toString());
     kamino.setGlobalConfig(globalConfig);
@@ -301,7 +300,7 @@ describe('Kamino SDK Tests', () => {
     await kamino.setupStrategyLookupTable(signer, newOrcaStrategy.publicKey);
     await kamino.setupStrategyLookupTable(signer, newRaydiumStrategy.publicKey);
   });
-  
+
   it('should throw on invalid cluster', () => {
     // @ts-ignore
     const init = () => new Kamino('invalid-clusters', undefined);
@@ -1714,7 +1713,7 @@ describe('Kamino SDK Tests', () => {
     expect(performanceFees.reward1FeeBPS.eq(new Decimal(700))).to.be.true;
     expect(performanceFees.reward2FeeBPS.eq(new Decimal(800))).to.be.true;
   });
-  
+
   it('closes the strategy with no position open', async () => {
     let kamino = new Kamino(
       cluster,
@@ -1762,7 +1761,7 @@ describe('Kamino SDK Tests', () => {
       console.log(`Fetching closed position got err ${error}`);
     }
   });
-  
+
   it('closes the strategy with position open', async () => {
     let kamino = new Kamino(
       cluster,
