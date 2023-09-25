@@ -57,6 +57,8 @@ export type {
   OpenLiquidityPositionArgs,
   OpenLiquidityPositionAccounts,
 } from "./openLiquidityPosition"
+export { closeStrategy } from "./closeStrategy"
+export type { CloseStrategyAccounts } from "./closeStrategy"
 export { deposit } from "./deposit"
 export type { DepositArgs, DepositAccounts } from "./deposit"
 export { invest } from "./invest"
