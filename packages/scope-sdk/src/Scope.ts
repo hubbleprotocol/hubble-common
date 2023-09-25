@@ -214,7 +214,11 @@ export class Scope {
     if (uniqueScopePrices.length === 1) {
       return [[uniqueScopePrices[0], await this.getOraclePrices({ prices: uniqueScopePrices[0] })]];
     }
-    const oraclePrices = await OraclePrices.fetchMultiple(this._connection, prices, this._config.scope.programId);
+    const oraclePrices = await OraclePrices.fetchMultiple(
+      this._connection,
+      uniqueScopePrices,
+      this._config.scope.programId
+    );
     const oraclePricesMap: Record<string, OraclePrices> = oraclePrices
       .map((price, i) => {
         if (price === null) {
