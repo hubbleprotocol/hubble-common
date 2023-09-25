@@ -201,7 +201,7 @@ import {
   DefaultPerformanceFeeBps,
   DefaultWithdrawFeeBps,
 } from './constants/DefaultStrategyConfig';
-import { DEFAULT_PUBKEY, DEVNET_GLOBAL_LOOKUP_TABLE, MAINNET_GLOBAL_LOOKUP_TABLE } from './constants/pubkeys';
+import { DEVNET_GLOBAL_LOOKUP_TABLE, MAINNET_GLOBAL_LOOKUP_TABLE } from './constants/pubkeys';
 import {
   DefaultDex,
   DefaultFeeTierOrca,
@@ -2874,7 +2874,7 @@ export class Kamino {
     let oldPositionOrBaseVaultAuthority = strategyState.baseVaultAuthority;
     let oldPositionMintOrBaseVaultAuthority = strategyState.baseVaultAuthority;
     let oldPositionTokenAccountOrBaseVaultAuthority = strategyState.baseVaultAuthority;
-    if (!strategyState.position.equals(DEFAULT_PUBKEY)) {
+    if (!strategyState.position.equals(PublicKey.default)) {
       oldPositionOrBaseVaultAuthority = strategyState.position;
       oldPositionMintOrBaseVaultAuthority = strategyState.positionMint;
       oldPositionTokenAccountOrBaseVaultAuthority = strategyState.positionTokenAccount;
@@ -2883,7 +2883,7 @@ export class Kamino {
     let userTokenBAta = getAssociatedTokenAddress(strategyState.tokenBMint, strategyState.adminAuthority);
     let reward0Vault = strategyState.baseVaultAuthority;
     let userReward0Ata = strategyState.baseVaultAuthority;
-    if (!strategyState.reward0Vault.equals(DEFAULT_PUBKEY) && strategyState.reward0Decimals.toNumber() > 0) {
+    if (!strategyState.reward0Vault.equals(PublicKey.default) && strategyState.reward0Decimals.toNumber() > 0) {
       reward0Vault = strategyState.reward0Vault;
       userReward0Ata = getAssociatedTokenAddress(
         collInfos[strategyState.reward0CollateralId.toNumber()].mint,
@@ -2892,7 +2892,7 @@ export class Kamino {
     }
     let reward1Vault = strategyState.baseVaultAuthority;
     let userReward1Ata = strategyState.baseVaultAuthority;
-    if (!strategyState.reward1Vault.equals(DEFAULT_PUBKEY) && strategyState.reward1Decimals.toNumber() > 0) {
+    if (!strategyState.reward1Vault.equals(PublicKey.default) && strategyState.reward1Decimals.toNumber() > 0) {
       reward1Vault = strategyState.reward1Vault;
       userReward1Ata = getAssociatedTokenAddress(
         collInfos[strategyState.reward1CollateralId.toNumber()].mint,
@@ -2901,7 +2901,7 @@ export class Kamino {
     }
     let reward2Vault = strategyState.baseVaultAuthority;
     let userReward2Ata = strategyState.baseVaultAuthority;
-    if (!strategyState.reward2Vault.equals(DEFAULT_PUBKEY) && strategyState.reward2Decimals.toNumber() > 0) {
+    if (!strategyState.reward2Vault.equals(PublicKey.default) && strategyState.reward2Decimals.toNumber() > 0) {
       reward2Vault = strategyState.reward2Vault;
       userReward2Ata = getAssociatedTokenAddress(
         collInfos[strategyState.reward2CollateralId.toNumber()].mint,
@@ -2911,7 +2911,7 @@ export class Kamino {
     let kaminoReward0Vault = strategyState.baseVaultAuthority;
     let userKaminoReward0Ata = strategyState.baseVaultAuthority;
     if (
-      !strategyState.kaminoRewards[0].rewardVault.equals(DEFAULT_PUBKEY) &&
+      !strategyState.kaminoRewards[0].rewardVault.equals(PublicKey.default) &&
       strategyState.kaminoRewards[0].decimals.toNumber() > 0
     ) {
       kaminoReward0Vault = strategyState.kaminoRewards[0].rewardVault;
@@ -2923,7 +2923,7 @@ export class Kamino {
     let kaminoReward1Vault = strategyState.baseVaultAuthority;
     let userKaminoReward1Ata = strategyState.baseVaultAuthority;
     if (
-      !strategyState.kaminoRewards[1].rewardVault.equals(DEFAULT_PUBKEY) &&
+      !strategyState.kaminoRewards[1].rewardVault.equals(PublicKey.default) &&
       strategyState.kaminoRewards[1].decimals.toNumber() > 0
     ) {
       kaminoReward1Vault = strategyState.kaminoRewards[1].rewardVault;
@@ -2935,7 +2935,7 @@ export class Kamino {
     let kaminoReward2Vault = strategyState.baseVaultAuthority;
     let userKaminoReward2Ata = strategyState.baseVaultAuthority;
     if (
-      !strategyState.kaminoRewards[1].rewardVault.equals(DEFAULT_PUBKEY) &&
+      !strategyState.kaminoRewards[1].rewardVault.equals(PublicKey.default) &&
       strategyState.kaminoRewards[1].decimals.toNumber() > 0
     ) {
       kaminoReward1Vault = strategyState.kaminoRewards[1].rewardVault;
