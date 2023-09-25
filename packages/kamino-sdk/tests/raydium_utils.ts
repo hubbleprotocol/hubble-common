@@ -3,24 +3,14 @@ import * as anchor from '@project-serum/anchor';
 import { PublicKey, Connection, SystemProgram, Transaction, Keypair } from '@solana/web3.js';
 import * as RaydiumInstructions from '../src/raydium_client/instructions';
 import {
-  ASSOCIATED_TOKEN_PROGRAM_ID,
-  createAddExtraComputeUnitsTransaction,
-  getAssociatedTokenAddress,
   sendTransactionWithLogs,
   TOKEN_PROGRAM_ID,
 } from '../src';
 import { accountExist, DeployedPool, getTickArrayPubkeysFromRange } from './utils';
-import { getMintDecimals } from '@project-serum/serum/lib/market';
 import { SqrtPriceMath, TickMath } from '@raydium-io/raydium-sdk';
-import Decimal from 'decimal.js';
-import { ExecutiveWithdrawAction, ExecutiveWithdrawActionKind } from '../src/kamino-client/types';
-import { WhirlpoolStrategy } from '../src/kamino-client/accounts';
+import Decimal from 'decimal.js';;
 import { PoolState } from '../src/raydium_client';
-import { Rebalancing } from '../src/kamino-client/types/StrategyStatus';
-import { METADATA_PROGRAM_ID, METADATA_UPDATE_AUTH } from '../src';
-import { OpenLiquidityPositionArgs } from '../src/kamino-client/instructions';
 import { i32ToBytes, TickUtils } from '@raydium-io/raydium-sdk';
-import * as Instructions from '../src/kamino-client/instructions';
 import { BN } from 'bn.js';
 
 export const OBSERVATION_STATE_LEN = 52121;

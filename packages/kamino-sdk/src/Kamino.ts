@@ -3582,6 +3582,24 @@ export class Kamino {
     return invest(accounts);
   };
 
+  /**
+   * Get a list of instructions to collect the pending fees and invest them into the Kamino strategy's position.
+   * @param strategy strategy pubkey or object
+   * @param payer transaction payer
+   */
+  compound = async (strategy: PublicKey, payer: PublicKey): Promise<TransactionInstruction[]> => {
+    // fetch here so the underluing instructions won't need to fetch
+    const strategyWithAddress = await this.getStrategyStateIfNotFetched(strategy);
+    if (!strategyWithAddress) {
+      throw Error(`Could not fetch strategy state with pubkey ${strategy.toString()}`);
+    }
+
+    let collectFeesAndRewardsIx = this.collectFeesAndRewards(strategyWithAddress, payer);
+    let investIx = this.invest(strategy, payer);
+
+    return Promise.all([collectFeesAndRewardsIx, investIx]);
+  };
+
   getUpdateRebalancingParamsFromRebalanceFieldsIx = async (
     strategyAdmin: PublicKey,
     strategy: PublicKey,
