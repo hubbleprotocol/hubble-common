@@ -49,29 +49,6 @@ export class Raydium {
   }
 }
 
-export interface CremaJSON {
-  kind: "Crema"
-}
-
-export class Crema {
-  static readonly discriminator = 2
-  static readonly kind = "Crema"
-  readonly discriminator = 2
-  readonly kind = "Crema"
-
-  toJSON(): CremaJSON {
-    return {
-      kind: "Crema",
-    }
-  }
-
-  toEncodable() {
-    return {
-      Crema: {},
-    }
-  }
-}
-
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function fromDecoded(obj: any): types.DEXKind {
   if (typeof obj !== "object") {
@@ -83,9 +60,6 @@ export function fromDecoded(obj: any): types.DEXKind {
   }
   if ("Raydium" in obj) {
     return new Raydium()
-  }
-  if ("Crema" in obj) {
-    return new Crema()
   }
 
   throw new Error("Invalid enum object")
@@ -99,9 +73,6 @@ export function fromJSON(obj: types.DEXJSON): types.DEXKind {
     case "Raydium": {
       return new Raydium()
     }
-    case "Crema": {
-      return new Crema()
-    }
   }
 }
 
@@ -109,7 +80,6 @@ export function layout(property?: string) {
   const ret = borsh.rustEnum([
     borsh.struct([], "Orca"),
     borsh.struct([], "Raydium"),
-    borsh.struct([], "Crema"),
   ])
   if (property !== undefined) {
     return ret.replicate(property)

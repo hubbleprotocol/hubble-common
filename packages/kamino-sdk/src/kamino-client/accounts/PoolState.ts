@@ -67,6 +67,7 @@ export interface PoolStateFields {
   totalFeesClaimedToken1: BN
   fundFeesToken0: BN
   fundFeesToken1: BN
+  openTime: BN
   padding1: Array<BN>
   padding2: Array<BN>
 }
@@ -134,6 +135,7 @@ export interface PoolStateJSON {
   totalFeesClaimedToken1: string
   fundFeesToken0: string
   fundFeesToken1: string
+  openTime: string
   padding1: Array<string>
   padding2: Array<string>
 }
@@ -201,6 +203,7 @@ export class PoolState {
   readonly totalFeesClaimedToken1: BN
   readonly fundFeesToken0: BN
   readonly fundFeesToken1: BN
+  readonly openTime: BN
   readonly padding1: Array<BN>
   readonly padding2: Array<BN>
 
@@ -243,7 +246,8 @@ export class PoolState {
     borsh.u64("totalFeesClaimedToken1"),
     borsh.u64("fundFeesToken0"),
     borsh.u64("fundFeesToken1"),
-    borsh.array(borsh.u64(), 26, "padding1"),
+    borsh.u64("openTime"),
+    borsh.array(borsh.u64(), 25, "padding1"),
     borsh.array(borsh.u64(), 32, "padding2"),
   ])
 
@@ -284,6 +288,7 @@ export class PoolState {
     this.totalFeesClaimedToken1 = fields.totalFeesClaimedToken1
     this.fundFeesToken0 = fields.fundFeesToken0
     this.fundFeesToken1 = fields.fundFeesToken1
+    this.openTime = fields.openTime
     this.padding1 = fields.padding1
     this.padding2 = fields.padding2
   }
@@ -368,6 +373,7 @@ export class PoolState {
       totalFeesClaimedToken1: dec.totalFeesClaimedToken1,
       fundFeesToken0: dec.fundFeesToken0,
       fundFeesToken1: dec.fundFeesToken1,
+      openTime: dec.openTime,
       padding1: dec.padding1,
       padding2: dec.padding2,
     })
@@ -409,6 +415,7 @@ export class PoolState {
       totalFeesClaimedToken1: this.totalFeesClaimedToken1.toString(),
       fundFeesToken0: this.fundFeesToken0.toString(),
       fundFeesToken1: this.fundFeesToken1.toString(),
+      openTime: this.openTime.toString(),
       padding1: this.padding1.map((item) => item.toString()),
       padding2: this.padding2.map((item) => item.toString()),
     }
@@ -452,6 +459,7 @@ export class PoolState {
       totalFeesClaimedToken1: new BN(obj.totalFeesClaimedToken1),
       fundFeesToken0: new BN(obj.fundFeesToken0),
       fundFeesToken1: new BN(obj.fundFeesToken1),
+      openTime: new BN(obj.openTime),
       padding1: obj.padding1.map((item) => new BN(item)),
       padding2: obj.padding2.map((item) => new BN(item)),
     })
