@@ -2930,8 +2930,8 @@ export class Kamino {
     let kaminoReward2Vault = strategyState.baseVaultAuthority;
     let userKaminoReward2Ata = strategyState.baseVaultAuthority;
     if (isVaultInitialized(strategyState.kaminoRewards[2].rewardVault, strategyState.kaminoRewards[2].decimals)) {
-      kaminoReward1Vault = strategyState.kaminoRewards[2].rewardVault;
-      userKaminoReward1Ata = getAssociatedTokenAddress(
+      kaminoReward2Vault = strategyState.kaminoRewards[2].rewardVault;
+      userKaminoReward2Ata = getAssociatedTokenAddress(
         strategyState.kaminoRewards[2].rewardMint,
         strategyState.adminAuthority
       );
