@@ -9,11 +9,12 @@ export interface UpdateTreasuryFeeVaultArgs {
 }
 
 export interface UpdateTreasuryFeeVaultAccounts {
-  adminAuthority: PublicKey
+  signer: PublicKey
   globalConfig: PublicKey
   feeMint: PublicKey
   treasuryFeeVault: PublicKey
   treasuryFeeVaultAuthority: PublicKey
+  tokenInfos: PublicKey
   systemProgram: PublicKey
   rent: PublicKey
   tokenProgram: PublicKey
@@ -26,15 +27,16 @@ export function updateTreasuryFeeVault(
   accounts: UpdateTreasuryFeeVaultAccounts
 ) {
   const keys: Array<AccountMeta> = [
-    { pubkey: accounts.adminAuthority, isSigner: true, isWritable: true },
+    { pubkey: accounts.signer, isSigner: true, isWritable: true },
     { pubkey: accounts.globalConfig, isSigner: false, isWritable: true },
     { pubkey: accounts.feeMint, isSigner: false, isWritable: false },
     { pubkey: accounts.treasuryFeeVault, isSigner: false, isWritable: true },
     {
       pubkey: accounts.treasuryFeeVaultAuthority,
       isSigner: false,
-      isWritable: true,
+      isWritable: false,
     },
+    { pubkey: accounts.tokenInfos, isSigner: false, isWritable: false },
     { pubkey: accounts.systemProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.rent, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },

@@ -2060,11 +2060,6 @@ export class Kamino {
       throw Error(`Could not fetch global config with pubkey ${strategyState.strategy.globalConfig.toString()}`);
     }
 
-    const { treasuryFeeTokenAVault, treasuryFeeTokenBVault } = this.getTreasuryFeeVaultPDAs(
-      strategyState.strategy.tokenAMint,
-      strategyState.strategy.tokenBMint
-    );
-
     const [sharesAta] = await getAssociatedTokenAddressAndData(
       this._connection,
       strategyState.strategy.sharesMint,
@@ -2098,8 +2093,6 @@ export class Kamino {
       tokenAVault: strategyState.strategy.tokenAVault,
       tokenBVault: strategyState.strategy.tokenBVault,
       baseVaultAuthority: strategyState.strategy.baseVaultAuthority,
-      treasuryFeeTokenAVault,
-      treasuryFeeTokenBVault,
       tokenAAta,
       tokenBAta,
       tokenAMint: strategyState.strategy.tokenAMint,
@@ -2466,11 +2459,6 @@ export class Kamino {
 
     let poolProgram = getDexProgramId(strategyState);
 
-    const { treasuryFeeTokenAVault, treasuryFeeTokenBVault } = this.getTreasuryFeeVaultPDAs(
-      strategyState.tokenAMint,
-      strategyState.tokenBMint
-    );
-
     const args: SingleTokenDepositWithMinArgs = {
       tokenAMinPostDepositBalance: new BN(realTokenAMinPostDepositBalanceLamports.floor().toString()),
       tokenBMinPostDepositBalance: new BN(realTokenBMinPostDepositBalanceLamports.floor().toString()),
@@ -2485,8 +2473,6 @@ export class Kamino {
       tokenAVault: strategyState.tokenAVault,
       tokenBVault: strategyState.tokenBVault,
       baseVaultAuthority: strategyState.baseVaultAuthority,
-      treasuryFeeTokenAVault,
-      treasuryFeeTokenBVault,
       tokenAAta,
       tokenBAta,
       tokenAMint: strategyState.tokenAMint,

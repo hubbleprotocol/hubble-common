@@ -57,6 +57,8 @@ export type {
   OpenLiquidityPositionArgs,
   OpenLiquidityPositionAccounts,
 } from "./openLiquidityPosition"
+export { closeStrategy } from "./closeStrategy"
+export type { CloseStrategyAccounts } from "./closeStrategy"
 export { deposit } from "./deposit"
 export type { DepositArgs, DepositAccounts } from "./deposit"
 export { invest } from "./invest"
@@ -118,8 +120,6 @@ export { changePool } from "./changePool"
 export type { ChangePoolAccounts } from "./changePool"
 export { closeProgramAccount } from "./closeProgramAccount"
 export type { CloseProgramAccountAccounts } from "./closeProgramAccount"
-export { migrateDepositCap } from "./migrateDepositCap"
-export type { MigrateDepositCapAccounts } from "./migrateDepositCap"
 export { orcaSwap } from "./orcaSwap"
 export type { OrcaSwapArgs, OrcaSwapAccounts } from "./orcaSwap"
 export { signTerms } from "./signTerms"

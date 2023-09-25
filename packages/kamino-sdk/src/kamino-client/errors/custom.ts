@@ -128,6 +128,7 @@ export type CustomError =
   | TokenAccountBalanceMismatch
   | UnexpectedProgramIdForPrerequisiteIx
   | ComputeFeesAndRewardsUpdateError
+  | SharesNotZero
 
 export class IntegerOverflow extends Error {
   static readonly code = 6000
@@ -1575,6 +1576,17 @@ export class ComputeFeesAndRewardsUpdateError extends Error {
   }
 }
 
+export class SharesNotZero extends Error {
+  static readonly code = 6129
+  readonly code = 6129
+  readonly name = "SharesNotZero"
+  readonly msg = "There must be no shares issued when closing a strategy"
+
+  constructor(readonly logs?: string[]) {
+    super("6129: There must be no shares issued when closing a strategy")
+  }
+}
+
 export function fromCode(code: number, logs?: string[]): CustomError | null {
   switch (code) {
     case 6000:
@@ -1835,6 +1847,8 @@ export function fromCode(code: number, logs?: string[]): CustomError | null {
       return new UnexpectedProgramIdForPrerequisiteIx(logs)
     case 6128:
       return new ComputeFeesAndRewardsUpdateError(logs)
+    case 6129:
+      return new SharesNotZero(logs)
   }
 
   return null
