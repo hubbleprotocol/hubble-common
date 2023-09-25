@@ -115,6 +115,7 @@ import {
   getTickArray,
   RebalanceFieldsDict,
   rebalanceFieldsDictToInfo,
+  isVaultInitialized,
 } from './utils';
 import { ASSOCIATED_TOKEN_PROGRAM_ID, Token, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import {
@@ -2883,7 +2884,7 @@ export class Kamino {
     let userTokenBAta = getAssociatedTokenAddress(strategyState.tokenBMint, strategyState.adminAuthority);
     let reward0Vault = strategyState.baseVaultAuthority;
     let userReward0Ata = strategyState.baseVaultAuthority;
-    if (!strategyState.reward0Vault.equals(PublicKey.default) && strategyState.reward0Decimals.toNumber() > 0) {
+    if (isVaultInitialized(strategyState.reward0Vault, strategyState.reward0Decimals)) {
       reward0Vault = strategyState.reward0Vault;
       userReward0Ata = getAssociatedTokenAddress(
         collInfos[strategyState.reward0CollateralId.toNumber()].mint,
@@ -2892,7 +2893,7 @@ export class Kamino {
     }
     let reward1Vault = strategyState.baseVaultAuthority;
     let userReward1Ata = strategyState.baseVaultAuthority;
-    if (!strategyState.reward1Vault.equals(PublicKey.default) && strategyState.reward1Decimals.toNumber() > 0) {
+    if (isVaultInitialized(strategyState.reward2Vault, strategyState.reward1Decimals)) {
       reward1Vault = strategyState.reward1Vault;
       userReward1Ata = getAssociatedTokenAddress(
         collInfos[strategyState.reward1CollateralId.toNumber()].mint,
@@ -2901,7 +2902,7 @@ export class Kamino {
     }
     let reward2Vault = strategyState.baseVaultAuthority;
     let userReward2Ata = strategyState.baseVaultAuthority;
-    if (!strategyState.reward2Vault.equals(PublicKey.default) && strategyState.reward2Decimals.toNumber() > 0) {
+    if (isVaultInitialized(strategyState.reward2Vault, strategyState.reward2Decimals)) {
       reward2Vault = strategyState.reward2Vault;
       userReward2Ata = getAssociatedTokenAddress(
         collInfos[strategyState.reward2CollateralId.toNumber()].mint,
@@ -2910,10 +2911,7 @@ export class Kamino {
     }
     let kaminoReward0Vault = strategyState.baseVaultAuthority;
     let userKaminoReward0Ata = strategyState.baseVaultAuthority;
-    if (
-      !strategyState.kaminoRewards[0].rewardVault.equals(PublicKey.default) &&
-      strategyState.kaminoRewards[0].decimals.toNumber() > 0
-    ) {
+    if (isVaultInitialized(strategyState.kaminoRewards[0].rewardVault, strategyState.kaminoRewards[0].decimals)) {
       kaminoReward0Vault = strategyState.kaminoRewards[0].rewardVault;
       userKaminoReward0Ata = getAssociatedTokenAddress(
         strategyState.kaminoRewards[0].rewardMint,
@@ -2922,10 +2920,7 @@ export class Kamino {
     }
     let kaminoReward1Vault = strategyState.baseVaultAuthority;
     let userKaminoReward1Ata = strategyState.baseVaultAuthority;
-    if (
-      !strategyState.kaminoRewards[1].rewardVault.equals(PublicKey.default) &&
-      strategyState.kaminoRewards[1].decimals.toNumber() > 0
-    ) {
+    if (isVaultInitialized(strategyState.kaminoRewards[1].rewardVault, strategyState.kaminoRewards[1].decimals)) {
       kaminoReward1Vault = strategyState.kaminoRewards[1].rewardVault;
       userKaminoReward1Ata = getAssociatedTokenAddress(
         strategyState.kaminoRewards[1].rewardMint,
@@ -2934,13 +2929,10 @@ export class Kamino {
     }
     let kaminoReward2Vault = strategyState.baseVaultAuthority;
     let userKaminoReward2Ata = strategyState.baseVaultAuthority;
-    if (
-      !strategyState.kaminoRewards[1].rewardVault.equals(PublicKey.default) &&
-      strategyState.kaminoRewards[1].decimals.toNumber() > 0
-    ) {
-      kaminoReward1Vault = strategyState.kaminoRewards[1].rewardVault;
+    if (isVaultInitialized(strategyState.kaminoRewards[2].rewardVault, strategyState.kaminoRewards[2].decimals)) {
+      kaminoReward1Vault = strategyState.kaminoRewards[2].rewardVault;
       userKaminoReward1Ata = getAssociatedTokenAddress(
-        strategyState.kaminoRewards[1].rewardMint,
+        strategyState.kaminoRewards[2].rewardMint,
         strategyState.adminAuthority
       );
     }
