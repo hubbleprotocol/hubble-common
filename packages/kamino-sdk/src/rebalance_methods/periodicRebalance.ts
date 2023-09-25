@@ -4,6 +4,7 @@ import { FullBPSDecimal } from '../utils/CreationParameters';
 import { getManualRebalanceFieldInfos } from './manualRebalance';
 import { RebalanceRaw } from '../kamino-client/types';
 import { RebalanceTypeLabelName } from './consts';
+import { getPriceRangeFromPriceAndDiffBPS } from './math_utils';
 
 export const DEFAULT_LOWER_RANGE_PRICE_DIFF_BPS_PERIODIC_REBALANCE = new Decimal(500);
 export const DEFAULT_UPPER_RANGE_PRICE_DIFF_BPS_PERIODIC_REBALANCE = new Decimal(500);
@@ -72,23 +73,16 @@ export function getPositionRangeFromPeriodicRebalanceParams(
   lowerPercentageBPS: Decimal,
   upperPercentageBPS: Decimal
 ): PositionRange {
-  let lowerPrice = price.mul(FullBPSDecimal.sub(lowerPercentageBPS)).div(FullBPSDecimal);
-  let upperPrice = price.mul(FullBPSDecimal.add(upperPercentageBPS)).div(FullBPSDecimal);
-  return { lowerPrice, upperPrice };
+  return getPriceRangeFromPriceAndDiffBPS(price, lowerPercentageBPS, upperPercentageBPS);
 }
 
 export function getDefaultPeriodicRebalanceFieldInfos(price: Decimal): RebalanceFieldInfo[] {
-  let { lowerPrice, upperPrice } = getPositionRangeFromPeriodicRebalanceParams(
-    price,
-    DEFAULT_LOWER_RANGE_PRICE_DIFF_BPS_PERIODIC_REBALANCE,
-    DEFAULT_UPPER_RANGE_PRICE_DIFF_BPS_PERIODIC_REBALANCE
-  );
   return getPeriodicRebalanceRebalanceFieldInfos(
     price,
     DEFAULT_REBALANCE_PERIOD,
     DEFAULT_LOWER_RANGE_PRICE_DIFF_BPS_PERIODIC_REBALANCE,
     DEFAULT_UPPER_RANGE_PRICE_DIFF_BPS_PERIODIC_REBALANCE
-  ).concat(getManualRebalanceFieldInfos(lowerPrice, upperPrice, false));
+  );
 }
 
 export function readPeriodicRebalanceRebalanceParamsFromStrategy(rebalanceRaw: RebalanceRaw) {

@@ -253,29 +253,36 @@ import { StrategyPrices } from './models/StrategyPrices';
 import { getDefaultManualRebalanceFieldInfos, getManualRebalanceFieldInfos } from './rebalance_methods/manualRebalance';
 import {
   deserializePricePercentageRebalanceFromOnchainParams,
+  deserializePricePercentageRebalanceWithStateOverride,
   getDefaultPricePercentageRebalanceFieldInfos,
   getPositionRangeFromPercentageRebalanceParams,
   getPricePercentageRebalanceFieldInfos,
   readPricePercentageRebalanceParamsFromStrategy,
   readPricePercentageRebalanceStateFromStrategy,
+  readRawPricePercentageRebalanceStateFromStrategy,
 } from './rebalance_methods/pricePercentageRebalance';
 import {
   deserializePricePercentageWithResetRebalanceFromOnchainParams,
+  deserializePricePercentageWithResetRebalanceWithStateOverride,
   getDefaultPricePercentageWithResetRebalanceFieldInfos,
   getPositionRangeFromPricePercentageWithResetParams,
   getPricePercentageWithResetRebalanceFieldInfos,
   readPricePercentageWithResetRebalanceParamsFromStrategy,
   readPricePercentageWithResetRebalanceStateFromStrategy,
+  readRawPricePercentageWithResetRebalanceStateFromStrategy,
 } from './rebalance_methods/pricePercentageWithResetRebalance';
 import {
   deserializeDriftRebalanceFromOnchainParams,
+  deserializeDriftRebalanceWithStateOverride,
   getDefaultDriftRebalanceFieldInfos,
   getDriftRebalanceFieldInfos,
   getPositionRangeFromDriftParams,
   readDriftRebalanceParamsFromStrategy,
   readDriftRebalanceStateFromStrategy,
+  readRawDriftRebalanceStateFromStrategy,
 } from './rebalance_methods/driftRebalance';
 import {
+  deserializeExpanderRebalanceWithStateOverride,
   deserializePeriodicRebalanceFromOnchainParams,
   deserializeTakeProfitRebalanceFromOnchainParams,
   getDefaultExpanderRebalanceFieldInfos,
@@ -291,6 +298,7 @@ import {
   readExpanderRebalanceStateFromStrategy,
   readPeriodicRebalanceRebalanceParamsFromStrategy,
   readPeriodicRebalanceRebalanceStateFromStrategy,
+  readRawExpanderRebalanceStateFromStrategy,
   readTakeProfitRebalanceParamsFromStrategy,
   readTakeProfitRebalanceStateFromStrategy,
 } from './rebalance_methods';
@@ -2054,11 +2062,6 @@ export class Kamino {
       throw Error(`Could not fetch global config with pubkey ${strategyState.strategy.globalConfig.toString()}`);
     }
 
-    const { treasuryFeeTokenAVault, treasuryFeeTokenBVault } = this.getTreasuryFeeVaultPDAs(
-      strategyState.strategy.tokenAMint,
-      strategyState.strategy.tokenBMint
-    );
-
     const [sharesAta] = await getAssociatedTokenAddressAndData(
       this._connection,
       strategyState.strategy.sharesMint,
@@ -2457,11 +2460,6 @@ export class Kamino {
     );
 
     let poolProgram = getDexProgramId(strategyState);
-
-    const { treasuryFeeTokenAVault, treasuryFeeTokenBVault } = this.getTreasuryFeeVaultPDAs(
-      strategyState.tokenAMint,
-      strategyState.tokenBMint
-    );
 
     const args: SingleTokenDepositWithMinArgs = {
       tokenAMinPostDepositBalance: new BN(realTokenAMinPostDepositBalanceLamports.floor().toString()),
@@ -4045,19 +4043,19 @@ export class Kamino {
     if (rebalanceKind.kind === Manual.kind) {
       rebalanceFields = {};
     } else if (rebalanceKind.kind === PricePercentage.kind) {
-      rebalanceFields = readPricePercentageRebalanceStateFromStrategy(strategyWithAddress.strategy.rebalanceRaw);
+      rebalanceFields = readRawPricePercentageRebalanceStateFromStrategy(strategyWithAddress.strategy.rebalanceRaw);
     } else if (rebalanceKind.kind === PricePercentageWithReset.kind) {
-      rebalanceFields = readPricePercentageWithResetRebalanceStateFromStrategy(
+      rebalanceFields = readRawPricePercentageWithResetRebalanceStateFromStrategy(
         strategyWithAddress.strategy.rebalanceRaw
       );
     } else if (rebalanceKind.kind === Drift.kind) {
-      rebalanceFields = readDriftRebalanceStateFromStrategy(strategyWithAddress.strategy.rebalanceRaw);
+      rebalanceFields = readRawDriftRebalanceStateFromStrategy(strategyWithAddress.strategy.rebalanceRaw);
     } else if (rebalanceKind.kind === TakeProfit.kind) {
       rebalanceFields = readTakeProfitRebalanceStateFromStrategy(strategyWithAddress.strategy.rebalanceRaw);
     } else if (rebalanceKind.kind === PeriodicRebalance.kind) {
       rebalanceFields = readPeriodicRebalanceRebalanceStateFromStrategy(strategyWithAddress.strategy.rebalanceRaw);
     } else if (rebalanceKind.kind === Expander.kind) {
-      rebalanceFields = readExpanderRebalanceStateFromStrategy(strategyWithAddress.strategy.rebalanceRaw);
+      rebalanceFields = readRawExpanderRebalanceStateFromStrategy(strategyWithAddress.strategy.rebalanceRaw);
     } else {
       throw new Error(`Rebalance type ${rebalanceKind} is not supported`);
     }
@@ -4107,6 +4105,72 @@ export class Kamino {
     } else if (rebalanceKind.kind === Expander.kind) {
       let price = await this.getCurrentPrice(strategyWithAddress);
       return readExpanderRebalanceFieldInfosFromStrategy(price, strategyWithAddress.strategy.rebalanceRaw);
+    } else {
+      throw new Error(`Rebalance type ${rebalanceKind} is not supported`);
+    }
+  }
+
+  /**
+   * Get the rebalancing params from chain, alongside the current details of the position, reset range, etc
+   */
+  async readRebalancingParamsWithState(strategy: PublicKey | StrategyWithAddress): Promise<RebalanceFieldInfo[]> {
+    const strategyWithAddress = await this.getStrategyStateIfNotFetched(strategy);
+    let rebalanceKind = numberToRebalanceType(strategyWithAddress.strategy.rebalanceType);
+    let dex = numberToDex(strategyWithAddress.strategy.strategyDex.toNumber());
+    let tokenADecimals = strategyWithAddress.strategy.tokenAMintDecimals.toNumber();
+    let tokenBDecimals = strategyWithAddress.strategy.tokenBMintDecimals.toNumber();
+
+    if (rebalanceKind.kind === Manual.kind) {
+      let positionRange = await this.getStrategyRange(strategyWithAddress);
+      return getManualRebalanceFieldInfos(positionRange.lowerPrice, positionRange.upperPrice);
+    } else if (rebalanceKind.kind === PricePercentage.kind) {
+      let price = await this.getCurrentPrice(strategyWithAddress);
+      return deserializePricePercentageRebalanceWithStateOverride(
+        dex,
+        tokenADecimals,
+        tokenBDecimals,
+        price,
+        strategyWithAddress.strategy.rebalanceRaw
+      );
+    } else if (rebalanceKind.kind === PricePercentageWithReset.kind) {
+      let price = await this.getCurrentPrice(strategyWithAddress);
+      return deserializePricePercentageWithResetRebalanceWithStateOverride(
+        dex,
+        tokenADecimals,
+        tokenBDecimals,
+        price,
+        strategyWithAddress.strategy.rebalanceRaw
+      );
+    } else if (rebalanceKind.kind === Drift.kind) {
+      let dex = numberToDex(strategyWithAddress.strategy.strategyDex.toNumber());
+      let tokenADecimals = await getMintDecimals(this._connection, strategyWithAddress.strategy.tokenAMint);
+      let tokenBDecimals = await getMintDecimals(this._connection, strategyWithAddress.strategy.tokenBMint);
+      return deserializeDriftRebalanceWithStateOverride(
+        dex,
+        tokenADecimals,
+        tokenBDecimals,
+        strategyWithAddress.strategy.rebalanceRaw
+      );
+    } else if (rebalanceKind.kind === TakeProfit.kind) {
+      let tokenADecimals = await getMintDecimals(this._connection, strategyWithAddress.strategy.tokenAMint);
+      let tokenBDecimals = await getMintDecimals(this._connection, strategyWithAddress.strategy.tokenBMint);
+      return deserializeTakeProfitRebalanceFromOnchainParams(
+        tokenADecimals,
+        tokenBDecimals,
+        strategyWithAddress.strategy.rebalanceRaw
+      );
+    } else if (rebalanceKind.kind === PeriodicRebalance.kind) {
+      let price = await this.getCurrentPrice(strategyWithAddress);
+      return deserializePeriodicRebalanceFromOnchainParams(price, strategyWithAddress.strategy.rebalanceRaw);
+    } else if (rebalanceKind.kind === Expander.kind) {
+      let price = await this.getCurrentPrice(strategyWithAddress);
+      return deserializeExpanderRebalanceWithStateOverride(
+        dex,
+        tokenADecimals,
+        tokenBDecimals,
+        price,
+        strategyWithAddress.strategy.rebalanceRaw
+      );
     } else {
       throw new Error(`Rebalance type ${rebalanceKind} is not supported`);
     }
@@ -4647,12 +4711,11 @@ export class Kamino {
     profiler: ProfiledFunctionExecution = noopProfiledFunctionExecution,
     priceAInB?: Decimal
   ): Promise<DepositAmountsForSwap> => {
-    const { strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
-    let tokenAMint = strategyState.tokenAMint;
-    let tokenBMint = strategyState.tokenBMint;
+    const strategyWithAddress = await this.getStrategyStateIfNotFetched(strategy);
+    const strategyState = strategyWithAddress.strategy;
 
     if (!priceAInB) {
-      priceAInB = new Decimal(await this._jupService.getPrice(tokenAMint, tokenBMint));
+      priceAInB = await this.getCurrentPrice(strategyWithAddress);
     }
 
     const priceBInA = new Decimal(1).div(priceAInB);
@@ -5452,11 +5515,11 @@ export class Kamino {
     }
   };
 
-  async initializeTickForOrcaPool(
+  initializeTickForOrcaPool = async (
     payer: PublicKey,
     pool: PublicKey | WhirlpoolWithAddress,
     price: Decimal
-  ): Promise<TransactionInstruction | undefined> {
+  ): Promise<TransactionInstruction | undefined> => {
     const { address: poolAddress, whirlpool: whilrpoolState } = await this.getWhirlpoolStateIfNotFetched(pool);
 
     const decimalsA = await getMintDecimals(this._connection, whilrpoolState.tokenMintA);
@@ -5479,7 +5542,7 @@ export class Kamino {
       };
       return initializeTickArray(initTickArrayArgs, initTickArrayAccounts);
     }
-  }
+  };
 }
 
 export default Kamino;

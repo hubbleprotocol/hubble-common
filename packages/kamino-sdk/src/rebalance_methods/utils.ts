@@ -79,3 +79,32 @@ export function getRebalanceMethodFromRebalanceFields(rebalanceFieldInfos: Rebal
   let rebalanceType = getRebalanceTypeFromRebalanceFields(rebalanceFieldInfos);
   return rebalanceTypeToRebalanceMethod(rebalanceType);
 }
+
+export function upsertRebalanceFieldInfo(
+  rebalanceFieldInfos: RebalanceFieldInfo[],
+  newFieldInfo: RebalanceFieldInfo
+): RebalanceFieldInfo[] {
+  let newRebalanceFieldInfoIndex = rebalanceFieldInfos.findIndex((fieldInfo) => fieldInfo.label === newFieldInfo.label);
+
+  // if the field is not found, add it
+  if (newRebalanceFieldInfoIndex === -1) {
+    return [...rebalanceFieldInfos, newFieldInfo];
+  } else {
+    // if the field is found, update it
+    let newRebalanceFieldInfos = [...rebalanceFieldInfos];
+    newRebalanceFieldInfos[newRebalanceFieldInfoIndex] = newFieldInfo;
+    return newRebalanceFieldInfos;
+  }
+}
+
+export function upsertManyRebalanceFieldInfos(
+  rebalanceFieldInfos: RebalanceFieldInfo[],
+  newFieldInfos: RebalanceFieldInfo[]
+): RebalanceFieldInfo[] {
+  let updatedFieldInfos = [...rebalanceFieldInfos];
+  for (let newFieldInfo of newFieldInfos) {
+    updatedFieldInfos = upsertRebalanceFieldInfo(updatedFieldInfos, newFieldInfo);
+  }
+
+  return updatedFieldInfos;
+}

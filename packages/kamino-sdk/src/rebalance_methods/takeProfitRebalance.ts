@@ -117,5 +117,9 @@ export function deserializeTakeProfitRebalanceFromOnchainParams(
 ): RebalanceFieldInfo[] {
   let params = readTakeProfitRebalanceParamsFromStrategy(tokenADecimals, tokenBDecimals, rebalanceRaw);
 
-  return getTakeProfitRebalanceFieldsInfos(params['lowerPrice'], params['upperPrice'], params['destinationToken']);
+  return getTakeProfitRebalanceFieldsInfos(
+    params['lowerRangePrice'],
+    params['upperRangePrice'],
+    params['destinationToken']
+  );
 }
