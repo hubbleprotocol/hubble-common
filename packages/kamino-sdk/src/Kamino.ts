@@ -116,6 +116,7 @@ import {
   RebalanceFieldsDict,
   rebalanceFieldsDictToInfo,
   isVaultInitialized,
+  WithdrawAllAndCloseIxns,
 } from './utils';
 import { ASSOCIATED_TOKEN_PROGRAM_ID, Token, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import {
@@ -2859,6 +2860,25 @@ export class Kamino {
     };
 
     return initializeStrategy(strategyArgs, strategyAccounts);
+  };
+
+  /**
+   * Get transaction instruction to close Kamino strategy, including its position if there is any
+   * and strategy token accounts.
+   * @param strategy public key of the strategy
+   * @returns instruction to close the strategy
+   */
+  withdrawAllAndCloseStrategy = async (strategy: PublicKey): Promise<WithdrawAllAndCloseIxns | null> => {
+    const { address: _strategyPubkey, strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
+    let withdrawIxns = await this.withdrawAllShares(strategy, strategyState.adminAuthority);
+    if (withdrawIxns == null) {
+      return null;
+    }
+    let closeIxn = await this.closeStrategy(strategy);
+    return {
+      withdrawIxns,
+      closeIxn,
+    };
   };
 
   /**
