@@ -44,10 +44,10 @@ const strategyPrice = await kamino.getStrategySharePrice(usdhUsdtStrategy);
 Create a new Kamino strategy for an existing CLMM pool (Orca or Raydium).
 
 Current limitations (planned to be fixed to allow anyone to use this in the near future):
-  * After the strategy is created, only the global admin can update the treasury fee vault with token A/B, we need to allow non-admins to be able to do (and require) this as well.
-  * Only the global admin can set the kToken (strategy shares) token metadata.
-  * You can create a strategy only with the current supported tokens, please reach out if you want a new token to be supported.
 
+* After the strategy is created, only the global admin can update the treasury fee vault with token A/B, we need to allow non-admins to be able to do (and require) this as well.
+* Only the global admin can set the kToken (strategy shares) token metadata.
+* You can create a strategy only with the current supported tokens, please reach out if you want a new token to be supported.
 
 ```javascript
 import { clusterApiUrl, Connection, PublicKey, sendAndConfirmTransaction, Keypair, Transaction } from '@solana/web3.js';
@@ -178,7 +178,6 @@ if (ataInstructions.length > 0) {
 // specify amount of shares to withdraw, e.g. to withdraw 5 shares:
 const withdrawIx = await kamino.withdrawShares(strategyWithAddress, new Decimal(5), owner);
 tx.add(withdrawIx);
-
 // assign block hash, block height and fee payer to the transaction
 tx = await assignBlockInfoToTransaction(connection, tx, signer.publicKey);
 
