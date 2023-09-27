@@ -1759,11 +1759,23 @@ export class Kamino {
   };
 
   /**
-   * Get a list of whirlpools from public keys
+   * Get a list of Orca whirlpools from public keys
    * @param whirlpools
    */
-  getWhirlpools = (whirlpools: PublicKey[]) =>
-    batchFetch(whirlpools, (chunk) => Whirlpool.fetchMultiple(this._connection, chunk));
+  getWhirlpools = async (whirlpools: PublicKey[]): Promise<(Whirlpool | null)[]> => {
+    const whirlpoolStrings = whirlpools.map((whirlpool) => whirlpool.toBase58());
+    const uniqueWhirlpools = [...new Set(whirlpoolStrings)].map((value) => new PublicKey(value));
+    if (uniqueWhirlpools.length === 1) {
+      const whirlpool = await this.getWhirlpoolByAddress(whirlpools[0]);
+      return [whirlpool];
+    }
+    const fetched = await batchFetch(uniqueWhirlpools, (chunk) => Whirlpool.fetchMultiple(this._connection, chunk));
+    const fetchedMap: Record<string, Whirlpool | null> = fetched.reduce((map, whirlpool, i) => {
+      map[uniqueWhirlpools[i].toBase58()] = whirlpool;
+      return map;
+    }, {});
+    return whirlpools.map((whirlpool) => fetchedMap[whirlpool.toBase58()]);
+  };
 
   /**
    * Get a list of Orca positions from public keys
@@ -1789,8 +1801,19 @@ export class Kamino {
    * Get a list of Raydium pools from public keys
    * @param pools
    */
-  getRaydiumPools = (pools: PublicKey[]) => {
-    return batchFetch(pools, (chunk) => PoolState.fetchMultiple(this._connection, chunk));
+  getRaydiumPools = async (pools: PublicKey[]): Promise<(PoolState | null)[]> => {
+    const poolStrings = pools.map((pool) => pool.toBase58());
+    const uniquePools = [...new Set(poolStrings)].map((value) => new PublicKey(value));
+    if (uniquePools.length === 1) {
+      const pool = await this.getRaydiumPoolByAddress(pools[0]);
+      return [pool];
+    }
+    const fetched = await batchFetch(uniquePools, (chunk) => PoolState.fetchMultiple(this._connection, chunk));
+    const fetchedMap: Record<string, PoolState | null> = fetched.reduce((map, whirlpool, i) => {
+      map[uniquePools[i].toBase58()] = whirlpool;
+      return map;
+    }, {});
+    return pools.map((whirlpool) => fetchedMap[whirlpool.toBase58()]);
   };
 
   getRaydiumAmmConfig = (config: PublicKey) => AmmConfig.fetch(this._connection, config);
