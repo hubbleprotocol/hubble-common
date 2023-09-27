@@ -264,3 +264,10 @@ export interface InputRebalanceFieldInfo {
   label: string;
   value: Decimal;
 }
+
+export interface InitStrategyIxs {
+  initStrategyIx: TransactionInstruction;
+  updateStrategyParamsIxs: TransactionInstruction[];
+  updateRebalanceParamsIx: TransactionInstruction;
+  openPositionIxs: TransactionInstruction[];
+}

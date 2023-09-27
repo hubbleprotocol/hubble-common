@@ -22,7 +22,7 @@ export function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export const Dex = ['ORCA', 'RAYDIUM', 'CREMA'] as const;
+export const Dex = ['ORCA', 'RAYDIUM'] as const;
 export type Dex = (typeof Dex)[number];
 
 export function dexToNumber(dex: Dex): number {

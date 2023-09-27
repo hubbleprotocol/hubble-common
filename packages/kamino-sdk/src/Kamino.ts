@@ -38,7 +38,6 @@ import {
   defaultSlippagePercentage,
   getNearestValidTickIndexFromTickIndex,
   getNextValidTickIndex,
-  getPrevValidTickIndex,
   getRemoveLiquidityQuote,
   getStartTickIndex,
   OrcaNetwork,
@@ -95,12 +94,9 @@ import {
   VaultParameters,
   ZERO,
   PositionRange,
-  RebalanceParamsAsPrices,
-  RebalanceParams,
   numberToDex,
   TokensBalances,
   isSOLMint,
-  readBigUint128LE,
   SwapperIxBuilder,
   lamportsToNumberDecimal,
   DECIMALS_SOL,
@@ -113,8 +109,8 @@ import {
   PriceReferenceType,
   InputRebalanceFieldInfo,
   getTickArray,
-  RebalanceFieldsDict,
   rebalanceFieldsDictToInfo,
+  InitStrategyIxs,
 } from './utils';
 import { ASSOCIATED_TOKEN_PROGRAM_ID, Token, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import {
@@ -160,15 +156,20 @@ import {
   ExecutiveWithdrawActionKind,
   RebalanceType,
   RebalanceTypeKind,
-  ReferencePriceType,
   ReferencePriceTypeKind,
   StrategyConfigOption,
   StrategyStatusKind,
 } from './kamino-client/types';
-import { Rebalance } from './kamino-client/types/ExecutiveWithdrawAction';
 import { AmmConfig, PersonalPositionState, PoolState } from './raydium_client';
 import { PROGRAM_ID as RAYDIUM_PROGRAM_ID, setRaydiumProgramId } from './raydium_client/programId';
-import { i32ToBytes, LiquidityMath, SqrtPriceMath, TickMath, TickUtils } from '@raydium-io/raydium-sdk';
+import {
+  getPdaProtocolPositionAddress,
+  i32ToBytes,
+  LiquidityMath,
+  SqrtPriceMath,
+  TickMath,
+  TickUtils,
+} from '@raydium-io/raydium-sdk';
 
 import KaminoIdl from './kamino-client/kamino.json';
 import { OrcaService, RaydiumService, Whirlpool as OrcaPool, WhirlpoolAprApy } from './services';
@@ -203,12 +204,8 @@ import { DEVNET_GLOBAL_LOOKUP_TABLE, MAINNET_GLOBAL_LOOKUP_TABLE } from './const
 import {
   DefaultDex,
   DefaultFeeTierOrca,
-  DefaultLowerPercentageBPS,
-  DefaultLowerPriceDifferenceBPS,
   DefaultMintTokenA,
   DefaultMintTokenB,
-  DefaultUpperPercentageBPS,
-  DefaultUpperPriceDifferenceBPS,
   DriftRebalanceMethod,
   ExpanderMethod,
   FullBPS,
@@ -413,6 +410,10 @@ export class Kamino {
       PeriodicRebalanceMethod,
       ExpanderMethod,
     ];
+  };
+
+  getEnabledRebalanceMethods = (): RebalanceMethod[] => {
+    return this.getRebalanceMethods().filter((x) => x.enabled);
   };
 
   getPriceReferenceTypes = (): PriceReferenceType[] => {
@@ -640,12 +641,6 @@ export class Kamino {
     const price = poolPrice ? poolPrice : new Decimal(await this.getPriceForPair(dex, tokenAMint, tokenBMint));
     const defaultFields = getDefaultTakeProfitRebalanceFieldsInfos(price);
 
-    // pub lower_range_price: u128,
-    // pub upper_range_price: u128,
-    // // Which token we want the full amount in
-    // // Will wait until the position is fully in this token (0 or 1, representing A or B)
-    // pub destination_token: RebalanceTakeProfitToken,
-
     let lowerRangePrice = defaultFields.find((x) => x.label == 'rangePriceLower')!.value;
     let lowerRangePriceInput = fieldOverrides.find((x) => x.label == 'rangePriceLower');
     if (lowerRangePriceInput) {
@@ -820,6 +815,9 @@ export class Kamino {
     }
   };
 
+  /**
+   * Return a the pubkey of the pool in a given dex, for given mints and fee tier; if that pool doesn't exist, return default pubkey
+   */
   getPoolInitializedForDexPairTier = async (
     dex: Dex,
     poolTokenA: PublicKey,
@@ -849,6 +847,9 @@ export class Kamino {
     }
   };
 
+  /**
+   * Return generic information for all pools in a given dex, for given mints and fee tier
+   */
   async getExistentPoolsForPair(dex: Dex, tokenMintA: PublicKey, tokenMintB: PublicKey): Promise<GenericPoolInfo[]> {
     if (dex == 'ORCA') {
       let pools = await this.getOrcaPoolsForTokens(tokenMintA, tokenMintB);
@@ -2809,8 +2810,6 @@ export class Kamino {
       }
       tokenAMint = raydiumPoolState.tokenMint0;
       tokenBMint = raydiumPoolState.tokenMint1;
-    } else {
-      throw new Error(`Invalid dex ${dex.toString()}`);
     }
 
     let config = await GlobalConfig.fetch(this._connection, this._globalConfig);
@@ -3035,9 +3034,11 @@ export class Kamino {
     tickLowerIndex: number,
     tickUpperIndex: number
   ) => {
-    const [protocolPosition, _protocolPositionBump] = PublicKey.findProgramAddressSync(
-      [Buffer.from('position'), pool.toBuffer(), i32ToBytes(tickLowerIndex), i32ToBytes(tickUpperIndex)],
-      RAYDIUM_PROGRAM_ID
+    const { publicKey: protocolPosition } = getPdaProtocolPositionAddress(
+      RAYDIUM_PROGRAM_ID,
+      pool,
+      tickLowerIndex,
+      tickUpperIndex
     );
 
     const [position, positionBump] = PublicKey.findProgramAddressSync(
@@ -3327,14 +3328,14 @@ export class Kamino {
     let decimalsB = await getMintDecimals(this._connection, poolState.tokenMint1);
 
     let tickLowerIndex = TickMath.getTickWithPriceAndTickspacing(
-      priceLower,
+      TickMath.roundPriceWithTickspacing(priceLower, poolState.tickSpacing, decimalsA, decimalsB),
       poolState.tickSpacing,
       decimalsA,
       decimalsB
     );
 
     let tickUpperIndex = TickMath.getTickWithPriceAndTickspacing(
-      priceUpper,
+      TickMath.roundPriceWithTickspacing(priceUpper, poolState.tickSpacing, decimalsA, decimalsB),
       poolState.tickSpacing,
       decimalsA,
       decimalsB
@@ -3347,7 +3348,7 @@ export class Kamino {
       tickUpperIndex
     );
 
-    const positionTokenAccount = await getAssociatedTokenAddress(positionMint, baseVaultAuthority);
+    const positionTokenAccount = getAssociatedTokenAddress(positionMint, baseVaultAuthority);
 
     const args: OpenLiquidityPositionArgs = {
       tickLowerIndex: new BN(tickLowerIndex),
@@ -3694,7 +3695,7 @@ export class Kamino {
     withdrawFeeBps?: Decimal,
     depositFeeBps?: Decimal,
     performanceFeeBps?: Decimal
-  ): Promise<[TransactionInstruction, TransactionInstruction[], TransactionInstruction, TransactionInstruction]> => {
+  ): Promise<InitStrategyIxs> => {
     let feeTier: Decimal = feeTierBps.div(FullBPS);
     // check both tokens exist in collateralInfo
     let config = await GlobalConfig.fetch(this._connection, this._globalConfig);
@@ -3712,8 +3713,6 @@ export class Kamino {
         `Pool for tokens ${tokenAMint.toString()} and ${tokenBMint.toString()} for feeTier ${feeTier.toString()} does not exist`
       );
     }
-
-    let price = await this.getCurrentPriceFromPool(dex, pool);
 
     let tokenMintA: PublicKey;
     let tokenMintB: PublicKey;
@@ -3749,13 +3748,10 @@ export class Kamino {
       tokenBDecimals
     );
 
-    let updateStrategyParamsIx = await this.getUpdateStrategyParamsIxs(
+    let updateStrategyParamsIxs = await this.getUpdateStrategyParamsIxs(
       strategyAdmin,
       strategy,
       rebalanceType,
-      depositCap,
-      depositCapPerIx,
-      depositFeeBps,
       withdrawFeeBps,
       performanceFeeBps
     );
@@ -3765,6 +3761,7 @@ export class Kamino {
     let tokenAVault = programAddresses.tokenAVault;
     let tokenBVault = programAddresses.tokenBVault;
 
+    let price = await this.getCurrentPriceFromPool(dex, pool);
     let { lowerPrice, upperPrice } = await this.getRebalancePositionRange(
       dex,
       price,
@@ -3774,9 +3771,16 @@ export class Kamino {
       rebalanceParams
     );
 
-    let openPositionIx: TransactionInstruction;
+    let openPositionIxs: TransactionInstruction[] = [];
     if (dex == 'ORCA') {
-      openPositionIx = await this.openPositionOrca(
+      const whirlpoolWithAddress = await this.getWhirlpoolStateIfNotFetched(pool);
+      if (!whirlpoolWithAddress) {
+        throw Error(`Could not fetch whirlpool state with pubkey ${pool.toString()}`);
+      }
+      const initLowerTickIfNeeded = await this.initializeTickForOrcaPool(strategyAdmin, pool, lowerPrice);
+      const initUpperTickIfNeeded = await this.initializeTickForOrcaPool(strategyAdmin, pool, upperPrice);
+
+      const openPositionIx = await this.openPositionOrca(
         strategyAdmin,
         strategy,
         baseVaultAuthority,
@@ -3792,8 +3796,15 @@ export class Kamino {
         baseVaultAuthority,
         baseVaultAuthority
       );
+      if (initLowerTickIfNeeded) {
+        openPositionIxs.push(initLowerTickIfNeeded);
+      }
+      if (initUpperTickIfNeeded) {
+        openPositionIxs.push(initUpperTickIfNeeded);
+      }
+      openPositionIxs.push(openPositionIx);
     } else if (dex == 'RAYDIUM') {
-      openPositionIx = await this.openPositionRaydium(
+      const openPositionIx = await this.openPositionRaydium(
         strategyAdmin,
         strategy,
         baseVaultAuthority,
@@ -3810,11 +3821,18 @@ export class Kamino {
         baseVaultAuthority,
         baseVaultAuthority
       );
+
+      openPositionIxs.push(openPositionIx);
     } else {
       throw new Error(`Dex ${dex} is not supported`);
     }
 
-    return [initStrategyIx, updateStrategyParamsIx, updateRebalanceParamsIx, openPositionIx];
+    return {
+      initStrategyIx,
+      updateStrategyParamsIxs,
+      updateRebalanceParamsIx,
+      openPositionIxs,
+    };
   };
 
   private async getRebalancePositionRange(
@@ -5207,9 +5225,6 @@ export class Kamino {
     strategyAdmin: PublicKey,
     strategy: PublicKey,
     rebalanceType: Decimal,
-    depositCap?: Decimal,
-    depositCapPerIx?: Decimal,
-    depositFeeBps?: Decimal,
     withdrawFeeBps?: Decimal,
     performanceFeeBps?: Decimal
   ): Promise<TransactionInstruction[]> => {
@@ -5221,49 +5236,16 @@ export class Kamino {
       rebalanceType
     );
 
-    if (!depositCap) {
-      depositCap = DefaultDepositCap;
-    }
-    let updateDepositCapIx = await getUpdateStrategyConfigIx(
-      strategyAdmin,
-      this._globalConfig,
-      strategy,
-      new UpdateDepositCap(),
-      depositCap
-    );
-
-    if (!depositCapPerIx) {
-      depositCapPerIx = DefaultDepositCapPerIx;
-    }
-    let updateDepositCapPerIxnIx = await getUpdateStrategyConfigIx(
-      strategyAdmin,
-      this._globalConfig,
-      strategy,
-      new UpdateDepositCapIxn(),
-      depositCapPerIx
-    );
-
-    let updateDepositFeeIx: TransactionInstruction | undefined;
-    if (depositFeeBps && depositFeeBps.gt(0)) {
-      updateDepositFeeIx = await getUpdateStrategyConfigIx(
+    let updateWithdrawalFeeIx: TransactionInstruction | null = null;
+    if (withdrawFeeBps) {
+      updateWithdrawalFeeIx = await getUpdateStrategyConfigIx(
         strategyAdmin,
         this._globalConfig,
         strategy,
-        new UpdateDepositFee(),
-        depositFeeBps
+        new UpdateWithdrawFee(),
+        withdrawFeeBps
       );
     }
-
-    if (!withdrawFeeBps) {
-      withdrawFeeBps = DefaultWithdrawFeeBps;
-    }
-    let updateWithdrawalFeeIx = await getUpdateStrategyConfigIx(
-      strategyAdmin,
-      this._globalConfig,
-      strategy,
-      new UpdateWithdrawFee(),
-      withdrawFeeBps
-    );
 
     if (!performanceFeeBps) {
       performanceFeeBps = DefaultPerformanceFeeBps;
@@ -5296,29 +5278,11 @@ export class Kamino {
       new UpdateReward2Fee(),
       performanceFeeBps
     );
-    let updateMintingMethodToProportionalIx = await getUpdateStrategyConfigIx(
-      strategyAdmin,
-      this._globalConfig,
-      strategy,
-      new UpdateDepositMintingMethod(),
-      ProportionalMintingMethod
-    );
 
-    let ixs = [
-      updateRebalanceTypeIx,
-      updateDepositCapIx,
-      updateDepositCapPerIxnIx,
-      updateWithdrawalFeeIx,
-      updateFeesFeeIx,
-      updateRewards0FeeIx,
-      updateRewards1FeeIx,
-      updateRewards2FeeIx,
-      updateMintingMethodToProportionalIx,
-    ];
-    if (updateDepositFeeIx) {
-      ixs.push(updateDepositFeeIx);
+    let ixs = [updateRebalanceTypeIx, updateFeesFeeIx, updateRewards0FeeIx, updateRewards1FeeIx, updateRewards2FeeIx];
+    if (updateWithdrawalFeeIx) {
+      ixs.push(updateWithdrawalFeeIx);
     }
-
     return ixs;
   };
 

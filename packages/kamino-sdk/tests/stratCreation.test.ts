@@ -26,17 +26,23 @@ import { Manual, PricePercentage, PricePercentageWithReset } from '../src/kamino
 import { createWsolAtaIfMissing, getComputeBudgetAndPriorityFeeIxns } from '../src/utils/transactions';
 import { JupService } from '../src/services/JupService';
 import { MAINNET_GLOBAL_LOOKUP_TABLE } from '../src/constants/pubkeys';
+import { getPdaProtocolPositionAddress, i32ToBytes, TickMath, TickUtils } from '@raydium-io/raydium-sdk';
+import { PoolState } from '../src/raydium_client';
 
 describe('Kamino strategy creation SDK Tests', () => {
   let connection: Connection;
   const cluster = 'mainnet-beta';
 
-  const clusterUrl: string = 'https://api.mainnet-beta.solana.com';
+  const clusterUrl: string = 'https://hubble.rpc.p2p.world/QkCzjLJowsNfhoXk9ir2P0mHXlcPCHxYbANfsM0rN';
 
   connection = new Connection(clusterUrl, 'processed');
 
   // use your private key here
-  const signerPrivateKey = [];
+  const signerPrivateKey = [
+    178, 65, 98, 152, 172, 223, 56, 136, 242, 32, 177, 181, 183, 67, 173, 24, 65, 117, 155, 205, 15, 234, 161, 244, 50,
+    68, 101, 44, 121, 17, 172, 226, 252, 121, 151, 204, 91, 236, 195, 244, 71, 187, 116, 212, 30, 169, 243, 124, 216,
+    184, 28, 167, 65, 210, 113, 11, 177, 219, 79, 127, 243, 194, 2, 2,
+  ];
   const signer = Keypair.fromSecretKey(Uint8Array.from(signerPrivateKey));
 
   it('calculate amounts', async () => {
@@ -141,7 +147,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     console.log('Orca pools', pools);
   });
 
-  it.skip('build strategy IX for Raydium SOL-USDC', async () => {
+  it('build strategy IX for Raydium SOL-USDC', async () => {
     let kamino = new Kamino(
       cluster,
       connection,
@@ -170,7 +176,7 @@ describe('Kamino strategy creation SDK Tests', () => {
 
     let ixs: TransactionInstruction[] = [];
     ixs.push(createRaydiumStrategyAccountIx);
-    ixs.push(buildNewStrategyIxs[0]);
+    ixs.push(buildNewStrategyIxs.initStrategyIx);
     console.log('ixs', ixs.length);
     const createStratTx = await kamino.getTransactionV2Message(signer.publicKey, ixs);
     const createStratTransactionV0 = new VersionedTransaction(createStratTx);
@@ -179,9 +185,14 @@ describe('Kamino strategy creation SDK Tests', () => {
     let txHash = await sendAndConfirmTransaction(kamino._connection, createStratTransactionV0);
     console.log('create strategy tx hash', txHash);
 
-    let strategySetupIxs: TransactionInstruction[] = [];
-    buildNewStrategyIxs[1].slice(0, 4).map((ix) => strategySetupIxs.push(ix));
-    const setupStratTx = await kamino.getTransactionV2Message(signer.publicKey, strategySetupIxs);
+    // set up lookup table for strategy
+    let strategyLookupTable = await kamino.setupStrategyLookupTable(signer, newStrategy.publicKey);
+
+    const setupStratTx = await kamino.getTransactionV2Message(
+      signer.publicKey,
+      [...buildNewStrategyIxs.updateStrategyParamsIxs, buildNewStrategyIxs.updateRebalanceParamsIx],
+      [strategyLookupTable, MAINNET_GLOBAL_LOOKUP_TABLE]
+    );
     const setupStratTransactionV0 = new VersionedTransaction(setupStratTx);
     setupStratTransactionV0.sign([signer]);
 
@@ -189,22 +200,9 @@ describe('Kamino strategy creation SDK Tests', () => {
     txHash = await sendAndConfirmTransaction(kamino._connection, setupStratTransactionV0);
     console.log('setup strategy tx hash', txHash);
 
-    let strategySetupFeesIxs: TransactionInstruction[] = [];
-    buildNewStrategyIxs[1].slice(4).map((ix) => strategySetupFeesIxs.push(ix));
-    strategySetupFeesIxs.push(buildNewStrategyIxs[2]);
-    const setupStratFeesTx = await kamino.getTransactionV2Message(signer.publicKey, strategySetupFeesIxs);
-    const setupStratFeesTransactionV0 = new VersionedTransaction(setupStratFeesTx);
-    setupStratFeesTransactionV0.sign([signer]);
-    //@ts-ignore
-    txHash = await sendAndConfirmTransaction(kamino._connection, setupStratFeesTransactionV0);
-    console.log('setup strategy fees tx hash', txHash);
-
     // after strategy creation we have to set the reward mappings so it autocompounds
     let updateRewardMappingIxs = await kamino.getUpdateRewardsIxs(signer.publicKey, newStrategy.publicKey);
     console.log('updateRewardMappingIxs', updateRewardMappingIxs.length);
-
-    // set up lookup table for strategy
-    let strategyLookupTable = await kamino.setupStrategyLookupTable(signer, newStrategy.publicKey);
 
     for (let ix of updateRewardMappingIxs) {
       const updateRewardMappingTx = await kamino.getTransactionV2Message(
@@ -246,11 +244,10 @@ describe('Kamino strategy creation SDK Tests', () => {
       new PublicKey('So11111111111111111111111111111111111111112'),
       new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v')
     );
-    console.log('buildNewStrategyIxs', buildNewStrategyIxs.length);
 
     let ixs: TransactionInstruction[] = [];
     ixs.push(createRaydiumStrategyAccountIx);
-    ixs.push(buildNewStrategyIxs[0]);
+    ixs.push(buildNewStrategyIxs.initStrategyIx);
     console.log('ixs', ixs.length);
     const createStratTx = await kamino.getTransactionV2Message(signer.publicKey, ixs);
     const createStratTransactionV0 = new VersionedTransaction(createStratTx);
@@ -259,25 +256,20 @@ describe('Kamino strategy creation SDK Tests', () => {
     let txHash = await sendAndConfirmTransaction(kamino._connection, createStratTransactionV0);
     console.log('create strategy tx hash', txHash);
 
-    let strategySetupIxs: TransactionInstruction[] = [];
-    buildNewStrategyIxs[1].slice(0, 4).map((ix) => strategySetupIxs.push(ix));
-    const setupStratTx = await kamino.getTransactionV2Message(signer.publicKey, strategySetupIxs);
+    // set up lookup table for strategy
+    let strategyLookupTable = await kamino.setupStrategyLookupTable(signer, newStrategy.publicKey);
+
+    const setupStratTx = await kamino.getTransactionV2Message(
+      signer.publicKey,
+      [...buildNewStrategyIxs.updateStrategyParamsIxs, buildNewStrategyIxs.updateRebalanceParamsIx],
+      [strategyLookupTable, MAINNET_GLOBAL_LOOKUP_TABLE]
+    );
     const setupStratTransactionV0 = new VersionedTransaction(setupStratTx);
     setupStratTransactionV0.sign([signer]);
 
     //@ts-ignore
     txHash = await sendAndConfirmTransaction(kamino._connection, setupStratTransactionV0);
     console.log('setup strategy tx hash', txHash);
-
-    let strategySetupFeesIxs: TransactionInstruction[] = [];
-    buildNewStrategyIxs[1].slice(4).map((ix) => strategySetupFeesIxs.push(ix));
-    strategySetupFeesIxs.push(buildNewStrategyIxs[2]);
-    const setupStratFeesTx = await kamino.getTransactionV2Message(signer.publicKey, strategySetupFeesIxs);
-    const setupStratFeesTransactionV0 = new VersionedTransaction(setupStratFeesTx);
-    setupStratFeesTransactionV0.sign([signer]);
-    //@ts-ignore
-    txHash = await sendAndConfirmTransaction(kamino._connection, setupStratFeesTransactionV0);
-    console.log('setup strategy fees tx hash', txHash);
 
     // after strategy creation we have to set the reward mappings so it autocompounds
     let updateRewardMappingIxs = await kamino.getUpdateRewardsIxs(signer.publicKey, newStrategy.publicKey);
@@ -322,7 +314,7 @@ describe('Kamino strategy creation SDK Tests', () => {
 
     let ixs: TransactionInstruction[] = [];
     ixs.push(createRaydiumStrategyAccountIx);
-    ixs.push(buildNewStrategyIxs[0]);
+    ixs.push(buildNewStrategyIxs.initStrategyIx);
     const createStratTx = await kamino.getTransactionV2Message(signer.publicKey, ixs);
     const createStratTransactionV0 = new VersionedTransaction(createStratTx);
     createStratTransactionV0.sign([newStrategy, signer]);
@@ -331,27 +323,20 @@ describe('Kamino strategy creation SDK Tests', () => {
     let txHash = await sendAndConfirmTransaction(kamino._connection, createStratTransactionV0);
     console.log('create strategy tx hash', txHash);
 
-    let strategySetupIxs: TransactionInstruction[] = [];
+    // set up lookup table for strategy
+    let strategyLookupTable = await kamino.setupStrategyLookupTable(signer, newStrategy.publicKey);
 
-    buildNewStrategyIxs[1].slice(0, 4).map((ix) => strategySetupIxs.push(ix));
-    const setupStratTx = await kamino.getTransactionV2Message(signer.publicKey, strategySetupIxs);
+    const setupStratTx = await kamino.getTransactionV2Message(
+      signer.publicKey,
+      [...buildNewStrategyIxs.updateStrategyParamsIxs, buildNewStrategyIxs.updateRebalanceParamsIx],
+      [strategyLookupTable, MAINNET_GLOBAL_LOOKUP_TABLE]
+    );
     const setupStratTransactionV0 = new VersionedTransaction(setupStratTx);
     setupStratTransactionV0.sign([signer]);
 
     //@ts-ignore
     txHash = await sendAndConfirmTransaction(kamino._connection, setupStratTransactionV0);
     console.log('setup strategy tx hash', txHash);
-
-    let strategySetupFeesIxs: TransactionInstruction[] = [];
-    console.log(' buildNewStrategyIxs[1].length()', buildNewStrategyIxs[1].length);
-    buildNewStrategyIxs[1].slice(4).map((ix) => strategySetupFeesIxs.push(ix));
-    strategySetupFeesIxs.push(buildNewStrategyIxs[2]);
-    const setupStratFeesTx = await kamino.getTransactionV2Message(signer.publicKey, strategySetupFeesIxs);
-    const setupStratFeesTransactionV0 = new VersionedTransaction(setupStratFeesTx);
-    setupStratFeesTransactionV0.sign([signer]);
-    //@ts-ignore
-    txHash = await sendAndConfirmTransaction(kamino._connection, setupStratFeesTransactionV0);
-    console.log('setup strategy fees tx hash', txHash);
 
     // after strategy creation we have to set the reward mappings so it autocompounds
     let updateRewardMappingIxs = await kamino.getUpdateRewardsIxs(signer.publicKey, newStrategy.publicKey);
@@ -395,7 +380,7 @@ describe('Kamino strategy creation SDK Tests', () => {
 
     let ixs: TransactionInstruction[] = [];
     ixs.push(createRaydiumStrategyAccountIx);
-    ixs.push(buildNewStrategyIxs[0]);
+    ixs.push(buildNewStrategyIxs.initStrategyIx);
     const createStratTx = await kamino.getTransactionV2Message(signer.publicKey, ixs);
     const createStratTransactionV0 = new VersionedTransaction(createStratTx);
     createStratTransactionV0.sign([newStrategy, signer]);
@@ -403,10 +388,14 @@ describe('Kamino strategy creation SDK Tests', () => {
     let txHash = await sendAndConfirmTransaction(kamino._connection, createStratTransactionV0);
     console.log('create strategy tx hash', txHash);
 
-    let strategySetupIxs: TransactionInstruction[] = [];
+    // set up lookup table for strategy
+    let strategyLookupTable = await kamino.setupStrategyLookupTable(signer, newStrategy.publicKey);
 
-    buildNewStrategyIxs[1].slice(0, 4).map((ix) => strategySetupIxs.push(ix));
-    const setupStratTx = await kamino.getTransactionV2Message(signer.publicKey, strategySetupIxs);
+    const setupStratTx = await kamino.getTransactionV2Message(
+      signer.publicKey,
+      [...buildNewStrategyIxs.updateStrategyParamsIxs, buildNewStrategyIxs.updateRebalanceParamsIx],
+      [strategyLookupTable, MAINNET_GLOBAL_LOOKUP_TABLE]
+    );
     const setupStratTransactionV0 = new VersionedTransaction(setupStratTx);
     setupStratTransactionV0.sign([signer]);
 
@@ -467,7 +456,7 @@ describe('Kamino strategy creation SDK Tests', () => {
 
     let ixs: TransactionInstruction[] = [];
     ixs.push(createRaydiumStrategyAccountIx);
-    ixs.push(buildNewStrategyIxs[0]);
+    ixs.push(buildNewStrategyIxs.initStrategyIx);
     const createStratTx = await kamino.getTransactionV2Message(signer.publicKey, ixs);
     const createStratTransactionV0 = new VersionedTransaction(createStratTx);
     createStratTransactionV0.sign([newStrategy, signer]);
@@ -475,25 +464,20 @@ describe('Kamino strategy creation SDK Tests', () => {
     let txHash = await sendAndConfirmTransaction(kamino._connection, createStratTransactionV0);
     console.log('create strategy tx hash', txHash);
 
-    let strategySetupIxs: TransactionInstruction[] = [];
-    buildNewStrategyIxs[1].slice(0, 4).map((ix) => strategySetupIxs.push(ix));
-    const setupStratTx = await kamino.getTransactionV2Message(signer.publicKey, strategySetupIxs);
+    // set up lookup table for strategy
+    let strategyLookupTable = await kamino.setupStrategyLookupTable(signer, newStrategy.publicKey);
+
+    const setupStratTx = await kamino.getTransactionV2Message(
+      signer.publicKey,
+      [...buildNewStrategyIxs.updateStrategyParamsIxs, buildNewStrategyIxs.updateRebalanceParamsIx],
+      [strategyLookupTable, MAINNET_GLOBAL_LOOKUP_TABLE]
+    );
     const setupStratTransactionV0 = new VersionedTransaction(setupStratTx);
     setupStratTransactionV0.sign([signer]);
 
     //@ts-ignore
     txHash = await sendAndConfirmTransaction(kamino._connection, setupStratTransactionV0);
     console.log('setup strategy tx hash', txHash);
-
-    let strategySetupFeesIxs: TransactionInstruction[] = [];
-    buildNewStrategyIxs[1].slice(4).map((ix) => strategySetupFeesIxs.push(ix));
-    strategySetupFeesIxs.push(buildNewStrategyIxs[2]);
-    const setupStratFeesTx = await kamino.getTransactionV2Message(signer.publicKey, strategySetupFeesIxs);
-    const setupStratFeesTransactionV0 = new VersionedTransaction(setupStratFeesTx);
-    setupStratFeesTransactionV0.sign([signer]);
-    //@ts-ignore
-    txHash = await sendAndConfirmTransaction(kamino._connection, setupStratFeesTransactionV0);
-    console.log('setup strategy fees tx hash', txHash);
 
     // after strategy creation we have to set the reward mappings so it autocompounds
     let updateRewardMappingIxs = await kamino.getUpdateRewardsIxs(signer.publicKey, newStrategy.publicKey);
@@ -537,7 +521,7 @@ describe('Kamino strategy creation SDK Tests', () => {
 
     let ixs: TransactionInstruction[] = [];
     ixs.push(createRaydiumStrategyAccountIx);
-    ixs.push(buildNewStrategyIxs[0]);
+    ixs.push(buildNewStrategyIxs.initStrategyIx);
     const createStratTx = await kamino.getTransactionV2Message(signer.publicKey, ixs);
     const createStratTransactionV0 = new VersionedTransaction(createStratTx);
     createStratTransactionV0.sign([newStrategy, signer]);
@@ -545,25 +529,20 @@ describe('Kamino strategy creation SDK Tests', () => {
     let txHash = await sendAndConfirmTransaction(kamino._connection, createStratTransactionV0);
     console.log('create strategy tx hash', txHash);
 
-    let strategySetupIxs: TransactionInstruction[] = [];
-    buildNewStrategyIxs[1].slice(0, 4).map((ix) => strategySetupIxs.push(ix));
-    const setupStratTx = await kamino.getTransactionV2Message(signer.publicKey, strategySetupIxs);
+    // set up lookup table for strategy
+    let strategyLookupTable = await kamino.setupStrategyLookupTable(signer, newStrategy.publicKey);
+
+    const setupStratTx = await kamino.getTransactionV2Message(
+      signer.publicKey,
+      [...buildNewStrategyIxs.updateStrategyParamsIxs, buildNewStrategyIxs.updateRebalanceParamsIx],
+      [strategyLookupTable, MAINNET_GLOBAL_LOOKUP_TABLE]
+    );
     const setupStratTransactionV0 = new VersionedTransaction(setupStratTx);
     setupStratTransactionV0.sign([signer]);
 
     //@ts-ignore
     txHash = await sendAndConfirmTransaction(kamino._connection, setupStratTransactionV0);
     console.log('setup strategy tx hash', txHash);
-
-    let strategySetupFeesIxs: TransactionInstruction[] = [];
-    buildNewStrategyIxs[1].slice(4).map((ix) => strategySetupFeesIxs.push(ix));
-    strategySetupFeesIxs.push(buildNewStrategyIxs[2]);
-    const setupStratFeesTx = await kamino.getTransactionV2Message(signer.publicKey, strategySetupFeesIxs);
-    const setupStratFeesTransactionV0 = new VersionedTransaction(setupStratFeesTx);
-    setupStratFeesTransactionV0.sign([signer]);
-    //@ts-ignore
-    txHash = await sendAndConfirmTransaction(kamino._connection, setupStratFeesTransactionV0);
-    console.log('setup strategy fees tx hash', txHash);
 
     // after strategy creation we have to set the reward mappings so it autocompounds
     let updateRewardMappingIxs = await kamino.getUpdateRewardsIxs(signer.publicKey, newStrategy.publicKey);
@@ -607,7 +586,7 @@ describe('Kamino strategy creation SDK Tests', () => {
 
     let ixs: TransactionInstruction[] = [];
     ixs.push(createRaydiumStrategyAccountIx);
-    ixs.push(buildNewStrategyIxs[0]);
+    ixs.push(buildNewStrategyIxs.initStrategyIx);
     const createStratTx = await kamino.getTransactionV2Message(signer.publicKey, ixs);
     const createStratTransactionV0 = new VersionedTransaction(createStratTx);
     createStratTransactionV0.sign([newStrategy, signer]);
@@ -615,25 +594,20 @@ describe('Kamino strategy creation SDK Tests', () => {
     let txHash = await sendAndConfirmTransaction(kamino._connection, createStratTransactionV0);
     console.log('create strategy tx hash', txHash);
 
-    let strategySetupIxs: TransactionInstruction[] = [];
-    buildNewStrategyIxs[1].slice(0, 4).map((ix) => strategySetupIxs.push(ix));
-    const setupStratTx = await kamino.getTransactionV2Message(signer.publicKey, strategySetupIxs);
+    // set up lookup table for strategy
+    let strategyLookupTable = await kamino.setupStrategyLookupTable(signer, newStrategy.publicKey);
+
+    const setupStratTx = await kamino.getTransactionV2Message(
+      signer.publicKey,
+      [...buildNewStrategyIxs.updateStrategyParamsIxs, buildNewStrategyIxs.updateRebalanceParamsIx],
+      [strategyLookupTable, MAINNET_GLOBAL_LOOKUP_TABLE]
+    );
     const setupStratTransactionV0 = new VersionedTransaction(setupStratTx);
     setupStratTransactionV0.sign([signer]);
 
     //@ts-ignore
     txHash = await sendAndConfirmTransaction(kamino._connection, setupStratTransactionV0);
     console.log('setup strategy tx hash', txHash);
-
-    let strategySetupFeesIxs: TransactionInstruction[] = [];
-    buildNewStrategyIxs[1].slice(4).map((ix) => strategySetupFeesIxs.push(ix));
-    strategySetupFeesIxs.push(buildNewStrategyIxs[2]);
-    const setupStratFeesTx = await kamino.getTransactionV2Message(signer.publicKey, strategySetupFeesIxs);
-    const setupStratFeesTransactionV0 = new VersionedTransaction(setupStratFeesTx);
-    setupStratFeesTransactionV0.sign([signer]);
-    //@ts-ignore
-    txHash = await sendAndConfirmTransaction(kamino._connection, setupStratFeesTransactionV0);
-    console.log('setup strategy fees tx hash', txHash);
 
     // after strategy creation we have to set the reward mappings so it autocompounds
     let updateRewardMappingIxs = await kamino.getUpdateRewardsIxs(signer.publicKey, newStrategy.publicKey);
@@ -772,7 +746,7 @@ describe('Kamino strategy creation SDK Tests', () => {
 
     let ixs: TransactionInstruction[] = [];
     ixs.push(createRaydiumStrategyAccountIx);
-    ixs.push(buildNewStrategyIxs[0]);
+    ixs.push(buildNewStrategyIxs.initStrategyIx);
     const createStratTx = await kamino.getTransactionV2Message(signer.publicKey, ixs);
     const createStratTransactionV0 = new VersionedTransaction(createStratTx);
     createStratTransactionV0.sign([newStrategy, signer]);
@@ -780,25 +754,20 @@ describe('Kamino strategy creation SDK Tests', () => {
     let txHash = await sendAndConfirmTransaction(kamino._connection, createStratTransactionV0);
     console.log('create strategy tx hash', txHash);
 
-    let strategySetupIxs: TransactionInstruction[] = [];
-    buildNewStrategyIxs[1].slice(0, 4).map((ix) => strategySetupIxs.push(ix));
-    const setupStratTx = await kamino.getTransactionV2Message(signer.publicKey, strategySetupIxs);
+    // set up lookup table for strategy
+    let strategyLookupTable = await kamino.setupStrategyLookupTable(signer, newStrategy.publicKey);
+
+    const setupStratTx = await kamino.getTransactionV2Message(
+      signer.publicKey,
+      [...buildNewStrategyIxs.updateStrategyParamsIxs, buildNewStrategyIxs.updateRebalanceParamsIx],
+      [strategyLookupTable, MAINNET_GLOBAL_LOOKUP_TABLE]
+    );
     const setupStratTransactionV0 = new VersionedTransaction(setupStratTx);
     setupStratTransactionV0.sign([signer]);
 
     //@ts-ignore
     txHash = await sendAndConfirmTransaction(kamino._connection, setupStratTransactionV0);
     console.log('setup strategy tx hash', txHash);
-
-    let strategySetupFeesIxs: TransactionInstruction[] = [];
-    buildNewStrategyIxs[1].slice(4).map((ix) => strategySetupFeesIxs.push(ix));
-    strategySetupFeesIxs.push(buildNewStrategyIxs[2]);
-    const setupStratFeesTx = await kamino.getTransactionV2Message(signer.publicKey, strategySetupFeesIxs);
-    const setupStratFeesTransactionV0 = new VersionedTransaction(setupStratFeesTx);
-    setupStratFeesTransactionV0.sign([signer]);
-    //@ts-ignore
-    txHash = await sendAndConfirmTransaction(kamino._connection, setupStratFeesTransactionV0);
-    console.log('setup strategy fees tx hash', txHash);
 
     // update rebalance params
     let updateRebalanceParamsIx = await kamino.getUpdateRebalancingParmsIxns(signer.publicKey, newStrategy.publicKey, [
@@ -861,7 +830,7 @@ describe('Kamino strategy creation SDK Tests', () => {
 
     let ixs: TransactionInstruction[] = [];
     ixs.push(createRaydiumStrategyAccountIx);
-    ixs.push(buildNewStrategyIxs[0]);
+    ixs.push(buildNewStrategyIxs.initStrategyIx);
     const createStratTx = await kamino.getTransactionV2Message(signer.publicKey, ixs);
     const createStratTransactionV0 = new VersionedTransaction(createStratTx);
     createStratTransactionV0.sign([newStrategy, signer]);
@@ -869,25 +838,20 @@ describe('Kamino strategy creation SDK Tests', () => {
     let txHash = await sendAndConfirmTransaction(kamino._connection, createStratTransactionV0);
     console.log('create strategy tx hash', txHash);
 
-    let strategySetupIxs: TransactionInstruction[] = [];
-    buildNewStrategyIxs[1].slice(0, 4).map((ix) => strategySetupIxs.push(ix));
-    const setupStratTx = await kamino.getTransactionV2Message(signer.publicKey, strategySetupIxs);
+    // set up lookup table for strategy
+    let strategyLookupTable = await kamino.setupStrategyLookupTable(signer, newStrategy.publicKey);
+
+    const setupStratTx = await kamino.getTransactionV2Message(
+      signer.publicKey,
+      [...buildNewStrategyIxs.updateStrategyParamsIxs, buildNewStrategyIxs.updateRebalanceParamsIx],
+      [strategyLookupTable, MAINNET_GLOBAL_LOOKUP_TABLE]
+    );
     const setupStratTransactionV0 = new VersionedTransaction(setupStratTx);
     setupStratTransactionV0.sign([signer]);
 
     //@ts-ignore
     txHash = await sendAndConfirmTransaction(kamino._connection, setupStratTransactionV0);
     console.log('setup strategy tx hash', txHash);
-
-    let strategySetupFeesIxs: TransactionInstruction[] = [];
-    buildNewStrategyIxs[1].slice(4).map((ix) => strategySetupFeesIxs.push(ix));
-    strategySetupFeesIxs.push(buildNewStrategyIxs[2]);
-    const setupStratFeesTx = await kamino.getTransactionV2Message(signer.publicKey, strategySetupFeesIxs);
-    const setupStratFeesTransactionV0 = new VersionedTransaction(setupStratFeesTx);
-    setupStratFeesTransactionV0.sign([signer]);
-    //@ts-ignore
-    txHash = await sendAndConfirmTransaction(kamino._connection, setupStratFeesTransactionV0);
-    console.log('setup strategy fees tx hash', txHash);
 
     // verify strategy rebalance params
     let strategyRebalanceParams = await kamino.readRebalancingParams(newStrategy.publicKey);
@@ -897,8 +861,11 @@ describe('Kamino strategy creation SDK Tests', () => {
     expect(strategyRebalanceParams.find((x) => x.label == 'resetUpperRangeBps')!.value == lowerPriceResetRange);
 
     // open position
-    const openPositionIxn = buildNewStrategyIxs[3];
-    const openPositionMessage = await kamino.getTransactionV2Message(signer.publicKey, [openPositionIxn]);
+    const openPositionIxns = buildNewStrategyIxs.openPositionIxs;
+    const openPositionMessage = await kamino.getTransactionV2Message(signer.publicKey, openPositionIxns, [
+      strategyLookupTable,
+      MAINNET_GLOBAL_LOOKUP_TABLE,
+    ]);
     const openPositionTx = new VersionedTransaction(openPositionMessage);
     openPositionTx.sign([signer, newPosition]);
 
@@ -958,7 +925,7 @@ describe('Kamino strategy creation SDK Tests', () => {
 
     let ixs: TransactionInstruction[] = [];
     ixs.push(createRaydiumStrategyAccountIx);
-    ixs.push(buildNewStrategyIxs[0]);
+    ixs.push(buildNewStrategyIxs.initStrategyIx);
     const createStratTx = await kamino.getTransactionV2Message(signer.publicKey, ixs);
     const createStratTransactionV0 = new VersionedTransaction(createStratTx);
     createStratTransactionV0.sign([newStrategy, signer]);
@@ -966,25 +933,16 @@ describe('Kamino strategy creation SDK Tests', () => {
     let txHash = await sendAndConfirmTransaction(kamino._connection, createStratTransactionV0);
     console.log('create strategy tx hash', txHash);
 
-    let strategySetupIxs: TransactionInstruction[] = [];
-    buildNewStrategyIxs[1].slice(0, 4).map((ix) => strategySetupIxs.push(ix));
-    const setupStratTx = await kamino.getTransactionV2Message(signer.publicKey, strategySetupIxs);
+    // set up lookup table for strategy
+    let strategyLookupTable = await kamino.setupStrategyLookupTable(signer, newStrategy.publicKey);
+
+    const setupStratTx = await kamino.getTransactionV2Message(
+      signer.publicKey,
+      [...buildNewStrategyIxs.updateStrategyParamsIxs, buildNewStrategyIxs.updateRebalanceParamsIx],
+      [strategyLookupTable, MAINNET_GLOBAL_LOOKUP_TABLE]
+    );
     const setupStratTransactionV0 = new VersionedTransaction(setupStratTx);
     setupStratTransactionV0.sign([signer]);
-
-    //@ts-ignore
-    txHash = await sendAndConfirmTransaction(kamino._connection, setupStratTransactionV0);
-    console.log('setup strategy tx hash', txHash);
-
-    let strategySetupFeesIxs: TransactionInstruction[] = [];
-    buildNewStrategyIxs[1].slice(4).map((ix) => strategySetupFeesIxs.push(ix));
-    strategySetupFeesIxs.push(buildNewStrategyIxs[2]);
-    const setupStratFeesTx = await kamino.getTransactionV2Message(signer.publicKey, strategySetupFeesIxs);
-    const setupStratFeesTransactionV0 = new VersionedTransaction(setupStratFeesTx);
-    setupStratFeesTransactionV0.sign([signer]);
-    //@ts-ignore
-    txHash = await sendAndConfirmTransaction(kamino._connection, setupStratFeesTransactionV0);
-    console.log('setup strategy fees tx hash', txHash);
 
     // verify strategy rebalance params
     let strategyData = await kamino.getStrategies([newStrategy.publicKey]);
@@ -992,8 +950,11 @@ describe('Kamino strategy creation SDK Tests', () => {
     expect(strategyData[0]?.rebalanceRaw.params[2].toString() == upperPriceBpsDifference.toString());
 
     // open position
-    const openPositionIxn = buildNewStrategyIxs[3];
-    const openPositionMessage = await kamino.getTransactionV2Message(signer.publicKey, [openPositionIxn]);
+    const openPositionMessage = await kamino.getTransactionV2Message(
+      signer.publicKey,
+      buildNewStrategyIxs.openPositionIxs,
+      [strategyLookupTable, MAINNET_GLOBAL_LOOKUP_TABLE]
+    );
     const openPositionTx = new VersionedTransaction(openPositionMessage);
     openPositionTx.sign([signer, newPosition]);
 
@@ -1034,7 +995,7 @@ describe('Kamino strategy creation SDK Tests', () => {
 
     let ixs: TransactionInstruction[] = [];
     ixs.push(createRaydiumStrategyAccountIx);
-    ixs.push(buildNewStrategyIxs[0]);
+    ixs.push(buildNewStrategyIxs.initStrategyIx);
     const createStratTx = await kamino.getTransactionV2Message(signer.publicKey, ixs);
     const createStratTransactionV0 = new VersionedTransaction(createStratTx);
     createStratTransactionV0.sign([newStrategy, signer]);
@@ -1042,25 +1003,20 @@ describe('Kamino strategy creation SDK Tests', () => {
     let txHash = await sendAndConfirmTransaction(kamino._connection, createStratTransactionV0);
     console.log('create strategy tx hash', txHash);
 
-    let strategySetupIxs: TransactionInstruction[] = [];
-    buildNewStrategyIxs[1].slice(0, 4).map((ix) => strategySetupIxs.push(ix));
-    const setupStratTx = await kamino.getTransactionV2Message(signer.publicKey, strategySetupIxs);
+    // set up lookup table for strategy
+    let strategyLookupTable = await kamino.setupStrategyLookupTable(signer, newStrategy.publicKey);
+
+    const setupStratTx = await kamino.getTransactionV2Message(
+      signer.publicKey,
+      [...buildNewStrategyIxs.updateStrategyParamsIxs, buildNewStrategyIxs.updateRebalanceParamsIx],
+      [strategyLookupTable, MAINNET_GLOBAL_LOOKUP_TABLE]
+    );
     const setupStratTransactionV0 = new VersionedTransaction(setupStratTx);
     setupStratTransactionV0.sign([signer]);
 
     //@ts-ignore
     txHash = await sendAndConfirmTransaction(kamino._connection, setupStratTransactionV0);
     console.log('setup strategy tx hash', txHash);
-
-    let strategySetupFeesIxs: TransactionInstruction[] = [];
-    buildNewStrategyIxs[1].slice(4).map((ix) => strategySetupFeesIxs.push(ix));
-    strategySetupFeesIxs.push(buildNewStrategyIxs[2]);
-    const setupStratFeesTx = await kamino.getTransactionV2Message(signer.publicKey, strategySetupFeesIxs);
-    const setupStratFeesTransactionV0 = new VersionedTransaction(setupStratFeesTx);
-    setupStratFeesTransactionV0.sign([signer]);
-    //@ts-ignore
-    txHash = await sendAndConfirmTransaction(kamino._connection, setupStratFeesTransactionV0);
-    console.log('setup strategy fees tx hash', txHash);
 
     // verify strategy rebalance params
     let strategyData = await kamino.getStrategies([newStrategy.publicKey]);
