@@ -27,11 +27,12 @@ const config = require("@hubbleprotocol/hubble-config"); //config.BORROWING_IDL
 ### Example: get borrowing market state
 
 Dependencies required:
+
 - `@project-serum/anchor`,
 - `@solana/web3.js`,
 - `@hubbleprotocol/hubble-config`.
 
-Use borrowing IDL with Anchor to get the borrowing market state (using readonly wallet): 
+Use borrowing IDL with Anchor to get the borrowing market state (using readonly wallet):
 
 ```js
 import { Connection, Keypair, PublicKey, clusterApiUrl } from '@solana/web3.js';
