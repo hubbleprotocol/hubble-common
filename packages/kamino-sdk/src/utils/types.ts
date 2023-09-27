@@ -264,3 +264,8 @@ export interface InputRebalanceFieldInfo {
   label: string;
   value: Decimal;
 }
+
+export interface WithdrawAllAndCloseIxns {
+  withdrawIxns: TransactionInstruction[];
+  closeIxn: TransactionInstruction;
+}

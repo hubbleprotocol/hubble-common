@@ -12,6 +12,7 @@ import {
 import { SqrtPriceMath } from '@raydium-io/raydium-sdk';
 import { token } from '@project-serum/anchor/dist/cjs/utils';
 import { RebalanceFieldInfo, RebalanceFieldsDict } from './types';
+import BN from 'bn.js';
 
 export const DolarBasedMintingMethod = new Decimal(0);
 export const ProportionalMintingMethod = new Decimal(1);
@@ -184,4 +185,8 @@ export function rebalanceFieldsDictToInfo(rebalanceFields: RebalanceFieldsDict):
     });
   }
   return rebalanceFieldsInfo;
+}
+
+export function isVaultInitialized(vault: PublicKey, decimals: BN): boolean {
+  return !vault.equals(PublicKey.default) && decimals.toNumber() > 0;
 }

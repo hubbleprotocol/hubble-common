@@ -115,12 +115,16 @@ import {
   getTickArray,
   RebalanceFieldsDict,
   rebalanceFieldsDictToInfo,
+  isVaultInitialized,
+  WithdrawAllAndCloseIxns,
 } from './utils';
 import { ASSOCIATED_TOKEN_PROGRAM_ID, Token, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import {
   checkExpectedVaultsBalances,
   CheckExpectedVaultsBalancesAccounts,
   CheckExpectedVaultsBalancesArgs,
+  closeStrategy,
+  CloseStrategyAccounts,
   collectFeesAndRewards,
   CollectFeesAndRewardsAccounts,
   deposit,
@@ -2856,6 +2860,132 @@ export class Kamino {
     };
 
     return initializeStrategy(strategyArgs, strategyAccounts);
+  };
+
+  /**
+   * Get transaction instruction to close Kamino strategy, including its position if there is any
+   * and strategy token accounts.
+   * @param strategy public key of the strategy
+   * @returns instruction to close the strategy
+   */
+  withdrawAllAndCloseStrategy = async (strategy: PublicKey): Promise<WithdrawAllAndCloseIxns | null> => {
+    const { address: _strategyPubkey, strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
+    let withdrawIxns = await this.withdrawAllShares(strategy, strategyState.adminAuthority);
+    if (withdrawIxns == null) {
+      return null;
+    }
+    let closeIxn = await this.closeStrategy(strategy);
+    return {
+      withdrawIxns,
+      closeIxn,
+    };
+  };
+
+  /**
+   * Get transaction instruction to close Kamino strategy, including its position if there is any
+   * and strategy token accounts.
+   * @param strategy public key of the strategy
+   * @returns instruction to close the strategy
+   */
+  closeStrategy = async (strategy: PublicKey) => {
+    const { address: _strategyPubkey, strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
+    let collInfos = await this.getCollateralInfos();
+
+    const poolProgram = getDexProgramId(strategyState);
+    let oldPositionOrBaseVaultAuthority = strategyState.baseVaultAuthority;
+    let oldPositionMintOrBaseVaultAuthority = strategyState.baseVaultAuthority;
+    let oldPositionTokenAccountOrBaseVaultAuthority = strategyState.baseVaultAuthority;
+    if (!strategyState.position.equals(PublicKey.default)) {
+      oldPositionOrBaseVaultAuthority = strategyState.position;
+      oldPositionMintOrBaseVaultAuthority = strategyState.positionMint;
+      oldPositionTokenAccountOrBaseVaultAuthority = strategyState.positionTokenAccount;
+    }
+    let userTokenAAta = getAssociatedTokenAddress(strategyState.tokenAMint, strategyState.adminAuthority);
+    let userTokenBAta = getAssociatedTokenAddress(strategyState.tokenBMint, strategyState.adminAuthority);
+    let reward0Vault = strategyState.baseVaultAuthority;
+    let userReward0Ata = strategyState.baseVaultAuthority;
+    if (isVaultInitialized(strategyState.reward0Vault, strategyState.reward0Decimals)) {
+      reward0Vault = strategyState.reward0Vault;
+      userReward0Ata = getAssociatedTokenAddress(
+        collInfos[strategyState.reward0CollateralId.toNumber()].mint,
+        strategyState.adminAuthority
+      );
+    }
+    let reward1Vault = strategyState.baseVaultAuthority;
+    let userReward1Ata = strategyState.baseVaultAuthority;
+    if (isVaultInitialized(strategyState.reward2Vault, strategyState.reward1Decimals)) {
+      reward1Vault = strategyState.reward1Vault;
+      userReward1Ata = getAssociatedTokenAddress(
+        collInfos[strategyState.reward1CollateralId.toNumber()].mint,
+        strategyState.adminAuthority
+      );
+    }
+    let reward2Vault = strategyState.baseVaultAuthority;
+    let userReward2Ata = strategyState.baseVaultAuthority;
+    if (isVaultInitialized(strategyState.reward2Vault, strategyState.reward2Decimals)) {
+      reward2Vault = strategyState.reward2Vault;
+      userReward2Ata = getAssociatedTokenAddress(
+        collInfos[strategyState.reward2CollateralId.toNumber()].mint,
+        strategyState.adminAuthority
+      );
+    }
+    let kaminoReward0Vault = strategyState.baseVaultAuthority;
+    let userKaminoReward0Ata = strategyState.baseVaultAuthority;
+    if (isVaultInitialized(strategyState.kaminoRewards[0].rewardVault, strategyState.kaminoRewards[0].decimals)) {
+      kaminoReward0Vault = strategyState.kaminoRewards[0].rewardVault;
+      userKaminoReward0Ata = getAssociatedTokenAddress(
+        strategyState.kaminoRewards[0].rewardMint,
+        strategyState.adminAuthority
+      );
+    }
+    let kaminoReward1Vault = strategyState.baseVaultAuthority;
+    let userKaminoReward1Ata = strategyState.baseVaultAuthority;
+    if (isVaultInitialized(strategyState.kaminoRewards[1].rewardVault, strategyState.kaminoRewards[1].decimals)) {
+      kaminoReward1Vault = strategyState.kaminoRewards[1].rewardVault;
+      userKaminoReward1Ata = getAssociatedTokenAddress(
+        strategyState.kaminoRewards[1].rewardMint,
+        strategyState.adminAuthority
+      );
+    }
+    let kaminoReward2Vault = strategyState.baseVaultAuthority;
+    let userKaminoReward2Ata = strategyState.baseVaultAuthority;
+    if (isVaultInitialized(strategyState.kaminoRewards[2].rewardVault, strategyState.kaminoRewards[2].decimals)) {
+      kaminoReward2Vault = strategyState.kaminoRewards[2].rewardVault;
+      userKaminoReward2Ata = getAssociatedTokenAddress(
+        strategyState.kaminoRewards[2].rewardMint,
+        strategyState.adminAuthority
+      );
+    }
+
+    const strategyAccounts: CloseStrategyAccounts = {
+      adminAuthority: strategyState.adminAuthority,
+      strategy,
+      oldPositionOrBaseVaultAuthority,
+      oldPositionMintOrBaseVaultAuthority,
+      oldPositionTokenAccountOrBaseVaultAuthority,
+      tokenAVault: strategyState.tokenAVault,
+      tokenBVault: strategyState.tokenBVault,
+      baseVaultAuthority: strategyState.baseVaultAuthority,
+      system: SystemProgram.programId,
+      tokenProgram: TOKEN_PROGRAM_ID,
+      poolProgram: poolProgram,
+      userTokenAAta,
+      userTokenBAta,
+      reward0Vault,
+      reward1Vault,
+      reward2Vault,
+      kaminoReward0Vault,
+      kaminoReward1Vault,
+      kaminoReward2Vault,
+      userReward0Ata,
+      userReward1Ata,
+      userReward2Ata,
+      userKaminoReward0Ata,
+      userKaminoReward1Ata,
+      userKaminoReward2Ata,
+    };
+
+    return closeStrategy(strategyAccounts);
   };
 
   /**

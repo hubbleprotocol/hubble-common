@@ -43,6 +43,7 @@ import {
   updateTreasuryFeeVault,
   solAirdrop,
   getLocalSwapIxs,
+  setupAta,
 } from './utils';
 import {
   AllowDepositWithoutInvest,
@@ -117,6 +118,12 @@ describe('Kamino SDK Tests', () => {
     tokenBMint = tokens[1];
     fixtures.newTokenMintA = tokenAMint;
     fixtures.newTokenMintB = tokenBMint;
+    let tokenAAta = await setupAta(connection, signer, tokenAMint, signer);
+    let tokenBAta = await setupAta(connection, signer, tokenBMint, signer);
+    await sleep(2000);
+    await mintTo(connection, signer, tokenAMint, tokenAAta, 100_000_000_000);
+    await mintTo(connection, signer, tokenBMint, tokenBAta, 100_000_000_000);
+    await sleep(2000);
 
     let globalConfig = await setUpGlobalConfig(kamino, signer, fixtures.scopeProgram, fixtures.scopePrices);
     console.log('globalConfig initialized ', globalConfig.toString());
@@ -1709,6 +1716,193 @@ describe('Kamino SDK Tests', () => {
     expect(performanceFees.reward0FeeBPS.eq(new Decimal(450))).to.be.true;
     expect(performanceFees.reward1FeeBPS.eq(new Decimal(700))).to.be.true;
     expect(performanceFees.reward2FeeBPS.eq(new Decimal(800))).to.be.true;
+  });
+
+  it('closes the strategy with no position open', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      fixtures.globalConfig,
+      fixtures.kaminoProgramId,
+      WHIRLPOOL_PROGRAM_ID,
+      LOCAL_RAYDIUM_PROGRAM_ID
+    );
+    // Create a new strategy
+    let txStrategyCreate = createTransactionWithExtraBudget(signer.publicKey);
+    const newOrcaStrategy = Keypair.generate();
+    const createStrategyAccountIx = await kamino.createStrategyAccount(signer.publicKey, newOrcaStrategy.publicKey);
+    txStrategyCreate.add(createStrategyAccountIx);
+    let orcaStrategyIx = await kamino.createStrategy(
+      newOrcaStrategy.publicKey,
+      fixtures.newWhirlpool,
+      signer.publicKey,
+      'ORCA'
+    );
+    txStrategyCreate.add(orcaStrategyIx);
+    await sendTransactionWithLogs(connection, txStrategyCreate, signer.publicKey, [signer, newOrcaStrategy]);
+    const strategyBefore = (await kamino.getStrategyByAddress(newOrcaStrategy.publicKey))!;
+
+    // Close it right after
+    let tx = createTransactionWithExtraBudget(signer.publicKey, 1000000);
+    const closeIx = await kamino.closeStrategy(newOrcaStrategy.publicKey);
+    tx.add(closeIx);
+    tx = await assignBlockInfoToTransaction(connection, tx, signer.publicKey);
+    const txHash = await sendAndConfirmTransaction(connection, tx, [signer], {
+      commitment: 'processed',
+      skipPreflight: true,
+    });
+
+    const strategy = await kamino.getStrategyByAddress(newOrcaStrategy.publicKey);
+    expect(strategy).to.be.null;
+    try {
+      const position = await kamino.getPositionRangeOrca(
+        strategyBefore.position,
+        strategyBefore.tokenAMintDecimals.toNumber(),
+        strategyBefore.tokenBMintDecimals.toNumber()
+      );
+      expect(position).to.be.null;
+    } catch (error) {
+      console.log(`Fetching closed position got err ${error}`);
+    }
+  });
+
+  it('closes the strategy with position open', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      fixtures.globalConfig,
+      fixtures.kaminoProgramId,
+      WHIRLPOOL_PROGRAM_ID,
+      LOCAL_RAYDIUM_PROGRAM_ID
+    );
+    // Create a new strategy
+    let txStrategyCreate = createTransactionWithExtraBudget(signer.publicKey);
+    const newOrcaStrategy = Keypair.generate();
+    const createStrategyAccountIx = await kamino.createStrategyAccount(signer.publicKey, newOrcaStrategy.publicKey);
+    txStrategyCreate.add(createStrategyAccountIx);
+    let orcaStrategyIx = await kamino.createStrategy(
+      newOrcaStrategy.publicKey,
+      fixtures.newWhirlpool,
+      signer.publicKey,
+      'ORCA'
+    );
+    txStrategyCreate.add(orcaStrategyIx);
+    await sendTransactionWithLogs(connection, txStrategyCreate, signer.publicKey, [signer, newOrcaStrategy]);
+    // setup strategy lookup table
+    await kamino.setupStrategyLookupTable(signer, newOrcaStrategy.publicKey);
+    await openPosition(kamino, signer, newOrcaStrategy.publicKey, new Decimal(0.97), new Decimal(1.03));
+    await sleep(1000);
+    const strategyState = (await kamino.getStrategyByAddress(newOrcaStrategy.publicKey))!;
+
+    // Close it right after
+    let tx = createTransactionWithExtraBudget(signer.publicKey, 1000000);
+    const closeIx = await kamino.closeStrategy(newOrcaStrategy.publicKey);
+    tx.add(closeIx);
+    tx = await assignBlockInfoToTransaction(connection, tx, signer.publicKey);
+    await sendAndConfirmTransaction(connection, tx, [signer], {
+      commitment: 'processed',
+      skipPreflight: true,
+    });
+
+    const strategy = await kamino.getStrategyByAddress(newOrcaStrategy.publicKey);
+    expect(strategy).to.be.null;
+    try {
+      const position = await kamino.getPositionRangeOrca(
+        strategyState.position,
+        strategyState.tokenAMintDecimals.toNumber(),
+        strategyState.tokenBMintDecimals.toNumber()
+      );
+      expect(position).to.be.null;
+    } catch (error) {
+      console.log(`Fetching closed position got err ${error}`);
+    }
+  });
+
+  it('withdraw all shares and closes the strategy with position open', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      fixtures.globalConfig,
+      fixtures.kaminoProgramId,
+      WHIRLPOOL_PROGRAM_ID,
+      LOCAL_RAYDIUM_PROGRAM_ID
+    );
+    // Create a new strategy
+    let txStrategyCreate = createTransactionWithExtraBudget(signer.publicKey);
+    const newOrcaStrategy = Keypair.generate();
+    const createStrategyAccountIx = await kamino.createStrategyAccount(signer.publicKey, newOrcaStrategy.publicKey);
+    txStrategyCreate.add(createStrategyAccountIx);
+    let orcaStrategyIx = await kamino.createStrategy(
+      newOrcaStrategy.publicKey,
+      fixtures.newWhirlpool,
+      signer.publicKey,
+      'ORCA'
+    );
+    txStrategyCreate.add(orcaStrategyIx);
+    await sendTransactionWithLogs(connection, txStrategyCreate, signer.publicKey, [signer, newOrcaStrategy]);
+    await updateStrategyConfig(
+      connection,
+      signer,
+      newOrcaStrategy.publicKey,
+      new UpdateDepositCapIxn(),
+      new Decimal(1000000000000000)
+    );
+    await updateStrategyConfig(
+      connection,
+      signer,
+      newOrcaStrategy.publicKey,
+      new UpdateDepositCap(),
+      new Decimal(10000000000000000)
+    );
+    const strategyState = (await kamino.getStrategyByAddress(newOrcaStrategy.publicKey))!;
+
+    // Create lookup table and open new position
+    await kamino.setupStrategyLookupTable(signer, newOrcaStrategy.publicKey);
+    await openPosition(kamino, signer, newOrcaStrategy.publicKey, new Decimal(0.97), new Decimal(1.03));
+    await sleep(1000);
+
+    // Deposit some funds
+    await setupAta(connection, signer, strategyState.sharesMint, signer);
+    let depositTxn = createTransactionWithExtraBudget(signer.publicKey, 1000000);
+    const depositIx = await kamino.deposit(
+      newOrcaStrategy.publicKey,
+      new Decimal(100.0),
+      new Decimal(100.0),
+      signer.publicKey
+    );
+    depositTxn.add(depositIx);
+    depositTxn = await assignBlockInfoToTransaction(connection, depositTxn, signer.publicKey);
+    await sendAndConfirmTransaction(connection, depositTxn, [signer], {
+      commitment: 'processed',
+      skipPreflight: true,
+    });
+
+    // Withdraw all shares and close it right after
+    let tx = createTransactionWithExtraBudget(signer.publicKey, 1000000);
+    const withdrawAndClose = await kamino.withdrawAllAndCloseStrategy(newOrcaStrategy.publicKey);
+    expect(withdrawAndClose).to.not.be.null;
+    for (let ixn of withdrawAndClose!.withdrawIxns) {
+      tx.add(ixn);
+    }
+    tx.add(withdrawAndClose!.closeIxn);
+    tx = await assignBlockInfoToTransaction(connection, tx, signer.publicKey);
+    await sendAndConfirmTransaction(connection, tx, [signer], {
+      commitment: 'processed',
+      skipPreflight: true,
+    });
+
+    const strategy = await kamino.getStrategyByAddress(newOrcaStrategy.publicKey);
+    expect(strategy).to.be.null;
+    try {
+      const position = await kamino.getPositionRangeOrca(
+        strategyState.position,
+        strategyState.tokenAMintDecimals.toNumber(),
+        strategyState.tokenBMintDecimals.toNumber()
+      );
+      expect(position).to.be.null;
+    } catch (error) {
+      console.log(`Fetching closed position got err ${error}`);
+    }
   });
 });
 
