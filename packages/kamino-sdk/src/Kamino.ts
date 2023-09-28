@@ -2145,7 +2145,8 @@ export class Kamino {
     profiler: ProfiledFunctionExecution = noopProfiledFunctionExecution,
     swapIxsBuilder?: SwapperIxBuilder,
     initialUserTokenAtaBalances?: TokensBalances,
-    priceAInB?: Decimal
+    priceAInB?: Decimal,
+    includeAtaIxns: boolean = true // if true it includes create and close wsol and token atas,
   ): Promise<InstructionsWithLookupTables> => {
     const strategyWithAddress = await this.getStrategyStateIfNotFetched(strategy);
 
@@ -2204,7 +2205,8 @@ export class Kamino {
         swapper,
         profiler,
         userTokenBalancesWithoutSolBalanace,
-        priceAInB
+        priceAInB,
+        includeAtaIxns
       ),
       'A-getSingleSidedDepositIxs',
       []
@@ -2219,7 +2221,8 @@ export class Kamino {
     profiler: ProfiledFunctionExecution = noopProfiledFunctionExecution,
     swapIxsBuilder?: SwapperIxBuilder,
     initialUserTokenAtaBalances?: TokensBalances,
-    priceAInB?: Decimal
+    priceAInB?: Decimal,
+    includeAtaIxns: boolean = true // if true it includes create and close wsol and token atas,
   ): Promise<InstructionsWithLookupTables> => {
     const strategyWithAddress = await this.getStrategyStateIfNotFetched(strategy);
 
@@ -2277,7 +2280,8 @@ export class Kamino {
         swapper,
         profiler,
         userTokenBalancesWithoutSolBalanace,
-        priceAInB
+        priceAInB,
+        includeAtaIxns
       ),
       'A-getSingleSidedDepositIxs',
       []
@@ -2331,7 +2335,8 @@ export class Kamino {
     swapIxsBuilder: SwapperIxBuilder,
     profiler: ProfiledFunctionExecution,
     initialUserTokenAtaBalances: TokensBalances,
-    priceAInB?: Decimal // not mandatory as it will be fetched from Jupyter
+    priceAInB?: Decimal, // not mandatory as it will be fetched from Jupyter
+    includeAtaIxns: boolean = true // if true it includes create and close wsol and token atas,
   ): Promise<InstructionsWithLookupTables> => {
     const strategyWithAddress = await this.getStrategyStateIfNotFetched(strategy);
     const strategyState = strategyWithAddress.strategy;
@@ -2517,7 +2522,9 @@ export class Kamino {
     let singleSidedDepositIx = singleTokenDepositWithMin(args, accounts);
 
     let result: TransactionInstruction[] = [];
-    result.push(...createAtasIxns, ...createWsolAtasIxns);
+    if (includeAtaIxns) {
+      result.push(...createAtasIxns, ...createWsolAtasIxns);
+    }
 
     // get all unique accounts in the tx so we can use the remaining space (MAX_ACCOUNTS_PER_TRANSACTION - accounts_used) for the swap
     const extractKeys = (ixs: any[]) => ixs.flatMap((ix) => ix.keys?.map((key) => key.pubkey) || []);
