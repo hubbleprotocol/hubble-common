@@ -403,17 +403,6 @@ describe('Kamino strategy creation SDK Tests', () => {
     txHash = await sendAndConfirmTransaction(kamino._connection, setupStratTransactionV0);
     console.log('setup strategy tx hash', txHash);
 
-    let strategySetupFeesIxs: TransactionInstruction[] = [];
-    console.log(' buildNewStrategyIxs[1].length()', buildNewStrategyIxs[1].length);
-    buildNewStrategyIxs[1].slice(4).map((ix) => strategySetupFeesIxs.push(ix));
-    strategySetupFeesIxs.push(buildNewStrategyIxs[2]);
-    const setupStratFeesTx = await kamino.getTransactionV2Message(signer.publicKey, strategySetupFeesIxs);
-    const setupStratFeesTransactionV0 = new VersionedTransaction(setupStratFeesTx);
-    setupStratFeesTransactionV0.sign([signer]);
-    //@ts-ignore
-    txHash = await sendAndConfirmTransaction(kamino._connection, setupStratFeesTransactionV0);
-    console.log('setup strategy fees tx hash', txHash);
-
     // after strategy creation we have to set the reward mappings so it autocompounds
     let updateRewardMappingIxs = await kamino.getUpdateRewardsIxs(signer.publicKey, newStrategy.publicKey);
 
@@ -1024,8 +1013,10 @@ describe('Kamino strategy creation SDK Tests', () => {
     expect(strategyData[0]?.rebalanceRaw.params[2].toString() == upperPriceBpsDifference.toString());
 
     // open position
-    const openPositionIxn = buildNewStrategyIxs[3];
-    const openPositionMessage = await kamino.getTransactionV2Message(signer.publicKey, [openPositionIxn]);
+    const openPositionMessage = await kamino.getTransactionV2Message(
+      signer.publicKey,
+      buildNewStrategyIxs.openPositionIxs
+    );
     const openPositionTx = new VersionedTransaction(openPositionMessage);
     openPositionTx.sign([signer, newPosition]);
 

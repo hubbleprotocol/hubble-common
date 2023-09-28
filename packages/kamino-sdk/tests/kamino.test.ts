@@ -519,7 +519,7 @@ describe('Kamino SDK Tests', () => {
     console.log('shares, ', shares);
 
     const withdrawIxns = await kamino.withdrawShares(strategyWithAddress, new Decimal(0.2), signer.publicKey);
-    withdrawTx.add(...withdrawIxns);
+    withdrawTx.add(...withdrawIxns.prerequisiteIxs, withdrawIxns.withdrawIx);
 
     withdrawTx = await assignBlockInfoToTransaction(connection, withdrawTx, signer.publicKey);
 
@@ -777,7 +777,7 @@ describe('Kamino SDK Tests', () => {
 
     let withdrawTx = createTransactionWithExtraBudget(signer.publicKey);
     const withdrawIxns = await kamino.withdrawShares(strategyWithAddress, new Decimal(0.02), signer.publicKey);
-    tx.add(...withdrawIxns);
+    tx.add(...withdrawIxns.prerequisiteIxs, withdrawIxns.withdrawIx);
 
     withdrawTx = await assignBlockInfoToTransaction(connection, withdrawTx, signer.publicKey);
 
@@ -829,7 +829,7 @@ describe('Kamino SDK Tests', () => {
     let withdrawTx = createTransactionWithExtraBudget(user.owner.publicKey);
     const withdrawIxns = await kamino.withdrawAllShares(strategyWithAddress, user.owner.publicKey);
     if (withdrawIxns) {
-      tx.add(...withdrawIxns);
+      tx.add(...withdrawIxns.prerequisiteIxs, withdrawIxns.withdrawIx);
     } else {
       console.log('balance is 0, cant withdraw');
       return;
@@ -885,7 +885,7 @@ describe('Kamino SDK Tests', () => {
 
     const withdrawIxns = await kamino.withdrawAllShares(strategyWithAddress, user.owner.publicKey);
     if (withdrawIxns) {
-      tx.add(...withdrawIxns);
+      tx.add(...withdrawIxns.prerequisiteIxs, withdrawIxns.withdrawIx);
     } else {
       console.log('balance is 0, cant withdraw');
       return;
@@ -1075,8 +1075,7 @@ describe('Kamino SDK Tests', () => {
       fixtures.newOrcaStrategy,
       newPosition.publicKey,
       new Decimal(0.99),
-      new Decimal(1.01),
-      signer.publicKey
+      new Decimal(1.01)
     );
 
     {
@@ -1146,8 +1145,7 @@ describe('Kamino SDK Tests', () => {
       fixtures.newRaydiumStrategy,
       newPosition.publicKey,
       new Decimal(0.98),
-      new Decimal(1.01),
-      signer.publicKey
+      new Decimal(1.01)
     );
 
     let openPositionIx: TransactionInstruction;
@@ -1232,8 +1230,7 @@ describe('Kamino SDK Tests', () => {
       newRaydiumStrategy.publicKey,
       newPosition.publicKey,
       new Decimal(0.98),
-      new Decimal(1.01),
-      signer.publicKey
+      new Decimal(1.01)
     );
 
     {
