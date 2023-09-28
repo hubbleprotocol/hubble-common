@@ -2799,14 +2799,8 @@ export class Kamino {
       expectedBBalance = await this.getTokenAccountBalanceOrZero(tokenBAta);
     }
 
-    let expectedALamports = collToLamportsDecimal(
-      expectedABalance,
-      strategyState.tokenAMintDecimals.toNumber()
-    ).floor();
-    let expectedBLamports = collToLamportsDecimal(
-      expectedBBalance,
-      strategyState.tokenBMintDecimals.toNumber()
-    ).floor();
+    let expectedALamports = collToLamportsDecimal(expectedABalance, strategyState.tokenAMintDecimals.toNumber());
+    let expectedBLamports = collToLamportsDecimal(expectedBBalance, strategyState.tokenBMintDecimals.toNumber());
 
     const args: CheckExpectedVaultsBalancesArgs = {
       tokenAAtaBalance: new BN(expectedALamports.toString()),
