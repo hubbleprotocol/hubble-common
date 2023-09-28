@@ -2522,7 +2522,7 @@ export class Kamino {
     let singleSidedDepositIx = singleTokenDepositWithMin(args, accounts);
 
     let result: TransactionInstruction[] = [];
-    if ( includeAtaIxns ) {
+    if (includeAtaIxns) {
       result.push(...createAtasIxns, ...createWsolAtasIxns);
     }
 
@@ -2799,8 +2799,14 @@ export class Kamino {
       expectedBBalance = await this.getTokenAccountBalanceOrZero(tokenBAta);
     }
 
-    let expectedALamports = collToLamportsDecimal(expectedABalance, strategyState.tokenAMintDecimals.toNumber()).floor();
-    let expectedBLamports = collToLamportsDecimal(expectedBBalance, strategyState.tokenBMintDecimals.toNumber()).floor();
+    let expectedALamports = collToLamportsDecimal(
+      expectedABalance,
+      strategyState.tokenAMintDecimals.toNumber()
+    ).floor();
+    let expectedBLamports = collToLamportsDecimal(
+      expectedBBalance,
+      strategyState.tokenBMintDecimals.toNumber()
+    ).floor();
 
     const args: CheckExpectedVaultsBalancesArgs = {
       tokenAAtaBalance: new BN(expectedALamports.toString()),
