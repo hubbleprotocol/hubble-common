@@ -38,7 +38,6 @@ import {
   defaultSlippagePercentage,
   getNearestValidTickIndexFromTickIndex,
   getNextValidTickIndex,
-  getPrevValidTickIndex,
   getRemoveLiquidityQuote,
   getStartTickIndex,
   OrcaNetwork,
@@ -87,7 +86,6 @@ import {
   LiquidityDistribution,
   numberToRebalanceType,
   RebalanceFieldInfo,
-  RebalanceParamOffset,
   sendTransactionWithLogs,
   StrategiesFilters,
   strategyCreationStatusToBase58,
@@ -95,12 +93,9 @@ import {
   VaultParameters,
   ZERO,
   PositionRange,
-  RebalanceParamsAsPrices,
-  RebalanceParams,
   numberToDex,
   TokensBalances,
   isSOLMint,
-  readBigUint128LE,
   SwapperIxBuilder,
   lamportsToNumberDecimal,
   DECIMALS_SOL,
@@ -113,12 +108,11 @@ import {
   PriceReferenceType,
   InputRebalanceFieldInfo,
   getTickArray,
-  RebalanceFieldsDict,
   rebalanceFieldsDictToInfo,
   isVaultInitialized,
   WithdrawAllAndCloseIxns,
 } from './utils';
-import { ASSOCIATED_TOKEN_PROGRAM_ID, Token, TOKEN_PROGRAM_ID } from '@solana/spl-token';
+import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import {
   checkExpectedVaultsBalances,
   CheckExpectedVaultsBalancesAccounts,
@@ -164,12 +158,10 @@ import {
   ExecutiveWithdrawActionKind,
   RebalanceType,
   RebalanceTypeKind,
-  ReferencePriceType,
   ReferencePriceTypeKind,
   StrategyConfigOption,
   StrategyStatusKind,
 } from './kamino-client/types';
-import { Rebalance } from './kamino-client/types/ExecutiveWithdrawAction';
 import { AmmConfig, PersonalPositionState, PoolState } from './raydium_client';
 import { PROGRAM_ID as RAYDIUM_PROGRAM_ID, setRaydiumProgramId } from './raydium_client/programId';
 import { i32ToBytes, LiquidityMath, SqrtPriceMath, TickMath, TickUtils } from '@raydium-io/raydium-sdk';
@@ -207,12 +199,8 @@ import { DEVNET_GLOBAL_LOOKUP_TABLE, MAINNET_GLOBAL_LOOKUP_TABLE } from './const
 import {
   DefaultDex,
   DefaultFeeTierOrca,
-  DefaultLowerPercentageBPS,
-  DefaultLowerPriceDifferenceBPS,
   DefaultMintTokenA,
   DefaultMintTokenB,
-  DefaultUpperPercentageBPS,
-  DefaultUpperPriceDifferenceBPS,
   DriftRebalanceMethod,
   ExpanderMethod,
   FullBPS,
@@ -270,7 +258,6 @@ import {
   getPositionRangeFromPricePercentageWithResetParams,
   getPricePercentageWithResetRebalanceFieldInfos,
   readPricePercentageWithResetRebalanceParamsFromStrategy,
-  readPricePercentageWithResetRebalanceStateFromStrategy,
   readRawPricePercentageWithResetRebalanceStateFromStrategy,
 } from './rebalance_methods/pricePercentageWithResetRebalance';
 import {
@@ -280,7 +267,6 @@ import {
   getDriftRebalanceFieldInfos,
   getPositionRangeFromDriftParams,
   readDriftRebalanceParamsFromStrategy,
-  readDriftRebalanceStateFromStrategy,
   readRawDriftRebalanceStateFromStrategy,
 } from './rebalance_methods/driftRebalance';
 import {
@@ -297,7 +283,6 @@ import {
   getTakeProfitRebalanceFieldsInfos,
   readExpanderRebalanceFieldInfosFromStrategy,
   readExpanderRebalanceParamsFromStrategy,
-  readExpanderRebalanceStateFromStrategy,
   readPeriodicRebalanceRebalanceParamsFromStrategy,
   readPeriodicRebalanceRebalanceStateFromStrategy,
   readRawExpanderRebalanceStateFromStrategy,
@@ -396,7 +381,7 @@ export class Kamino {
 
   getSupportedDexes = (): Dex[] => ['ORCA', 'RAYDIUM'];
 
-  // todo: see if we can read this dinamically
+  // todo: see if we can read this dynamically
   getFeeTiersForDex = (dex: Dex): Decimal[] => {
     if (dex == 'ORCA') {
       return [new Decimal(0.0001), new Decimal(0.0005), new Decimal(0.003), new Decimal(0.01)];
@@ -1774,22 +1759,38 @@ export class Kamino {
       map[uniqueWhirlpools[i].toBase58()] = whirlpool;
       return map;
     }, {});
-    return whirlpools.map((whirlpool) => fetchedMap[whirlpool.toBase58()]);
+    return whirlpools.map((whirlpool) => fetchedMap[whirlpool.toBase58()] || null);
   };
 
   /**
    * Get a list of Orca positions from public keys
    * @param positions
    */
-  getOrcaPositions = (positions: PublicKey[]) =>
-    batchFetch(positions, (chunk) => Position.fetchMultiple(this._connection, chunk));
+  getOrcaPositions = async (positions: PublicKey[]): Promise<(Position | null)[]> => {
+    const nonDefaults = positions.filter((value) => value.toBase58() !== PublicKey.default.toBase58());
+    const fetched = await batchFetch(nonDefaults, (chunk) => Position.fetchMultiple(this._connection, chunk));
+    const fetchedMap: Record<string, Position | null> = fetched.reduce((map, position, i) => {
+      map[nonDefaults[i].toBase58()] = position;
+      return map;
+    }, {});
+    return positions.map((position) => fetchedMap[position.toBase58()] || null);
+  };
 
   /**
    * Get a list of Raydium positions from public keys
    * @param positions
    */
-  getRaydiumPositions = (positions: PublicKey[]) =>
-    batchFetch(positions, (chunk) => PersonalPositionState.fetchMultiple(this._connection, chunk));
+  getRaydiumPositions = async (positions: PublicKey[]): Promise<(PersonalPositionState | null)[]> => {
+    const nonDefaults = positions.filter((value) => value.toBase58() !== PublicKey.default.toBase58());
+    const fetched = await batchFetch(nonDefaults, (chunk) =>
+      PersonalPositionState.fetchMultiple(this._connection, chunk)
+    );
+    const fetchedMap: Record<string, PersonalPositionState | null> = fetched.reduce((map, position, i) => {
+      map[nonDefaults[i].toBase58()] = position;
+      return map;
+    }, {});
+    return positions.map((position) => fetchedMap[position.toBase58()] || null);
+  };
 
   /**
    * Get whirlpool from public key
@@ -1813,7 +1814,7 @@ export class Kamino {
       map[uniquePools[i].toBase58()] = whirlpool;
       return map;
     }, {});
-    return pools.map((whirlpool) => fetchedMap[whirlpool.toBase58()]);
+    return pools.map((whirlpool) => fetchedMap[whirlpool.toBase58()] || null);
   };
 
   getRaydiumAmmConfig = (config: PublicKey) => AmmConfig.fetch(this._connection, config);
