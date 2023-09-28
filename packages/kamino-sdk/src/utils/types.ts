@@ -299,3 +299,7 @@ export interface LowerAndUpperTickPubkeys {
   upperTick: PublicKey;
   upperTickBump: number;
 }
+export interface WithdrawAllAndCloseIxns {
+  withdrawIxns: TransactionInstruction[];
+  closeIxn: TransactionInstruction;
+}

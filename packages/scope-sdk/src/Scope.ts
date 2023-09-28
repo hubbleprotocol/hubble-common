@@ -142,6 +142,7 @@ export class Scope {
     { id: 114, pair: 'kMSOLJITOSOLOrca/USD', name: 'kMSOLJITOSOLOrca', price: new Decimal(0) },
     { id: 115, pair: 'kSOLUSDCOrca/USD', name: 'kSOLUSDCOrca', price: new Decimal(0) },
     { id: 116, pair: 'kJITOSOLUSDCOrca/USD', name: 'kJITOSOLUSDCOrca', price: new Decimal(0) },
+    { id: 117, pair: 'LST/SOL', name: 'LST', price: new Decimal(0), nonUsdPairId: 0 },
   ];
 
   /**
@@ -214,7 +215,11 @@ export class Scope {
     if (uniqueScopePrices.length === 1) {
       return [[uniqueScopePrices[0], await this.getOraclePrices({ prices: uniqueScopePrices[0] })]];
     }
-    const oraclePrices = await OraclePrices.fetchMultiple(this._connection, prices, this._config.scope.programId);
+    const oraclePrices = await OraclePrices.fetchMultiple(
+      this._connection,
+      uniqueScopePrices,
+      this._config.scope.programId
+    );
     const oraclePricesMap: Record<string, OraclePrices> = oraclePrices
       .map((price, i) => {
         if (price === null) {

@@ -463,7 +463,7 @@
       "name": "updateTreasuryFeeVault",
       "accounts": [
         {
-          "name": "adminAuthority",
+          "name": "signer",
           "isMut": true,
           "isSigner": true
         },
@@ -484,7 +484,12 @@
         },
         {
           "name": "treasuryFeeVaultAuthority",
-          "isMut": true,
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenInfos",
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -777,6 +782,149 @@
       ]
     },
     {
+      "name": "closeStrategy",
+      "accounts": [
+        {
+          "name": "adminAuthority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "strategy",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "oldPositionOrBaseVaultAuthority",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "oldPositionMintOrBaseVaultAuthority",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "oldPositionTokenAccountOrBaseVaultAuthority",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenAVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenBVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userTokenAAta",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userTokenBAta",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "reward0Vault",
+          "isMut": true,
+          "isSigner": false,
+          "docs": ["If rewards are uninitialized, pass this as strategy."]
+        },
+        {
+          "name": "reward1Vault",
+          "isMut": true,
+          "isSigner": false,
+          "docs": ["If rewards are uninitialized, pass this as strategy."]
+        },
+        {
+          "name": "reward2Vault",
+          "isMut": true,
+          "isSigner": false,
+          "docs": ["If rewards are uninitialized, pass this as strategy."]
+        },
+        {
+          "name": "kaminoReward0Vault",
+          "isMut": true,
+          "isSigner": false,
+          "docs": ["If rewards are uninitialized, pass this as strategy."]
+        },
+        {
+          "name": "kaminoReward1Vault",
+          "isMut": true,
+          "isSigner": false,
+          "docs": ["If rewards are uninitialized, pass this as strategy."]
+        },
+        {
+          "name": "kaminoReward2Vault",
+          "isMut": true,
+          "isSigner": false,
+          "docs": ["If rewards are uninitialized, pass this as strategy."]
+        },
+        {
+          "name": "userReward0Ata",
+          "isMut": true,
+          "isSigner": false,
+          "docs": ["If rewards are uninitialized, pass this as strategy."]
+        },
+        {
+          "name": "userReward1Ata",
+          "isMut": true,
+          "isSigner": false,
+          "docs": ["If rewards are uninitialized, pass this as strategy."]
+        },
+        {
+          "name": "userReward2Ata",
+          "isMut": true,
+          "isSigner": false,
+          "docs": ["If rewards are uninitialized, pass this as strategy."]
+        },
+        {
+          "name": "userKaminoReward0Ata",
+          "isMut": true,
+          "isSigner": false,
+          "docs": ["If rewards are uninitialized, pass this as strategy."]
+        },
+        {
+          "name": "userKaminoReward1Ata",
+          "isMut": true,
+          "isSigner": false,
+          "docs": ["If rewards are uninitialized, pass this as strategy."]
+        },
+        {
+          "name": "userKaminoReward2Ata",
+          "isMut": true,
+          "isSigner": false,
+          "docs": ["If rewards are uninitialized, pass this as strategy."]
+        },
+        {
+          "name": "baseVaultAuthority",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "poolProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "system",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "deposit",
       "accounts": [
         {
@@ -817,16 +965,6 @@
         {
           "name": "baseVaultAuthority",
           "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "treasuryFeeTokenAVault",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "treasuryFeeTokenBVault",
-          "isMut": true,
           "isSigner": false
         },
         {
@@ -1068,16 +1206,6 @@
         },
         {
           "name": "baseVaultAuthority",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "treasuryFeeTokenAVault",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "treasuryFeeTokenBVault",
           "isMut": true,
           "isSigner": false
         },
@@ -1888,16 +2016,6 @@
           "isSigner": false
         },
         {
-          "name": "treasuryFeeTokenAVault",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "treasuryFeeTokenBVault",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
           "name": "tokenAAta",
           "isMut": true,
           "isSigner": false
@@ -2010,16 +2128,6 @@
         {
           "name": "baseVaultAuthority",
           "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "treasuryFeeTokenAVault",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "treasuryFeeTokenBVault",
-          "isMut": true,
           "isSigner": false
         },
         {
@@ -2978,9 +3086,13 @@
             "type": "u64"
           },
           {
+            "name": "openTime",
+            "type": "u64"
+          },
+          {
             "name": "padding1",
             "type": {
-              "array": ["u64", 26]
+              "array": ["u64", 25]
             }
           },
           {
@@ -3387,7 +3499,7 @@
             "type": "u64"
           },
           {
-            "name": "depositFee",
+            "name": "padding0",
             "type": "u64"
           },
           {
@@ -3495,7 +3607,7 @@
             "type": "u8"
           },
           {
-            "name": "padding0",
+            "name": "padding1",
             "type": {
               "array": ["u8", 6]
             }
@@ -3507,7 +3619,7 @@
             }
           },
           {
-            "name": "padding1",
+            "name": "padding2",
             "type": {
               "array": ["u8", 7]
             }
@@ -3529,19 +3641,13 @@
             "type": "u64"
           },
           {
-            "name": "padding2",
-            "type": "u64"
-          },
-          {
             "name": "padding3",
-            "type": {
-              "array": ["u128", 25]
-            }
+            "type": "u64"
           },
           {
             "name": "padding4",
             "type": {
-              "array": ["u128", 32]
+              "array": ["u128", 25]
             }
           },
           {
@@ -3552,6 +3658,12 @@
           },
           {
             "name": "padding6",
+            "type": {
+              "array": ["u128", 32]
+            }
+          },
+          {
+            "name": "padding7",
             "type": {
               "array": ["u128", 32]
             }
@@ -4895,9 +5007,6 @@
           },
           {
             "name": "Raydium"
-          },
-          {
-            "name": "Crema"
           }
         ]
       }
@@ -5548,6 +5657,11 @@
       "code": 6128,
       "name": "ComputeFeesAndRewardsUpdateError",
       "msg": "Got an error from the dex specific function while computing the fees/rewards update"
+    },
+    {
+      "code": 6129,
+      "name": "SharesNotZero",
+      "msg": "There must be no shares issued when closing a strategy"
     }
   ]
 }

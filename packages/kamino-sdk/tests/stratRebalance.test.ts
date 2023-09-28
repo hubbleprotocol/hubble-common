@@ -45,7 +45,6 @@ import {
 } from '../src/utils/CreationParameters';
 import { priceToTickIndex } from '@orca-so/whirlpool-sdk';
 import { getMintDecimals } from '@project-serum/serum/lib/market';
-import { skip } from 'node:test';
 
 describe('Kamino strategy creation SDK Tests', () => {
   let connection: Connection;
@@ -198,8 +197,7 @@ describe('Kamino strategy creation SDK Tests', () => {
       newStrategy.publicKey,
       newPosition.publicKey,
       newPriceLower,
-      newPriceUpper,
-      signer.publicKey
+      newPriceUpper
     );
     const rebalanceMessage = await kamino.getTransactionV2Message(
       signer.publicKey,
@@ -412,8 +410,7 @@ describe('Kamino strategy creation SDK Tests', () => {
       newStrategy.publicKey,
       newPosition.publicKey,
       newPriceLower,
-      newPriceUpper,
-      signer.publicKey
+      newPriceUpper
     );
     const rebalanceMessage = await kamino.getTransactionV2Message(
       signer.publicKey,
@@ -669,8 +666,7 @@ describe('Kamino strategy creation SDK Tests', () => {
       newStrategy.publicKey,
       newPosition.publicKey,
       newPriceLower,
-      newPriceUpper,
-      signer.publicKey
+      newPriceUpper
     );
     const rebalanceMessage = await kamino.getTransactionV2Message(
       signer.publicKey,
@@ -923,8 +919,7 @@ describe('Kamino strategy creation SDK Tests', () => {
       newStrategy.publicKey,
       newPosition.publicKey,
       newPriceLower,
-      newPriceUpper,
-      signer.publicKey
+      newPriceUpper
     );
     const rebalanceMessage = await kamino.getTransactionV2Message(
       signer.publicKey,
@@ -1111,8 +1106,7 @@ describe('Kamino strategy creation SDK Tests', () => {
       newStrategy.publicKey,
       newPosition.publicKey,
       newPriceLower,
-      newPriceUpper,
-      signer.publicKey
+      newPriceUpper
     );
     const rebalanceMessage = await kamino.getTransactionV2Message(
       signer.publicKey,
@@ -1397,8 +1391,7 @@ describe('Kamino strategy creation SDK Tests', () => {
       newStrategy.publicKey,
       newPosition.publicKey,
       newPriceLower,
-      newPriceUpper,
-      signer.publicKey
+      newPriceUpper
     );
     const rebalanceMessage = await kamino.getTransactionV2Message(
       signer.publicKey,
@@ -1714,8 +1707,7 @@ describe('Kamino strategy creation SDK Tests', () => {
       newStrategy.publicKey,
       newPosition.publicKey,
       newPriceLower,
-      newPriceUpper,
-      signer.publicKey
+      newPriceUpper
     );
     const rebalanceMessage = await kamino.getTransactionV2Message(
       signer.publicKey,
@@ -2067,8 +2059,7 @@ describe('Kamino strategy creation SDK Tests', () => {
       newStrategy.publicKey,
       newPosition.publicKey,
       newPriceLower,
-      newPriceUpper,
-      signer.publicKey
+      newPriceUpper
     );
     let rebalanceMessage = await kamino.getTransactionV2Message(
       signer.publicKey,
@@ -2136,8 +2127,7 @@ describe('Kamino strategy creation SDK Tests', () => {
       newStrategy.publicKey,
       newPosition.publicKey,
       newPriceLower,
-      newPriceUpper,
-      signer.publicKey
+      newPriceUpper
     );
     const rebalanceMessagePricePercentageWithReset = await kamino.getTransactionV2Message(
       signer.publicKey,
@@ -2199,8 +2189,7 @@ describe('Kamino strategy creation SDK Tests', () => {
       newStrategy.publicKey,
       newPosition.publicKey,
       newPriceLower,
-      newPriceUpper,
-      signer.publicKey
+      newPriceUpper
     );
     const rebalanceMessageDrift = await kamino.getTransactionV2Message(
       signer.publicKey,
@@ -2266,8 +2255,7 @@ describe('Kamino strategy creation SDK Tests', () => {
       newStrategy.publicKey,
       newPosition.publicKey,
       newPriceLower,
-      newPriceUpper,
-      signer.publicKey
+      newPriceUpper
     );
     const rebalanceMessageTakeProfit = await kamino.getTransactionV2Message(
       signer.publicKey,
@@ -2339,8 +2327,7 @@ describe('Kamino strategy creation SDK Tests', () => {
       newStrategy.publicKey,
       newPosition.publicKey,
       newPriceLower,
-      newPriceUpper,
-      signer.publicKey
+      newPriceUpper
     );
     const rebalanceMessagePeriodicRebalance = await kamino.getTransactionV2Message(
       signer.publicKey,
@@ -2404,8 +2391,7 @@ describe('Kamino strategy creation SDK Tests', () => {
       newStrategy.publicKey,
       newPosition.publicKey,
       newPriceLower,
-      newPriceUpper,
-      signer.publicKey
+      newPriceUpper
     );
     const rebalanceMessageExpander = await kamino.getTransactionV2Message(
       signer.publicKey,
