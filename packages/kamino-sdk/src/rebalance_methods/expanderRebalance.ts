@@ -301,7 +301,7 @@ export function readExpanderRebalanceStateFromStrategy(
     lowerRangeFactorBPS,
     upperRangeFactorBPS,
     lowerResetRatioBps,
-    upperResetRatioBps,
+    upperResetRatioBps
   );
 
   let lowerRangeRebalanceFieldInfo: RebalanceFieldInfo = {
