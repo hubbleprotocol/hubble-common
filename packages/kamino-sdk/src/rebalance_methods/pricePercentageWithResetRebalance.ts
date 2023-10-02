@@ -207,6 +207,8 @@ export function readPricePercentageWithResetRebalanceStateFromStrategy(
 ): RebalanceFieldInfo[] {
   let stateBuffer = Buffer.from(rebalanceRaw.state);
   let params = readPricePercentageWithResetRebalanceParamsFromStrategy(rebalanceRaw);
+  let lowerRangeBps = new Decimal(params.find((param) => param.label == 'lowerRangeBps')?.value.toString()!);
+  let upperRangeBps = new Decimal(params.find((param) => param.label == 'upperRangeBps')?.value!.toString()!);
   let resetLowerRangeBps = new Decimal(params.find((param) => param.label == 'resetLowerRangeBps')?.value.toString()!);
   let resetUpperRangeBps = new Decimal(params.find((param) => param.label == 'resetUpperRangeBps')?.value!.toString()!);
 
@@ -225,8 +227,10 @@ export function readPricePercentageWithResetRebalanceStateFromStrategy(
     throw new Error(`Unknown DEX ${dex}`);
   }
 
-  let lowerPositionPrice = lowerResetPrice.mul(FullBPSDecimal).div(resetLowerRangeBps);
-  let upperPositionPrice = upperResetPrice.div(FullBPSDecimal).mul(resetUpperRangeBps);
+  let resetLowerFactor = resetLowerRangeBps.mul(lowerRangeBps).div(FullBPSDecimal);
+  let resetUpperFactor = resetUpperRangeBps.mul(upperRangeBps).div(FullBPSDecimal);
+  let lowerPositionPrice = lowerResetPrice.mul(FullBPSDecimal.sub(lowerRangeBps)).div(FullBPSDecimal.sub(resetLowerFactor));
+  let upperPositionPrice = upperResetPrice.mul(FullBPSDecimal.add(upperRangeBps)).div(FullBPSDecimal.add(resetUpperFactor));
 
   let lowerBpsRebalanceFieldInfo: RebalanceFieldInfo = {
     label: 'rangePriceLower',
