@@ -229,8 +229,12 @@ export function readPricePercentageWithResetRebalanceStateFromStrategy(
 
   let resetLowerFactor = resetLowerRangeBps.mul(lowerRangeBps).div(FullBPSDecimal);
   let resetUpperFactor = resetUpperRangeBps.mul(upperRangeBps).div(FullBPSDecimal);
-  let lowerPositionPrice = lowerResetPrice.mul(FullBPSDecimal.sub(lowerRangeBps)).div(FullBPSDecimal.sub(resetLowerFactor));
-  let upperPositionPrice = upperResetPrice.mul(FullBPSDecimal.add(upperRangeBps)).div(FullBPSDecimal.add(resetUpperFactor));
+  let lowerPositionPrice = lowerResetPrice
+    .mul(FullBPSDecimal.sub(lowerRangeBps))
+    .div(FullBPSDecimal.sub(resetLowerFactor));
+  let upperPositionPrice = upperResetPrice
+    .mul(FullBPSDecimal.add(upperRangeBps))
+    .div(FullBPSDecimal.add(resetUpperFactor));
 
   let lowerBpsRebalanceFieldInfo: RebalanceFieldInfo = {
     label: 'rangePriceLower',
