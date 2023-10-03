@@ -290,7 +290,11 @@ import {
   readTakeProfitRebalanceStateFromStrategy,
 } from './rebalance_methods';
 import { PoolPriceReferenceType, TwapPriceReferenceType } from './utils/priceReferenceTypes';
-import { getRebalanceMethodFromRebalanceFields, getRebalanceTypeFromRebalanceFields } from './rebalance_methods/utils';
+import {
+  extractPricesFromDeserializedState,
+  getRebalanceMethodFromRebalanceFields,
+  getRebalanceTypeFromRebalanceFields,
+} from './rebalance_methods/utils';
 import { RebalanceTypeLabelName } from './rebalance_methods/consts';
 import WhirlpoolWithAddress from './models/WhirlpoolWithAddress';
 import RaydiumPoollWithAddress from './models/RaydiumPoolWithAddress';
@@ -1106,6 +1110,9 @@ export class Kamino {
           poolPrice: ZERO,
           upperPrice: ZERO,
           lowerPrice: ZERO,
+          twapPrice: ZERO,
+          lowerResetPrice: ZERO,
+          upperResetPrice: ZERO,
         }),
       });
     }
@@ -1203,6 +1210,7 @@ export class Kamino {
     prices?: OraclePrices
   ) => {
     const strategyPrices = await this.getStrategyPrices(strategy, collateralInfos, prices);
+    const rebalanceKind = numberToRebalanceType(strategy.rebalanceType);
     const tokenHoldings = await this.getRaydiumTokensBalances(strategy, pool, position);
 
     let computedHoldings: Holdings = this.getStrategyHoldingsUsd(
@@ -1220,6 +1228,10 @@ export class Kamino {
     let decimalsB = strategy.tokenBMintDecimals.toNumber();
 
     const poolPrice = SqrtPriceMath.sqrtPriceX64ToPrice(pool.sqrtPriceX64, decimalsA, decimalsB);
+    const twapPrice =
+      strategyPrices.aTwapPrice !== null && strategyPrices.bTwapPrice !== null
+        ? strategyPrices.aTwapPrice.div(strategyPrices.bTwapPrice)
+        : null;
     const upperPrice = SqrtPriceMath.sqrtPriceX64ToPrice(
       SqrtPriceMath.getSqrtPriceX64FromTick(position.tickUpperIndex),
       decimalsA,
@@ -1230,10 +1242,19 @@ export class Kamino {
       decimalsA,
       decimalsB
     );
+    let lowerResetPrice: Decimal | null = null;
+    let upperResetPrice: Decimal | null = null;
+    if (rebalanceKind.kind === PricePercentageWithReset.kind) {
+      const state = deserializePricePercentageWithResetRebalanceFromOnchainParams(poolPrice, strategy.rebalanceRaw);
+      [lowerResetPrice, upperResetPrice] = extractPricesFromDeserializedState(state);
+    } else if (rebalanceKind.kind === Expander.kind) {
+      const state = readExpanderRebalanceFieldInfosFromStrategy(poolPrice, strategy.rebalanceRaw);
+      [lowerResetPrice, upperResetPrice] = extractPricesFromDeserializedState(state);
+    }
 
     const balance: StrategyBalances = {
       computedHoldings,
-      prices: { ...strategyPrices, poolPrice, lowerPrice, upperPrice },
+      prices: { ...strategyPrices, poolPrice, lowerPrice, upperPrice, twapPrice, lowerResetPrice, upperResetPrice },
       tokenAAmounts: tokenHoldings.available.a.plus(tokenHoldings.invested.a),
       tokenBAmounts: tokenHoldings.available.b.plus(tokenHoldings.invested.b),
     };
@@ -1283,6 +1304,7 @@ export class Kamino {
     prices?: OraclePrices
   ) => {
     const strategyPrices = await this.getStrategyPrices(strategy, collateralInfos, prices);
+    const rebalanceKind = numberToRebalanceType(strategy.rebalanceType);
 
     let tokenHoldings = await this.getOrcaTokensBalances(strategy, pool, position);
     const computedHoldings: Holdings = this.getStrategyHoldingsUsd(
@@ -1300,12 +1322,25 @@ export class Kamino {
     const decimalsB = strategy.tokenBMintDecimals.toNumber();
 
     const poolPrice = sqrtPriceX64ToPrice(pool.sqrtPrice, decimalsA, decimalsB);
+    const twapPrice =
+      strategyPrices.aTwapPrice !== null && strategyPrices.bTwapPrice !== null
+        ? strategyPrices.aTwapPrice.div(strategyPrices.bTwapPrice)
+        : null;
     const upperPrice = tickIndexToPrice(position.tickUpperIndex, decimalsA, decimalsB);
     const lowerPrice = tickIndexToPrice(position.tickLowerIndex, decimalsA, decimalsB);
+    let lowerResetPrice: Decimal | null = null;
+    let upperResetPrice: Decimal | null = null;
+    if (rebalanceKind.kind === PricePercentageWithReset.kind) {
+      const state = deserializePricePercentageWithResetRebalanceFromOnchainParams(poolPrice, strategy.rebalanceRaw);
+      [lowerResetPrice, upperResetPrice] = extractPricesFromDeserializedState(state);
+    } else if (rebalanceKind.kind === Expander.kind) {
+      const state = readExpanderRebalanceFieldInfosFromStrategy(poolPrice, strategy.rebalanceRaw);
+      [lowerResetPrice, upperResetPrice] = extractPricesFromDeserializedState(state);
+    }
 
     const balance: StrategyBalances = {
       computedHoldings,
-      prices: { ...strategyPrices, poolPrice, upperPrice, lowerPrice },
+      prices: { ...strategyPrices, poolPrice, lowerPrice, upperPrice, twapPrice, lowerResetPrice, upperResetPrice },
       tokenAAmounts: tokenHoldings.available.a.plus(tokenHoldings.invested.a),
       tokenBAmounts: tokenHoldings.available.b.plus(tokenHoldings.invested.b),
     };
@@ -1553,6 +1588,8 @@ export class Kamino {
   ): Promise<StrategyPrices> => {
     const tokenA = collateralInfos[strategy.tokenACollateralId.toNumber()];
     const tokenB = collateralInfos[strategy.tokenBCollateralId.toNumber()];
+    const tokenATwap = tokenA.scopePriceIdTwap.toNumber();
+    const tokenBTwap = tokenB.scopePriceIdTwap.toNumber();
     const rewardToken0 = collateralInfos[strategy.reward0CollateralId.toNumber()];
     const rewardToken1 = collateralInfos[strategy.reward1CollateralId.toNumber()];
     const rewardToken2 = collateralInfos[strategy.reward2CollateralId.toNumber()];
@@ -1565,6 +1602,8 @@ export class Kamino {
     }
     const aPrice = await this._scope.getPriceFromChain(tokenA.scopePriceChain, prices);
     const bPrice = await this._scope.getPriceFromChain(tokenB.scopePriceChain, prices);
+    const aTwapPrice = tokenATwap !== 0 ? await this._scope.getPriceFromChain([tokenATwap], prices) : null;
+    const bTwapPrice = tokenBTwap !== 0 ? await this._scope.getPriceFromChain([tokenBTwap], prices) : null;
 
     const reward0Price =
       strategy.reward0Decimals.toNumber() !== 0
@@ -1582,6 +1621,8 @@ export class Kamino {
     return {
       aPrice,
       bPrice,
+      aTwapPrice,
+      bTwapPrice,
       reward0Price,
       reward1Price,
       reward2Price,

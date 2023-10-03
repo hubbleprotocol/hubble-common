@@ -9,6 +9,9 @@ export type PriceData = {
   lowerPrice: Decimal;
   upperPrice: Decimal;
   poolPrice: Decimal;
+  twapPrice: Decimal | null;
+  lowerResetPrice: Decimal | null;
+  upperResetPrice: Decimal | null;
 };
 
 export default PriceData;
