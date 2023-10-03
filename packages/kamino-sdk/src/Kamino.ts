@@ -2402,8 +2402,10 @@ export class Kamino {
         }
       }
 
-      createWsolAtasIxns.push(...createWSolAtaIxns.createIxns);
-      cleanupIxs.push(...createWSolAtaIxns.closeIxns);
+      if (includeAtaIxns) {
+        createWsolAtasIxns.push(...createWSolAtaIxns.createIxns);
+        cleanupIxs.push(...createWSolAtaIxns.closeIxns);
+      }
     }
 
     if (isSOLMint(strategyState.tokenBMint)) {
@@ -2441,8 +2443,10 @@ export class Kamino {
         }
       }
 
-      createWsolAtasIxns.push(...createWSolAtaIxns.createIxns);
-      cleanupIxs.push(...createWSolAtaIxns.closeIxns);
+      if (includeAtaIxns) {
+        createWsolAtasIxns.push(...createWSolAtaIxns.createIxns);
+        cleanupIxs.push(...createWSolAtaIxns.closeIxns);
+      }
     }
 
     let amountsToDepositWithSwapPromise = this.calculateAmountsToBeDepositedWithSwap(
