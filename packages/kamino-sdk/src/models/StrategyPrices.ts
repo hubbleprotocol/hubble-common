@@ -6,4 +6,6 @@ export type StrategyPrices = {
   reward0Price: Decimal | null;
   reward1Price: Decimal | null;
   reward2Price: Decimal | null;
+  aTwapPrice: Decimal | null;
+  bTwapPrice: Decimal | null;
 };
