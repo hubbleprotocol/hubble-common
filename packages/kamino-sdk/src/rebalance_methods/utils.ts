@@ -110,10 +110,11 @@ export function upsertManyRebalanceFieldInfos(
   return updatedFieldInfos;
 }
 
-export function extractPricesFromDeserializedState(state: RebalanceFieldInfo[]): [Decimal | null, Decimal | null] {
+export function extractPricesFromDeserializedState(state: RebalanceFieldInfo[]): [Decimal, Decimal] {
   const resetPriceLower = state.find((param) => param.label == 'resetPriceLower');
   const resetPriceUpper = state.find((param) => param.label == 'resetPriceUpper');
-  const lowerResetPrice = resetPriceLower !== undefined ? new Decimal(resetPriceLower.value.toString()) : null;
-  const upperResetPrice = resetPriceUpper !== undefined ? new Decimal(resetPriceUpper.value.toString()) : null;
-  return [lowerResetPrice, upperResetPrice];
+  if (resetPriceLower === undefined || resetPriceUpper === undefined) {
+    throw new Error('Expected strategy to have resetPriceLower and resetPriceUpper in the field infos');
+  }
+  return [new Decimal(resetPriceLower.value.toString()), new Decimal(resetPriceUpper.value.toString())];
 }
