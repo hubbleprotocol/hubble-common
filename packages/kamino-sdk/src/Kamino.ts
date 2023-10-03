@@ -290,7 +290,11 @@ import {
   readTakeProfitRebalanceStateFromStrategy,
 } from './rebalance_methods';
 import { PoolPriceReferenceType, TwapPriceReferenceType } from './utils/priceReferenceTypes';
-import { getRebalanceMethodFromRebalanceFields, getRebalanceTypeFromRebalanceFields } from './rebalance_methods/utils';
+import {
+  extractPricesFromDeserializedState,
+  getRebalanceMethodFromRebalanceFields,
+  getRebalanceTypeFromRebalanceFields,
+} from './rebalance_methods/utils';
 import { RebalanceTypeLabelName } from './rebalance_methods/consts';
 import WhirlpoolWithAddress from './models/WhirlpoolWithAddress';
 import RaydiumPoollWithAddress from './models/RaydiumPoolWithAddress';
@@ -1242,12 +1246,10 @@ export class Kamino {
     let upperResetPrice: Decimal | null = null;
     if (rebalanceKind.kind === PricePercentageWithReset.kind) {
       const state = deserializePricePercentageWithResetRebalanceFromOnchainParams(poolPrice, strategy.rebalanceRaw);
-      lowerResetPrice = new Decimal(state.find((param) => param.label == 'resetPriceLower')?.value.toString()!);
-      upperResetPrice = new Decimal(state.find((param) => param.label == 'resetPriceUpper')?.value.toString()!);
+      [lowerResetPrice, upperResetPrice] = extractPricesFromDeserializedState(state);
     } else if (rebalanceKind.kind === Expander.kind) {
       const state = readExpanderRebalanceFieldInfosFromStrategy(poolPrice, strategy.rebalanceRaw);
-      lowerResetPrice = new Decimal(state.find((param) => param.label == 'resetPriceLower')?.value.toString()!);
-      upperResetPrice = new Decimal(state.find((param) => param.label == 'resetPriceUpper')?.value.toString()!);
+      [lowerResetPrice, upperResetPrice] = extractPricesFromDeserializedState(state);
     }
 
     const balance: StrategyBalances = {
@@ -1330,12 +1332,10 @@ export class Kamino {
     let upperResetPrice: Decimal | null = null;
     if (rebalanceKind.kind === PricePercentageWithReset.kind) {
       const state = deserializePricePercentageWithResetRebalanceFromOnchainParams(poolPrice, strategy.rebalanceRaw);
-      lowerResetPrice = new Decimal(state.find((param) => param.label == 'resetPriceLower')?.value.toString()!);
-      upperResetPrice = new Decimal(state.find((param) => param.label == 'resetPriceUpper')?.value.toString()!);
+      [lowerResetPrice, upperResetPrice] = extractPricesFromDeserializedState(state);
     } else if (rebalanceKind.kind === Expander.kind) {
       const state = readExpanderRebalanceFieldInfosFromStrategy(poolPrice, strategy.rebalanceRaw);
-      lowerResetPrice = new Decimal(state.find((param) => param.label == 'resetPriceLower')?.value.toString()!);
-      upperResetPrice = new Decimal(state.find((param) => param.label == 'resetPriceUpper')?.value.toString()!);
+      [lowerResetPrice, upperResetPrice] = extractPricesFromDeserializedState(state);
     }
 
     const balance: StrategyBalances = {
