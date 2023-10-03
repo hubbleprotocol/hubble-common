@@ -1751,7 +1751,7 @@ describe('Kamino strategy creation SDK Tests', () => {
       RAYDIUM_PROGRAM_ID
     );
 
-    let ix = await kamino.initializeTickForOrcaPool(
+    let [, ix] = await kamino.initializeTickForOrcaPool(
       signer.publicKey,
       new PublicKey('7qbRF6YsyGuLUVs6Y1q64bdVrfe4ZcUUz1JRdoVNUJnm'),
       new Decimal(0.1)
