@@ -5580,16 +5580,23 @@ export class Kamino {
     }
   };
 
+  /**
+   * Get the instruction to create an Orca Whirlpool tick, if it does not exist
+   * @param payer
+   * @param pool
+   * @param price
+   * @return tickPubkey, (tickInstruction | undefined)
+   */
   initializeTickForOrcaPool = async (
     payer: PublicKey,
     pool: PublicKey | WhirlpoolWithAddress,
     price: Decimal
-  ): Promise<TransactionInstruction | undefined> => {
+  ): Promise<[PublicKey, TransactionInstruction | undefined]> => {
     const { address: poolAddress, whirlpool: whilrpoolState } = await this.getWhirlpoolStateIfNotFetched(pool);
 
     const decimalsA = await getMintDecimals(this._connection, whilrpoolState.tokenMintA);
     const decimalsB = await getMintDecimals(this._connection, whilrpoolState.tokenMintB);
-    const tickIndex = priceToTickIndex(price, decimalsA, decimalsB);
+    const tickIndex = getNextValidTickIndex(priceToTickIndex(price, decimalsA, decimalsB), whilrpoolState.tickSpacing);
     const startTickIndex = getStartTickIndex(tickIndex, whilrpoolState.tickSpacing);
 
     const [startTickIndexPk, _startTickIndexBump] = getTickArray(WHIRLPOOL_PROGRAM_ID, poolAddress, startTickIndex);
@@ -5605,8 +5612,9 @@ export class Kamino {
         tickArray: startTickIndexPk,
         systemProgram: SystemProgram.programId,
       };
-      return initializeTickArray(initTickArrayArgs, initTickArrayAccounts);
+      return [startTickIndexPk, initializeTickArray(initTickArrayArgs, initTickArrayAccounts)];
     }
+    return [startTickIndexPk, undefined];
   };
 }
 
