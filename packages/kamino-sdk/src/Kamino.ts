@@ -1244,11 +1244,24 @@ export class Kamino {
     );
     let lowerResetPrice: Decimal | null = null;
     let upperResetPrice: Decimal | null = null;
+    let dex = numberToDex(strategy.strategyDex.toNumber());
     if (rebalanceKind.kind === PricePercentageWithReset.kind) {
-      const state = deserializePricePercentageWithResetRebalanceFromOnchainParams(poolPrice, strategy.rebalanceRaw);
+      const state = deserializePricePercentageWithResetRebalanceWithStateOverride(
+        dex,
+        decimalsA,
+        decimalsB,
+        poolPrice,
+        strategy.rebalanceRaw
+      );
       [lowerResetPrice, upperResetPrice] = extractPricesFromDeserializedState(state);
     } else if (rebalanceKind.kind === Expander.kind) {
-      const state = readExpanderRebalanceFieldInfosFromStrategy(poolPrice, strategy.rebalanceRaw);
+      const state = deserializeExpanderRebalanceWithStateOverride(
+        dex,
+        decimalsA,
+        decimalsB,
+        poolPrice,
+        strategy.rebalanceRaw
+      );
       [lowerResetPrice, upperResetPrice] = extractPricesFromDeserializedState(state);
     }
 
@@ -1330,11 +1343,24 @@ export class Kamino {
     const lowerPrice = tickIndexToPrice(position.tickLowerIndex, decimalsA, decimalsB);
     let lowerResetPrice: Decimal | null = null;
     let upperResetPrice: Decimal | null = null;
+    let dex = numberToDex(strategy.strategyDex.toNumber());
     if (rebalanceKind.kind === PricePercentageWithReset.kind) {
-      const state = deserializePricePercentageWithResetRebalanceFromOnchainParams(poolPrice, strategy.rebalanceRaw);
+      const state = deserializePricePercentageWithResetRebalanceWithStateOverride(
+        dex,
+        decimalsA,
+        decimalsB,
+        poolPrice,
+        strategy.rebalanceRaw
+      );
       [lowerResetPrice, upperResetPrice] = extractPricesFromDeserializedState(state);
     } else if (rebalanceKind.kind === Expander.kind) {
-      const state = readExpanderRebalanceFieldInfosFromStrategy(poolPrice, strategy.rebalanceRaw);
+      const state = deserializeExpanderRebalanceWithStateOverride(
+        dex,
+        decimalsA,
+        decimalsB,
+        poolPrice,
+        strategy.rebalanceRaw
+      );
       [lowerResetPrice, upperResetPrice] = extractPricesFromDeserializedState(state);
     }
 
