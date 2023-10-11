@@ -57,7 +57,7 @@ export function getDexProgramId(strategyState: WhirlpoolStrategy): PublicKey {
 
 export function getStrategyConfigValue(value: Decimal): number[] {
   let buffer = Buffer.alloc(128);
-  writeBNUint64LE(buffer, new BN(value.toString()), 12);
+  writeBNUint64LE(buffer, new BN(value.toString()), 0);
   return [...buffer];
 }
 
@@ -86,18 +86,12 @@ export function buildStrategyRebalanceParams(
     writeBNUint64LE(buffer, new BN(params[3].toString()), 12);
     buffer.writeUint8(params[4].toNumber(), 20);
   } else if (rebalance_type.kind == RebalanceType.TakeProfit.kind) {
-    console.log('take profit lower price', params[0].toString());
-    console.log('take profit upper price', params[1].toString());
     const lowerPrice = SqrtPriceMath.priceToSqrtPriceX64(params[0], tokenADecimals!, tokenBDecimals!);
     const upperPrice = SqrtPriceMath.priceToSqrtPriceX64(params[1], tokenADecimals!, tokenBDecimals!);
-    console.log('take profit lower price sqrt', lowerPrice.toString());
-    console.log('take profit upper price sqrt', upperPrice.toString());
     writeBN128LE(buffer, lowerPrice, 0);
     writeBN128LE(buffer, upperPrice, 16);
     buffer.writeUint8(params[2].toNumber(), 32);
   } else if (rebalance_type.kind == RebalanceType.PeriodicRebalance.kind) {
-    console.log('periodic rebalance params', params[0].toString(), params[1].toString(), params[2].toString());
-    console.log('BigInt(params[0].toString())', BigInt(params[0].toString()).toString());
     writeBNUint64LE(buffer, new BN(params[0].toString()), 0);
     buffer.writeUInt16LE(params[1].toNumber(), 8);
     buffer.writeUInt16LE(params[2].toNumber(), 10);
@@ -175,17 +169,13 @@ export function readBigUint128LE(buffer: Buffer, offset: number): bigint {
 
 function writeBNUint64LE(buffer: Buffer, value: BN, offset: number) {
   const lower_half = value.maskn(64).toBuffer('le');
-  console.log('lower half', lower_half.toString('hex'));
   buffer.set(lower_half, offset);
 }
 
 function writeBN128LE(buffer: Buffer, value: BN, offset: number) {
   const lower_half = value.maskn(64).toBuffer('le');
   const upper_half = value.shrn(64).toBuffer('le');
-  console.log('lower half', lower_half.toString('hex'));
-  console.log('upper half', upper_half.toString('hex'));
   buffer.set(lower_half, offset);
-  console.log('after first write');
   buffer.set(upper_half, offset + 8);
 }
 

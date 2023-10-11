@@ -464,7 +464,7 @@ export async function updateCollateralInfo(
   console.log('Update Collateral Info txn: ' + sig.toString());
 }
 
-export function toCollateralInfoValue(value: bigint | PublicKey | Uint16Array | Uint8Array): number[] {
+export function toCollateralInfoValue(value: bigint | PublicKey | Uint16Array | Uint8Array | number[]): number[] {
   let buffer: Buffer;
   if (typeof value === 'bigint') {
     buffer = Buffer.alloc(32);
