@@ -464,8 +464,7 @@ export async function updateCollateralInfo(
   console.log('Update Collateral Info txn: ' + sig.toString());
 }
 
-export function toCollateralInfoValue(value: bigint | PublicKey | Uint16Array | Uint8Array | number[]): number[] {
-  console.log('value', value);
+export function toCollateralInfoValue(value: bigint | PublicKey | Uint16Array | Uint8Array): number[] {
   let buffer: Buffer;
   if (typeof value === 'bigint') {
     buffer = Buffer.alloc(32);
@@ -481,17 +480,10 @@ export function toCollateralInfoValue(value: bigint | PublicKey | Uint16Array | 
     for (let i = 0; i < value.length; i++) {
       buffer[i] = value[i];
     }
-  } else if (value.constructor.name === 'PublicKey') {
-    buffer = (value as PublicKey).toBuffer(); // PublicKey, the previous if statement wasn't seeing value as an instance of PublicKey anymore (?)
-  } else if (Array.isArray(value)) {
-    // scope chains
-    const padded = value.concat(Array(4 - value.length).fill(U16_MAX));
-    buffer = Buffer.alloc(32);
-    for (let i = 0; i < padded.length; i++) {
-      buffer.writeUInt16LE(padded[i], i * 2);
-    }
+  } else if (value.constructor === PublicKey) {
+    buffer = value.toBuffer(); // PublicKey, the previous if statement wasn't seeing value as an instance of PublicKey anymore (?)
   } else {
-    throw new Error(`Bad type ${value}`);
+    throw 'Bad type ' + value + ' ' + typeof value;
   }
   return [...buffer];
 }
