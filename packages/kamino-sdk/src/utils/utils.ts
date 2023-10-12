@@ -57,7 +57,7 @@ export function getDexProgramId(strategyState: WhirlpoolStrategy): PublicKey {
 
 export function getStrategyConfigValue(value: Decimal): number[] {
   let buffer = Buffer.alloc(128);
-  buffer.writeBigUInt64LE(BigInt(value.toString()));
+  writeBNUint64LE(buffer, new BN(value.toString()), 0);
   return [...buffer];
 }
 
@@ -79,19 +79,20 @@ export function buildStrategyRebalanceParams(
     buffer.writeUint16LE(params[2].toNumber(), 4);
     buffer.writeUint16LE(params[3].toNumber(), 6);
   } else if (rebalance_type.kind == RebalanceType.Drift.kind) {
+    console.log('drift params', params[0].toString(), params[1].toString(), params[2].toString(), params[3].toString());
     buffer.writeInt32LE(params[0].toNumber());
     buffer.writeInt32LE(params[1].toNumber(), 4);
     buffer.writeInt32LE(params[2].toNumber(), 8);
-    buffer.writeBigUint64LE(BigInt(params[3].toString()), 12);
+    writeBNUint64LE(buffer, new BN(params[3].toString()), 12);
     buffer.writeUint8(params[4].toNumber(), 20);
   } else if (rebalance_type.kind == RebalanceType.TakeProfit.kind) {
     const lowerPrice = SqrtPriceMath.priceToSqrtPriceX64(params[0], tokenADecimals!, tokenBDecimals!);
     const upperPrice = SqrtPriceMath.priceToSqrtPriceX64(params[1], tokenADecimals!, tokenBDecimals!);
-    writeBigUint128LE(buffer, BigInt(lowerPrice.toString()), 0);
-    writeBigUint128LE(buffer, BigInt(upperPrice.toString()), 16);
+    writeBN128LE(buffer, lowerPrice, 0);
+    writeBN128LE(buffer, upperPrice, 16);
     buffer.writeUint8(params[2].toNumber(), 32);
   } else if (rebalance_type.kind == RebalanceType.PeriodicRebalance.kind) {
-    buffer.writeBigUint64LE(BigInt(params[0].toString()), 0);
+    writeBNUint64LE(buffer, new BN(params[0].toString()), 0);
     buffer.writeUInt16LE(params[1].toNumber(), 8);
     buffer.writeUInt16LE(params[2].toNumber(), 10);
   } else if (rebalance_type.kind == RebalanceType.Expander.kind) {
@@ -166,11 +167,16 @@ export function readBigUint128LE(buffer: Buffer, offset: number): bigint {
   return buffer.readBigUint64LE(offset) + (buffer.readBigUint64LE(offset + 8) << BigInt(64));
 }
 
-function writeBigUint128LE(buffer: Buffer, value: bigint, offset: number) {
-  const lower_half = value & ((BigInt(1) << BigInt(64)) - BigInt(64));
-  const upper_half = value >> BigInt(64);
-  buffer.writeBigUint64LE(lower_half, offset);
-  buffer.writeBigUint64LE(upper_half, offset + 8);
+function writeBNUint64LE(buffer: Buffer, value: BN, offset: number) {
+  const lower_half = value.maskn(64).toBuffer('le');
+  buffer.set(lower_half, offset);
+}
+
+function writeBN128LE(buffer: Buffer, value: BN, offset: number) {
+  const lower_half = value.maskn(64).toBuffer('le');
+  const upper_half = value.shrn(64).toBuffer('le');
+  buffer.set(lower_half, offset);
+  buffer.set(upper_half, offset + 8);
 }
 
 export function rebalanceFieldsDictToInfo(rebalanceFields: RebalanceFieldsDict): RebalanceFieldInfo[] {
