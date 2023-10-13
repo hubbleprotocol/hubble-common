@@ -298,6 +298,7 @@ import {
 import { RebalanceTypeLabelName } from './rebalance_methods/consts';
 import WhirlpoolWithAddress from './models/WhirlpoolWithAddress';
 import RaydiumPoollWithAddress from './models/RaydiumPoolWithAddress';
+import { Orca } from './kamino-client/types/DEX';
 export const KAMINO_IDL = KaminoIdl;
 
 export class Kamino {
@@ -3842,6 +3843,30 @@ export class Kamino {
     );
   };
 
+  processRebalanceParams = async (
+    dex: Dex,
+    pool: PublicKey | WhirlpoolWithAddress,
+    rebalanceType: Decimal,
+    rebalanceParams: Decimal[]
+  ): Promise<Decimal[]> => {
+    let processedRebalanceParams = rebalanceParams;
+    let rebalanceTypeKind = numberToRebalanceType(rebalanceType.toNumber());
+    if (dex == 'ORCA') {
+      const { address, whirlpool: whilrpoolState } = await this.getWhirlpoolStateIfNotFetched(pool);
+      if (rebalanceTypeKind.kind == RebalanceType.Drift.kind) {
+        processedRebalanceParams[0] = new Decimal(
+          getNearestValidTickIndexFromTickIndex(rebalanceParams[0].toNumber(), whilrpoolState.tickSpacing)
+        );
+      }
+    } else if (dex == 'RAYDIUM') {
+      // no processing needed
+    } else {
+      throw Error(`Invalid dex ${dex}`);
+    }
+
+    return processedRebalanceParams;
+  };
+
   getUpdateRebalancingParmsIxns = async (
     strategyAdmin: PublicKey,
     strategy: PublicKey,
@@ -3850,16 +3875,31 @@ export class Kamino {
     tokenADecimals?: number,
     tokenBDecimals?: number
   ): Promise<TransactionInstruction> => {
+    console.log('getUpdateRebalancingParmsIxns');
+    const { strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
     if (!rebalanceType) {
-      const { strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
       rebalanceType = numberToRebalanceType(strategyState.rebalanceType);
     }
+    tokenADecimals = strategyState.tokenAMintDecimals.toNumber();
+    tokenBDecimals = strategyState.tokenBMintDecimals.toNumber();
+
+    rebalanceParams = await this.processRebalanceParams(
+      numberToDex(strategyState.strategyDex.toNumber()),
+      strategyState.pool,
+      new Decimal(rebalanceType.discriminator),
+      rebalanceParams
+    );
+
+    console.log('rebalanceParams', rebalanceParams);
+    console.log('rebalanceType', rebalanceType);
 
     const value = buildStrategyRebalanceParams(rebalanceParams, rebalanceType, tokenADecimals, tokenBDecimals);
     let args: UpdateStrategyConfigArgs = {
       mode: StrategyConfigOption.UpdateRebalanceParams.discriminator,
       value,
     };
+
+    console.log('after args');
 
     let accounts: UpdateStrategyConfigAccounts = {
       adminAuthority: strategyAdmin,
@@ -3879,6 +3919,7 @@ export class Kamino {
     tokenADecimals: number,
     tokenBDecimals: number
   ): Promise<TransactionInstruction> => {
+    // if the strategy is drift, the first param is the startMidTick
     const value = buildStrategyRebalanceParams(rebalanceParams, rebalanceType, tokenADecimals, tokenBDecimals);
     let args: UpdateStrategyConfigArgs = {
       mode: StrategyConfigOption.UpdateRebalanceParams.discriminator,
@@ -3945,6 +3986,8 @@ export class Kamino {
       );
     }
 
+    rebalanceParams = await this.processRebalanceParams(dex, pool, rebalanceType, rebalanceParams);
+
     let price = await this.getCurrentPriceFromPool(dex, pool);
 
     let tokenMintA: PublicKey;
@@ -3972,6 +4015,9 @@ export class Kamino {
     let tokenADecimals = await getMintDecimals(this._connection, tokenMintA);
     let tokenBDecimals = await getMintDecimals(this._connection, tokenMintB);
     let rebalanceKind = numberToRebalanceType(rebalanceType.toNumber());
+
+    // let processedRebalanceParams = rebalanceParams;
+    // if
     let updateRebalanceParamsIx = await this.getUpdateRebalancingParamsForUninitializedStratIx(
       strategyAdmin,
       strategy,
@@ -4006,6 +4052,10 @@ export class Kamino {
       rebalanceParams
     );
 
+    console.log('rebalanceParams 0', rebalanceParams[0].toString());
+    console.log('rebalanceParams 1', rebalanceParams[1].toString());
+    console.log('lowerPrice', lowerPrice.toString());
+    console.log('upperPrice', upperPrice.toString());
     let openPositionIx: TransactionInstruction;
     if (dex == 'ORCA') {
       openPositionIx = await this.openPositionOrca(
@@ -4048,6 +4098,20 @@ export class Kamino {
 
     return [initStrategyIx, updateStrategyParamsIx, updateRebalanceParamsIx, openPositionIx];
   };
+
+  async getNewPositionRange(
+    strategy: PublicKey | StrategyWithAddress,
+    rebalanceKind: RebalanceTypeKind,
+    rebalanceParams: Decimal[]
+  ): Promise<PositionRange> {
+    const strategyState = await this.getStrategyStateIfNotFetched(strategy);
+    const dex = numberToDex(strategyState.strategy.strategyDex.toNumber());
+    const tokenAMint = strategyState.strategy.tokenAMint;
+    const tokenBMint = strategyState.strategy.tokenBMint;
+    let price = await this.getCurrentPriceFromPool(dex, strategyState.strategy.pool);
+
+    return this.getRebalancePositionRange(dex, price, tokenAMint, tokenBMint, rebalanceKind, rebalanceParams);
+  }
 
   private async getRebalancePositionRange(
     dex: Dex,
