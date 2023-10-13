@@ -87,18 +87,14 @@ export function buildStrategyRebalanceParams(
   } else if (rebalance_type.kind == RebalanceType.TakeProfit.kind) {
     const lowerPrice = SqrtPriceMath.priceToSqrtPriceX64(params[0], tokenADecimals!, tokenBDecimals!);
     const upperPrice = SqrtPriceMath.priceToSqrtPriceX64(params[1], tokenADecimals!, tokenBDecimals!);
-    console.log('lowerPrice', lowerPrice.toString());
-    console.log('upperPrice', upperPrice.toString());
     writeBN128LE(buffer, lowerPrice, 0);
     writeBN128LE(buffer, upperPrice, 16);
     buffer.writeUint8(params[2].toNumber(), 32);
   } else if (rebalance_type.kind == RebalanceType.PeriodicRebalance.kind) {
-    console.log('params[0].toString()', params[0].toString());
     writeBNUint64LE(buffer, new BN(params[0].toString()), 0);
     buffer.writeUInt16LE(params[1].toNumber(), 8);
     buffer.writeUInt16LE(params[2].toNumber(), 10);
   } else if (rebalance_type.kind == RebalanceType.Expander.kind) {
-    console.log('expander');
     buffer.writeUInt16LE(params[0].toNumber(), 0);
     buffer.writeUInt16LE(params[1].toNumber(), 2);
     buffer.writeUInt16LE(params[2].toNumber(), 4);
@@ -178,11 +174,8 @@ function writeBNUint64LE(buffer: Buffer, value: BN, offset: number) {
 function writeBN128LE(buffer: Buffer, value: BN, offset: number) {
   const lower_half = value.maskn(64).toBuffer('le');
   const upper_half = value.shrn(64).toBuffer('le');
-  console.log('lower half', lower_half.toString());
-  console.log('upper half', upper_half.toString());
   buffer.set(lower_half, offset);
   buffer.set(upper_half, offset + 8);
-  console.log('after writing writeBN128LE');
 }
 
 export function rebalanceFieldsDictToInfo(rebalanceFields: RebalanceFieldsDict): RebalanceFieldInfo[] {

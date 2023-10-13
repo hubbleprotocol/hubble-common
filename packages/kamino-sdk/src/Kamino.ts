@@ -3899,8 +3899,6 @@ export class Kamino {
       value,
     };
 
-    console.log('after args');
-
     let accounts: UpdateStrategyConfigAccounts = {
       adminAuthority: strategyAdmin,
       newAccount: PublicKey.default, // not used
@@ -3919,7 +3917,6 @@ export class Kamino {
     tokenADecimals: number,
     tokenBDecimals: number
   ): Promise<TransactionInstruction> => {
-    // if the strategy is drift, the first param is the startMidTick
     const value = buildStrategyRebalanceParams(rebalanceParams, rebalanceType, tokenADecimals, tokenBDecimals);
     let args: UpdateStrategyConfigArgs = {
       mode: StrategyConfigOption.UpdateRebalanceParams.discriminator,
@@ -4016,8 +4013,6 @@ export class Kamino {
     let tokenBDecimals = await getMintDecimals(this._connection, tokenMintB);
     let rebalanceKind = numberToRebalanceType(rebalanceType.toNumber());
 
-    // let processedRebalanceParams = rebalanceParams;
-    // if
     let updateRebalanceParamsIx = await this.getUpdateRebalancingParamsForUninitializedStratIx(
       strategyAdmin,
       strategy,
@@ -4052,10 +4047,6 @@ export class Kamino {
       rebalanceParams
     );
 
-    console.log('rebalanceParams 0', rebalanceParams[0].toString());
-    console.log('rebalanceParams 1', rebalanceParams[1].toString());
-    console.log('lowerPrice', lowerPrice.toString());
-    console.log('upperPrice', upperPrice.toString());
     let openPositionIx: TransactionInstruction;
     if (dex == 'ORCA') {
       openPositionIx = await this.openPositionOrca(
