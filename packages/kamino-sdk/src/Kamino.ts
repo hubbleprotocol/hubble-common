@@ -298,7 +298,6 @@ import {
 import { RebalanceTypeLabelName } from './rebalance_methods/consts';
 import WhirlpoolWithAddress from './models/WhirlpoolWithAddress';
 import RaydiumPoollWithAddress from './models/RaydiumPoolWithAddress';
-import { Orca } from './kamino-client/types/DEX';
 export const KAMINO_IDL = KaminoIdl;
 
 export class Kamino {
@@ -3849,7 +3848,7 @@ export class Kamino {
     rebalanceType: Decimal,
     rebalanceParams: Decimal[]
   ): Promise<Decimal[]> => {
-    let processedRebalanceParams = rebalanceParams;
+    let processedRebalanceParams = [...rebalanceParams];
     let rebalanceTypeKind = numberToRebalanceType(rebalanceType.toNumber());
     if (dex == 'ORCA') {
       const { address, whirlpool: whilrpoolState } = await this.getWhirlpoolStateIfNotFetched(pool);
@@ -3883,17 +3882,14 @@ export class Kamino {
     tokenADecimals = strategyState.tokenAMintDecimals.toNumber();
     tokenBDecimals = strategyState.tokenBMintDecimals.toNumber();
 
-    rebalanceParams = await this.processRebalanceParams(
+    const processedRebalanceParams = await this.processRebalanceParams(
       numberToDex(strategyState.strategyDex.toNumber()),
       strategyState.pool,
       new Decimal(rebalanceType.discriminator),
       rebalanceParams
     );
 
-    console.log('rebalanceParams', rebalanceParams);
-    console.log('rebalanceType', rebalanceType);
-
-    const value = buildStrategyRebalanceParams(rebalanceParams, rebalanceType, tokenADecimals, tokenBDecimals);
+    const value = buildStrategyRebalanceParams(processedRebalanceParams, rebalanceType, tokenADecimals, tokenBDecimals);
     let args: UpdateStrategyConfigArgs = {
       mode: StrategyConfigOption.UpdateRebalanceParams.discriminator,
       value,
@@ -3983,7 +3979,7 @@ export class Kamino {
       );
     }
 
-    rebalanceParams = await this.processRebalanceParams(dex, pool, rebalanceType, rebalanceParams);
+    const processedRebalanceParams = await this.processRebalanceParams(dex, pool, rebalanceType, rebalanceParams);
 
     let price = await this.getCurrentPriceFromPool(dex, pool);
 
@@ -4016,7 +4012,7 @@ export class Kamino {
     let updateRebalanceParamsIx = await this.getUpdateRebalancingParamsForUninitializedStratIx(
       strategyAdmin,
       strategy,
-      rebalanceParams,
+      processedRebalanceParams,
       rebalanceKind,
       tokenADecimals,
       tokenBDecimals
