@@ -116,6 +116,7 @@ import {
   LowerAndUpperTickPubkeys,
   isVaultInitialized,
   WithdrawAllAndCloseIxns,
+  InitPoolTickIfNeeded,
 } from './utils';
 import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import {
@@ -4102,11 +4103,11 @@ export class Kamino {
         baseVaultAuthority,
         baseVaultAuthority
       );
-      if (initLowerTickIfNeeded) {
-        openPositionIxs.push(initLowerTickIfNeeded);
+      if (initLowerTickIfNeeded.initTickIx) {
+        openPositionIxs.push(initLowerTickIfNeeded.initTickIx);
       }
-      if (initUpperTickIfNeeded) {
-        openPositionIxs.push(initUpperTickIfNeeded);
+      if (initUpperTickIfNeeded.initTickIx) {
+        openPositionIxs.push(initUpperTickIfNeeded.initTickIx);
       }
       openPositionIxs.push(openPositionIx);
     } else if (dex == 'RAYDIUM') {
@@ -5723,7 +5724,7 @@ export class Kamino {
     payer: PublicKey,
     pool: PublicKey | WhirlpoolWithAddress,
     price: Decimal
-  ): Promise<[PublicKey, TransactionInstruction | undefined]> => {
+  ): Promise<InitPoolTickIfNeeded> => {
     const { address: poolAddress, whirlpool: whilrpoolState } = await this.getWhirlpoolStateIfNotFetched(pool);
 
     const decimalsA = await getMintDecimals(this._connection, whilrpoolState.tokenMintA);
@@ -5744,9 +5745,15 @@ export class Kamino {
         tickArray: startTickIndexPk,
         systemProgram: SystemProgram.programId,
       };
-      return [startTickIndexPk, initializeTickArray(initTickArrayArgs, initTickArrayAccounts)];
+      return {
+        tick: startTickIndexPk,
+        initTickIx: initializeTickArray(initTickArrayArgs, initTickArrayAccounts),
+      };
     }
-    return [startTickIndexPk, undefined];
+    return {
+      tick: startTickIndexPk,
+      initTickIx: undefined,
+    };
   };
 }
 

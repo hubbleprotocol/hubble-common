@@ -303,3 +303,8 @@ export interface WithdrawAllAndCloseIxns {
   withdrawIxns: TransactionInstruction[];
   closeIxn: TransactionInstruction;
 }
+
+export interface InitPoolTickIfNeeded {
+  tick: PublicKey;
+  initTickIx: TransactionInstruction | undefined;
+}
