@@ -79,7 +79,6 @@ export function buildStrategyRebalanceParams(
     buffer.writeUint16LE(params[2].toNumber(), 4);
     buffer.writeUint16LE(params[3].toNumber(), 6);
   } else if (rebalance_type.kind == RebalanceType.Drift.kind) {
-    console.log('drift params', params[0].toString(), params[1].toString(), params[2].toString(), params[3].toString());
     buffer.writeInt32LE(params[0].toNumber());
     buffer.writeInt32LE(params[1].toNumber(), 4);
     buffer.writeInt32LE(params[2].toNumber(), 8);
