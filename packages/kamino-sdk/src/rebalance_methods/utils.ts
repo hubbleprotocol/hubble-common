@@ -1,4 +1,5 @@
 import { Price } from '@hubbleprotocol/scope-sdk';
+import Decimal from 'decimal.js';
 import { RebalanceTypeKind } from '../kamino-client/types';
 import {
   Manual,
@@ -107,4 +108,13 @@ export function upsertManyRebalanceFieldInfos(
   }
 
   return updatedFieldInfos;
+}
+
+export function extractPricesFromDeserializedState(state: RebalanceFieldInfo[]): [Decimal, Decimal] {
+  const resetPriceLower = state.find((param) => param.label == 'resetPriceLower');
+  const resetPriceUpper = state.find((param) => param.label == 'resetPriceUpper');
+  if (resetPriceLower === undefined || resetPriceUpper === undefined) {
+    throw new Error('Expected strategy to have resetPriceLower and resetPriceUpper in the field infos');
+  }
+  return [new Decimal(resetPriceLower.value.toString()), new Decimal(resetPriceUpper.value.toString())];
 }

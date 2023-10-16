@@ -21,18 +21,18 @@ import { clusterApiUrl, Connection, PublicKey } from '@solana/web3.js';
 import { Kamino } from '@hubbleprotocol/kamino-sdk';
 
 const connection = new Connection(clusterApiUrl('mainnet-beta'));
-const kamino = new Kamino('mainnet-beta', connection); 
+const kamino = new Kamino('mainnet-beta', connection);
 
-// get all strategies supported by Kamino 
+// get all strategies supported by Kamino
 const strategies = await kamino.getStrategies();
 
-// get specific strategy 
+// get specific strategy
 const customStrategy = await kamino.getStrategyByAddress(new PublicKey('my strategy address'));
 
 // get strategy share price
 const sharePrice = await kamino.getStrategySharePrice(new PublicKey('my strategy address'));
 
-// get token holders of a strategy 
+// get token holders of a strategy
 const holders = await kamino.getStrategyHolders(usdhUsdtStrategy);
 
 // get strategy share price
@@ -45,17 +45,17 @@ Create a new Kamino strategy for an existing CLMM pool (Orca or Raydium).
 
 Current limitations (planned to be fixed to allow anyone to use this in the near future):
 
-* After the strategy is created, only the global admin can update the treasury fee vault with token A/B, we need to allow non-admins to be able to do (and require) this as well.
-* Only the global admin can set the kToken (strategy shares) token metadata.
-* You can create a strategy only with the current supported tokens, please reach out if you want a new token to be supported.
+- After the strategy is created, only the global admin can update the treasury fee vault with token A/B, we need to allow non-admins to be able to do (and require) this as well.
+- Only the global admin can set the kToken (strategy shares) token metadata.
+- You can create a strategy only with the current supported tokens, please reach out if you want a new token to be supported.
 
 ```javascript
 import { clusterApiUrl, Connection, PublicKey, sendAndConfirmTransaction, Keypair, Transaction } from '@solana/web3.js';
-import { 
+import {
   Kamino,
   getAssociatedTokenAddressAndData,
   createTransactionWithExtraBudget,
-  assignBlockInfoToTransaction
+  assignBlockInfoToTransaction,
 } from '@hubbleprotocol/kamino-sdk';
 import Decimal from 'decimal.js';
 
@@ -114,12 +114,11 @@ const txHash = await sendAndConfirmTransaction(connection, tx, [signer, newStrat
 console.log('transaction hash', txHash);
 console.log('new strategy has been created', newStrategy.publicKey.toString());
 
-// this will work with 'finalized' transaction commitment level, 
+// this will work with 'finalized' transaction commitment level,
 // it might fail if you use anything other than that as the on-chain data won't be updated as quickly
 // and you have to wait a bit
 const strategy = await kamino.getStrategyByAddress(newStrategy.publicKey);
 console.log(strategy?.toJSON());
-
 ```
 
 ### Withdraw shares
@@ -128,12 +127,12 @@ Withdraw x amount of strategy shares from a specific shareholder (wallet), examp
 
 ```javascript
 import { clusterApiUrl, Connection, PublicKey, sendAndConfirmTransaction, Keypair, Transaction } from '@solana/web3.js';
-import { 
+import {
   Kamino,
   getAssociatedTokenAddressAndData,
   createTransactionWithExtraBudget,
   getCreateAssociatedTokenAccountInstructionsIfNotExist,
-  assignBlockInfoToTransaction
+  assignBlockInfoToTransaction,
 } from '@hubbleprotocol/kamino-sdk';
 import Decimal from 'decimal.js';
 
@@ -142,10 +141,10 @@ const strategyPubkey = new PublicKey('2H4xebnp2M9JYgPPfUw58uUQahWF8f1YTNxwwtmdqV
 const owner = new PublicKey('HrwbdQYwSnAyVpVHuGQ661HiNbWmGjDp5DdDR9YMw7Bu'); // wallet with shares
 const connection = new Connection(clusterApiUrl('mainnet-beta'));
 const kamino = new Kamino('mainnet-beta', connection);
-// setup fee payer (wallet) that will sign the transaction 
+// setup fee payer (wallet) that will sign the transaction
 const signer = Keypair.generate();
 
-// get on-chain data for a Kamino strategy 
+// get on-chain data for a Kamino strategy
 const strategy = await kamino.getStrategyByAddress(strategyPubkey);
 if (!strategy) {
   throw Error('Could not fetch strategy from the chain');
@@ -184,19 +183,18 @@ tx = await assignBlockInfoToTransaction(connection, tx, signer.publicKey);
 const txHash = await sendAndConfirmTransaction(connection, tx, [signer], {
   commitment: 'confirmed',
 });
-
 ```
 
 Withdraw all strategy shares from a specific shareholder (wallet), example code:
 
 ```javascript
 import { clusterApiUrl, Connection, PublicKey, sendAndConfirmTransaction, Keypair, Transaction } from '@solana/web3.js';
-import { 
+import {
   Kamino,
   getAssociatedTokenAddressAndData,
   createTransactionWithExtraBudget,
   getCreateAssociatedTokenAccountInstructionsIfNotExist,
-  assignBlockInfoToTransaction
+  assignBlockInfoToTransaction,
 } from '@hubbleprotocol/kamino-sdk';
 import Decimal from 'decimal.js';
 
@@ -205,10 +203,10 @@ const strategyPubkey = new PublicKey('2H4xebnp2M9JYgPPfUw58uUQahWF8f1YTNxwwtmdqV
 const owner = new PublicKey('HrwbdQYwSnAyVpVHuGQ661HiNbWmGjDp5DdDR9YMw7Bu'); // wallet to deposit shares into
 const connection = new Connection(clusterApiUrl('mainnet-beta'));
 const kamino = new Kamino('mainnet-beta', connection);
-// setup fee payer (wallet) that will sign the transaction 
+// setup fee payer (wallet) that will sign the transaction
 const signer = Keypair.generate();
 
-// get on-chain data for a Kamino strategy 
+// get on-chain data for a Kamino strategy
 const strategy = await kamino.getStrategyByAddress(strategyPubkey);
 if (!strategy) {
   throw Error('Could not fetch strategy from the chain');
@@ -261,12 +259,12 @@ Deposit custom amount of token A and B for a specific strategy, example code:
 
 ```javascript
 import { clusterApiUrl, Connection, PublicKey, sendAndConfirmTransaction, Keypair, Transaction } from '@solana/web3.js';
-import { 
+import {
   Kamino,
   getAssociatedTokenAddressAndData,
   createTransactionWithExtraBudget,
   getCreateAssociatedTokenAccountInstructionsIfNotExist,
-  assignBlockInfoToTransaction
+  assignBlockInfoToTransaction,
 } from '@hubbleprotocol/kamino-sdk';
 import Decimal from 'decimal.js';
 
@@ -275,10 +273,10 @@ const strategyPubkey = new PublicKey('2H4xebnp2M9JYgPPfUw58uUQahWF8f1YTNxwwtmdqV
 const owner = new PublicKey('HrwbdQYwSnAyVpVHuGQ661HiNbWmGjDp5DdDR9YMw7Bu'); // wallet with shares
 const connection = new Connection(clusterApiUrl('mainnet-beta'));
 const kamino = new Kamino('mainnet-beta', connection);
-// setup fee payer (wallet) that will sign the transaction 
+// setup fee payer (wallet) that will sign the transaction
 const signer = Keypair.generate();
 
-// get on-chain data for a Kamino strategy 
+// get on-chain data for a Kamino strategy
 const strategy = await kamino.getStrategyByAddress(strategyPubkey);
 if (!strategy) {
   throw Error('Could not fetch strategy from the chain');
@@ -326,11 +324,7 @@ Collect strategy fees from the treasury fee vaults and rewards from the reward v
 
 ```javascript
 import { clusterApiUrl, Connection, PublicKey, sendAndConfirmTransaction, Keypair, Transaction } from '@solana/web3.js';
-import { 
-  Kamino,
-  createTransactionWithExtraBudget,
-  assignBlockInfoToTransaction
-} from '@hubbleprotocol/kamino-sdk';
+import { Kamino, createTransactionWithExtraBudget, assignBlockInfoToTransaction } from '@hubbleprotocol/kamino-sdk';
 import Decimal from 'decimal.js';
 
 // setup Kamino SDK
@@ -338,13 +332,13 @@ const strategyPubkey = new PublicKey('2H4xebnp2M9JYgPPfUw58uUQahWF8f1YTNxwwtmdqV
 const owner = new PublicKey('HrwbdQYwSnAyVpVHuGQ661HiNbWmGjDp5DdDR9YMw7Bu'); // strategy owner
 const connection = new Connection(clusterApiUrl('mainnet-beta'));
 const kamino = new Kamino('mainnet-beta', connection);
-// setup fee payer (wallet) that will sign the transaction 
+// setup fee payer (wallet) that will sign the transaction
 const signer = Keypair.generate();
 
 // create a transaction that has an instruction for extra compute budget
 let tx = createTransactionWithExtraBudget(owner);
 
-// get on-chain data for a Kamino strategy 
+// get on-chain data for a Kamino strategy
 const strategy = await kamino.getStrategyByAddress(strategyPubkey);
 if (!strategy) {
   throw Error('Could not fetch strategy from the chain');
@@ -368,11 +362,7 @@ const txHash = await sendAndConfirmTransaction(connection, tx, [signer], {
 
 ```javascript
 import { clusterApiUrl, Connection, PublicKey, sendAndConfirmTransaction, Keypair, Transaction } from '@solana/web3.js';
-import {
-  Kamino,
-  createTransactionWithExtraBudget,
-  assignBlockInfoToTransaction
-} from '@hubbleprotocol/kamino-sdk';
+import { Kamino, createTransactionWithExtraBudget, assignBlockInfoToTransaction } from '@hubbleprotocol/kamino-sdk';
 import Decimal from 'decimal.js';
 
 // setup Kamino SDK
@@ -380,7 +370,7 @@ const strategyPubkey = new PublicKey('2H4xebnp2M9JYgPPfUw58uUQahWF8f1YTNxwwtmdqV
 const owner = new PublicKey('HrwbdQYwSnAyVpVHuGQ661HiNbWmGjDp5DdDR9YMw7Bu'); // strategy owner
 const connection = new Connection(clusterApiUrl('mainnet-beta'));
 const kamino = new Kamino('mainnet-beta', connection);
-// setup fee payer (wallet) that will sign the transaction 
+// setup fee payer (wallet) that will sign the transaction
 const signer = Keypair.generate();
 // setup new position mint
 const newPosition = Keypair.generate();
@@ -388,7 +378,7 @@ const newPosition = Keypair.generate();
 // create a transaction that has an instruction for extra compute budget
 let tx = createTransactionWithExtraBudget(owner);
 
-// rebalance a USDH-USDC strategy to range 0.9 - 1.1 
+// rebalance a USDH-USDC strategy to range 0.9 - 1.1
 const rebalanceInstructions = await kamino.rebalance(
   strategy,
   newPosition.publicKey,
@@ -406,23 +396,24 @@ for (const rebalanceInstruction of rebalanceInstructions) {
   });
   console.log('transaction hash', txHash);
 }
-
 ```
 
 ### Get all strategies with filters
 
-* The current filters that are supported are:
-  * `strategyType` which can be:
-    * `NON_PEGGED`: e.g. SOL-BONK
-    * `PEGGED`: e.g. BSOL-JitoSOL
-    * `STABLE`: e.g. USDH-USDC
+- The current filters that are supported are:
 
-  * `strategyCreationStatus` which can be:
-    * `IGNORED`
-    * `SHADOW`
-    * `LIVE`
-    * `DEPRECATED`
-    * `STAGING`
+  - `strategyType` which can be:
+
+    - `NON_PEGGED`: e.g. SOL-BONK
+    - `PEGGED`: e.g. BSOL-JitoSOL
+    - `STABLE`: e.g. USDH-USDC
+
+  - `strategyCreationStatus` which can be:
+    - `IGNORED`
+    - `SHADOW`
+    - `LIVE`
+    - `DEPRECATED`
+    - `STAGING`
 
 ```javascript
 import { clusterApiUrl, Connection, PublicKey, sendAndConfirmTransaction, Keypair, Transaction } from '@solana/web3.js';

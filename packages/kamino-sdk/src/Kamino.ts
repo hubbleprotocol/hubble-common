@@ -302,7 +302,11 @@ import {
   readTakeProfitRebalanceStateFromStrategy,
 } from './rebalance_methods';
 import { PoolPriceReferenceType, TwapPriceReferenceType } from './utils/priceReferenceTypes';
-import { getRebalanceMethodFromRebalanceFields, getRebalanceTypeFromRebalanceFields } from './rebalance_methods/utils';
+import {
+  extractPricesFromDeserializedState,
+  getRebalanceMethodFromRebalanceFields,
+  getRebalanceTypeFromRebalanceFields,
+} from './rebalance_methods/utils';
 import { RebalanceTypeLabelName } from './rebalance_methods/consts';
 import WhirlpoolWithAddress from './models/WhirlpoolWithAddress';
 import RaydiumPoollWithAddress from './models/RaydiumPoolWithAddress';
@@ -1134,6 +1138,9 @@ export class Kamino {
           poolPrice: ZERO,
           upperPrice: ZERO,
           lowerPrice: ZERO,
+          twapPrice: ZERO,
+          lowerResetPrice: ZERO,
+          upperResetPrice: ZERO,
         }),
       });
     }
@@ -1231,7 +1238,8 @@ export class Kamino {
     prices?: OraclePrices
   ): Promise<StrategyBalances> => {
     const strategyPrices = await this.getStrategyPrices(strategy, collateralInfos, prices);
-    const tokenHoldings = this.getRaydiumTokensBalances(strategy, pool, position);
+    const rebalanceKind = numberToRebalanceType(strategy.rebalanceType);
+    const tokenHoldings = await this.getRaydiumTokensBalances(strategy, pool, position);
 
     let computedHoldings: Holdings = this.getStrategyHoldingsUsd(
       tokenHoldings.available.a,
@@ -1248,6 +1256,10 @@ export class Kamino {
     let decimalsB = strategy.tokenBMintDecimals.toNumber();
 
     const poolPrice = SqrtPriceMath.sqrtPriceX64ToPrice(pool.sqrtPriceX64, decimalsA, decimalsB);
+    const twapPrice =
+      strategyPrices.aTwapPrice !== null && strategyPrices.bTwapPrice !== null
+        ? strategyPrices.aTwapPrice.div(strategyPrices.bTwapPrice)
+        : null;
     const upperPrice = SqrtPriceMath.sqrtPriceX64ToPrice(
       SqrtPriceMath.getSqrtPriceX64FromTick(position.tickUpperIndex),
       decimalsA,
@@ -1258,10 +1270,32 @@ export class Kamino {
       decimalsA,
       decimalsB
     );
+    let lowerResetPrice: Decimal | null = null;
+    let upperResetPrice: Decimal | null = null;
+    let dex = numberToDex(strategy.strategyDex.toNumber());
+    if (rebalanceKind.kind === PricePercentageWithReset.kind) {
+      const state = deserializePricePercentageWithResetRebalanceWithStateOverride(
+        dex,
+        decimalsA,
+        decimalsB,
+        poolPrice,
+        strategy.rebalanceRaw
+      );
+      [lowerResetPrice, upperResetPrice] = extractPricesFromDeserializedState(state);
+    } else if (rebalanceKind.kind === Expander.kind) {
+      const state = deserializeExpanderRebalanceWithStateOverride(
+        dex,
+        decimalsA,
+        decimalsB,
+        poolPrice,
+        strategy.rebalanceRaw
+      );
+      [lowerResetPrice, upperResetPrice] = extractPricesFromDeserializedState(state);
+    }
 
     const balance: StrategyBalances = {
       computedHoldings,
-      prices: { ...strategyPrices, poolPrice, lowerPrice, upperPrice },
+      prices: { ...strategyPrices, poolPrice, lowerPrice, upperPrice, twapPrice, lowerResetPrice, upperResetPrice },
       tokenAAmounts: tokenHoldings.available.a.plus(tokenHoldings.invested.a),
       tokenBAmounts: tokenHoldings.available.b.plus(tokenHoldings.invested.b),
     };
@@ -1311,6 +1345,7 @@ export class Kamino {
     prices?: OraclePrices
   ): Promise<StrategyBalances> => {
     const strategyPrices = await this.getStrategyPrices(strategy, collateralInfos, prices);
+    const rebalanceKind = numberToRebalanceType(strategy.rebalanceType);
 
     let tokenHoldings = this.getOrcaTokensBalances(strategy, pool, position);
     const computedHoldings: Holdings = this.getStrategyHoldingsUsd(
@@ -1328,12 +1363,38 @@ export class Kamino {
     const decimalsB = strategy.tokenBMintDecimals.toNumber();
 
     const poolPrice = sqrtPriceX64ToPrice(pool.sqrtPrice, decimalsA, decimalsB);
+    const twapPrice =
+      strategyPrices.aTwapPrice !== null && strategyPrices.bTwapPrice !== null
+        ? strategyPrices.aTwapPrice.div(strategyPrices.bTwapPrice)
+        : null;
     const upperPrice = tickIndexToPrice(position.tickUpperIndex, decimalsA, decimalsB);
     const lowerPrice = tickIndexToPrice(position.tickLowerIndex, decimalsA, decimalsB);
+    let lowerResetPrice: Decimal | null = null;
+    let upperResetPrice: Decimal | null = null;
+    let dex = numberToDex(strategy.strategyDex.toNumber());
+    if (rebalanceKind.kind === PricePercentageWithReset.kind) {
+      const state = deserializePricePercentageWithResetRebalanceWithStateOverride(
+        dex,
+        decimalsA,
+        decimalsB,
+        poolPrice,
+        strategy.rebalanceRaw
+      );
+      [lowerResetPrice, upperResetPrice] = extractPricesFromDeserializedState(state);
+    } else if (rebalanceKind.kind === Expander.kind) {
+      const state = deserializeExpanderRebalanceWithStateOverride(
+        dex,
+        decimalsA,
+        decimalsB,
+        poolPrice,
+        strategy.rebalanceRaw
+      );
+      [lowerResetPrice, upperResetPrice] = extractPricesFromDeserializedState(state);
+    }
 
     const balance: StrategyBalances = {
       computedHoldings,
-      prices: { ...strategyPrices, poolPrice, upperPrice, lowerPrice },
+      prices: { ...strategyPrices, poolPrice, lowerPrice, upperPrice, twapPrice, lowerResetPrice, upperResetPrice },
       tokenAAmounts: tokenHoldings.available.a.plus(tokenHoldings.invested.a),
       tokenBAmounts: tokenHoldings.available.b.plus(tokenHoldings.invested.b),
     };
@@ -1583,6 +1644,8 @@ export class Kamino {
   ): Promise<StrategyPrices> => {
     const tokenA = collateralInfos[strategy.tokenACollateralId.toNumber()];
     const tokenB = collateralInfos[strategy.tokenBCollateralId.toNumber()];
+    const tokenATwap = tokenA.scopePriceIdTwap.toNumber();
+    const tokenBTwap = tokenB.scopePriceIdTwap.toNumber();
     const rewardToken0 = collateralInfos[strategy.reward0CollateralId.toNumber()];
     const rewardToken1 = collateralInfos[strategy.reward1CollateralId.toNumber()];
     const rewardToken2 = collateralInfos[strategy.reward2CollateralId.toNumber()];
@@ -1595,6 +1658,8 @@ export class Kamino {
     }
     const aPrice = await this._scope.getPriceFromChain(tokenA.scopePriceChain, prices);
     const bPrice = await this._scope.getPriceFromChain(tokenB.scopePriceChain, prices);
+    const aTwapPrice = tokenATwap !== 0 ? await this._scope.getPriceFromChain([tokenATwap], prices) : null;
+    const bTwapPrice = tokenBTwap !== 0 ? await this._scope.getPriceFromChain([tokenBTwap], prices) : null;
 
     const reward0Price =
       strategy.reward0Decimals.toNumber() !== 0
@@ -1612,6 +1677,8 @@ export class Kamino {
     return {
       aPrice,
       bPrice,
+      aTwapPrice,
+      bTwapPrice,
       reward0Price,
       reward1Price,
       reward2Price,
@@ -2170,7 +2237,8 @@ export class Kamino {
     profiler: ProfiledFunctionExecution = noopProfiledFunctionExecution,
     swapIxsBuilder?: SwapperIxBuilder,
     initialUserTokenAtaBalances?: TokensBalances,
-    priceAInB?: Decimal
+    priceAInB?: Decimal,
+    includeAtaIxns: boolean = true // if true it includes create and close wsol and token atas,
   ): Promise<InstructionsWithLookupTables> => {
     const strategyWithAddress = await this.getStrategyStateIfNotFetched(strategy);
 
@@ -2229,7 +2297,8 @@ export class Kamino {
         swapper,
         profiler,
         userTokenBalancesWithoutSolBalanace,
-        priceAInB
+        priceAInB,
+        includeAtaIxns
       ),
       'A-getSingleSidedDepositIxs',
       []
@@ -2244,7 +2313,8 @@ export class Kamino {
     profiler: ProfiledFunctionExecution = noopProfiledFunctionExecution,
     swapIxsBuilder?: SwapperIxBuilder,
     initialUserTokenAtaBalances?: TokensBalances,
-    priceAInB?: Decimal
+    priceAInB?: Decimal,
+    includeAtaIxns: boolean = true // if true it includes create and close wsol and token atas,
   ): Promise<InstructionsWithLookupTables> => {
     const strategyWithAddress = await this.getStrategyStateIfNotFetched(strategy);
 
@@ -2302,7 +2372,8 @@ export class Kamino {
         swapper,
         profiler,
         userTokenBalancesWithoutSolBalanace,
-        priceAInB
+        priceAInB,
+        includeAtaIxns
       ),
       'A-getSingleSidedDepositIxs',
       []
@@ -2356,7 +2427,8 @@ export class Kamino {
     swapIxsBuilder: SwapperIxBuilder,
     profiler: ProfiledFunctionExecution,
     initialUserTokenAtaBalances: TokensBalances,
-    priceAInB?: Decimal // not mandatory as it will be fetched from Jupyter
+    priceAInB?: Decimal, // not mandatory as it will be fetched from Jupyter
+    includeAtaIxns: boolean = true // if true it includes create and close wsol and token atas,
   ): Promise<InstructionsWithLookupTables> => {
     const strategyWithAddress = await this.getStrategyStateIfNotFetched(strategy);
     const strategyState = strategyWithAddress.strategy;
@@ -2422,8 +2494,10 @@ export class Kamino {
         }
       }
 
-      createWsolAtasIxns.push(...createWSolAtaIxns.createIxns);
-      cleanupIxs.push(...createWSolAtaIxns.closeIxns);
+      if (includeAtaIxns) {
+        createWsolAtasIxns.push(...createWSolAtaIxns.createIxns);
+        cleanupIxs.push(...createWSolAtaIxns.closeIxns);
+      }
     }
 
     if (isSOLMint(strategyState.tokenBMint)) {
@@ -2461,8 +2535,10 @@ export class Kamino {
         }
       }
 
-      createWsolAtasIxns.push(...createWSolAtaIxns.createIxns);
-      cleanupIxs.push(...createWSolAtaIxns.closeIxns);
+      if (includeAtaIxns) {
+        createWsolAtasIxns.push(...createWSolAtaIxns.createIxns);
+        cleanupIxs.push(...createWSolAtaIxns.closeIxns);
+      }
     }
 
     let amountsToDepositWithSwapPromise = this.calculateAmountsToBeDepositedWithSwap(
@@ -2542,7 +2618,9 @@ export class Kamino {
     let singleSidedDepositIx = singleTokenDepositWithMin(args, accounts);
 
     let result: TransactionInstruction[] = [];
-    result.push(...createAtasIxns, ...createWsolAtasIxns);
+    if (includeAtaIxns) {
+      result.push(...createAtasIxns, ...createWsolAtasIxns);
+    }
 
     // get all unique accounts in the tx so we can use the remaining space (MAX_ACCOUNTS_PER_TRANSACTION - accounts_used) for the swap
     const extractKeys = (ixs: any[]) => ixs.flatMap((ix) => ix.keys?.map((key) => key.pubkey) || []);
@@ -3802,6 +3880,30 @@ export class Kamino {
     );
   };
 
+  processRebalanceParams = async (
+    dex: Dex,
+    pool: PublicKey | WhirlpoolWithAddress,
+    rebalanceType: Decimal,
+    rebalanceParams: Decimal[]
+  ): Promise<Decimal[]> => {
+    let processedRebalanceParams = [...rebalanceParams];
+    let rebalanceTypeKind = numberToRebalanceType(rebalanceType.toNumber());
+    if (dex == 'ORCA') {
+      const { address, whirlpool: whilrpoolState } = await this.getWhirlpoolStateIfNotFetched(pool);
+      if (rebalanceTypeKind.kind == RebalanceType.Drift.kind) {
+        processedRebalanceParams[0] = new Decimal(
+          getNearestValidTickIndexFromTickIndex(rebalanceParams[0].toNumber(), whilrpoolState.tickSpacing)
+        );
+      }
+    } else if (dex == 'RAYDIUM') {
+      // no processing needed
+    } else {
+      throw Error(`Invalid dex ${dex}`);
+    }
+
+    return processedRebalanceParams;
+  };
+
   getUpdateRebalancingParmsIxns = async (
     strategyAdmin: PublicKey,
     strategy: PublicKey,
@@ -3810,12 +3912,21 @@ export class Kamino {
     tokenADecimals?: number,
     tokenBDecimals?: number
   ): Promise<TransactionInstruction> => {
+    const { strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
     if (!rebalanceType) {
-      const { strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
       rebalanceType = numberToRebalanceType(strategyState.rebalanceType);
     }
+    tokenADecimals = strategyState.tokenAMintDecimals.toNumber();
+    tokenBDecimals = strategyState.tokenBMintDecimals.toNumber();
 
-    const value = buildStrategyRebalanceParams(rebalanceParams, rebalanceType, tokenADecimals, tokenBDecimals);
+    const processedRebalanceParams = await this.processRebalanceParams(
+      numberToDex(strategyState.strategyDex.toNumber()),
+      strategyState.pool,
+      new Decimal(rebalanceType.discriminator),
+      rebalanceParams
+    );
+
+    const value = buildStrategyRebalanceParams(processedRebalanceParams, rebalanceType, tokenADecimals, tokenBDecimals);
     let args: UpdateStrategyConfigArgs = {
       mode: StrategyConfigOption.UpdateRebalanceParams.discriminator,
       value,
@@ -3905,6 +4016,10 @@ export class Kamino {
       );
     }
 
+    const processedRebalanceParams = await this.processRebalanceParams(dex, pool, rebalanceType, rebalanceParams);
+
+    let price = await this.getCurrentPriceFromPool(dex, pool);
+
     let tokenMintA: PublicKey;
     let tokenMintB: PublicKey;
     if (dex == 'ORCA') {
@@ -3930,10 +4045,11 @@ export class Kamino {
     let tokenADecimals = await getMintDecimals(this._connection, tokenMintA);
     let tokenBDecimals = await getMintDecimals(this._connection, tokenMintB);
     let rebalanceKind = numberToRebalanceType(rebalanceType.toNumber());
+
     let updateRebalanceParamsIx = await this.getUpdateRebalancingParamsForUninitializedStratIx(
       strategyAdmin,
       strategy,
-      rebalanceParams,
+      processedRebalanceParams,
       rebalanceKind,
       tokenADecimals,
       tokenBDecimals
@@ -3952,7 +4068,6 @@ export class Kamino {
     let tokenAVault = programAddresses.tokenAVault;
     let tokenBVault = programAddresses.tokenBVault;
 
-    let price = await this.getCurrentPriceFromPool(dex, pool);
     let { lowerPrice, upperPrice } = await this.getRebalancePositionRange(
       dex,
       price,
@@ -4025,6 +4140,20 @@ export class Kamino {
       openPositionIxs,
     };
   };
+
+  async getNewPositionRange(
+    strategy: PublicKey | StrategyWithAddress,
+    rebalanceKind: RebalanceTypeKind,
+    rebalanceParams: Decimal[]
+  ): Promise<PositionRange> {
+    const strategyState = await this.getStrategyStateIfNotFetched(strategy);
+    const dex = numberToDex(strategyState.strategy.strategyDex.toNumber());
+    const tokenAMint = strategyState.strategy.tokenAMint;
+    const tokenBMint = strategyState.strategy.tokenBMint;
+    let price = await this.getCurrentPriceFromPool(dex, strategyState.strategy.pool);
+
+    return this.getRebalancePositionRange(dex, price, tokenAMint, tokenBMint, rebalanceKind, rebalanceParams);
+  }
 
   private async getRebalancePositionRange(
     dex: Dex,
@@ -5583,16 +5712,23 @@ export class Kamino {
     }
   };
 
+  /**
+   * Get the instruction to create an Orca Whirlpool tick, if it does not exist
+   * @param payer
+   * @param pool
+   * @param price
+   * @return tickPubkey, (tickInstruction | undefined)
+   */
   initializeTickForOrcaPool = async (
     payer: PublicKey,
     pool: PublicKey | WhirlpoolWithAddress,
     price: Decimal
-  ): Promise<TransactionInstruction | undefined> => {
+  ): Promise<[PublicKey, TransactionInstruction | undefined]> => {
     const { address: poolAddress, whirlpool: whilrpoolState } = await this.getWhirlpoolStateIfNotFetched(pool);
 
     const decimalsA = await getMintDecimals(this._connection, whilrpoolState.tokenMintA);
     const decimalsB = await getMintDecimals(this._connection, whilrpoolState.tokenMintB);
-    const tickIndex = priceToTickIndex(price, decimalsA, decimalsB);
+    const tickIndex = getNextValidTickIndex(priceToTickIndex(price, decimalsA, decimalsB), whilrpoolState.tickSpacing);
     const startTickIndex = getStartTickIndex(tickIndex, whilrpoolState.tickSpacing);
 
     const [startTickIndexPk, _startTickIndexBump] = getTickArray(WHIRLPOOL_PROGRAM_ID, poolAddress, startTickIndex);
@@ -5608,8 +5744,9 @@ export class Kamino {
         tickArray: startTickIndexPk,
         systemProgram: SystemProgram.programId,
       };
-      return initializeTickArray(initTickArrayArgs, initTickArrayAccounts);
+      return [startTickIndexPk, initializeTickArray(initTickArrayArgs, initTickArrayAccounts)];
     }
+    return [startTickIndexPk, undefined];
   };
 }
 
