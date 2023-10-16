@@ -212,8 +212,8 @@ export function readPricePercentageWithResetRebalanceStateFromStrategy(
   let resetLowerRangeBps = new Decimal(params.find((param) => param.label == 'resetLowerRangeBps')?.value.toString()!);
   let resetUpperRangeBps = new Decimal(params.find((param) => param.label == 'resetUpperRangeBps')?.value!.toString()!);
 
-  let lowerResetSqrtPriceX64 = new Decimal(readBigUint128LE(stateBuffer, 0).toString());
-  let upperResetSqrtPriceX64 = new Decimal(readBigUint128LE(stateBuffer, 16).toString());
+  let lowerResetSqrtPriceX64 = readBigUint128LE(stateBuffer, 0).toString();
+  let upperResetSqrtPriceX64 = readBigUint128LE(stateBuffer, 16).toString();
 
   let lowerResetPrice: Decimal, upperResetPrice: Decimal;
 
