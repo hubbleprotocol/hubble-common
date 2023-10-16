@@ -163,7 +163,7 @@ export function lamportsToNumberDecimal(amount: Decimal.Value, decimals: number)
 }
 
 export function readBigUint128LE(buffer: Buffer, offset: number): bigint {
-  return buffer.readBigUint64LE(offset) + (buffer.readBigUint64LE(offset + 8) << BigInt(64));
+  return buffer.readBigUInt64LE(offset) + (buffer.readBigUInt64LE(offset + 8) << BigInt(64));
 }
 
 function writeBNUint64LE(buffer: Buffer, value: BN, offset: number) {

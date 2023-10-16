@@ -161,7 +161,7 @@ export function readDriftRebalanceParamsFromStrategy(rebalanceRaw: RebalanceRaw)
   params['startMidTick'] = new Decimal(paramsBuffer.readInt32LE(0));
   params['ticksBelowMid'] = new Decimal(paramsBuffer.readInt32LE(4));
   params['ticksAboveMid'] = new Decimal(paramsBuffer.readInt32LE(8));
-  params['secondsPerTick'] = new Decimal(paramsBuffer.readBigUint64LE(12).toString());
+  params['secondsPerTick'] = new Decimal(paramsBuffer.readBigUInt64LE(12).toString());
   params['direction'] = new Decimal(paramsBuffer.readUint8(20));
 
   return params;
@@ -172,7 +172,7 @@ export function readRawDriftRebalanceStateFromStrategy(rebalanceRaw: RebalanceRa
   let state: RebalanceFieldsDict = {};
 
   state['step'] = new Decimal(stateBuffer.readUInt8(0));
-  state['lastDriftTimestamp'] = new Decimal(stateBuffer.readBigUint64LE(1).toString());
+  state['lastDriftTimestamp'] = new Decimal(stateBuffer.readBigUInt64LE(1).toString());
   state['lastMidTick'] = new Decimal(stateBuffer.readInt32LE(9));
 
   return state;
