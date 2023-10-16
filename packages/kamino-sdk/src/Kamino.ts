@@ -310,7 +310,6 @@ import {
 } from './rebalance_methods/utils';
 import { RebalanceTypeLabelName } from './rebalance_methods/consts';
 import WhirlpoolWithAddress from './models/WhirlpoolWithAddress';
-import RaydiumPoollWithAddress from './models/RaydiumPoolWithAddress';
 import { PoolSimulationResponse } from './models/PoolSimulationResponseData';
 export const KAMINO_IDL = KaminoIdl;
 
@@ -1240,7 +1239,7 @@ export class Kamino {
   ): Promise<StrategyBalances> => {
     const strategyPrices = await this.getStrategyPrices(strategy, collateralInfos, prices);
     const rebalanceKind = numberToRebalanceType(strategy.rebalanceType);
-    const tokenHoldings = await this.getRaydiumTokensBalances(strategy, pool, position);
+    const tokenHoldings = this.getRaydiumTokensBalances(strategy, pool, position);
 
     let computedHoldings: Holdings = this.getStrategyHoldingsUsd(
       tokenHoldings.available.a,
