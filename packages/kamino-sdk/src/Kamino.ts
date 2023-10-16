@@ -3874,7 +3874,6 @@ export class Kamino {
     tokenADecimals?: number,
     tokenBDecimals?: number
   ): Promise<TransactionInstruction> => {
-    console.log('getUpdateRebalancingParmsIxns');
     const { strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
     if (!rebalanceType) {
       rebalanceType = numberToRebalanceType(strategyState.rebalanceType);
