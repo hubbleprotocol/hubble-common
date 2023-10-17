@@ -219,10 +219,10 @@ export function isVaultInitialized(vault: PublicKey, decimals: BN): boolean {
 
 export function sqrtPriceToPrice(sqrtPrice: BN, dexNo: number, decimalsA: number, decimalsB: number): Decimal {
   let dex = numberToDex(dexNo);
-  if(dex == "ORCA") {
+  if (dex == 'ORCA') {
     return sqrtPriceX64ToPrice(sqrtPrice, decimalsA, decimalsB);
   }
-  if(dex == "RAYDIUM") {
+  if (dex == 'RAYDIUM') {
     return SqrtPriceMath.sqrtPriceX64ToPrice(sqrtPrice, decimalsA, decimalsB);
   }
   throw new Error(`Got invalid dex number ${dex}`);
