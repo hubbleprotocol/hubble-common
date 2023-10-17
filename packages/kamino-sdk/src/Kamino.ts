@@ -111,6 +111,7 @@ import {
   rebalanceFieldsDictToInfo,
   isVaultInitialized,
   WithdrawAllAndCloseIxns,
+  numberToReferencePriceType,
 } from './utils';
 import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import {
@@ -441,13 +442,7 @@ export class Kamino {
 
   getReferencePriceTypeForStrategy = async (strategy: PublicKey | StrategyWithAddress): Promise<PriceReferenceType> => {
     const strategyWithAddress = await this.getStrategyStateIfNotFetched(strategy);
-    const referencePriceTypes = this.getPriceReferenceTypes();
-    const strategyReferencePriceType = strategyWithAddress.strategy.rebalanceRaw.referencePriceType;
-
-    if (strategyReferencePriceType >= referencePriceTypes.length) {
-      throw new Error('Strategy has invalid reference price type set');
-    }
-    return referencePriceTypes[strategyReferencePriceType];
+    return numberToReferencePriceType(strategyWithAddress.strategy.rebalanceRaw.referencePriceType);
   };
 
   getFieldsForRebalanceMethod = (

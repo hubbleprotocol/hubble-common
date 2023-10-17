@@ -13,6 +13,7 @@ import { SqrtPriceMath } from '@raydium-io/raydium-sdk';
 import { token } from '@project-serum/anchor/dist/cjs/utils';
 import { RebalanceFieldInfo, RebalanceFieldsDict } from './types';
 import BN from 'bn.js';
+import { PoolPriceReferenceType, TwapPriceReferenceType } from './priceReferenceTypes';
 
 export const DolarBasedMintingMethod = new Decimal(0);
 export const ProportionalMintingMethod = new Decimal(1);
@@ -25,6 +26,9 @@ export function sleep(ms: number) {
 
 export const Dex = ['ORCA', 'RAYDIUM', 'CREMA'] as const;
 export type Dex = (typeof Dex)[number];
+
+export const ReferencePriceType = [PoolPriceReferenceType, TwapPriceReferenceType] as const;
+export type ReferencePriceType = (typeof ReferencePriceType)[number];
 
 export function dexToNumber(dex: Dex): number {
   for (let i = 0; i < Dex.length; i++) {
@@ -43,6 +47,14 @@ export function numberToDex(num: number): Dex {
     throw new Error(`Unknown DEX ${num}`);
   }
   return dex;
+}
+
+export function numberToReferencePriceType(num: number): ReferencePriceType {
+  let referencePriceType = ReferencePriceType[num];
+  if (!referencePriceType) {
+    throw new Error('Strategy has invalid reference price type set');
+  }
+  return referencePriceType;
 }
 
 export function getDexProgramId(strategyState: WhirlpoolStrategy): PublicKey {
