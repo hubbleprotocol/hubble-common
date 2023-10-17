@@ -120,6 +120,14 @@ export function buildStrategyRebalanceParams(
   return [...buffer];
 }
 
+export function doesStrategyHaveResetRange(rebalanceTypeNumber: number): boolean {
+  let rebalanceType = numberToRebalanceType(rebalanceTypeNumber);
+  return (
+    rebalanceType.kind == RebalanceType.PricePercentageWithReset.kind ||
+    rebalanceType.kind == RebalanceType.Expander.kind
+  );
+}
+
 export function numberToRebalanceType(rebalance_type: number): RebalanceTypeKind {
   if (rebalance_type == 0) {
     return new RebalanceType.Manual();
