@@ -111,6 +111,7 @@ import {
   rebalanceFieldsDictToInfo,
   isVaultInitialized,
   WithdrawAllAndCloseIxns,
+  numberToReferencePriceType,
 } from './utils';
 import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import {
@@ -437,6 +438,11 @@ export class Kamino {
 
   getRebalanceMethodFromRebalanceFields = (rebalanceFields: RebalanceFieldInfo[]): RebalanceMethod => {
     return getRebalanceMethodFromRebalanceFields(rebalanceFields);
+  };
+
+  getReferencePriceTypeForStrategy = async (strategy: PublicKey | StrategyWithAddress): Promise<PriceReferenceType> => {
+    const strategyWithAddress = await this.getStrategyStateIfNotFetched(strategy);
+    return numberToReferencePriceType(strategyWithAddress.strategy.rebalanceRaw.referencePriceType);
   };
 
   getFieldsForRebalanceMethod = (
