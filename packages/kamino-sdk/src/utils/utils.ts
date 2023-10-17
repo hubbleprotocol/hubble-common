@@ -3,7 +3,7 @@ import { WhirlpoolStrategy } from '../kamino-client/accounts';
 import { WHIRLPOOL_PROGRAM_ID } from '../whirpools-client/programId';
 import { PROGRAM_ID as RAYDIUM_PROGRAM_ID } from '../raydium_client/programId';
 import Decimal from 'decimal.js';
-import { RebalanceType, RebalanceTypeKind, StrategyConfigOptionKind } from '../kamino-client/types';
+import { DEX, RebalanceType, RebalanceTypeKind, StrategyConfigOptionKind } from '../kamino-client/types';
 import {
   UpdateStrategyConfigAccounts,
   UpdateStrategyConfigArgs,
@@ -14,6 +14,7 @@ import { token } from '@project-serum/anchor/dist/cjs/utils';
 import { RebalanceFieldInfo, RebalanceFieldsDict } from './types';
 import BN from 'bn.js';
 import { PoolPriceReferenceType, TwapPriceReferenceType } from './priceReferenceTypes';
+import { sqrtPriceX64ToPrice } from '@orca-so/whirlpool-sdk';
 
 export const DolarBasedMintingMethod = new Decimal(0);
 export const ProportionalMintingMethod = new Decimal(1);
@@ -214,4 +215,15 @@ export function rebalanceFieldsDictToInfo(rebalanceFields: RebalanceFieldsDict):
 
 export function isVaultInitialized(vault: PublicKey, decimals: BN): boolean {
   return !vault.equals(PublicKey.default) && decimals.toNumber() > 0;
+}
+
+export function sqrtPriceToPrice(sqrtPrice: BN, dexNo: number, decimalsA: number, decimalsB: number): Decimal {
+  let dex = numberToDex(dexNo);
+  if (dex == 'ORCA') {
+    return sqrtPriceX64ToPrice(sqrtPrice, decimalsA, decimalsB);
+  }
+  if (dex == 'RAYDIUM') {
+    return SqrtPriceMath.sqrtPriceX64ToPrice(sqrtPrice, decimalsA, decimalsB);
+  }
+  throw new Error(`Got invalid dex number ${dex}`);
 }
