@@ -52,7 +52,7 @@ export function numberToDex(num: number): Dex {
 export function numberToReferencePriceType(num: number): ReferencePriceType {
   let referencePriceType = ReferencePriceType[num];
   if (!referencePriceType) {
-    throw new Error('Strategy has invalid reference price type set');
+    throw new Error(`Strategy has invalid reference price type set: ${num}`);
   }
   return referencePriceType;
 }
