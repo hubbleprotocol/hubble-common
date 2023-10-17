@@ -439,6 +439,17 @@ export class Kamino {
     return getRebalanceMethodFromRebalanceFields(rebalanceFields);
   };
 
+  getReferencePriceTypeForStrategy = async (strategy: PublicKey | StrategyWithAddress): Promise<PriceReferenceType> => {
+    const strategyWithAddress = await this.getStrategyStateIfNotFetched(strategy);
+    const referencePriceTypes = this.getPriceReferenceTypes();
+    const strategyReferencePriceType = strategyWithAddress.strategy.rebalanceRaw.referencePriceType;
+
+    if (strategyReferencePriceType >= referencePriceTypes.length) {
+      throw new Error('Strategy has invalid reference price type set');
+    }
+    return referencePriceTypes[strategyReferencePriceType];
+  };
+
   getFieldsForRebalanceMethod = (
     rebalanceMethod: RebalanceMethod,
     dex: Dex,
