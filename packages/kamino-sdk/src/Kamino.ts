@@ -835,11 +835,22 @@ export class Kamino {
       });
       return pool;
     } else if (dex == 'RAYDIUM') {
-      let pool = PublicKey.default;
+      let pools: Pool[] = [];
       let raydiumPools = await this.getRaydiumPoolsForTokens(poolTokenA, poolTokenB);
       raydiumPools.forEach((element) => {
         if (new Decimal(element.ammConfig.tradeFeeRate).div(FullBPS).div(FullPercentage).equals(feeBPS.div(FullBPS))) {
+          pools.push(element);
+        }
+      });
+      if (pools.length == 0) {
+        return PublicKey.default;
+      }
+      let pool = PublicKey.default;
+      let tickSpacing = Number.MAX_VALUE;
+      pools.forEach((element) => {
+        if (element.ammConfig.tickSpacing < tickSpacing) {
           pool = new PublicKey(element.id);
+          tickSpacing = element.ammConfig.tickSpacing;
         }
       });
       return pool;
