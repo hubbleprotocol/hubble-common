@@ -4191,9 +4191,9 @@ export class Kamino {
     const strategyWithAddress = await this.getStrategyStateIfNotFetched(strategy);
     let rebalanceKind = numberToRebalanceType(strategyWithAddress.strategy.rebalanceType);
 
-    let rebalanceFields = {};
+    let rebalanceFields: RebalanceFieldInfo[];
     if (rebalanceKind.kind === Manual.kind) {
-      rebalanceFields = {};
+      rebalanceFields = [];
     } else if (rebalanceKind.kind === PricePercentage.kind) {
       rebalanceFields = readPricePercentageRebalanceParamsFromStrategy(strategyWithAddress.strategy.rebalanceRaw);
     } else if (rebalanceKind.kind === PricePercentageWithReset.kind) {
@@ -4201,23 +4201,29 @@ export class Kamino {
         strategyWithAddress.strategy.rebalanceRaw
       );
     } else if (rebalanceKind.kind === Drift.kind) {
-      rebalanceFields = readDriftRebalanceParamsFromStrategy(strategyWithAddress.strategy.rebalanceRaw);
+      rebalanceFields = rebalanceFieldsDictToInfo(
+        readDriftRebalanceParamsFromStrategy(strategyWithAddress.strategy.rebalanceRaw)
+      );
     } else if (rebalanceKind.kind === TakeProfit.kind) {
       let tokenADecimals = await getMintDecimals(this._connection, strategyWithAddress.strategy.tokenAMint);
       let tokenBDecimals = await getMintDecimals(this._connection, strategyWithAddress.strategy.tokenBMint);
-      rebalanceFields = readTakeProfitRebalanceParamsFromStrategy(
-        tokenADecimals,
-        tokenBDecimals,
-        strategyWithAddress.strategy.rebalanceRaw
+      rebalanceFields = rebalanceFieldsDictToInfo(
+        readTakeProfitRebalanceParamsFromStrategy(
+          tokenADecimals,
+          tokenBDecimals,
+          strategyWithAddress.strategy.rebalanceRaw
+        )
       );
     } else if (rebalanceKind.kind === PeriodicRebalance.kind) {
-      rebalanceFields = readPeriodicRebalanceRebalanceParamsFromStrategy(strategyWithAddress.strategy.rebalanceRaw);
+      rebalanceFields = rebalanceFieldsDictToInfo(
+        readPeriodicRebalanceRebalanceParamsFromStrategy(strategyWithAddress.strategy.rebalanceRaw)
+      );
     } else if (rebalanceKind.kind === Expander.kind) {
       rebalanceFields = readExpanderRebalanceParamsFromStrategy(strategyWithAddress.strategy.rebalanceRaw);
     } else {
       throw new Error(`Rebalance type ${rebalanceKind} is not supported`);
     }
-    return rebalanceFieldsDictToInfo(rebalanceFields);
+    return rebalanceFields;
   }
 
   /**
@@ -4227,9 +4233,9 @@ export class Kamino {
     const strategyWithAddress = await this.getStrategyStateIfNotFetched(strategy);
     let rebalanceKind = numberToRebalanceType(strategyWithAddress.strategy.rebalanceType);
 
-    let rebalanceFields = {};
+    let rebalanceFields: RebalanceFieldInfo[];
     if (rebalanceKind.kind === Manual.kind) {
-      rebalanceFields = {};
+      rebalanceFields = [];
     } else if (rebalanceKind.kind === PricePercentage.kind) {
       rebalanceFields = readRawPricePercentageRebalanceStateFromStrategy(strategyWithAddress.strategy.rebalanceRaw);
     } else if (rebalanceKind.kind === PricePercentageWithReset.kind) {
@@ -4237,17 +4243,25 @@ export class Kamino {
         strategyWithAddress.strategy.rebalanceRaw
       );
     } else if (rebalanceKind.kind === Drift.kind) {
-      rebalanceFields = readRawDriftRebalanceStateFromStrategy(strategyWithAddress.strategy.rebalanceRaw);
+      rebalanceFields = rebalanceFieldsDictToInfo(
+        readRawDriftRebalanceStateFromStrategy(strategyWithAddress.strategy.rebalanceRaw)
+      );
     } else if (rebalanceKind.kind === TakeProfit.kind) {
-      rebalanceFields = readTakeProfitRebalanceStateFromStrategy(strategyWithAddress.strategy.rebalanceRaw);
+      rebalanceFields = rebalanceFieldsDictToInfo(
+        readTakeProfitRebalanceStateFromStrategy(strategyWithAddress.strategy.rebalanceRaw)
+      );
     } else if (rebalanceKind.kind === PeriodicRebalance.kind) {
-      rebalanceFields = readPeriodicRebalanceRebalanceStateFromStrategy(strategyWithAddress.strategy.rebalanceRaw);
+      rebalanceFields = rebalanceFieldsDictToInfo(
+        readPeriodicRebalanceRebalanceStateFromStrategy(strategyWithAddress.strategy.rebalanceRaw)
+      );
     } else if (rebalanceKind.kind === Expander.kind) {
-      rebalanceFields = readRawExpanderRebalanceStateFromStrategy(strategyWithAddress.strategy.rebalanceRaw);
+      rebalanceFields = rebalanceFieldsDictToInfo(
+        readRawExpanderRebalanceStateFromStrategy(strategyWithAddress.strategy.rebalanceRaw)
+      );
     } else {
       throw new Error(`Rebalance type ${rebalanceKind} is not supported`);
     }
-    return rebalanceFieldsDictToInfo(rebalanceFields);
+    return rebalanceFields;
   }
 
   /**
