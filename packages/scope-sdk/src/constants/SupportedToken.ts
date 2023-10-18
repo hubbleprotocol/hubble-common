@@ -116,5 +116,7 @@ export const SupportedTokens = [
   'kSOLUSDCOrca',
   'kJITOSOLUSDCOrca',
   'LST',
+  'kSOLJITOSOLRaydium',
+  'kSOLMSOLRaydium',
 ] as const;
 export type SupportedToken = (typeof SupportedTokens)[number];
