@@ -112,6 +112,7 @@ import {
   isVaultInitialized,
   WithdrawAllAndCloseIxns,
   numberToReferencePriceType,
+  stripTwapZeros,
 } from './utils';
 import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import {
@@ -198,6 +199,7 @@ import {
 } from './constants/DefaultStrategyConfig';
 import { DEVNET_GLOBAL_LOOKUP_TABLE, MAINNET_GLOBAL_LOOKUP_TABLE } from './constants/pubkeys';
 import {
+  AutodriftMethod,
   DefaultDex,
   DefaultFeeTierOrca,
   DefaultMintTokenA,
@@ -229,6 +231,7 @@ import {
   Drift,
   TakeProfit,
   PeriodicRebalance,
+  Autodrift,
 } from './kamino-client/types/RebalanceType';
 import {
   checkIfAccountExists,
@@ -299,6 +302,15 @@ import {
 import { RebalanceTypeLabelName } from './rebalance_methods/consts';
 import WhirlpoolWithAddress from './models/WhirlpoolWithAddress';
 import RaydiumPoollWithAddress from './models/RaydiumPoolWithAddress';
+import {
+  deserializeAutodriftRebalanceWithStateOverride,
+  deserializeAutodriftRebalanceFromOnchainParams,
+  readAutodriftRebalanceParamsFromStrategy,
+  readRawAutodriftRebalanceStateFromStrategy,
+  getAutodriftRebalanceFieldInfos,
+  getDefaultAutodriftRebalanceFieldInfos,
+  getPositionRangeFromAutodriftParams,
+} from './rebalance_methods/autodriftRebalance';
 export const KAMINO_IDL = KaminoIdl;
 
 export class Kamino {
@@ -406,6 +418,7 @@ export class Kamino {
       TakeProfitMethod,
       PeriodicRebalanceMethod,
       ExpanderMethod,
+      AutodriftMethod,
     ];
   };
 
@@ -468,6 +481,8 @@ export class Kamino {
         return this.getFieldsForPeriodicRebalanceMethod(dex, fieldOverrides, tokenAMint, tokenBMint, poolPrice);
       case ExpanderMethod:
         return this.getFieldsForExpanderRebalanceMethod(dex, fieldOverrides, tokenAMint, tokenBMint, poolPrice);
+      case AutodriftMethod:
+        return this.getFieldsForAutodriftRebalanceMethod(dex, fieldOverrides, tokenAMint, tokenBMint, poolPrice);
       default:
         throw new Error(`Rebalance method ${rebalanceMethod} is not supported`);
     }
@@ -771,6 +786,80 @@ export class Kamino {
     );
   };
 
+  getFieldsForAutodriftRebalanceMethod = async (
+    dex: Dex,
+    fieldOverrides: RebalanceFieldInfo[],
+    tokenAMint: PublicKey,
+    tokenBMint: PublicKey,
+    poolPrice?: Decimal
+  ): Promise<RebalanceFieldInfo[]> => {
+    const tokenADecimals = await getMintDecimals(this._connection, tokenAMint);
+    const tokenBDecimals = await getMintDecimals(this._connection, tokenBMint);
+    const price = poolPrice ? poolPrice : new Decimal(await this.getPriceForPair(dex, tokenAMint, tokenBMint));
+
+    // TODO: maybe we will need to get real staking price instead of pool price for this to be accurate.
+    const defaultFields = getDefaultAutodriftRebalanceFieldInfos(dex, price, tokenADecimals, tokenBDecimals);
+
+    let lastMidTick = defaultFields.find((x) => x.label == 'lastMidTick')!.value;
+
+    let initDriftTicksPerEpoch = defaultFields.find((x) => x.label == 'initDriftTicksPerEpoch')!.value;
+    let initDriftTicksPerEpochInput = fieldOverrides.find((x) => x.label == 'initDriftTicksPerEpoch');
+    if (initDriftTicksPerEpochInput) {
+      initDriftTicksPerEpoch = initDriftTicksPerEpochInput.value;
+    }
+
+    let ticksBelowMid = defaultFields.find((x) => x.label == 'ticksBelowMid')!.value;
+    let ticksBelowMidInput = fieldOverrides.find((x) => x.label == 'ticksBelowMid');
+    if (ticksBelowMidInput) {
+      ticksBelowMid = ticksBelowMidInput.value;
+    }
+
+    let ticksAboveMid = defaultFields.find((x) => x.label == 'ticksAboveMid')!.value;
+    let ticksAboveMidInput = fieldOverrides.find((x) => x.label == 'ticksAboveMid');
+    if (ticksAboveMidInput) {
+      ticksAboveMid = ticksAboveMidInput.value;
+    }
+
+    let frontrunMultiplierBps = defaultFields.find((x) => x.label == 'frontrunMultiplierBps')!.value;
+    let frontrunMultiplierBpsInput = fieldOverrides.find((x) => x.label == 'frontrunMultiplierBps');
+    if (frontrunMultiplierBpsInput) {
+      frontrunMultiplierBps = frontrunMultiplierBpsInput.value;
+    }
+    let stakingRateASource = defaultFields.find((x) => x.label == 'stakingRateASource')!.value;
+    let stakingRateASourceInput = fieldOverrides.find((x) => x.label == 'stakingRateASource');
+    if (stakingRateASourceInput) {
+      stakingRateASource = stakingRateASourceInput.value;
+    }
+
+    let stakingRateBSource = defaultFields.find((x) => x.label == 'stakingRateBSource')!.value;
+    let stakingRateBSourceInput = fieldOverrides.find((x) => x.label == 'stakingRateBSource');
+    if (stakingRateBSourceInput) {
+      stakingRateBSource = stakingRateBSourceInput.value;
+    }
+
+    let initialDriftDirection = defaultFields.find((x) => x.label == 'initialDriftDirection')!.value;
+    let initialDriftDirectionInput = fieldOverrides.find((x) => x.label == 'initialDriftDirection');
+    if (initialDriftDirectionInput) {
+      initialDriftDirection = initialDriftDirectionInput.value;
+    }
+
+    let fieldInfos = getAutodriftRebalanceFieldInfos(
+      dex,
+      tokenADecimals,
+      tokenBDecimals,
+      new Decimal(lastMidTick),
+      new Decimal(initDriftTicksPerEpoch),
+      new Decimal(ticksBelowMid),
+      new Decimal(ticksAboveMid),
+      new Decimal(frontrunMultiplierBps),
+      new Decimal(stakingRateASource),
+      new Decimal(stakingRateBSource),
+      new Decimal(initialDriftDirection)
+    );
+
+    return fieldInfos;
+  };
+
   getPriceForPair = async (dex: Dex, poolTokenA: PublicKey, poolTokenB: PublicKey): Promise<number> => {
     if (dex == 'ORCA') {
       let pools = await this.getOrcaPoolsForTokens(poolTokenA, poolTokenB);
@@ -795,7 +884,9 @@ export class Kamino {
     poolTokenB: PublicKey,
     rebalanceMethod: RebalanceMethod
   ): Promise<RebalanceFieldInfo[]> => {
-    let price = new Decimal(await this.getPriceForPair(dex, poolTokenA, poolTokenB));
+    const price = new Decimal(await this.getPriceForPair(dex, poolTokenA, poolTokenB));
+    const tokenADecimals = await getMintDecimals(this._connection, poolTokenA);
+    const tokenBDecimals = await getMintDecimals(this._connection, poolTokenB);
 
     switch (rebalanceMethod) {
       case ManualRebalanceMethod:
@@ -805,8 +896,6 @@ export class Kamino {
       case PricePercentageWithResetRangeRebalanceMethod:
         return getDefaultPricePercentageWithResetRebalanceFieldInfos(price);
       case DriftRebalanceMethod:
-        let tokenADecimals = await getMintDecimals(this._connection, poolTokenA);
-        let tokenBDecimals = await getMintDecimals(this._connection, poolTokenB);
         return getDefaultDriftRebalanceFieldInfos(dex, price, tokenADecimals, tokenBDecimals);
       case TakeProfitMethod:
         return getDefaultTakeProfitRebalanceFieldsInfos(price);
@@ -814,6 +903,8 @@ export class Kamino {
         return getDefaultPeriodicRebalanceFieldInfos(price);
       case ExpanderMethod:
         return getDefaultExpanderRebalanceFieldInfos(price);
+      case AutodriftMethod:
+        return getDefaultAutodriftRebalanceFieldInfos(dex, price, tokenADecimals, tokenBDecimals);
       default:
         throw new Error(`Rebalance method ${rebalanceMethod} is not supported`);
     }
@@ -1631,8 +1722,6 @@ export class Kamino {
   ): Promise<StrategyPrices> => {
     const tokenA = collateralInfos[strategy.tokenACollateralId.toNumber()];
     const tokenB = collateralInfos[strategy.tokenBCollateralId.toNumber()];
-    const tokenATwap = tokenA.scopePriceIdTwap.toNumber();
-    const tokenBTwap = tokenB.scopePriceIdTwap.toNumber();
     const rewardToken0 = collateralInfos[strategy.reward0CollateralId.toNumber()];
     const rewardToken1 = collateralInfos[strategy.reward1CollateralId.toNumber()];
     const rewardToken2 = collateralInfos[strategy.reward2CollateralId.toNumber()];
@@ -1645,8 +1734,8 @@ export class Kamino {
     }
     const aPrice = await this._scope.getPriceFromChain(tokenA.scopePriceChain, prices);
     const bPrice = await this._scope.getPriceFromChain(tokenB.scopePriceChain, prices);
-    const aTwapPrice = tokenATwap !== 0 ? await this._scope.getPriceFromChain([tokenATwap], prices) : null;
-    const bTwapPrice = tokenBTwap !== 0 ? await this._scope.getPriceFromChain([tokenBTwap], prices) : null;
+    const aTwapPrice = await this._scope.getPriceFromChain(stripTwapZeros(tokenA.scopeTwapPriceChain), prices);
+    const bTwapPrice = await this._scope.getPriceFromChain(stripTwapZeros(tokenB.scopeTwapPriceChain), prices);
 
     const reward0Price =
       strategy.reward0Decimals.toNumber() !== 0
@@ -4124,6 +4213,8 @@ export class Kamino {
     rebalanceKind: RebalanceTypeKind,
     rebalanceParams: Decimal[]
   ): Promise<PositionRange> {
+    const tokenADecimals = await getMintDecimals(this._connection, tokenAMint);
+    const tokenBDecimals = await getMintDecimals(this._connection, tokenBMint);
     switch (rebalanceKind.kind) {
       case RebalanceType.Manual.kind:
         return { lowerPrice: rebalanceParams[0], upperPrice: rebalanceParams[1] };
@@ -4137,8 +4228,6 @@ export class Kamino {
         return getPositionRangeFromPricePercentageWithResetParams(price, rebalanceParams[0], rebalanceParams[1]);
 
       case RebalanceType.Drift.kind:
-        let tokenADecimals = await getMintDecimals(this._connection, tokenAMint);
-        let tokenBDecimals = await getMintDecimals(this._connection, tokenBMint);
         return getPositionRangeFromDriftParams(
           dex,
           tokenADecimals,
@@ -4153,6 +4242,18 @@ export class Kamino {
 
       case RebalanceType.Expander.kind:
         return getPositionRangeFromExpanderParams(price, rebalanceParams[0], rebalanceParams[1]);
+
+      case RebalanceType.Autodrift.kind:
+        const currentTickIndex = priceToTickIndex(price, tokenADecimals, tokenBDecimals);
+        const startMidTick = new Decimal(currentTickIndex);
+        return getPositionRangeFromAutodriftParams(
+          dex,
+          tokenADecimals,
+          tokenBDecimals,
+          startMidTick,
+          rebalanceParams[1],
+          rebalanceParams[2]
+        );
 
       default:
         throw new Error(`Rebalance type ${rebalanceKind} is not supported`);
@@ -4231,6 +4332,10 @@ export class Kamino {
       );
     } else if (rebalanceKind.kind === Expander.kind) {
       rebalanceFields = readExpanderRebalanceParamsFromStrategy(strategyWithAddress.strategy.rebalanceRaw);
+    } else if (rebalanceKind.kind === Autodrift.kind) {
+      rebalanceFields = rebalanceFieldsDictToInfo(
+        readAutodriftRebalanceParamsFromStrategy(strategyWithAddress.strategy.rebalanceRaw)
+      );
     } else {
       throw new Error(`Rebalance type ${rebalanceKind} is not supported`);
     }
@@ -4268,6 +4373,10 @@ export class Kamino {
     } else if (rebalanceKind.kind === Expander.kind) {
       rebalanceFields = rebalanceFieldsDictToInfo(
         readRawExpanderRebalanceStateFromStrategy(strategyWithAddress.strategy.rebalanceRaw)
+      );
+    } else if (rebalanceKind.kind === Autodrift.kind) {
+      rebalanceFields = rebalanceFieldsDictToInfo(
+        readRawAutodriftRebalanceStateFromStrategy(strategyWithAddress.strategy.rebalanceRaw)
       );
     } else {
       throw new Error(`Rebalance type ${rebalanceKind} is not supported`);
@@ -4318,6 +4427,16 @@ export class Kamino {
     } else if (rebalanceKind.kind === Expander.kind) {
       let price = await this.getCurrentPrice(strategyWithAddress);
       return readExpanderRebalanceFieldInfosFromStrategy(price, strategyWithAddress.strategy.rebalanceRaw);
+    } else if (rebalanceKind.kind === Autodrift.kind) {
+      let dex = numberToDex(strategyWithAddress.strategy.strategyDex.toNumber());
+      let tokenADecimals = await getMintDecimals(this._connection, strategyWithAddress.strategy.tokenAMint);
+      let tokenBDecimals = await getMintDecimals(this._connection, strategyWithAddress.strategy.tokenBMint);
+      return deserializeAutodriftRebalanceFromOnchainParams(
+        dex,
+        tokenADecimals,
+        tokenBDecimals,
+        strategyWithAddress.strategy.rebalanceRaw
+      );
     } else {
       throw new Error(`Rebalance type ${rebalanceKind} is not supported`);
     }
@@ -4382,6 +4501,16 @@ export class Kamino {
         tokenADecimals,
         tokenBDecimals,
         price,
+        strategyWithAddress.strategy.rebalanceRaw
+      );
+    } else if (rebalanceKind.kind === Autodrift.kind) {
+      let dex = numberToDex(strategyWithAddress.strategy.strategyDex.toNumber());
+      let tokenADecimals = await getMintDecimals(this._connection, strategyWithAddress.strategy.tokenAMint);
+      let tokenBDecimals = await getMintDecimals(this._connection, strategyWithAddress.strategy.tokenBMint);
+      return deserializeAutodriftRebalanceWithStateOverride(
+        dex,
+        tokenADecimals,
+        tokenBDecimals,
         strategyWithAddress.strategy.rebalanceRaw
       );
     } else {
