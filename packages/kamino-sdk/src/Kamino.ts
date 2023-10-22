@@ -1734,8 +1734,10 @@ export class Kamino {
     }
     const aPrice = await this._scope.getPriceFromChain(tokenA.scopePriceChain, prices);
     const bPrice = await this._scope.getPriceFromChain(tokenB.scopePriceChain, prices);
-    const aTwapPrice = await this._scope.getPriceFromChain(stripTwapZeros(tokenA.scopeTwapPriceChain), prices);
-    const bTwapPrice = await this._scope.getPriceFromChain(stripTwapZeros(tokenB.scopeTwapPriceChain), prices);
+    const tokenATwap = stripTwapZeros(tokenA.scopeTwapPriceChain);
+    const tokenBTwap = stripTwapZeros(tokenB.scopeTwapPriceChain);
+    const aTwapPrice = tokenATwap.length > 0 ? await this._scope.getPriceFromChain(tokenATwap, prices) : null;
+    const bTwapPrice = tokenBTwap.length > 0 ? await this._scope.getPriceFromChain(tokenBTwap, prices) : null;
 
     const reward0Price =
       strategy.reward0Decimals.toNumber() !== 0
