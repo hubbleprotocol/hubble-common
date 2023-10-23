@@ -93,7 +93,7 @@ export const SupportedTokens = [
   'STEPTwap',
   'FORGE',
   'FORGETwap',
-  'tBTC',
+  'TBTC',
   'COCO',
   'COCOTwap',
   'STYLE',
