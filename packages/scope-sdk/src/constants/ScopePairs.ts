@@ -94,7 +94,7 @@ export const ScopePairs = [
   'STEPTwap/USD',
   'FORGE/USD',
   'FORGETwap/USD',
-  'tBTC/USD',
+  'TBTC/USD',
   'COCO/USD',
   'COCOTwap/USD',
   'STYLE/USD',
