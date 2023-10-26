@@ -4219,8 +4219,13 @@
             "type": "u64"
           },
           {
-            "name": "scopePriceIdTwap",
-            "type": "u64"
+            "name": "scopeTwapPriceChain",
+            "type": {
+              "array": [
+                "u16",
+                4
+              ]
+            }
           },
           {
             "name": "scopePriceChain",
@@ -4266,11 +4271,20 @@
             }
           },
           {
+            "name": "scopeStakingRateChain",
+            "type": {
+              "array": [
+                "u16",
+                4
+              ]
+            }
+          },
+          {
             "name": "padding",
             "type": {
               "array": [
                 "u64",
-                9
+                8
               ]
             }
           }
@@ -4800,6 +4814,9 @@
           },
           {
             "name": "UpdateDisabled"
+          },
+          {
+            "name": "UpdateStakingRateChain"
           }
         ]
       }
@@ -4814,6 +4831,34 @@
           },
           {
             "name": "Unbalanced"
+          }
+        ]
+      }
+    },
+    {
+      "name": "RebalanceAutodriftStep",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Uninitialized"
+          },
+          {
+            "name": "Autodrifting"
+          }
+        ]
+      }
+    },
+    {
+      "name": "StakingRateSource",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Constant"
+          },
+          {
+            "name": "Scope"
           }
         ]
       }
@@ -4944,6 +4989,9 @@
           },
           {
             "name": "Expander"
+          },
+          {
+            "name": "Autodrift"
           }
         ]
       }
@@ -5796,8 +5844,8 @@
     },
     {
       "code": 6104,
-      "name": "InvalidTwapId",
-      "msg": "Invalid Twap Value"
+      "name": "InvalidScopeTWAPChain",
+      "msg": "Invalid Scope TWAP Chain"
     },
     {
       "code": 6105,
@@ -5923,6 +5971,31 @@
       "code": 6129,
       "name": "SharesNotZero",
       "msg": "There must be no shares issued when closing a strategy"
+    },
+    {
+      "code": 6130,
+      "name": "InvalidScopeStakingRateChain",
+      "msg": "Invalid Scope staking rate Chain"
+    },
+    {
+      "code": 6131,
+      "name": "StakingRateNotValid",
+      "msg": "Staking rate (provided by Scope) is not valid"
+    },
+    {
+      "code": 6132,
+      "name": "DecimalToU128ConversionFailed",
+      "msg": "Decimal to u128 conversion failed"
+    },
+    {
+      "code": 6133,
+      "name": "DecimalNegativeSqrtRoot",
+      "msg": "Decimal sqrt on negative number"
+    },
+    {
+      "code": 6134,
+      "name": "DriftingOppositeDirection",
+      "msg": "Drifting strategy is moving in the opposite direction"
     }
   ]
 }
