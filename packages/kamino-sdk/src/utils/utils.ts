@@ -144,6 +144,8 @@ export function numberToRebalanceType(rebalance_type: number): RebalanceTypeKind
     return new RebalanceType.PeriodicRebalance();
   } else if (rebalance_type == 6) {
     return new RebalanceType.Expander();
+  } else if (rebalance_type == 7) {
+    return new RebalanceType.Autodrift();
   } else {
     throw new Error(`Invalid rebalance type ${rebalance_type.toString()}`);
   }
@@ -226,4 +228,9 @@ export function sqrtPriceToPrice(sqrtPrice: BN, dexNo: number, decimalsA: number
     return SqrtPriceMath.sqrtPriceX64ToPrice(sqrtPrice, decimalsA, decimalsB);
   }
   throw new Error(`Got invalid dex number ${dex}`);
+}
+
+// Zero is not a valid TWAP component as that indicates the SOL price
+export function stripTwapZeros(chain: number[]): number[] {
+  return chain.filter((component) => component > 0);
 }
