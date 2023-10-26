@@ -12,6 +12,8 @@ import * as ReferencePriceType from "./ReferencePriceType"
 import * as LiquidityCalculationMode from "./LiquidityCalculationMode"
 import * as UpdateCollateralInfoMode from "./UpdateCollateralInfoMode"
 import * as BalanceStatus from "./BalanceStatus"
+import * as RebalanceAutodriftStep from "./RebalanceAutodriftStep"
+import * as StakingRateSource from "./StakingRateSource"
 import * as DriftDirection from "./DriftDirection"
 import * as RebalanceDriftStep from "./RebalanceDriftStep"
 import * as ExpanderStep from "./ExpanderStep"
@@ -304,6 +306,7 @@ export type UpdateCollateralInfoModeKind =
   | UpdateCollateralInfoMode.UpdatePriceMaxAge
   | UpdateCollateralInfoMode.UpdateTwapMaxAge
   | UpdateCollateralInfoMode.UpdateDisabled
+  | UpdateCollateralInfoMode.UpdateStakingRateChain
 export type UpdateCollateralInfoModeJSON =
   | UpdateCollateralInfoMode.CollateralIdJSON
   | UpdateCollateralInfoMode.LowerHeuristicJSON
@@ -316,6 +319,7 @@ export type UpdateCollateralInfoModeJSON =
   | UpdateCollateralInfoMode.UpdatePriceMaxAgeJSON
   | UpdateCollateralInfoMode.UpdateTwapMaxAgeJSON
   | UpdateCollateralInfoMode.UpdateDisabledJSON
+  | UpdateCollateralInfoMode.UpdateStakingRateChainJSON
 
 export { BalanceStatus }
 
@@ -325,6 +329,24 @@ export type BalanceStatusKind =
 export type BalanceStatusJSON =
   | BalanceStatus.BalancedJSON
   | BalanceStatus.UnbalancedJSON
+
+export { RebalanceAutodriftStep }
+
+export type RebalanceAutodriftStepKind =
+  | RebalanceAutodriftStep.Uninitialized
+  | RebalanceAutodriftStep.Autodrifting
+export type RebalanceAutodriftStepJSON =
+  | RebalanceAutodriftStep.UninitializedJSON
+  | RebalanceAutodriftStep.AutodriftingJSON
+
+export { StakingRateSource }
+
+export type StakingRateSourceKind =
+  | StakingRateSource.Constant
+  | StakingRateSource.Scope
+export type StakingRateSourceJSON =
+  | StakingRateSource.ConstantJSON
+  | StakingRateSource.ScopeJSON
 
 export { DriftDirection }
 
@@ -394,6 +416,7 @@ export type RebalanceTypeKind =
   | RebalanceType.TakeProfit
   | RebalanceType.PeriodicRebalance
   | RebalanceType.Expander
+  | RebalanceType.Autodrift
 export type RebalanceTypeJSON =
   | RebalanceType.ManualJSON
   | RebalanceType.PricePercentageJSON
@@ -402,6 +425,7 @@ export type RebalanceTypeJSON =
   | RebalanceType.TakeProfitJSON
   | RebalanceType.PeriodicRebalanceJSON
   | RebalanceType.ExpanderJSON
+  | RebalanceType.AutodriftJSON
 
 export { CollateralTestToken }
 

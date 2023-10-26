@@ -164,6 +164,29 @@ export class Expander {
   }
 }
 
+export interface AutodriftJSON {
+  kind: "Autodrift"
+}
+
+export class Autodrift {
+  static readonly discriminator = 7
+  static readonly kind = "Autodrift"
+  readonly discriminator = 7
+  readonly kind = "Autodrift"
+
+  toJSON(): AutodriftJSON {
+    return {
+      kind: "Autodrift",
+    }
+  }
+
+  toEncodable() {
+    return {
+      Autodrift: {},
+    }
+  }
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function fromDecoded(obj: any): types.RebalanceTypeKind {
   if (typeof obj !== "object") {
@@ -190,6 +213,9 @@ export function fromDecoded(obj: any): types.RebalanceTypeKind {
   }
   if ("Expander" in obj) {
     return new Expander()
+  }
+  if ("Autodrift" in obj) {
+    return new Autodrift()
   }
 
   throw new Error("Invalid enum object")
@@ -220,6 +246,9 @@ export function fromJSON(
     case "Expander": {
       return new Expander()
     }
+    case "Autodrift": {
+      return new Autodrift()
+    }
   }
 }
 
@@ -232,6 +261,7 @@ export function layout(property?: string) {
     borsh.struct([], "TakeProfit"),
     borsh.struct([], "PeriodicRebalance"),
     borsh.struct([], "Expander"),
+    borsh.struct([], "Autodrift"),
   ])
   if (property !== undefined) {
     return ret.replicate(property)
