@@ -2249,7 +2249,6 @@ export class Kamino {
       a: userTokenBalances.a,
       b: userTokenBalances.b,
     };
-    console.log("userTokenBalancesWithoutSolBalanace")
 
     // if any of the tokens is SOL, we need to read how much SOL the user has, not how much wSOL which is what getInitialUserTokenBalances returns
     if (isSOLMint(strategyWithAddress.strategy.tokenAMint)) {
