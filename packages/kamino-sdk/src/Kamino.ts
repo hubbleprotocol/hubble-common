@@ -2249,6 +2249,7 @@ export class Kamino {
       a: userTokenBalances.a,
       b: userTokenBalances.b,
     };
+    console.log("userTokenBalancesWithoutSolBalanace")
 
     // if any of the tokens is SOL, we need to read how much SOL the user has, not how much wSOL which is what getInitialUserTokenBalances returns
     if (isSOLMint(strategyWithAddress.strategy.tokenAMint)) {
@@ -2887,8 +2888,12 @@ export class Kamino {
       expectedBBalance = await this.getTokenAccountBalanceOrZero(tokenBAta);
     }
 
-    let expectedALamports = collToLamportsDecimal(expectedABalance, strategyState.tokenAMintDecimals.toNumber());
-    let expectedBLamports = collToLamportsDecimal(expectedBBalance, strategyState.tokenBMintDecimals.toNumber());
+    let expectedALamportsDecimal = collToLamportsDecimal(expectedABalance, strategyState.tokenAMintDecimals.toNumber());
+    let expectedBLamportsDecimal = collToLamportsDecimal(expectedBBalance, strategyState.tokenBMintDecimals.toNumber());
+    console.log('expectedALamportsDecimal ', expectedALamportsDecimal.toString());
+    console.log('expectedBLamportsDecimal ', expectedBLamportsDecimal.toString());
+    let expectedALamports = expectedALamportsDecimal.floor();
+    let expectedBLamports = expectedBLamportsDecimal.floor();
 
     const args: CheckExpectedVaultsBalancesArgs = {
       tokenAAtaBalance: new BN(expectedALamports.toString()),
