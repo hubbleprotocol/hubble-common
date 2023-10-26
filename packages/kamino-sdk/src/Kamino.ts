@@ -112,6 +112,7 @@ import {
   isVaultInitialized,
   WithdrawAllAndCloseIxns,
   numberToReferencePriceType,
+  stripTwapZeros,
 } from './utils';
 import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import {
@@ -1631,8 +1632,6 @@ export class Kamino {
   ): Promise<StrategyPrices> => {
     const tokenA = collateralInfos[strategy.tokenACollateralId.toNumber()];
     const tokenB = collateralInfos[strategy.tokenBCollateralId.toNumber()];
-    const tokenATwap = tokenA.scopePriceIdTwap.toNumber();
-    const tokenBTwap = tokenB.scopePriceIdTwap.toNumber();
     const rewardToken0 = collateralInfos[strategy.reward0CollateralId.toNumber()];
     const rewardToken1 = collateralInfos[strategy.reward1CollateralId.toNumber()];
     const rewardToken2 = collateralInfos[strategy.reward2CollateralId.toNumber()];
@@ -1645,8 +1644,10 @@ export class Kamino {
     }
     const aPrice = await this._scope.getPriceFromChain(tokenA.scopePriceChain, prices);
     const bPrice = await this._scope.getPriceFromChain(tokenB.scopePriceChain, prices);
-    const aTwapPrice = tokenATwap !== 0 ? await this._scope.getPriceFromChain([tokenATwap], prices) : null;
-    const bTwapPrice = tokenBTwap !== 0 ? await this._scope.getPriceFromChain([tokenBTwap], prices) : null;
+    const tokenATwap = stripTwapZeros(tokenA.scopeTwapPriceChain);
+    const tokenBTwap = stripTwapZeros(tokenB.scopeTwapPriceChain);
+    const aTwapPrice = tokenATwap.length > 0 ? await this._scope.getPriceFromChain(tokenATwap, prices) : null;
+    const bTwapPrice = tokenBTwap.length > 0 ? await this._scope.getPriceFromChain(tokenBTwap, prices) : null;
 
     const reward0Price =
       strategy.reward0Decimals.toNumber() !== 0
