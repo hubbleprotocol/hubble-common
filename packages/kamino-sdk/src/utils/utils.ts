@@ -201,8 +201,8 @@ export function readPriceOption(buffer: Buffer, offset: number): [number, Decima
   if (buffer.readUint8(offset) == 0) {
     return [offset + 1, new Decimal(0)];
   }
-  let value = buffer.readBigUint64LE(offset);
-  let exp = buffer.readBigUint64LE(offset + 8);
+  let value = buffer.readBigUint64LE(offset + 1);
+  let exp = buffer.readBigUint64LE(offset + 9);
   return [offset + 17, new Decimal(value.toString()).div(new Decimal(10).pow(exp.toString()))];
 }
 
