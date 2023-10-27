@@ -407,6 +407,16 @@ export function getCollInfoEncodedName(token: string): Uint8Array {
   return maxArray;
 }
 
+export function getCollInfoEncodedChainFromIndexes(indexes: number[]): Uint8Array {
+  const u16MAX = 65535;
+  let chain = [u16MAX, u16MAX, u16MAX, u16MAX];
+  for (let i = 0; i < indexes.length; i++) {
+    chain[i] = indexes[i];
+  }
+  let encodedChain = u16ArrayToU8Array(Uint16Array.from(chain));
+  return encodedChain;
+}
+
 export async function updateCollateralInfo(
   connection: Connection,
   signer: Keypair,
