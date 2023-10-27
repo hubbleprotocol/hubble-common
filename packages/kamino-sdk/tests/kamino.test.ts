@@ -2163,7 +2163,7 @@ export async function updateCollateralInfoForToken(
     globalConfig,
     collTokenIndex,
     new UpdateCollateralInfoMode.UpdateScopeChain(),
-    scopeChainId
+    getCollInfoEncodedChainFromIndexes([Number.parseInt(scopeChainId.toString())])
   );
 
   // Set Twap Max Age
