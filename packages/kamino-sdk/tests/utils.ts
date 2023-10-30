@@ -298,7 +298,7 @@ export async function setupAta(
   tokenMintAddress: PublicKey,
   user: Keypair
 ): Promise<PublicKey> {
-  const ata = await getAssociatedTokenAddress(tokenMintAddress, user.publicKey);
+  const ata = getAssociatedTokenAddress(tokenMintAddress, user.publicKey);
   if (!(await checkIfAccountExists(connection, ata))) {
     const ix = await createAtaInstruction(user.publicKey, tokenMintAddress, ata);
     const tx = new Transaction().add(ix);
@@ -592,7 +592,7 @@ export const balance = async (
     return balance;
   }
 
-  const ata = await getAssociatedTokenAddress(mint, user.publicKey);
+  const ata = getAssociatedTokenAddress(mint, user.publicKey);
   if (await checkIfAccountExists(connection, ata)) {
     const balance = await connection.getTokenAccountBalance(ata);
     return balance.value.uiAmount;

@@ -32,7 +32,7 @@ export async function getAssociatedTokenAddressAndData(
   mint: PublicKey,
   owner: PublicKey
 ): Promise<[PublicKey, AccountInfo<Buffer> | null]> {
-  const ata = await getAssociatedTokenAddress(mint, owner);
+  const ata = getAssociatedTokenAddress(mint, owner);
   const data = await connection.getAccountInfo(ata);
   return [ata, data];
 }
