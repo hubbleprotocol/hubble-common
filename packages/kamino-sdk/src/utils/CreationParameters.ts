@@ -1,5 +1,6 @@
 import { PublicKey } from '@solana/web3.js';
 import {
+  Autodrift,
   Drift,
   Expander,
   Manual,
@@ -88,4 +89,11 @@ export const ExpanderMethod: RebalanceMethod = {
   enabled: false,
   // todo: ask for a description
   description: 'Optimize your portfolio for maximum returns with Kamino’s Expander strategy.',
+};
+export const AutodriftMethod: RebalanceMethod = {
+  label: 'Autodrift',
+  value: Autodrift.discriminator,
+  enabled: false,
+  // todo: ask for a description
+  description: 'Optimize your portfolio for maximum returns with Kamino’s Drift strategy.',
 };

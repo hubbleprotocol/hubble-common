@@ -115,6 +115,14 @@ export function buildStrategyRebalanceParams(
     buffer.writeUInt16LE(params[4].toNumber(), 8);
     buffer.writeUInt16LE(params[5].toNumber(), 10);
     buffer.writeUInt8(params[6].toNumber(), 12);
+  } else if (rebalance_type.kind == RebalanceType.Autodrift.kind) {
+    buffer.writeUInt32LE(params[0].toNumber(), 0);
+    buffer.writeInt32LE(params[1].toNumber(), 4);
+    buffer.writeInt32LE(params[2].toNumber(), 8);
+    buffer.writeUInt16LE(params[3].toNumber(), 12);
+    buffer.writeUInt8(params[4].toNumber(), 14);
+    buffer.writeUInt8(params[5].toNumber(), 15);
+    buffer.writeUInt8(params[6].toNumber(), 16);
   } else {
     throw 'Rebalance type not valid ' + rebalance_type;
   }
@@ -187,6 +195,15 @@ export function lamportsToNumberDecimal(amount: Decimal.Value, decimals: number)
 
 export function readBigUint128LE(buffer: Buffer, offset: number): bigint {
   return buffer.readBigUInt64LE(offset) + (buffer.readBigUInt64LE(offset + 8) << BigInt(64));
+}
+
+export function readPriceOption(buffer: Buffer, offset: number): [number, Decimal] {
+  if (buffer.readUint8(offset) == 0) {
+    return [offset + 1, new Decimal(0)];
+  }
+  let value = buffer.readBigUint64LE(offset + 1);
+  let exp = buffer.readBigUint64LE(offset + 9);
+  return [offset + 17, new Decimal(value.toString()).div(new Decimal(10).pow(exp.toString()))];
 }
 
 function writeBNUint64LE(buffer: Buffer, value: BN, offset: number) {

@@ -44,6 +44,7 @@ import {
   solAirdrop,
   getLocalSwapIxs,
   setupAta,
+  getCollInfoEncodedChainFromIndexes,
 } from './utils';
 import {
   AllowDepositWithoutInvest,
@@ -141,7 +142,7 @@ describe('Kamino SDK Tests', () => {
       USDH_SCOPE_CHAIN_ID,
       globalConfig,
       'USDH',
-      BigInt(0),
+      BigInt(1),
       tokenAMint
     );
 
@@ -153,7 +154,7 @@ describe('Kamino SDK Tests', () => {
       USDC_SCOPE_CHAIN_ID,
       globalConfig,
       'USDC',
-      BigInt(0),
+      BigInt(1),
       tokenBMint
     );
 
@@ -2152,7 +2153,7 @@ export async function updateCollateralInfoForToken(
     globalConfig,
     collTokenIndex,
     new UpdateCollateralInfoMode.UpdateScopeTwap(),
-    collInfoTwapId
+    getCollInfoEncodedChainFromIndexes([Number.parseInt(collInfoTwapId.toString())])
   );
 
   // Set Scope Chain
@@ -2162,7 +2163,7 @@ export async function updateCollateralInfoForToken(
     globalConfig,
     collTokenIndex,
     new UpdateCollateralInfoMode.UpdateScopeChain(),
-    scopeChainId
+    getCollInfoEncodedChainFromIndexes([Number.parseInt(scopeChainId.toString())])
   );
 
   // Set Twap Max Age
