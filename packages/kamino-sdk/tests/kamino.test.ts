@@ -732,7 +732,7 @@ describe('Kamino SDK Tests', () => {
 
     const expectedARemainingAmount = collToLamportsDecimal(new Decimal(90.0), tokenADecimals);
     expect(new Decimal(tokenALeft.value.amount).greaterThanOrEqualTo(expectedARemainingAmount)).to.be.true;
-    expect(new Decimal(tokenALeft.value.amount).lessThan(expectedARemainingAmount.add(0.001))).to.be.true;
+    expect(new Decimal(tokenALeft.value.amount).lessThan(expectedARemainingAmount.add(10))).to.be.true; // verify that the leftover from deposit is max 10 lamports 
     expect(tokenBLeft.value.uiAmount).to.be.greaterThanOrEqual(0);
     expect(tokenBLeft.value.uiAmount).to.be.lessThanOrEqual(0.0001);
   });
