@@ -9,6 +9,7 @@ import {
   VersionedTransaction,
 } from '@solana/web3.js';
 import {
+  collToLamportsDecimal,
   createAddExtraComputeUnitsTransaction,
   DepositAmountsForSwap,
   Dex,
@@ -63,6 +64,7 @@ import { WHIRLPOOL_PROGRAM_ID } from '../src/whirpools-client/programId';
 import * as ed25519 from 'tweetnacl-ts';
 import { Provider } from '@project-serum/anchor';
 import { createWsolAtaIfMissing } from '../src/utils/transactions';
+import { getMintDecimals } from '@project-serum/serum/lib/market';
 
 export const LOCAL_RAYDIUM_PROGRAM_ID = new PublicKey('devi51mZmdwUJGU9hjN27vEz64Gps7uUefqxg27EAtH');
 export const USDH_SCOPE_CHAIN_ID = BigInt(12);
@@ -664,7 +666,8 @@ describe('Kamino SDK Tests', () => {
       usdhAirdropAmount
     );
 
-    let usdcDeposit = new Decimal(10.0);
+    let tokenADecimals = await getMintDecimals(connection, strategyState.tokenAMint);
+    let usdcDeposit = new Decimal(10.0); // collToLamportsDecimal(new Decimal(10.0), tokenADecimals);
     let swapper: SwapperIxBuilder = (
       input: DepositAmountsForSwap,
       tokenAMint: PublicKey,
@@ -682,18 +685,24 @@ describe('Kamino SDK Tests', () => {
     );
     console.log('initialTokenBalances', initialTokenBalances);
 
+    kamino.singleSidedDepositTokenA(
+      fixtures.newOrcaStrategy,
+      usdcDeposit,
+      user.owner.publicKey,
+      new Decimal(0),
+      undefined,
+      swapper
+    );
+
     let { instructions: singleSidedDepositIxs, lookupTablesAddresses: _lookupTables } =
       // @ts-ignore
-      await kamino.getSingleSidedDepositIxs(
+      await kamino.singleSidedDepositTokenA(
         fixtures.newOrcaStrategy,
-        usdcAirdropAmount.sub(usdcDeposit),
-        usdhAirdropAmount,
+        usdcDeposit,
         user.owner.publicKey,
         new Decimal(0),
-        swapper,
-        noopProfiledFunctionExecution,
-        initialTokenBalances,
-        new Decimal(1.0) // this doesn't have to be provided on mainnet, as it reads the price from Jup
+        undefined,
+        swapper
       );
 
     const increaseBudgetIx = createAddExtraComputeUnitsTransaction(signer.publicKey, 1_000_000);
@@ -710,9 +719,6 @@ describe('Kamino SDK Tests', () => {
     let myHash = await sendAndConfirmTransaction(kamino.getConnection(), singleSidedDepositTx, undefined, {
       skipPreflight: true,
     });
-    console.log('single sided deposit tx hash', myHash);
-    // const depositTxId = await kamino.getConnection().simulateTransaction(singleSidedDepositTx);
-    // console.log('single sided deposit tx hash', depositTxId);
 
     const strategy = await kamino.getStrategyByAddress(fixtures.newOrcaStrategy);
     expect(strategy).to.not.be.null;
@@ -724,8 +730,9 @@ describe('Kamino SDK Tests', () => {
     // @ts-ignore
     let tokenBLeft = await kamino._connection.getTokenAccountBalance(user.tokenBAta);
 
-    expect(new Decimal(tokenALeft.value.amount).greaterThanOrEqualTo(new Decimal(90.0))).to.be.true;
-    expect(new Decimal(tokenALeft.value.amount).lessThan(new Decimal(90.001))).to.be.true;
+    const expectedARemainingAmount = collToLamportsDecimal(new Decimal(90.0), tokenADecimals);
+    expect(new Decimal(tokenALeft.value.amount).greaterThanOrEqualTo(expectedARemainingAmount)).to.be.true;
+    expect(new Decimal(tokenALeft.value.amount).lessThan(expectedARemainingAmount.add(0.001))).to.be.true;
     expect(tokenBLeft.value.uiAmount).to.be.greaterThanOrEqual(0);
     expect(tokenBLeft.value.uiAmount).to.be.lessThanOrEqual(0.0001);
   });

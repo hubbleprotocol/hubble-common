@@ -550,8 +550,8 @@ async function getSwapAToBWithSlippageBPSIxs(
   // multiply the tokens to swap by -1 to get the positive sign because we represent as negative numbers what we have to sell
   let tokensToBurn = -input.tokenAToSwapAmount.toNumber();
 
-  let tokenAAta = await getAssociatedTokenAddress(tokenAMint, user);
-  let tokenBAta = await getAssociatedTokenAddress(tokenBMint, user);
+  let tokenAAta = getAssociatedTokenAddress(tokenAMint, user);
+  let tokenBAta = getAssociatedTokenAddress(tokenBMint, user);
 
   let bToRecieve = input.tokenBToSwapAmount.mul(new Decimal(FullBPS).sub(slippageBps)).div(FullBPS);
   let mintToIx = getMintToIx(mintAuthority, tokenBMint, tokenBAta, bToRecieve.toNumber());
@@ -571,8 +571,8 @@ async function getSwapBToAWithSlippageBPSIxs(
   // multiply the tokens to swap by -1 to get the positive sign because we represent as negative numbers what we have to sell
   let tokensToBurn = -input.tokenBToSwapAmount.toNumber();
 
-  let tokenAAta = await getAssociatedTokenAddress(tokenAMint, owner);
-  let tokenBAta = await getAssociatedTokenAddress(tokenBMint, owner);
+  let tokenAAta = getAssociatedTokenAddress(tokenAMint, owner);
+  let tokenBAta = getAssociatedTokenAddress(tokenBMint, owner);
 
   let aToRecieve = input.tokenAToSwapAmount.mul(new Decimal(FullBPS).sub(slippage)).div(FullBPS);
   let mintToIx = getMintToIx(mintAuthority, tokenAMint, tokenAAta, aToRecieve.toNumber());
