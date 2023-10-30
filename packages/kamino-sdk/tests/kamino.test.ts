@@ -1,4 +1,5 @@
 import {
+  clusterApiUrl,
   Connection,
   Keypair,
   PublicKey,
@@ -1963,6 +1964,26 @@ describe('Kamino SDK Tests', () => {
     } catch (error) {
       console.log(`Fetching closed position got err ${error}`);
     }
+  });
+
+  it.skip('should get all mainnet Kamino prices', async () => {
+    const kamino = new Kamino('mainnet-beta', new Connection(clusterApiUrl('mainnet-beta')));
+    const prices = await kamino.getAllPrices();
+    expect(prices).not.to.be.undefined;
+    expect(prices.spot).to.have.length.greaterThan(0);
+    const usdh = prices.spot.find((x) => x.mint.toString() === 'USDH1SM1ojwWUga67PGrgFWUHibbjqMvuMaDkRJTgkX');
+    const usdhTwap = prices.twap.find((x) => x.mint.toString() === 'USDH1SM1ojwWUga67PGrgFWUHibbjqMvuMaDkRJTgkX');
+    expect(usdh).not.to.be.undefined;
+    expect(usdh!.name).to.be.equal('USDH');
+    expect(usdh!.price.toNumber()).to.be.greaterThan(0);
+    expect(usdhTwap).not.to.be.undefined;
+    expect(usdhTwap!.name).to.be.equal('USDH');
+    expect(usdhTwap!.price.toNumber()).to.be.greaterThan(0);
+
+    const price = await kamino.getPriceByMint('USDH1SM1ojwWUga67PGrgFWUHibbjqMvuMaDkRJTgkX');
+    expect(price).not.to.be.undefined;
+    expect(price!.name).to.be.equal('USDH');
+    expect(price!.price.toNumber()).to.be.greaterThan(0);
   });
 });
 
