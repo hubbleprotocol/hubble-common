@@ -2018,9 +2018,9 @@ export class Kamino {
       strategyState.strategy.tokenBMint
     );
 
-    const sharesAta = await getAssociatedTokenAddress(strategyState.strategy.sharesMint, owner);
-    const tokenAAta = await getAssociatedTokenAddress(strategyState.strategy.tokenAMint, owner);
-    const tokenBAta = await getAssociatedTokenAddress(strategyState.strategy.tokenBMint, owner);
+    const sharesAta = getAssociatedTokenAddress(strategyState.strategy.sharesMint, owner);
+    const tokenAAta = getAssociatedTokenAddress(strategyState.strategy.tokenAMint, owner);
+    const tokenBAta = getAssociatedTokenAddress(strategyState.strategy.tokenBMint, owner);
 
     const sharesAmountInLamports = sharesAmount.mul(
       new Decimal(10).pow(strategyState.strategy.sharesMintDecimals.toString())
@@ -3691,7 +3691,7 @@ export class Kamino {
       tickUpperIndex
     );
 
-    const positionTokenAccount = await getAssociatedTokenAddress(positionMint, baseVaultAuthority);
+    const positionTokenAccount = getAssociatedTokenAddress(positionMint, baseVaultAuthority);
 
     const args: OpenLiquidityPositionArgs = {
       tickLowerIndex: new BN(tickLowerIndex),

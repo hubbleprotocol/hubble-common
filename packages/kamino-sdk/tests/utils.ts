@@ -298,7 +298,7 @@ export async function setupAta(
   tokenMintAddress: PublicKey,
   user: Keypair
 ): Promise<PublicKey> {
-  const ata = await getAssociatedTokenAddress(tokenMintAddress, user.publicKey);
+  const ata = getAssociatedTokenAddress(tokenMintAddress, user.publicKey);
   if (!(await checkIfAccountExists(connection, ata))) {
     const ix = await createAtaInstruction(user.publicKey, tokenMintAddress, ata);
     const tx = new Transaction().add(ix);
@@ -550,8 +550,8 @@ async function getSwapAToBWithSlippageBPSIxs(
   // multiply the tokens to swap by -1 to get the positive sign because we represent as negative numbers what we have to sell
   let tokensToBurn = -input.tokenAToSwapAmount.toNumber();
 
-  let tokenAAta = await getAssociatedTokenAddress(tokenAMint, user);
-  let tokenBAta = await getAssociatedTokenAddress(tokenBMint, user);
+  let tokenAAta = getAssociatedTokenAddress(tokenAMint, user);
+  let tokenBAta = getAssociatedTokenAddress(tokenBMint, user);
 
   let bToRecieve = input.tokenBToSwapAmount.mul(new Decimal(FullBPS).sub(slippageBps)).div(FullBPS);
   let mintToIx = getMintToIx(mintAuthority, tokenBMint, tokenBAta, bToRecieve.toNumber());
@@ -571,8 +571,8 @@ async function getSwapBToAWithSlippageBPSIxs(
   // multiply the tokens to swap by -1 to get the positive sign because we represent as negative numbers what we have to sell
   let tokensToBurn = -input.tokenBToSwapAmount.toNumber();
 
-  let tokenAAta = await getAssociatedTokenAddress(tokenAMint, owner);
-  let tokenBAta = await getAssociatedTokenAddress(tokenBMint, owner);
+  let tokenAAta = getAssociatedTokenAddress(tokenAMint, owner);
+  let tokenBAta = getAssociatedTokenAddress(tokenBMint, owner);
 
   let aToRecieve = input.tokenAToSwapAmount.mul(new Decimal(FullBPS).sub(slippage)).div(FullBPS);
   let mintToIx = getMintToIx(mintAuthority, tokenAMint, tokenAAta, aToRecieve.toNumber());
@@ -592,7 +592,7 @@ export const balance = async (
     return balance;
   }
 
-  const ata = await getAssociatedTokenAddress(mint, user.publicKey);
+  const ata = getAssociatedTokenAddress(mint, user.publicKey);
   if (await checkIfAccountExists(connection, ata)) {
     const balance = await connection.getTokenAccountBalance(ata);
     return balance.value.uiAmount;
