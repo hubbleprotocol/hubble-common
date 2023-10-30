@@ -15,7 +15,6 @@ import {
   Dex,
   getReadOnlyWallet,
   Kamino,
-  noopProfiledFunctionExecution,
   sendTransactionWithLogs,
   sleep,
   StrategiesFilters,
@@ -667,7 +666,7 @@ describe('Kamino SDK Tests', () => {
     );
 
     let tokenADecimals = await getMintDecimals(connection, strategyState.tokenAMint);
-    let usdcDeposit = new Decimal(10.0); // collToLamportsDecimal(new Decimal(10.0), tokenADecimals);
+    let usdcDeposit = new Decimal(10.0);
     let swapper: SwapperIxBuilder = (
       input: DepositAmountsForSwap,
       tokenAMint: PublicKey,
