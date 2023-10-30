@@ -113,6 +113,7 @@ import {
   WithdrawAllAndCloseIxns,
   numberToReferencePriceType,
   stripTwapZeros,
+  getTokenNameFromCollateralInfo,
 } from './utils';
 import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import {
@@ -243,8 +244,8 @@ import {
 } from './utils/transactions';
 import { RouteInfo } from '@jup-ag/core';
 import { SwapResponse } from '@jup-ag/api';
-import { StrategyPrices } from './models/StrategyPrices';
-import { getDefaultManualRebalanceFieldInfos, getManualRebalanceFieldInfos } from './rebalance_methods/manualRebalance';
+import { StrategyPrices } from './models';
+import { getDefaultManualRebalanceFieldInfos, getManualRebalanceFieldInfos } from './rebalance_methods';
 import {
   deserializePricePercentageRebalanceFromOnchainParams,
   deserializePricePercentageRebalanceWithStateOverride,
@@ -252,9 +253,8 @@ import {
   getPositionRangeFromPercentageRebalanceParams,
   getPricePercentageRebalanceFieldInfos,
   readPricePercentageRebalanceParamsFromStrategy,
-  readPricePercentageRebalanceStateFromStrategy,
   readRawPricePercentageRebalanceStateFromStrategy,
-} from './rebalance_methods/pricePercentageRebalance';
+} from './rebalance_methods';
 import {
   deserializePricePercentageWithResetRebalanceFromOnchainParams,
   deserializePricePercentageWithResetRebalanceWithStateOverride,
@@ -263,7 +263,7 @@ import {
   getPricePercentageWithResetRebalanceFieldInfos,
   readPricePercentageWithResetRebalanceParamsFromStrategy,
   readRawPricePercentageWithResetRebalanceStateFromStrategy,
-} from './rebalance_methods/pricePercentageWithResetRebalance';
+} from './rebalance_methods';
 import {
   deserializeDriftRebalanceFromOnchainParams,
   deserializeDriftRebalanceWithStateOverride,
@@ -272,7 +272,7 @@ import {
   getPositionRangeFromDriftParams,
   readDriftRebalanceParamsFromStrategy,
   readRawDriftRebalanceStateFromStrategy,
-} from './rebalance_methods/driftRebalance';
+} from './rebalance_methods';
 import {
   deserializeExpanderRebalanceWithStateOverride,
   deserializePeriodicRebalanceFromOnchainParams,
@@ -311,6 +311,7 @@ import {
   getDefaultAutodriftRebalanceFieldInfos,
   getPositionRangeFromAutodriftParams,
 } from './rebalance_methods/autodriftRebalance';
+import { EnrichedScopePrice, KaminoPrices, OraclePricesAndCollateralInfos } from './models/EnrichedScopePrice';
 export const KAMINO_IDL = KaminoIdl;
 
 export class Kamino {
@@ -324,7 +325,6 @@ export class Kamino {
   private readonly _kaminoProgramId: PublicKey;
   private readonly _orcaService: OrcaService;
   private readonly _raydiumService: RaydiumService;
-  private readonly _jupService: JupService;
 
   /**
    * Create a new instance of the Kamino SDK class.
@@ -368,7 +368,6 @@ export class Kamino {
 
     this._orcaService = new OrcaService(connection, cluster, this._globalConfig);
     this._raydiumService = new RaydiumService(connection, cluster);
-    this._jupService = new JupService(connection, cluster);
   }
 
   getConnection = () => this._connection;
@@ -1707,7 +1706,111 @@ export class Kamino {
     };
   };
 
-  getAllPrices = (): Promise<OraclePrices> => this._scope.getOraclePrices();
+  getAllOraclePrices = (): Promise<OraclePrices> => this._scope.getOraclePrices();
+
+  /**
+   * Get all Kamino token spot and twap prices
+   * @param oraclePrices (optional) Scope Oracle prices
+   * @param collateralInfos (optional) Kamino Collateral Infos
+   */
+  getAllPrices = async (oraclePrices?: OraclePrices, collateralInfos?: CollateralInfo[]): Promise<KaminoPrices> => {
+    const spotPrices: EnrichedScopePrice[] = [];
+    const twaps: EnrichedScopePrice[] = [];
+    ({ oraclePrices, collateralInfos } = await this.getOraclePricesAndCollateralInfos(oraclePrices, collateralInfos));
+    for (const collateralInfo of collateralInfos) {
+      if (collateralInfo.scopePriceChain.some((x) => x > 0)) {
+        const spotPrice = await this._scope.getPriceFromChain(collateralInfo.scopePriceChain, oraclePrices);
+        spotPrices.push({
+          price: spotPrice,
+          mint: collateralInfo.mint,
+          name: getTokenNameFromCollateralInfo(collateralInfo),
+        });
+
+        if (collateralInfo.scopeTwapPriceChain.some((x) => x > 0)) {
+          const twap = await this._scope.getPriceFromChain(collateralInfo.scopeTwapPriceChain, oraclePrices);
+          twaps.push({ price: twap, mint: collateralInfo.mint, name: getTokenNameFromCollateralInfo(collateralInfo) });
+        }
+      }
+    }
+    return { spot: spotPrices, twap: twaps };
+  };
+
+  private async getOraclePricesAndCollateralInfos(
+    oraclePrices?: OraclePrices,
+    collateralInfos?: CollateralInfo[]
+  ): Promise<OraclePricesAndCollateralInfos> {
+    if (!oraclePrices) {
+      oraclePrices = await this.getAllOraclePrices();
+    }
+    if (!collateralInfos) {
+      collateralInfos = await this.getCollateralInfos();
+    }
+    return { oraclePrices, collateralInfos };
+  }
+
+  /**
+   * Get Kamino token spot price by mint
+   * @param mint token mint
+   * @param oraclePrices (optional) Scope Oracle prices
+   * @param collateralInfos (optional) Kamino Collateral Infos
+   */
+  getPriceByMint = async (
+    mint: PublicKey | string,
+    oraclePrices?: OraclePrices,
+    collateralInfos?: CollateralInfo[]
+  ): Promise<EnrichedScopePrice | undefined> => {
+    return (await this.getAllPrices(oraclePrices, collateralInfos)).spot.find(
+      (x) => x.mint.toString() === mint.toString()
+    );
+  };
+
+  /**
+   * Get Kamino token TWAP by token mint
+   * @param mint token mint
+   * @param oraclePrices (optional) Scope Oracle prices
+   * @param collateralInfos (optional) Kamino Collateral Infos
+   */
+  getTwapByMint = async (
+    mint: PublicKey | string,
+    oraclePrices?: OraclePrices,
+    collateralInfos?: CollateralInfo[]
+  ): Promise<EnrichedScopePrice | undefined> => {
+    return (await this.getAllPrices(oraclePrices, collateralInfos)).twap.find(
+      (x) => x.mint.toString() === mint.toString()
+    );
+  };
+
+  /**
+   * Get multiple Kamino token spot price by mint
+   * @param mints token mint
+   * @param oraclePrices (optional) Scope Oracle prices
+   * @param collateralInfos (optional) Kamino Collateral Infos
+   */
+  getPricesByMints = async (
+    mints: (PublicKey | string)[],
+    oraclePrices?: OraclePrices,
+    collateralInfos?: CollateralInfo[]
+  ): Promise<(EnrichedScopePrice | undefined)[]> => {
+    return (await this.getAllPrices(oraclePrices, collateralInfos)).spot.filter((x) =>
+      mints.some((y) => y.toString() === x.mint.toString())
+    );
+  };
+
+  /**
+   * Get multiple Kamino token TWAP by token mint
+   * @param mints token mints
+   * @param oraclePrices (optional) Scope Oracle prices
+   * @param collateralInfos (optional) Kamino Collateral Infos
+   */
+  getTwapsByMints = async (
+    mints: (PublicKey | string)[],
+    oraclePrices?: OraclePrices,
+    collateralInfos?: CollateralInfo[]
+  ): Promise<(EnrichedScopePrice | undefined)[]> => {
+    return (await this.getAllPrices(oraclePrices, collateralInfos)).twap.filter((x) =>
+      mints.some((y) => y.toString() === x.mint.toString())
+    );
+  };
 
   /**
    * Get the prices of all tokens in the specified strategy, or null if the reward token does not exist
@@ -4952,7 +5055,7 @@ export class Kamino {
       };
     }
     if (isOrca) {
-      const prices = await this.getAllPrices();
+      const prices = await this.getAllOraclePrices();
       return this._orcaService.getStrategyWhirlpoolPoolAprApy(strategyState, orcaPools, prices);
     }
     if (isRaydium) {
