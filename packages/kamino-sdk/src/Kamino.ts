@@ -54,6 +54,7 @@ import {
   getEmptyShareData,
   Holdings,
   KaminoPosition,
+  MintToPriceMap,
   ShareData,
   ShareDataWithAddress,
   StrategyBalances,
@@ -1714,21 +1715,23 @@ export class Kamino {
    * @param collateralInfos (optional) Kamino Collateral Infos
    */
   getAllPrices = async (oraclePrices?: OraclePrices, collateralInfos?: CollateralInfo[]): Promise<KaminoPrices> => {
-    const spotPrices: EnrichedScopePrice[] = [];
-    const twaps: EnrichedScopePrice[] = [];
+    const spotPrices: MintToPriceMap = {};
+    const twaps: MintToPriceMap = {};
     ({ oraclePrices, collateralInfos } = await this.getOraclePricesAndCollateralInfos(oraclePrices, collateralInfos));
     for (const collateralInfo of collateralInfos) {
       if (collateralInfo.scopePriceChain.some((x) => x > 0)) {
         const spotPrice = await this._scope.getPriceFromChain(collateralInfo.scopePriceChain, oraclePrices);
-        spotPrices.push({
+        spotPrices[collateralInfo.mint.toString()] = {
           price: spotPrice,
-          mint: collateralInfo.mint,
           name: getTokenNameFromCollateralInfo(collateralInfo),
-        });
+        };
 
         if (collateralInfo.scopeTwapPriceChain.some((x) => x > 0)) {
           const twap = await this._scope.getPriceFromChain(collateralInfo.scopeTwapPriceChain, oraclePrices);
-          twaps.push({ price: twap, mint: collateralInfo.mint, name: getTokenNameFromCollateralInfo(collateralInfo) });
+          twaps[collateralInfo.mint.toString()] = {
+            price: twap,
+            name: getTokenNameFromCollateralInfo(collateralInfo),
+          };
         }
       }
     }
@@ -1759,9 +1762,7 @@ export class Kamino {
     oraclePrices?: OraclePrices,
     collateralInfos?: CollateralInfo[]
   ): Promise<EnrichedScopePrice | undefined> => {
-    return (await this.getAllPrices(oraclePrices, collateralInfos)).spot.find(
-      (x) => x.mint.toString() === mint.toString()
-    );
+    return (await this.getAllPrices(oraclePrices, collateralInfos)).spot[mint.toString()];
   };
 
   /**
@@ -1775,9 +1776,7 @@ export class Kamino {
     oraclePrices?: OraclePrices,
     collateralInfos?: CollateralInfo[]
   ): Promise<EnrichedScopePrice | undefined> => {
-    return (await this.getAllPrices(oraclePrices, collateralInfos)).twap.find(
-      (x) => x.mint.toString() === mint.toString()
-    );
+    return (await this.getAllPrices(oraclePrices, collateralInfos)).twap[mint.toString()];
   };
 
   /**
@@ -1790,10 +1789,16 @@ export class Kamino {
     mints: (PublicKey | string)[],
     oraclePrices?: OraclePrices,
     collateralInfos?: CollateralInfo[]
-  ): Promise<(EnrichedScopePrice | undefined)[]> => {
-    return (await this.getAllPrices(oraclePrices, collateralInfos)).spot.filter((x) =>
-      mints.some((y) => y.toString() === x.mint.toString())
-    );
+  ): Promise<MintToPriceMap> => {
+    const prices = await this.getAllPrices(oraclePrices, collateralInfos);
+    const spotPrices: MintToPriceMap = {};
+    for (const mint of mints) {
+      const price = prices.spot[mint.toString()];
+      if (price) {
+        spotPrices[mint.toString()] = price;
+      }
+    }
+    return spotPrices;
   };
 
   /**
@@ -1806,10 +1811,16 @@ export class Kamino {
     mints: (PublicKey | string)[],
     oraclePrices?: OraclePrices,
     collateralInfos?: CollateralInfo[]
-  ): Promise<(EnrichedScopePrice | undefined)[]> => {
-    return (await this.getAllPrices(oraclePrices, collateralInfos)).twap.filter((x) =>
-      mints.some((y) => y.toString() === x.mint.toString())
-    );
+  ): Promise<MintToPriceMap> => {
+    const prices = await this.getAllPrices(oraclePrices, collateralInfos);
+    const twaps: MintToPriceMap = {};
+    for (const mint of mints) {
+      const price = prices.twap[mint.toString()];
+      if (price) {
+        twaps[mint.toString()] = price;
+      }
+    }
+    return twaps;
   };
 
   /**
