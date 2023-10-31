@@ -325,14 +325,13 @@ describe('Kamino SDK Tests', () => {
     );
     const prices = await kamino.getAllPrices();
     expect(prices).not.to.be.undefined;
-    expect(prices.spot).to.have.length(2);
+    expect(Object.keys(prices.spot)).to.have.length(2);
+    expect(Object.keys(prices.twap)).to.have.length(2);
 
-    expect(prices.twap).to.have.length(2);
-
-    const usdh = prices.spot.find((x) => x.mint.toString() === fixtures.newTokenMintA.toString());
-    const usdc = prices.spot.find((x) => x.mint.toString() === fixtures.newTokenMintB.toString());
-    const usdhTwap = prices.twap.find((x) => x.mint.toString() === fixtures.newTokenMintA.toString());
-    const usdcTwap = prices.twap.find((x) => x.mint.toString() === fixtures.newTokenMintB.toString());
+    const usdh = prices.spot[fixtures.newTokenMintA.toString()];
+    const usdc = prices.spot[fixtures.newTokenMintB.toString()];
+    const usdhTwap = prices.twap[fixtures.newTokenMintA.toString()];
+    const usdcTwap = prices.twap[fixtures.newTokenMintB.toString()];
     expect(usdh).not.to.be.undefined;
     expect(usdh!.name).to.be.equal('USDH');
     expect(usdh!.price.toNumber()).to.be.greaterThan(0);
@@ -1970,9 +1969,9 @@ describe('Kamino SDK Tests', () => {
     const kamino = new Kamino('mainnet-beta', new Connection(clusterApiUrl('mainnet-beta')));
     const prices = await kamino.getAllPrices();
     expect(prices).not.to.be.undefined;
-    expect(prices.spot).to.have.length.greaterThan(0);
-    const usdh = prices.spot.find((x) => x.mint.toString() === 'USDH1SM1ojwWUga67PGrgFWUHibbjqMvuMaDkRJTgkX');
-    const usdhTwap = prices.twap.find((x) => x.mint.toString() === 'USDH1SM1ojwWUga67PGrgFWUHibbjqMvuMaDkRJTgkX');
+    expect(Object.keys(prices.spot)).to.have.length.greaterThan(0);
+    const usdh = prices.spot['USDH1SM1ojwWUga67PGrgFWUHibbjqMvuMaDkRJTgkX'];
+    const usdhTwap = prices.twap['USDH1SM1ojwWUga67PGrgFWUHibbjqMvuMaDkRJTgkX'];
     expect(usdh).not.to.be.undefined;
     expect(usdh!.name).to.be.equal('USDH');
     expect(usdh!.price.toNumber()).to.be.greaterThan(0);
