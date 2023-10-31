@@ -68,7 +68,7 @@ import {
   TreasuryFeeVault,
 } from './models';
 import { PROGRAM_ID_CLI as WHIRLPOOL_PROGRAM_ID, setWhirlpoolsProgramId } from './whirpools-client/programId';
-import { OraclePrices, Scope } from '@hubbleprotocol/scope-sdk';
+import { OraclePrices, Scope, U16_MAX } from '@hubbleprotocol/scope-sdk';
 import {
   batchFetch,
   collToLamportsDecimal,
@@ -1719,14 +1719,14 @@ export class Kamino {
     const twaps: MintToPriceMap = {};
     ({ oraclePrices, collateralInfos } = await this.getOraclePricesAndCollateralInfos(oraclePrices, collateralInfos));
     for (const collateralInfo of collateralInfos) {
-      if (collateralInfo.scopePriceChain.some((x) => x > 0)) {
+      if (collateralInfo.scopePriceChain.some((x) => x > 0 && x < U16_MAX)) {
         const spotPrice = await this._scope.getPriceFromChain(collateralInfo.scopePriceChain, oraclePrices);
         spotPrices[collateralInfo.mint.toString()] = {
           price: spotPrice,
           name: getTokenNameFromCollateralInfo(collateralInfo),
         };
 
-        if (collateralInfo.scopeTwapPriceChain.some((x) => x > 0)) {
+        if (collateralInfo.scopeTwapPriceChain.some((x) => x > 0 && x < U16_MAX)) {
           const twap = await this._scope.getPriceFromChain(collateralInfo.scopeTwapPriceChain, oraclePrices);
           twaps[collateralInfo.mint.toString()] = {
             price: twap,
