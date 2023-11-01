@@ -1,6 +1,13 @@
 import { SupportedToken } from './SupportedToken';
 import { SolanaCluster } from '@hubbleprotocol/hubble-config';
 
+/**
+ * @deprecated Deprecated since version 2.2.47 - please use {@link getOraclePrices} or the respective SDK client instead.
+ * @see [hubble-sdk]{@link https://github.com/hubbleprotocol/hubble-common/blob/0512e85c5a816a557fe7feaf55981cabcd992476/packages/hubble-sdk/src/Hubble.ts#L722} getAllPrices method
+ * @see [kamino-sdk]{@link https://github.com/hubbleprotocol/hubble-common/blob/0be269d4fdb3dbadbbd8c7fcca68c6b1928d445a/packages/kamino-sdk/src/Kamino.ts#L1717} getAllPrices method
+ * @see [kamino-lending-sdk]{@link https://github.com/hubbleprotocol/kamino-lending-sdk/blob/17a48b6bb21945d2d799d31d6f0b20104e8c83ac/src/classes/market.ts#L759} getAllScopePrices method
+ * @description Scope mint config
+ */
 export const ScopeMints: { cluster: SolanaCluster; mints: { token: SupportedToken; mint: string }[] }[] = [
   {
     cluster: 'mainnet-beta',
@@ -104,10 +111,28 @@ export const ScopeMints: { cluster: SolanaCluster; mints: { token: SupportedToke
   },
 ];
 
+/**
+ * @deprecated Deprecated since version 2.2.47 - please use {@link getOraclePrices} or the respective SDK client instead.
+ * @see [hubble-sdk]{@link https://github.com/hubbleprotocol/hubble-common/blob/0512e85c5a816a557fe7feaf55981cabcd992476/packages/hubble-sdk/src/Hubble.ts#L722} getAllPrices method
+ * @see [kamino-sdk]{@link https://github.com/hubbleprotocol/hubble-common/blob/0be269d4fdb3dbadbbd8c7fcca68c6b1928d445a/packages/kamino-sdk/src/Kamino.ts#L1717} getAllPrices method
+ * @see [kamino-lending-sdk]{@link https://github.com/hubbleprotocol/kamino-lending-sdk/blob/17a48b6bb21945d2d799d31d6f0b20104e8c83ac/src/classes/market.ts#L759} getAllScopePrices method
+ * @description Map scope token name to mint
+ * @param token
+ * @param cluster
+ */
 export function scopeTokenToMint(token: SupportedToken, cluster: SolanaCluster = 'mainnet-beta') {
   return ScopeMints.find((x) => x.cluster === cluster)?.mints?.find((x) => x.token === token)?.mint;
 }
 
+/**
+ * @deprecated Deprecated since version 2.2.47 - please use {@link getOraclePrices} or the respective SDK client instead.
+ * @see [hubble-sdk]{@link https://github.com/hubbleprotocol/hubble-common/blob/0512e85c5a816a557fe7feaf55981cabcd992476/packages/hubble-sdk/src/Hubble.ts#L722} getAllPrices method
+ * @see [kamino-sdk]{@link https://github.com/hubbleprotocol/hubble-common/blob/0be269d4fdb3dbadbbd8c7fcca68c6b1928d445a/packages/kamino-sdk/src/Kamino.ts#L1717} getAllPrices method
+ * @see [kamino-lending-sdk]{@link https://github.com/hubbleprotocol/kamino-lending-sdk/blob/17a48b6bb21945d2d799d31d6f0b20104e8c83ac/src/classes/market.ts#L759} getAllScopePrices method
+ * @description Map token mint to scope token name
+ * @param mint
+ * @param cluster
+ */
 export function mintToScopeToken(mint: string, cluster: SolanaCluster = 'mainnet-beta') {
   return ScopeMints.find((x) => x.cluster === cluster)?.mints?.find((x) => x.mint === mint)?.token;
 }
