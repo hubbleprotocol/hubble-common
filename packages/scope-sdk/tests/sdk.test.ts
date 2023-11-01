@@ -111,6 +111,18 @@ describe('Scope SDK Tests', async () => {
     await expect(scope.getPriceFromChain([65_535, 65_535, 65_535, 65_535])).to.be.rejected;
   });
 
+  it('should verify if scope chain is valid', () => {
+    expect(Scope.isScopeChainValid([0, 0, 0, 0])).to.be.false;
+    expect(Scope.isScopeChainValid([65_535, 65_535, 65_535, 65_535])).to.be.false;
+    expect(Scope.isScopeChainValid([0, 65_535, 65_535, 65_535])).to.be.true;
+    expect(Scope.isScopeChainValid([0, 0, 65_535, 65_535])).to.be.true;
+    expect(Scope.isScopeChainValid([0, 0, 0, 65_535])).to.be.true;
+    expect(Scope.isScopeChainValid([0, 15, 0, 20])).to.be.true;
+    expect(Scope.isScopeChainValid([0, 15])).to.be.true;
+    expect(Scope.isScopeChainValid([0])).to.be.false;
+    expect(Scope.isScopeChainValid([])).to.be.false;
+  });
+
   // test('should get all prices', async () => {
   //   const scope = new Scope(cluster, connection);
   //   const prices = await scope.getAllPrices();
