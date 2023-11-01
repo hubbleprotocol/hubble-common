@@ -18,3 +18,4 @@ export * from './PsmReserve';
 export * from './SupportedCollateral';
 export * from './WithdrawalCaps';
 export * from './CollateralWithdrawalCaps';
+export * from './ScopePrices';
