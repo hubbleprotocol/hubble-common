@@ -375,6 +375,18 @@ export class Scope {
   }
 
   /**
+   * Verify if the scope chain is valid
+   * @param chain
+   */
+  public static isScopeChainValid(chain: Array<number>) {
+    return !(
+      chain.length === 0 ||
+      chain.every((tokenId) => tokenId === 0) ||
+      chain.every((tokenId) => tokenId === U16_MAX)
+    );
+  }
+
+  /**
    * Get the price of a token from a chain of token prices
    * @param chain
    * @param oraclePrices
