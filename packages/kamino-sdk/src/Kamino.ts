@@ -1719,14 +1719,14 @@ export class Kamino {
     const twaps: MintToPriceMap = {};
     ({ oraclePrices, collateralInfos } = await this.getOraclePricesAndCollateralInfos(oraclePrices, collateralInfos));
     for (const collateralInfo of collateralInfos) {
-      if (collateralInfo.scopePriceChain.some((x) => x > 0 && x < U16_MAX)) {
+      if (collateralInfo.scopePriceChain && Scope.isScopeChainValid(collateralInfo.scopePriceChain)) {
         const spotPrice = await this._scope.getPriceFromChain(collateralInfo.scopePriceChain, oraclePrices);
         spotPrices[collateralInfo.mint.toString()] = {
           price: spotPrice,
           name: getTokenNameFromCollateralInfo(collateralInfo),
         };
 
-        if (collateralInfo.scopeTwapPriceChain.some((x) => x > 0 && x < U16_MAX)) {
+        if (collateralInfo.scopeTwapPriceChain && Scope.isScopeChainValid(collateralInfo.scopeTwapPriceChain)) {
           const twap = await this._scope.getPriceFromChain(collateralInfo.scopeTwapPriceChain, oraclePrices);
           twaps[collateralInfo.mint.toString()] = {
             price: twap,
