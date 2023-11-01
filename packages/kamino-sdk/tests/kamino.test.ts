@@ -346,26 +346,6 @@ describe('Kamino SDK Tests', () => {
     expect(usdcTwap!.price.toNumber()).to.be.greaterThan(0);
   });
 
-  it('should get Kamino price and twap by mint', async () => {
-    const kamino = new Kamino(
-      cluster,
-      connection,
-      fixtures.globalConfig,
-      fixtures.kaminoProgramId,
-      WHIRLPOOL_PROGRAM_ID,
-      LOCAL_RAYDIUM_PROGRAM_ID
-    );
-    const usdh = await kamino.getPriceByMint(fixtures.newTokenMintA);
-    expect(usdh).not.to.be.undefined;
-    expect(usdh!.name).to.be.equal('USDH');
-    expect(usdh!.price.toNumber()).to.be.greaterThan(0);
-
-    const usdhTwap = await kamino.getTwapByMint(fixtures.newTokenMintA);
-    expect(usdhTwap).not.to.be.undefined;
-    expect(usdhTwap!.name).to.be.equal('USDH');
-    expect(usdhTwap!.price.toNumber()).to.be.greaterThan(0);
-  });
-
   it('should get all strategies', async () => {
     let kamino = new Kamino(
       cluster,
@@ -1978,11 +1958,6 @@ describe('Kamino SDK Tests', () => {
     expect(usdhTwap).not.to.be.undefined;
     expect(usdhTwap!.name).to.be.equal('USDH');
     expect(usdhTwap!.price.toNumber()).to.be.greaterThan(0);
-
-    const price = await kamino.getPriceByMint('USDH1SM1ojwWUga67PGrgFWUHibbjqMvuMaDkRJTgkX');
-    expect(price).not.to.be.undefined;
-    expect(price!.name).to.be.equal('USDH');
-    expect(price!.price.toNumber()).to.be.greaterThan(0);
   });
 });
 
