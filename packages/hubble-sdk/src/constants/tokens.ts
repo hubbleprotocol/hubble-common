@@ -37,21 +37,94 @@ export interface ExtraCollateralToken {
    * Hubble smart contracts extra collateral ID
    */
   id: number;
+
+  /**
+   * Collateral mint
+   */
+  mint?: string;
+  /**
+   * Collateral scope price chain
+   */
+  scopePriceChain?: number[];
+  /**
+   * Collateral scope twap chain
+   */
+  scopeTwapChain?: number[];
 }
 
 export const ExtraCollateralMap: ExtraCollateralToken[] = [
-  { id: 0, name: 'SOL' },
-  { id: 1, name: 'ETH' },
-  { id: 2, name: 'BTC' },
+  {
+    id: 0,
+    name: 'SOL',
+    mint: 'So11111111111111111111111111111111111111112',
+    scopePriceChain: [0, 65535, 65535, 65535],
+    scopeTwapChain: [52, 0, 0, 0],
+  },
+  {
+    id: 1,
+    name: 'ETH',
+    mint: '7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs',
+    scopePriceChain: [1, 65535, 65535, 65535],
+    scopeTwapChain: [53, 0, 0, 0],
+  },
+  {
+    id: 2,
+    name: 'BTC',
+    mint: '9n4nbM75f5Ui33ZbPYXn59EwSgE8CGsHtAeTH5YFeJ9E',
+    scopePriceChain: [2, 65535, 65535, 65535],
+    scopeTwapChain: [0, 0, 0, 0],
+  },
   { id: 3, name: 'SRM' },
-  { id: 4, name: 'RAY' },
+  {
+    id: 4,
+    name: 'RAY',
+    mint: '4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R',
+    scopePriceChain: [4, 65535, 65535, 65535],
+    scopeTwapChain: [56, 0, 0, 0],
+  },
   { id: 5, name: 'FTT' },
-  { id: 6, name: 'MSOL' },
-  { id: 7, name: 'daoSOL' },
-  { id: 8, name: 'STSOL' },
-  { id: 9, name: 'scnSOL' },
-  { id: 10, name: 'wstETH' },
-  { id: 11, name: 'LDO' },
+  {
+    id: 6,
+    name: 'MSOL',
+    mint: 'mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So',
+    scopePriceChain: [6, 65535, 65535, 65535],
+    scopeTwapChain: [58, 0, 0, 0],
+  },
+  {
+    id: 7,
+    name: 'daoSOL',
+    mint: 'GEJpt3Wjmr628FqXxTgxMce1pLntcPV4uFi8ksxMyPQh',
+    scopePriceChain: [10, 65535, 65535, 65535],
+    scopeTwapChain: [0, 0, 0, 0],
+  },
+  {
+    id: 8,
+    name: 'STSOL',
+    mint: '7dHbWXmci3dT8UFYWYZweBLXgycu7Y3iL6trKn1Y7ARj',
+    scopePriceChain: [76, 0, 65535, 65535],
+    scopeTwapChain: [61, 0, 0, 0],
+  },
+  {
+    id: 9,
+    name: 'scnSOL',
+    mint: '5oVNBeEEQvYi1cX3ir8Dx5n1P7pdxydbGF2X4TxVusJm',
+    scopePriceChain: [7, 0, 65535, 65535],
+    scopeTwapChain: [0, 0, 0, 0],
+  },
+  {
+    id: 10,
+    name: 'wstETH',
+    mint: 'ZScHuTtqZukUrtZS43teTKGs2VqkKL8k4QCouR2n6Uo',
+    scopePriceChain: [18, 65535, 65535, 65535],
+    scopeTwapChain: [66, 0, 0, 0],
+  },
+  {
+    id: 11,
+    name: 'LDO',
+    mint: 'HZRCwxP2Vq9PCpPXooayhJ2bxTpo5xfpQrwB1svh332p',
+    scopePriceChain: [19, 65535, 65535, 65535],
+    scopeTwapChain: [0, 0, 0, 0],
+  },
   { id: 12, name: 'CSOL' },
   { id: 13, name: 'CETH' },
   { id: 14, name: 'CBTC' },
@@ -63,11 +136,23 @@ export const ExtraCollateralMap: ExtraCollateralToken[] = [
   { id: 20, name: 'CSTSOL' },
   { id: 21, name: 'CSLND' },
   { id: 22, name: 'CORCA' },
-  { id: 23, name: 'KUSDHUSDCORCA' },
+  {
+    id: 23,
+    name: 'KUSDHUSDCORCA',
+    mint: '5BmZgW7dk1kximGfn7MPvDigp3yRmgT64jS9Skdq4nPY',
+    scopePriceChain: [42, 65535, 65535, 65535],
+    scopeTwapChain: [0, 0, 0, 0],
+  },
   { id: 24, name: 'KUSDCUSDTORCA' },
   { id: 25, name: 'KSTSOLSOLORCA' },
   { id: 26, name: 'KUSHUSDCORCA' },
-  { id: 27, name: 'JSOL' },
+  {
+    id: 27,
+    name: 'JSOL',
+    mint: '7Q2afV64in6N6SeZsAAB81TJzwDoD6zpqmHkzi9Dcavn',
+    scopePriceChain: [34, 0, 65535, 65535],
+    scopeTwapChain: [0, 0, 0, 0],
+  },
 ];
 
 export const getExtraCollateralToken = (token: string) => {

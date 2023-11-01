@@ -38,9 +38,11 @@
   "dependencies": {
     "@hubbleprotocol/hubble-config": "^2.1.0",
     "@hubbleprotocol/hubble-idl": "^2.2.40",
+    "@hubbleprotocol/scope-sdk": "^2.2.46",
     "@project-serum/anchor": "^0.21.0",
     "@project-serum/serum": "^0.13.65",
     "@streamflow/stream": "^5.2.0",
+    "@coral-xyz/borsh": "^0.29.0",
     "bn.js": "^5.2.1"
   },
   "peerDependencies": {

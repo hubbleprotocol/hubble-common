@@ -21,20 +21,28 @@ import UserStakingState from './models/UserStakingState';
 import StabilityProviderState from './models/StabilityProviderState';
 import UserMetadata from './models/UserMetadata';
 import Loan from './models/Loan';
-import { DECIMAL_FACTOR, HBB_DECIMALS, STABLECOIN_DECIMALS, STREAMFLOW_HBB_CONTRACT } from './constants';
+import {
+  DECIMAL_FACTOR,
+  ExtraCollateralMap,
+  HBB_DECIMALS,
+  STABLECOIN_DECIMALS,
+  STREAMFLOW_HBB_CONTRACT,
+} from './constants';
 import Decimal from 'decimal.js';
 import UserMetadataWithJson from './models/UserMetadataWithJson';
 import { StreamflowSolana, Types } from '@streamflow/stream';
 import StabilityProviderStateWithJson from './models/StabilityProviderStateWithJson';
-import { HbbVault, PsmReserve, UsdhVault } from './models';
+import { HbbVault, HubblePrices, MintToPriceMap, PsmReserve, UsdhVault } from './models';
 import GlobalConfig from './models/GlobalConfig';
 import { SwapInfo } from './models/SwapInfo';
 import { signTerms, SignTermsAccounts, SignTermsArgs, TermsSignature } from './models/TermsSignature';
 import { ICluster } from '@streamflow/stream/dist/common/types';
+import { OraclePrices, Scope } from '@hubbleprotocol/scope-sdk';
 
 export class Hubble {
   private readonly _cluster: SolanaCluster;
   private readonly _connection: Connection;
+  private readonly _scope: Scope;
   readonly _config: HubbleConfig;
   private readonly _provider: Provider;
   private _borrowingProgram: Program;
@@ -47,6 +55,7 @@ export class Hubble {
   constructor(cluster: SolanaCluster, connection: Connection, borrowingProgramId?: string) {
     this._cluster = cluster;
     this._connection = connection;
+    this._scope = new Scope(cluster, connection);
     this._config = getConfigByCluster(cluster);
     // for localnet integration tests
     if (borrowingProgramId) {
@@ -704,8 +713,36 @@ export class Hubble {
       pdaSeed,
       this._config.borrowing.programId
     );
-
     return await TermsSignature.fetch(this._connection, signatureStateKey, this._config.borrowing.programId);
+  }
+
+  /**
+   * Get all Scope prices used by Hubble
+   */
+  async getAllPrices(oraclePrices?: OraclePrices): Promise<HubblePrices> {
+    if (!oraclePrices) {
+      oraclePrices = await this._scope.getOraclePrices();
+    }
+    const spotPrices: MintToPriceMap = {};
+    const twaps: MintToPriceMap = {};
+    for (const collateral of ExtraCollateralMap.filter((x) => x.mint !== undefined)) {
+      if (collateral.scopePriceChain && Scope.isScopeChainValid(collateral.scopePriceChain)) {
+        const spotPrice = await this._scope.getPriceFromChain(collateral.scopePriceChain, oraclePrices);
+        spotPrices[collateral.mint!.toString()] = {
+          price: spotPrice,
+          name: collateral.name,
+        };
+
+        if (collateral.scopeTwapChain && Scope.isScopeChainValid(collateral.scopeTwapChain)) {
+          const twap = await this._scope.getPriceFromChain(collateral.scopeTwapChain, oraclePrices);
+          twaps[collateral.mint!.toString()] = {
+            price: twap,
+            name: collateral.name,
+          };
+        }
+      }
+    }
+    return { spot: spotPrices, twap: twaps };
   }
 }
 
