@@ -174,7 +174,7 @@ export function numberToAutodriftStep(value: number): RebalanceAutodriftStepKind
   } else if (value == 1) {
     return new RebalanceAutodriftStep.Autodrifting();
   } else {
-    throw new Error(`Invalid staking rate source ${value.toString()}`);
+    throw new Error(`Invalid autodrift step ${value.toString()}`);
   }
 }
 
