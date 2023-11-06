@@ -41,15 +41,15 @@ export interface ExtraCollateralToken {
   /**
    * Collateral mint
    */
-  mint?: string;
+  mint: string;
   /**
    * Collateral scope price chain
    */
-  scopePriceChain?: number[];
+  scopePriceChain: number[];
   /**
    * Collateral scope twap chain
    */
-  scopeTwapChain?: number[];
+  scopeTwapChain: number[];
 }
 
 export const ExtraCollateralMap: ExtraCollateralToken[] = [
