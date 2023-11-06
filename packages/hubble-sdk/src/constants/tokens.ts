@@ -74,7 +74,13 @@ export const ExtraCollateralMap: ExtraCollateralToken[] = [
     scopePriceChain: [2, 65535, 65535, 65535],
     scopeTwapChain: [65535, 65535, 65535, 65535],
   },
-  { id: 3, name: 'SRM' },
+  {
+    id: 3,
+    name: 'SRM',
+    mint: 'SRMuApVNdxXokk5GT7XD5cUUgXMBCoAz2LHeuAoKWRt',
+    scopePriceChain: [3, 65535, 65535, 65535],
+    scopeTwapChain: [65535, 65535, 65535, 65535],
+  },
   {
     id: 4,
     name: 'RAY',
@@ -82,7 +88,13 @@ export const ExtraCollateralMap: ExtraCollateralToken[] = [
     scopePriceChain: [4, 65535, 65535, 65535],
     scopeTwapChain: [56, 65535, 65535, 65535],
   },
-  { id: 5, name: 'FTT' },
+  {
+    id: 5,
+    name: 'FTT',
+    mint: 'AGFEad2et2ZJif9jaGpdMixQqvW5i81aBdvKe7PHNfz3',
+    scopePriceChain: [5, 65535, 65535, 65535],
+    scopeTwapChain: [65535, 65535, 65535, 65535],
+  },
   {
     id: 6,
     name: 'MSOL',
