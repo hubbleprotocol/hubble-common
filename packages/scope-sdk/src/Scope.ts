@@ -152,6 +152,8 @@ export class Scope {
     { id: 117, pair: 'LST/SOL', name: 'LST', price: new Decimal(0), nonUsdPairId: 0 },
     { id: 118, pair: 'kSOLJITOSOLRaydium/USD', name: 'kSOLJITOSOLRaydium', price: new Decimal(0) },
     { id: 119, pair: 'kSOLMSOLRaydium/USD', name: 'kSOLMSOLRaydium', price: new Decimal(0) },
+    { id: 120, pair: 'RNDR/USD', name: 'RNDR', price: new Decimal(0) },
+    { id: 120, pair: 'RNDREma/USD', name: 'RNDREma', price: new Decimal(0) },
   ];
 
   /**
