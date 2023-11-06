@@ -3,7 +3,18 @@ import { WhirlpoolStrategy } from '../kamino-client/accounts';
 import { WHIRLPOOL_PROGRAM_ID } from '../whirpools-client/programId';
 import { PROGRAM_ID as RAYDIUM_PROGRAM_ID } from '../raydium_client/programId';
 import Decimal from 'decimal.js';
-import { DEX, RebalanceType, RebalanceTypeKind, StrategyConfigOptionKind } from '../kamino-client/types';
+import {
+  DEX,
+  DriftDirection,
+  DriftDirectionKind,
+  RebalanceAutodriftStep,
+  RebalanceAutodriftStepKind,
+  RebalanceType,
+  RebalanceTypeKind,
+  StakingRateSource,
+  StakingRateSourceKind,
+  StrategyConfigOptionKind,
+} from '../kamino-client/types';
 import {
   UpdateStrategyConfigAccounts,
   UpdateStrategyConfigArgs,
@@ -135,6 +146,36 @@ export function doesStrategyHaveResetRange(rebalanceTypeNumber: number): boolean
     rebalanceType.kind == RebalanceType.PricePercentageWithReset.kind ||
     rebalanceType.kind == RebalanceType.Expander.kind
   );
+}
+
+export function numberToDriftDirection(value: number): DriftDirectionKind {
+  if (value == 0) {
+    return new DriftDirection.Increasing();
+  } else if (value == 1) {
+    return new DriftDirection.Decreasing();
+  } else {
+    throw new Error(`Invalid drift direction ${value.toString()}`);
+  }
+}
+
+export function numberToStakingRateSource(value: number): StakingRateSourceKind {
+  if (value == 0) {
+    return new StakingRateSource.Constant();
+  } else if (value == 1) {
+    return new StakingRateSource.Scope();
+  } else {
+    throw new Error(`Invalid staking rate source ${value.toString()}`);
+  }
+}
+
+export function numberToAutodriftStep(value: number): RebalanceAutodriftStepKind {
+  if (value == 0) {
+    return new RebalanceAutodriftStep.Uninitialized();
+  } else if (value == 1) {
+    return new RebalanceAutodriftStep.Autodrifting();
+  } else {
+    throw new Error(`Invalid staking rate source ${value.toString()}`);
+  }
 }
 
 export function numberToRebalanceType(rebalance_type: number): RebalanceTypeKind {
