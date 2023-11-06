@@ -214,7 +214,7 @@ export function readRawAutodriftRebalanceStateFromStrategy(rebalanceRaw: Rebalan
       [offset, state['current_window_epoch']           ] = [offset + 8, new Decimal(stateBuffer.readBigUInt64LE(offset).toString())];
       [offset, state['current_window_theoretical_tick']] = [offset + 4, new Decimal(stateBuffer.readInt32LE(offset))];
       [offset, state['current_window_strat_mid_tick']  ] = [offset + 4, new Decimal(stateBuffer.readInt32LE(offset))];
-      [offset, state['step']                           ] = [offset + 1, new Decimal(stateBuffer.readInt8(offset))];
+      [offset, state['autodrift_step']                 ] = [offset + 1, new Decimal(stateBuffer.readInt8(offset))];
   }
 
   return state;
