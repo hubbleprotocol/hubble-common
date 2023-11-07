@@ -94,7 +94,7 @@ export const ScopeMints: { cluster: SolanaCluster; mints: { token: SupportedToke
       { token: 'LST', mint: 'LSTxxxnJzKDFSLr4dUkPcmCf5VyryEqzPLz5j4bpxFp' },
       { token: 'kSOLJITOSOLRaydium', mint: 'GYiUmJ8reqYAdTQtx6CRFawHqPXx9yzkUFvaUVE8PskP' },
       { token: 'kSOLMSOLRaydium', mint: '3Fb5DMRWoBLWD36Lp4BtG41LaFjVeEJNCH9YLNPYdVqj' },
-      { token: 'RNDR', mint: 'rndrizKT3MK1iimdxRdWabcF7Zg7AR5T4nud4EkHBof' },
+      { token: 'RENDER', mint: 'rndrizKT3MK1iimdxRdWabcF7Zg7AR5T4nud4EkHBof' },
     ],
   },
   {
