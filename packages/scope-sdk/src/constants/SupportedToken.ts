@@ -125,8 +125,8 @@ export const SupportedTokens = [
   'LST',
   'kSOLJITOSOLRaydium',
   'kSOLMSOLRaydium',
-  'RENDER',
-  'RENDEREma',
+  'RNDR',
+  'RNDREma',
 ] as const;
 /**
  * @deprecated Deprecated since version 2.2.47 - please use {@link getOraclePrices} or the respective SDK client instead.
