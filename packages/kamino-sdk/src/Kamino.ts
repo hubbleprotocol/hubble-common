@@ -1726,8 +1726,9 @@ export class Kamino {
           name: getTokenNameFromCollateralInfo(collateralInfo),
         };
 
-        if (collateralInfo.scopeTwapPriceChain && Scope.isScopeChainValid(collateralInfo.scopeTwapPriceChain)) {
-          const twap = await this._scope.getPriceFromChain(collateralInfo.scopeTwapPriceChain, oraclePrices);
+        const filteredTwapChain = collateralInfo?.scopeTwapPriceChain?.filter((x) => x > 0);
+        if (filteredTwapChain && Scope.isScopeChainValid(filteredTwapChain)) {
+          const twap = await this._scope.getPriceFromChain(filteredTwapChain, oraclePrices);
           twaps[collateralInfo.mint.toString()] = {
             price: twap,
             name: getTokenNameFromCollateralInfo(collateralInfo),
