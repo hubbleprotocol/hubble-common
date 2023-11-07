@@ -733,8 +733,9 @@ export class Hubble {
           name: collateral.name,
         };
 
-        if (collateral.scopeTwapChain && Scope.isScopeChainValid(collateral.scopeTwapChain)) {
-          const twap = await this._scope.getPriceFromChain(collateral.scopeTwapChain, oraclePrices);
+        const filteredTwapChain = collateral?.scopeTwapChain?.filter((x) => x > 0);
+        if (filteredTwapChain && Scope.isScopeChainValid(filteredTwapChain)) {
+          const twap = await this._scope.getPriceFromChain(filteredTwapChain, oraclePrices);
           twaps[collateral.mint!.toString()] = {
             price: twap,
             name: collateral.name,
