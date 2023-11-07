@@ -1811,7 +1811,7 @@ export class Kamino {
   getShareTokenAccounts = (shareMint: PublicKey) => {
     //how to get all token accounts for specific mint: https://spl.solana.com/token#finding-all-token-accounts-for-a-specific-mint
     //get it from the hardcoded token program and create a filter with the actual mint address
-    //datasize:165 filter selects all token accounts, memcmp filter selects based on the mint address withing each token account
+    //datasize:165 filter selects all token accounts, memcmp filter selects based on the mint address within each token account
     return this._connection.getParsedProgramAccounts(TOKEN_PROGRAM_ID, {
       filters: [{ dataSize: 165 }, { memcmp: { offset: 0, bytes: shareMint.toBase58() } }],
     });

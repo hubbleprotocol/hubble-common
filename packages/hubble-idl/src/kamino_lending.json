@@ -1927,7 +1927,7 @@
     {
       "code": 6046,
       "name": "InsufficientProtocolFeesToRedeem",
-      "msg": "Insufficent protocol fees to claim or no liquidity availible"
+      "msg": "Insufficient protocol fees to claim or no liquidity available"
     },
     {
       "code": 6047,

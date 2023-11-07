@@ -577,7 +577,7 @@ export class Hubble {
   getHbbTokenAccounts() {
     //how to get all token accounts for specific mint: https://spl.solana.com/token#finding-all-token-accounts-for-a-specific-mint
     //get it from the hardcoded token program and create a filter with the actual mint address
-    //datasize:165 filter selects all token accounts, memcmp filter selects based on the mint address withing each token account
+    //datasize:165 filter selects all token accounts, memcmp filter selects based on the mint address within each token account
     const tokenProgram = new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA');
     return this._provider.connection.getParsedProgramAccounts(tokenProgram, {
       filters: [
