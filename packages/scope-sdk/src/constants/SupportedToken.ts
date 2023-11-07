@@ -125,8 +125,6 @@ export const SupportedTokens = [
   'LST',
   'kSOLJITOSOLRaydium',
   'kSOLMSOLRaydium',
-  'RNDR',
-  'RNDREma',
   'RENDER',
   'RENDEREma',
 ] as const;
