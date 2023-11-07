@@ -128,6 +128,8 @@ export const ScopePairs = [
   'kSOLMSOLRaydium/USD',
   'RNDR/USD',
   'RNDREma/USD',
+  'RENDER/USD',
+  'RENDEREma/USD',
 ] as const;
 /**
  * @deprecated Deprecated since version 2.2.47 - please use {@link getOraclePrices} or the respective SDK client instead.

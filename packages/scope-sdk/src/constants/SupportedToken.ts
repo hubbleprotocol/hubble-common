@@ -127,6 +127,8 @@ export const SupportedTokens = [
   'kSOLMSOLRaydium',
   'RNDR',
   'RNDREma',
+  'RENDER',
+  'RENDEREma',
 ] as const;
 /**
  * @deprecated Deprecated since version 2.2.47 - please use {@link getOraclePrices} or the respective SDK client instead.
