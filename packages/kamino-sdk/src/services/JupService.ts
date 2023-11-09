@@ -118,7 +118,7 @@ export class JupService {
     }
   };
 
-  async getPrice(inputMint: PublicKey | string, outputMint: PublicKey | string): Promise<number> {
+  static getPrice = async (inputMint: PublicKey | string, outputMint: PublicKey | string): Promise<number> => {
     const params = {
       ids: inputMint.toString(),
       vsToken: outputMint.toString(),
@@ -132,7 +132,7 @@ export class JupService {
 
     const res = await axios.get('https://quote-api.jup.ag/v4/price', { params });
     return res.data.data[inputMint.toString()].price;
-  }
+  };
 
   static buildTransactionsFromSerialized = (serializedTransactions: Array<string | undefined>): Transaction[] => {
     return serializedTransactions.filter(Boolean).map((tx) => {
