@@ -68,7 +68,7 @@ import {
   TreasuryFeeVault,
 } from './models';
 import { PROGRAM_ID_CLI as WHIRLPOOL_PROGRAM_ID, setWhirlpoolsProgramId } from './whirpools-client/programId';
-import { OraclePrices, Scope, U16_MAX } from '@hubbleprotocol/scope-sdk';
+import { OraclePrices, Scope } from '@hubbleprotocol/scope-sdk';
 import {
   batchFetch,
   collToLamportsDecimal,
@@ -312,7 +312,7 @@ import {
   getDefaultAutodriftRebalanceFieldInfos,
   getPositionRangeFromAutodriftParams,
 } from './rebalance_methods/autodriftRebalance';
-import { EnrichedScopePrice, KaminoPrices, OraclePricesAndCollateralInfos } from './models/EnrichedScopePrice';
+import { KaminoPrices, OraclePricesAndCollateralInfos } from './models';
 export const KAMINO_IDL = KaminoIdl;
 
 export class Kamino {
@@ -4995,8 +4995,8 @@ export class Kamino {
       };
     }
     if (isOrca) {
-      const prices = await this.getAllOraclePrices();
-      return this._orcaService.getStrategyWhirlpoolPoolAprApy(strategyState, orcaPools, prices);
+      const prices = await this.getAllPrices();
+      return this._orcaService.getStrategyWhirlpoolPoolAprApy(strategyState, prices, orcaPools);
     }
     if (isRaydium) {
       return this._raydiumService.getStrategyWhirlpoolPoolAprApy(strategyState, raydiumPools);
