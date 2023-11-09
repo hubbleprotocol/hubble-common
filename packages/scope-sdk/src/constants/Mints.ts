@@ -1,6 +1,13 @@
 import { SupportedToken } from './SupportedToken';
 import { SolanaCluster } from '@hubbleprotocol/hubble-config';
 
+/**
+ * @deprecated Deprecated since version 2.2.47 - please use {@link getOraclePrices} or the respective SDK client instead.
+ * @see [hubble-sdk]{@link https://github.com/hubbleprotocol/hubble-common/blob/0512e85c5a816a557fe7feaf55981cabcd992476/packages/hubble-sdk/src/Hubble.ts#L722} getAllPrices method
+ * @see [kamino-sdk]{@link https://github.com/hubbleprotocol/hubble-common/blob/0be269d4fdb3dbadbbd8c7fcca68c6b1928d445a/packages/kamino-sdk/src/Kamino.ts#L1717} getAllPrices method
+ * @see [kamino-lending-sdk]{@link https://github.com/hubbleprotocol/kamino-lending-sdk/blob/17a48b6bb21945d2d799d31d6f0b20104e8c83ac/src/classes/market.ts#L759} getAllScopePrices method
+ * @description Scope mint config
+ */
 export const ScopeMints: { cluster: SolanaCluster; mints: { token: SupportedToken; mint: string }[] }[] = [
   {
     cluster: 'mainnet-beta',
@@ -68,7 +75,7 @@ export const ScopeMints: { cluster: SolanaCluster; mints: { token: SupportedToke
       { token: 'NANA', mint: 'HxRELUQfvvjToVbacjr9YECdfQMUqGgPYB68jVDYxkbr' },
       { token: 'STEP', mint: 'StepAscQoEioFxxWGnh2sLBDFp9d8rvKz2Yp39iDpyT' },
       { token: 'FORGE', mint: 'FoRGERiW7odcCBGU1bztZi16osPBHjxharvDathL5eds' },
-      { token: 'tBTC', mint: '6DNSN2BJsaPFdFFc1zP37kkeNe4Usc1Sqkzr9C9vPWcU' },
+      { token: 'TBTC', mint: '6DNSN2BJsaPFdFFc1zP37kkeNe4Usc1Sqkzr9C9vPWcU' },
       { token: 'COCO', mint: '74DSHnK1qqr4z1pXjLjPAVi8XFngZ635jEVpdkJtnizQ' },
       { token: 'STYLE', mint: '3FHpkMTQ3QyAJoLoXVdBpH4TfHiehnL2kXmv9UXBpYuF' },
       { token: 'CHAI', mint: '3jsFX1tx2Z8ewmamiwSU851GzyzM2DJMq7KWW5DM8Py3' },
@@ -85,6 +92,9 @@ export const ScopeMints: { cluster: SolanaCluster; mints: { token: SupportedToke
       { token: 'kSOLUSDCOrca', mint: '8aRT9m1wJ63mnFxeZ3qyBCrwbNMuPKPCEYxpXB41WzYd' },
       { token: 'kJITOSOLUSDCOrca', mint: '8Ak9JgLeTo6ubG5vfpuAR59ANpGjTB8HFDwYjpZbkPeB' },
       { token: 'LST', mint: 'LSTxxxnJzKDFSLr4dUkPcmCf5VyryEqzPLz5j4bpxFp' },
+      { token: 'kSOLJITOSOLRaydium', mint: 'GYiUmJ8reqYAdTQtx6CRFawHqPXx9yzkUFvaUVE8PskP' },
+      { token: 'kSOLMSOLRaydium', mint: '3Fb5DMRWoBLWD36Lp4BtG41LaFjVeEJNCH9YLNPYdVqj' },
+      { token: 'RENDER', mint: 'rndrizKT3MK1iimdxRdWabcF7Zg7AR5T4nud4EkHBof' },
     ],
   },
   {
@@ -102,10 +112,28 @@ export const ScopeMints: { cluster: SolanaCluster; mints: { token: SupportedToke
   },
 ];
 
+/**
+ * @deprecated Deprecated since version 2.2.47 - please use {@link getOraclePrices} or the respective SDK client instead.
+ * @see [hubble-sdk]{@link https://github.com/hubbleprotocol/hubble-common/blob/0512e85c5a816a557fe7feaf55981cabcd992476/packages/hubble-sdk/src/Hubble.ts#L722} getAllPrices method
+ * @see [kamino-sdk]{@link https://github.com/hubbleprotocol/hubble-common/blob/0be269d4fdb3dbadbbd8c7fcca68c6b1928d445a/packages/kamino-sdk/src/Kamino.ts#L1717} getAllPrices method
+ * @see [kamino-lending-sdk]{@link https://github.com/hubbleprotocol/kamino-lending-sdk/blob/17a48b6bb21945d2d799d31d6f0b20104e8c83ac/src/classes/market.ts#L759} getAllScopePrices method
+ * @description Map scope token name to mint
+ * @param token
+ * @param cluster
+ */
 export function scopeTokenToMint(token: SupportedToken, cluster: SolanaCluster = 'mainnet-beta') {
   return ScopeMints.find((x) => x.cluster === cluster)?.mints?.find((x) => x.token === token)?.mint;
 }
 
+/**
+ * @deprecated Deprecated since version 2.2.47 - please use {@link getOraclePrices} or the respective SDK client instead.
+ * @see [hubble-sdk]{@link https://github.com/hubbleprotocol/hubble-common/blob/0512e85c5a816a557fe7feaf55981cabcd992476/packages/hubble-sdk/src/Hubble.ts#L722} getAllPrices method
+ * @see [kamino-sdk]{@link https://github.com/hubbleprotocol/hubble-common/blob/0be269d4fdb3dbadbbd8c7fcca68c6b1928d445a/packages/kamino-sdk/src/Kamino.ts#L1717} getAllPrices method
+ * @see [kamino-lending-sdk]{@link https://github.com/hubbleprotocol/kamino-lending-sdk/blob/17a48b6bb21945d2d799d31d6f0b20104e8c83ac/src/classes/market.ts#L759} getAllScopePrices method
+ * @description Map token mint to scope token name
+ * @param mint
+ * @param cluster
+ */
 export function mintToScopeToken(mint: string, cluster: SolanaCluster = 'mainnet-beta') {
   return ScopeMints.find((x) => x.cluster === cluster)?.mints?.find((x) => x.mint === mint)?.token;
 }

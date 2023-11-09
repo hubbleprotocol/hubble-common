@@ -1,4 +1,5 @@
 import {
+  clusterApiUrl,
   Connection,
   Keypair,
   PublicKey,
@@ -9,12 +10,12 @@ import {
   VersionedTransaction,
 } from '@solana/web3.js';
 import {
+  collToLamportsDecimal,
   createAddExtraComputeUnitsTransaction,
   DepositAmountsForSwap,
   Dex,
   getReadOnlyWallet,
   Kamino,
-  noopProfiledFunctionExecution,
   sendTransactionWithLogs,
   sleep,
   StrategiesFilters,
@@ -44,6 +45,7 @@ import {
   solAirdrop,
   getLocalSwapIxs,
   setupAta,
+  getCollInfoEncodedChainFromIndexes,
 } from './utils';
 import {
   AllowDepositWithoutInvest,
@@ -62,6 +64,7 @@ import { WHIRLPOOL_PROGRAM_ID } from '../src/whirpools-client/programId';
 import * as ed25519 from 'tweetnacl-ts';
 import { Provider } from '@project-serum/anchor';
 import { createWsolAtaIfMissing } from '../src/utils/transactions';
+import { getMintDecimals } from '@project-serum/serum/lib/market';
 
 export const LOCAL_RAYDIUM_PROGRAM_ID = new PublicKey('devi51mZmdwUJGU9hjN27vEz64Gps7uUefqxg27EAtH');
 export const USDH_SCOPE_CHAIN_ID = BigInt(12);
@@ -141,7 +144,7 @@ describe('Kamino SDK Tests', () => {
       USDH_SCOPE_CHAIN_ID,
       globalConfig,
       'USDH',
-      BigInt(0),
+      BigInt(1),
       tokenAMint
     );
 
@@ -153,7 +156,7 @@ describe('Kamino SDK Tests', () => {
       USDC_SCOPE_CHAIN_ID,
       globalConfig,
       'USDC',
-      BigInt(0),
+      BigInt(1),
       tokenBMint
     );
 
@@ -309,6 +312,38 @@ describe('Kamino SDK Tests', () => {
     // @ts-ignore
     const init = () => new Kamino('invalid-clusters', undefined);
     expect(init).to.throw(Error);
+  });
+
+  it('should get all Kamino prices', async () => {
+    const kamino = new Kamino(
+      cluster,
+      connection,
+      fixtures.globalConfig,
+      fixtures.kaminoProgramId,
+      WHIRLPOOL_PROGRAM_ID,
+      LOCAL_RAYDIUM_PROGRAM_ID
+    );
+    const prices = await kamino.getAllPrices();
+    expect(prices).not.to.be.undefined;
+    expect(Object.keys(prices.spot)).to.have.length(2);
+    expect(Object.keys(prices.twap)).to.have.length(2);
+
+    const usdh = prices.spot[fixtures.newTokenMintA.toString()];
+    const usdc = prices.spot[fixtures.newTokenMintB.toString()];
+    const usdhTwap = prices.twap[fixtures.newTokenMintA.toString()];
+    const usdcTwap = prices.twap[fixtures.newTokenMintB.toString()];
+    expect(usdh).not.to.be.undefined;
+    expect(usdh!.name).to.be.equal('USDH');
+    expect(usdh!.price.toNumber()).to.be.greaterThan(0);
+    expect(usdc).not.to.be.undefined;
+    expect(usdc!.name).to.be.equal('USDC');
+    expect(usdc!.price.toNumber()).to.be.greaterThan(0);
+    expect(usdhTwap).not.to.be.undefined;
+    expect(usdhTwap!.name).to.be.equal('USDH');
+    expect(usdhTwap!.price.toNumber()).to.be.greaterThan(0);
+    expect(usdcTwap).not.to.be.undefined;
+    expect(usdcTwap!.name).to.be.equal('USDC');
+    expect(usdcTwap!.price.toNumber()).to.be.greaterThan(0);
   });
 
   it('should get all strategies', async () => {
@@ -663,6 +698,7 @@ describe('Kamino SDK Tests', () => {
       usdhAirdropAmount
     );
 
+    let tokenADecimals = await getMintDecimals(connection, strategyState.tokenAMint);
     let usdcDeposit = new Decimal(10.0);
     let swapper: SwapperIxBuilder = (
       input: DepositAmountsForSwap,
@@ -681,18 +717,24 @@ describe('Kamino SDK Tests', () => {
     );
     console.log('initialTokenBalances', initialTokenBalances);
 
+    kamino.singleSidedDepositTokenA(
+      fixtures.newOrcaStrategy,
+      usdcDeposit,
+      user.owner.publicKey,
+      new Decimal(0),
+      undefined,
+      swapper
+    );
+
     let { instructions: singleSidedDepositIxs, lookupTablesAddresses: _lookupTables } =
       // @ts-ignore
-      await kamino.getSingleSidedDepositIxs(
+      await kamino.singleSidedDepositTokenA(
         fixtures.newOrcaStrategy,
-        usdcAirdropAmount.sub(usdcDeposit),
-        usdhAirdropAmount,
+        usdcDeposit,
         user.owner.publicKey,
         new Decimal(0),
-        swapper,
-        noopProfiledFunctionExecution,
-        initialTokenBalances,
-        new Decimal(1.0) // this doesn't have to be provided on mainnet, as it reads the price from Jup
+        undefined,
+        swapper
       );
 
     const increaseBudgetIx = createAddExtraComputeUnitsTransaction(signer.publicKey, 1_000_000);
@@ -709,9 +751,6 @@ describe('Kamino SDK Tests', () => {
     let myHash = await sendAndConfirmTransaction(kamino.getConnection(), singleSidedDepositTx, undefined, {
       skipPreflight: true,
     });
-    console.log('single sided deposit tx hash', myHash);
-    // const depositTxId = await kamino.getConnection().simulateTransaction(singleSidedDepositTx);
-    // console.log('single sided deposit tx hash', depositTxId);
 
     const strategy = await kamino.getStrategyByAddress(fixtures.newOrcaStrategy);
     expect(strategy).to.not.be.null;
@@ -723,8 +762,9 @@ describe('Kamino SDK Tests', () => {
     // @ts-ignore
     let tokenBLeft = await kamino._connection.getTokenAccountBalance(user.tokenBAta);
 
-    expect(new Decimal(tokenALeft.value.amount).greaterThanOrEqualTo(new Decimal(90.0))).to.be.true;
-    expect(new Decimal(tokenALeft.value.amount).lessThan(new Decimal(90.001))).to.be.true;
+    const expectedARemainingAmount = collToLamportsDecimal(new Decimal(90.0), tokenADecimals);
+    expect(new Decimal(tokenALeft.value.amount).greaterThanOrEqualTo(expectedARemainingAmount)).to.be.true;
+    expect(new Decimal(tokenALeft.value.amount).lessThan(expectedARemainingAmount.add(10))).to.be.true; // verify that the leftover from deposit is max 10 lamports
     expect(tokenBLeft.value.uiAmount).to.be.greaterThanOrEqual(0);
     expect(tokenBLeft.value.uiAmount).to.be.lessThanOrEqual(0.0001);
   });
@@ -1901,6 +1941,21 @@ describe('Kamino SDK Tests', () => {
       console.log(`Fetching closed position got err ${error}`);
     }
   });
+
+  it.skip('should get all mainnet Kamino prices', async () => {
+    const kamino = new Kamino('mainnet-beta', new Connection(clusterApiUrl('mainnet-beta')));
+    const prices = await kamino.getAllPrices();
+    expect(prices).not.to.be.undefined;
+    expect(Object.keys(prices.spot)).to.have.length.greaterThan(0);
+    const usdh = prices.spot['USDH1SM1ojwWUga67PGrgFWUHibbjqMvuMaDkRJTgkX'];
+    const usdhTwap = prices.twap['USDH1SM1ojwWUga67PGrgFWUHibbjqMvuMaDkRJTgkX'];
+    expect(usdh).not.to.be.undefined;
+    expect(usdh!.name).to.be.equal('USDH');
+    expect(usdh!.price.toNumber()).to.be.greaterThan(0);
+    expect(usdhTwap).not.to.be.undefined;
+    expect(usdhTwap!.name).to.be.equal('USDH');
+    expect(usdhTwap!.price.toNumber()).to.be.greaterThan(0);
+  });
 });
 
 export async function createStrategy(kamino: Kamino, owner: Keypair, pool: PublicKey, dex: Dex): Promise<PublicKey> {
@@ -2149,7 +2204,7 @@ export async function updateCollateralInfoForToken(
     globalConfig,
     collTokenIndex,
     new UpdateCollateralInfoMode.UpdateScopeTwap(),
-    collInfoTwapId
+    getCollInfoEncodedChainFromIndexes([Number.parseInt(collInfoTwapId.toString())])
   );
 
   // Set Scope Chain
@@ -2159,7 +2214,7 @@ export async function updateCollateralInfoForToken(
     globalConfig,
     collTokenIndex,
     new UpdateCollateralInfoMode.UpdateScopeChain(),
-    scopeChainId
+    getCollInfoEncodedChainFromIndexes([Number.parseInt(scopeChainId.toString())])
   );
 
   // Set Twap Max Age

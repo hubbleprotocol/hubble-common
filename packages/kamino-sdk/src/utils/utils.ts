@@ -3,7 +3,18 @@ import { WhirlpoolStrategy } from '../kamino-client/accounts';
 import { WHIRLPOOL_PROGRAM_ID } from '../whirpools-client/programId';
 import { PROGRAM_ID as RAYDIUM_PROGRAM_ID } from '../raydium_client/programId';
 import Decimal from 'decimal.js';
-import { RebalanceType, RebalanceTypeKind, StrategyConfigOptionKind } from '../kamino-client/types';
+import {
+  DEX,
+  DriftDirection,
+  DriftDirectionKind,
+  RebalanceAutodriftStep,
+  RebalanceAutodriftStepKind,
+  RebalanceType,
+  RebalanceTypeKind,
+  StakingRateSource,
+  StakingRateSourceKind,
+  StrategyConfigOptionKind,
+} from '../kamino-client/types';
 import {
   UpdateStrategyConfigAccounts,
   UpdateStrategyConfigArgs,
@@ -13,6 +24,8 @@ import { SqrtPriceMath } from '@raydium-io/raydium-sdk';
 import { token } from '@project-serum/anchor/dist/cjs/utils';
 import { RebalanceFieldInfo, RebalanceFieldsDict } from './types';
 import BN from 'bn.js';
+import { PoolPriceReferenceType, TwapPriceReferenceType } from './priceReferenceTypes';
+import { sqrtPriceX64ToPrice } from '@orca-so/whirlpool-sdk';
 
 export const DolarBasedMintingMethod = new Decimal(0);
 export const ProportionalMintingMethod = new Decimal(1);
@@ -25,6 +38,9 @@ export function sleep(ms: number) {
 
 export const Dex = ['ORCA', 'RAYDIUM'] as const;
 export type Dex = (typeof Dex)[number];
+
+export const ReferencePriceType = [PoolPriceReferenceType, TwapPriceReferenceType] as const;
+export type ReferencePriceType = (typeof ReferencePriceType)[number];
 
 export function dexToNumber(dex: Dex): number {
   for (let i = 0; i < Dex.length; i++) {
@@ -43,6 +59,14 @@ export function numberToDex(num: number): Dex {
     throw new Error(`Unknown DEX ${num}`);
   }
   return dex;
+}
+
+export function numberToReferencePriceType(num: number): ReferencePriceType {
+  let referencePriceType = ReferencePriceType[num];
+  if (!referencePriceType) {
+    throw new Error(`Strategy has invalid reference price type set: ${num}`);
+  }
+  return referencePriceType;
 }
 
 export function getDexProgramId(strategyState: WhirlpoolStrategy): PublicKey {
@@ -102,10 +126,56 @@ export function buildStrategyRebalanceParams(
     buffer.writeUInt16LE(params[4].toNumber(), 8);
     buffer.writeUInt16LE(params[5].toNumber(), 10);
     buffer.writeUInt8(params[6].toNumber(), 12);
+  } else if (rebalance_type.kind == RebalanceType.Autodrift.kind) {
+    buffer.writeUInt32LE(params[0].toNumber(), 0);
+    buffer.writeInt32LE(params[1].toNumber(), 4);
+    buffer.writeInt32LE(params[2].toNumber(), 8);
+    buffer.writeUInt16LE(params[3].toNumber(), 12);
+    buffer.writeUInt8(params[4].toNumber(), 14);
+    buffer.writeUInt8(params[5].toNumber(), 15);
+    buffer.writeUInt8(params[6].toNumber(), 16);
   } else {
     throw 'Rebalance type not valid ' + rebalance_type;
   }
   return [...buffer];
+}
+
+export function doesStrategyHaveResetRange(rebalanceTypeNumber: number): boolean {
+  let rebalanceType = numberToRebalanceType(rebalanceTypeNumber);
+  return (
+    rebalanceType.kind == RebalanceType.PricePercentageWithReset.kind ||
+    rebalanceType.kind == RebalanceType.Expander.kind
+  );
+}
+
+export function numberToDriftDirection(value: number): DriftDirectionKind {
+  if (value == 0) {
+    return new DriftDirection.Increasing();
+  } else if (value == 1) {
+    return new DriftDirection.Decreasing();
+  } else {
+    throw new Error(`Invalid drift direction ${value.toString()}`);
+  }
+}
+
+export function numberToStakingRateSource(value: number): StakingRateSourceKind {
+  if (value == 0) {
+    return new StakingRateSource.Constant();
+  } else if (value == 1) {
+    return new StakingRateSource.Scope();
+  } else {
+    throw new Error(`Invalid staking rate source ${value.toString()}`);
+  }
+}
+
+export function numberToAutodriftStep(value: number): RebalanceAutodriftStepKind {
+  if (value == 0) {
+    return new RebalanceAutodriftStep.Uninitialized();
+  } else if (value == 1) {
+    return new RebalanceAutodriftStep.Autodrifting();
+  } else {
+    throw new Error(`Invalid autodrift step ${value.toString()}`);
+  }
 }
 
 export function numberToRebalanceType(rebalance_type: number): RebalanceTypeKind {
@@ -123,6 +193,8 @@ export function numberToRebalanceType(rebalance_type: number): RebalanceTypeKind
     return new RebalanceType.PeriodicRebalance();
   } else if (rebalance_type == 6) {
     return new RebalanceType.Expander();
+  } else if (rebalance_type == 7) {
+    return new RebalanceType.Autodrift();
   } else {
     throw new Error(`Invalid rebalance type ${rebalance_type.toString()}`);
   }
@@ -163,7 +235,16 @@ export function lamportsToNumberDecimal(amount: Decimal.Value, decimals: number)
 }
 
 export function readBigUint128LE(buffer: Buffer, offset: number): bigint {
-  return buffer.readBigUint64LE(offset) + (buffer.readBigUint64LE(offset + 8) << BigInt(64));
+  return buffer.readBigUInt64LE(offset) + (buffer.readBigUInt64LE(offset + 8) << BigInt(64));
+}
+
+export function readPriceOption(buffer: Buffer, offset: number): [number, Decimal] {
+  if (buffer.readUint8(offset) == 0) {
+    return [offset + 1, new Decimal(0)];
+  }
+  let value = buffer.readBigUInt64LE(offset + 1);
+  let exp = buffer.readBigUInt64LE(offset + 9);
+  return [offset + 17, new Decimal(value.toString()).div(new Decimal(10).pow(exp.toString()))];
 }
 
 function writeBNUint64LE(buffer: Buffer, value: BN, offset: number) {
@@ -194,4 +275,20 @@ export function rebalanceFieldsDictToInfo(rebalanceFields: RebalanceFieldsDict):
 
 export function isVaultInitialized(vault: PublicKey, decimals: BN): boolean {
   return !vault.equals(PublicKey.default) && decimals.toNumber() > 0;
+}
+
+export function sqrtPriceToPrice(sqrtPrice: BN, dexNo: number, decimalsA: number, decimalsB: number): Decimal {
+  let dex = numberToDex(dexNo);
+  if (dex == 'ORCA') {
+    return sqrtPriceX64ToPrice(sqrtPrice, decimalsA, decimalsB);
+  }
+  if (dex == 'RAYDIUM') {
+    return SqrtPriceMath.sqrtPriceX64ToPrice(sqrtPrice, decimalsA, decimalsB);
+  }
+  throw new Error(`Got invalid dex number ${dex}`);
+}
+
+// Zero is not a valid TWAP component as that indicates the SOL price
+export function stripTwapZeros(chain: number[]): number[] {
+  return chain.filter((component) => component > 0);
 }

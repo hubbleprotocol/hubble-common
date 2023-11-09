@@ -129,8 +129,8 @@ export function readPricePercentageRebalanceStateFromStrategy(
 ): RebalanceFieldInfo[] {
   let stateBuffer = Buffer.from(rebalanceRaw.state);
 
-  let lowerSqrtPriceX64 = new Decimal(readBigUint128LE(stateBuffer, 0).toString());
-  let upperSqrtPriceX64 = new Decimal(readBigUint128LE(stateBuffer, 16).toString());
+  let lowerSqrtPriceX64 = readBigUint128LE(stateBuffer, 0).toString();
+  let upperSqrtPriceX64 = readBigUint128LE(stateBuffer, 16).toString();
   let lowerPrice: Decimal, upperPrice: Decimal;
 
   if (dex == 'ORCA') {

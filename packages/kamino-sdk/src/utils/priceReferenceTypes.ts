@@ -6,6 +6,6 @@ export const PoolPriceReferenceType: PriceReferenceType = {
 };
 
 export const TwapPriceReferenceType: PriceReferenceType = {
-  name: 'TWAP price',
+  name: 'TWAP',
   description: 'Use the time weighted average price as the reference price for rebalancing',
 };

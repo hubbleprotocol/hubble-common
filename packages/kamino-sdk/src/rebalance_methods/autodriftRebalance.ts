@@ -1,39 +1,51 @@
 import Decimal from 'decimal.js';
 import { PositionRange, RebalanceFieldInfo, RebalanceFieldsDict } from '../utils/types';
-import { Dex } from '../utils';
+import { Dex, readPriceOption } from '../utils';
 import { priceToTickIndex, sqrtPriceX64ToPrice, tickIndexToPrice } from '@orca-so/whirlpool-sdk';
 import { SqrtPriceMath } from '@raydium-io/raydium-sdk';
 import { RebalanceRaw } from '../kamino-client/types';
 import { RebalanceTypeLabelName } from './consts';
 import { upsertManyRebalanceFieldInfos } from './utils';
 
+export const DEFAULT_DRIFT_TICKS_PER_EPOCH = new Decimal(1);
 export const DEFAULT_TICKS_BELOW_MID = new Decimal(10);
 export const DEFAULT_TICKS_ABOVE_MID = new Decimal(10);
-export const DEFAULT_SECONDS_PER_TICK = new Decimal(60 * 60 * 24 * 3); // 3 days; todo: get a reasonable default from Matt
+export const DEFAULT_FRONTRUN_MULTIPLIER_BPS = new Decimal(10_000);
+export const DEFAULT_STAKING_RATE_SOURCE_A = new Decimal(0);
+export const DEFAULT_STAKING_RATE_SOURCE_B = new Decimal(0);
 export const DEFAULT_DIRECTION = new Decimal(1);
-export const DriftRebalanceTypeName = 'drift';
+export const AutodriftRebalanceTypeName = 'autodrift';
 
-export function getDriftRebalanceFieldInfos(
+export function getAutodriftRebalanceFieldInfos(
   dex: Dex,
   tokenADecimals: number,
   tokenBDecimals: number,
-  startMidTick: Decimal,
+  lastMidTick: Decimal,
+  initDriftTicksPerEpoch: Decimal,
   ticksBelowMid: Decimal,
   ticksAboveMid: Decimal,
-  secondsPerTick: Decimal,
-  direction: Decimal,
+  frontrunMultiplierBps: Decimal,
+  stakingRateASource: Decimal,
+  stakingRateBSource: Decimal,
+  initialDriftDirection: Decimal,
   enabled: boolean = true
 ): RebalanceFieldInfo[] {
   let rebalanceType: RebalanceFieldInfo = {
     label: RebalanceTypeLabelName,
     type: 'string',
-    value: DriftRebalanceTypeName,
+    value: AutodriftRebalanceTypeName,
     enabled,
   };
-  let startMidTickRebalanceFieldInfo: RebalanceFieldInfo = {
-    label: 'startMidTick',
+  let lastMidTickRebalanceFieldInfo: RebalanceFieldInfo = {
+    label: 'lastMidTick',
     type: 'number',
-    value: startMidTick,
+    value: lastMidTick,
+    enabled: false,
+  };
+  let initDriftTicksPerEpochRebalanceFieldInfo: RebalanceFieldInfo = {
+    label: 'initDriftTicksPerEpoch',
+    type: 'number',
+    value: initDriftTicksPerEpoch,
     enabled,
   };
   let ticksBelowMidRebalanceFieldInfo: RebalanceFieldInfo = {
@@ -48,24 +60,36 @@ export function getDriftRebalanceFieldInfos(
     value: ticksAboveMid,
     enabled,
   };
-  let secondsPerTickRebalanceFieldInfo: RebalanceFieldInfo = {
-    label: 'secondsPerTick',
+  let fronturnMultiplierBpsRebalanceFieldInfo: RebalanceFieldInfo = {
+    label: 'frontrunMultiplierBps',
     type: 'number',
-    value: secondsPerTick,
+    value: frontrunMultiplierBps,
     enabled,
   };
-  let directionRebalanceFieldInfo: RebalanceFieldInfo = {
-    label: 'direction',
+  let stakingRateASourceRebalanceFieldInfo: RebalanceFieldInfo = {
+    label: 'stakingRateASource',
     type: 'number',
-    value: direction,
+    value: stakingRateASource,
+    enabled,
+  };
+  let stakingRateBSourceRebalanceFieldInfo: RebalanceFieldInfo = {
+    label: 'stakingRateBSource',
+    type: 'number',
+    value: stakingRateBSource,
+    enabled,
+  };
+  let initialDriftDirectionRebalanceFieldInfo: RebalanceFieldInfo = {
+    label: 'initialDriftDirection',
+    type: 'number',
+    value: initialDriftDirection,
     enabled,
   };
 
-  let { lowerPrice, upperPrice } = getPositionRangeFromDriftParams(
+  let { lowerPrice, upperPrice } = getPositionRangeFromAutodriftParams(
     dex,
     tokenADecimals,
     tokenBDecimals,
-    startMidTick,
+    lastMidTick,
     ticksBelowMid,
     ticksAboveMid
   );
@@ -85,20 +109,20 @@ export function getDriftRebalanceFieldInfos(
 
   return [
     rebalanceType,
-    startMidTickRebalanceFieldInfo,
     ticksBelowMidRebalanceFieldInfo,
     ticksAboveMidRebalanceFieldInfo,
-    secondsPerTickRebalanceFieldInfo,
-    directionRebalanceFieldInfo,
+    initialDriftDirectionRebalanceFieldInfo,
     lowerRangeRebalanceFieldInfo,
     upperRangeRebalanceFieldInfo,
+    fronturnMultiplierBpsRebalanceFieldInfo,
+    stakingRateASourceRebalanceFieldInfo,
+    stakingRateBSourceRebalanceFieldInfo,
+    initDriftTicksPerEpochRebalanceFieldInfo,
+    lastMidTickRebalanceFieldInfo,
   ];
 }
 
-// todo(silviu): see if this is needed
-export function getPositionRangeFromTakeProfitFieldInfos(fieldInfos: RebalanceFieldInfo[]) {}
-
-export function getPositionRangeFromDriftParams(
+export function getPositionRangeFromAutodriftParams(
   dex: Dex,
   tokenADecimals: number,
   tokenBDecimals: number,
@@ -133,7 +157,7 @@ export function getPositionRangeFromDriftParams(
 }
 
 // todo(silviu): get sensible default params from Matt
-export function getDefaultDriftRebalanceFieldInfos(
+export function getDefaultAutodriftRebalanceFieldInfos(
   dex: Dex,
   price: Decimal,
   tokenADecimals: number,
@@ -142,55 +166,73 @@ export function getDefaultDriftRebalanceFieldInfos(
   let currentTickIndex = priceToTickIndex(price, tokenADecimals, tokenBDecimals);
   let startMidTick = new Decimal(currentTickIndex);
 
-  return getDriftRebalanceFieldInfos(
+  return getAutodriftRebalanceFieldInfos(
     dex,
     tokenADecimals,
     tokenBDecimals,
     startMidTick,
+    DEFAULT_DRIFT_TICKS_PER_EPOCH,
     DEFAULT_TICKS_BELOW_MID,
     DEFAULT_TICKS_ABOVE_MID,
-    DEFAULT_SECONDS_PER_TICK,
+    DEFAULT_FRONTRUN_MULTIPLIER_BPS,
+    DEFAULT_STAKING_RATE_SOURCE_A,
+    DEFAULT_STAKING_RATE_SOURCE_B,
     DEFAULT_DIRECTION
   );
 }
 
-export function readDriftRebalanceParamsFromStrategy(rebalanceRaw: RebalanceRaw): RebalanceFieldsDict {
+export function readAutodriftRebalanceParamsFromStrategy(rebalanceRaw: RebalanceRaw): RebalanceFieldsDict {
   let paramsBuffer = Buffer.from(rebalanceRaw.params);
   let params: RebalanceFieldsDict = {};
 
-  params['startMidTick'] = new Decimal(paramsBuffer.readInt32LE(0));
+  params['initDriftTicksPerEpoch'] = new Decimal(paramsBuffer.readUInt32LE(0));
   params['ticksBelowMid'] = new Decimal(paramsBuffer.readInt32LE(4));
   params['ticksAboveMid'] = new Decimal(paramsBuffer.readInt32LE(8));
-  params['secondsPerTick'] = new Decimal(paramsBuffer.readBigUInt64LE(12).toString());
-  params['direction'] = new Decimal(paramsBuffer.readUint8(20));
+  params['frontrunMultiplierBps'] = new Decimal(paramsBuffer.readUInt16LE(12));
+  params['stakingRateASource'] = new Decimal(paramsBuffer.readUint8(14));
+  params['stakingRateBSource'] = new Decimal(paramsBuffer.readUint8(15));
+  params['initialDriftDirection'] = new Decimal(paramsBuffer.readUint8(16));
 
   return params;
 }
 
-export function readRawDriftRebalanceStateFromStrategy(rebalanceRaw: RebalanceRaw) {
+export function readRawAutodriftRebalanceStateFromStrategy(rebalanceRaw: RebalanceRaw) {
   let stateBuffer = Buffer.from(rebalanceRaw.state);
   let state: RebalanceFieldsDict = {};
 
-  state['step'] = new Decimal(stateBuffer.readUInt8(0));
-  state['lastDriftTimestamp'] = new Decimal(stateBuffer.readBigUInt64LE(1).toString());
-  state['lastMidTick'] = new Decimal(stateBuffer.readInt32LE(9));
+  // prettier-ignore
+  {
+      let offset = 0;
+      [offset, state['last_window_staking_rate_a']     ] = readPriceOption(stateBuffer, offset);
+      [offset, state['last_window_staking_rate_b']     ] = readPriceOption(stateBuffer, offset);
+      [offset, state['last_window_epoch']              ] = [offset + 8, new Decimal(stateBuffer.readBigUInt64LE(offset).toString())];
+      [offset, state['last_window_theoretical_tick']   ] = [offset + 4, new Decimal(stateBuffer.readInt32LE(offset))];
+      [offset, state['last_window_strat_mid_tick']     ] = [offset + 4, new Decimal(stateBuffer.readInt32LE(offset))];
+
+      [offset, state['current_window_staking_rate_a']  ] = readPriceOption(stateBuffer, offset);
+      [offset, state['current_window_staking_rate_b']  ] = readPriceOption(stateBuffer, offset);
+      [offset, state['current_window_epoch']           ] = [offset + 8, new Decimal(stateBuffer.readBigUInt64LE(offset).toString())];
+      [offset, state['current_window_theoretical_tick']] = [offset + 4, new Decimal(stateBuffer.readInt32LE(offset))];
+      [offset, state['current_window_strat_mid_tick']  ] = [offset + 4, new Decimal(stateBuffer.readInt32LE(offset))];
+      [offset, state['autodrift_step']                 ] = [offset + 1, new Decimal(stateBuffer.readInt8(offset))];
+  }
 
   return state;
 }
 
-export function readDriftRebalanceStateFromStrategy(
+export function readAutodriftRebalanceStateFromStrategy(
   dex: Dex,
   tokenADecimals: number,
   tokenBDecimals: number,
   rebalanceRaw: RebalanceRaw
 ) {
-  let stateBuffer = Buffer.from(rebalanceRaw.state);
-  let paramsBuffer = Buffer.from(rebalanceRaw.params);
+  let params = readAutodriftRebalanceParamsFromStrategy(rebalanceRaw);
+  let state = readRawAutodriftRebalanceStateFromStrategy(rebalanceRaw);
 
-  let lastMidTick = new Decimal(stateBuffer.readInt32LE(9));
+  let lastMidTick = state['current_window_strat_mid_tick'];
 
-  let ticksBelowMid = new Decimal(paramsBuffer.readInt32LE(4));
-  let ticksAboveMid = new Decimal(paramsBuffer.readInt32LE(8));
+  let ticksBelowMid = params['ticksBelowMid'];
+  let ticksAboveMid = params['ticksAboveMid'];
 
   let lowerTickIndex = lastMidTick.sub(ticksBelowMid);
   let upperTickIndex = lastMidTick.add(ticksAboveMid);
@@ -231,35 +273,39 @@ export function readDriftRebalanceStateFromStrategy(
   return [lowerRangeRebalanceFieldInfo, upperRangeRebalanceFieldInfo];
 }
 
-export function deserializeDriftRebalanceFromOnchainParams(
+export function deserializeAutodriftRebalanceFromOnchainParams(
   dex: Dex,
   tokenADecimals: number,
   tokenBDecimals: number,
   rebalanceRaw: RebalanceRaw
 ): RebalanceFieldInfo[] {
-  let params = readDriftRebalanceParamsFromStrategy(rebalanceRaw);
+  let params = readAutodriftRebalanceParamsFromStrategy(rebalanceRaw);
+  let state = readRawAutodriftRebalanceStateFromStrategy(rebalanceRaw);
 
-  return getDriftRebalanceFieldInfos(
+  return getAutodriftRebalanceFieldInfos(
     dex,
     tokenADecimals,
     tokenBDecimals,
-    params['startMidTick'],
+    state['current_window_strat_mid_tick'],
+    params['initDriftTicksPerEpoch'],
     params['ticksBelowMid'],
     params['ticksAboveMid'],
-    params['secondsPerTick'],
-    params['direction']
+    params['frontrunMultiplierBps'],
+    params['stakingRateASource'],
+    params['stakingRateBSource'],
+    params['initialDriftDirection']
   );
 }
 
-export function deserializeDriftRebalanceWithStateOverride(
+export function deserializeAutodriftRebalanceWithStateOverride(
   dex: Dex,
   tokenADecimals: number,
   tokenBDecimals: number,
   rebalanceRaw: RebalanceRaw
 ): RebalanceFieldInfo[] {
-  const stateFields = readDriftRebalanceStateFromStrategy(dex, tokenADecimals, tokenBDecimals, rebalanceRaw);
+  const stateFields = readAutodriftRebalanceStateFromStrategy(dex, tokenADecimals, tokenBDecimals, rebalanceRaw);
 
-  let fields = deserializeDriftRebalanceFromOnchainParams(dex, tokenADecimals, tokenBDecimals, rebalanceRaw);
+  let fields = deserializeAutodriftRebalanceFromOnchainParams(dex, tokenADecimals, tokenBDecimals, rebalanceRaw);
 
   return upsertManyRebalanceFieldInfos(fields, stateFields);
 }

@@ -89,7 +89,7 @@ export function readPeriodicRebalanceRebalanceParamsFromStrategy(rebalanceRaw: R
   let paramsBuffer = Buffer.from(rebalanceRaw.params);
   let params: RebalanceFieldsDict = {};
 
-  params['period'] = new Decimal(paramsBuffer.readBigUint64LE(0).toString());
+  params['period'] = new Decimal(paramsBuffer.readBigUInt64LE(0).toString());
   params['lowerRangeBps'] = new Decimal(paramsBuffer.readUInt16LE(8));
   params['upperRangeBps'] = new Decimal(paramsBuffer.readUInt16LE(10));
 
@@ -100,7 +100,7 @@ export function readPeriodicRebalanceRebalanceStateFromStrategy(rebalanceRaw: Re
   let stateBuffer = Buffer.from(rebalanceRaw.state);
   let state: RebalanceFieldsDict = {};
 
-  state['lastRebalanceTimestamp'] = new Decimal(stateBuffer.readBigUint64LE(0).toString());
+  state['lastRebalanceTimestamp'] = new Decimal(stateBuffer.readBigUInt64LE(0).toString());
 
   return state;
 }

@@ -9,9 +9,11 @@ import {
   Drift,
   TakeProfit,
   PeriodicRebalance,
+  Autodrift,
 } from '../kamino-client/types/RebalanceType';
 import { RebalanceFieldInfo } from '../utils';
 import {
+  AutodriftMethod,
   DriftRebalanceMethod,
   ExpanderMethod,
   ManualRebalanceMethod,
@@ -21,6 +23,7 @@ import {
   RebalanceMethod,
   TakeProfitMethod,
 } from '../utils/CreationParameters';
+import { AutodriftRebalanceTypeName } from './autodriftRebalance';
 import { DriftRebalanceTypeName } from './driftRebalance';
 import { ExpanderRebalanceTypeName } from './expanderRebalance';
 import { ManualRebalanceTypeName } from './manualRebalance';
@@ -50,6 +53,8 @@ export function getRebalanceTypeFromRebalanceFields(rebalanceFieldInfos: Rebalan
       return new PeriodicRebalance();
     case ExpanderRebalanceTypeName:
       return new Expander();
+    case AutodriftRebalanceTypeName:
+      return new Autodrift();
     default:
       throw new Error(`Invalid rebalance type ${rebalanceTypeField.value}`);
   }
@@ -71,6 +76,8 @@ export function rebalanceTypeToRebalanceMethod(rebalanceType: RebalanceTypeKind)
       return PeriodicRebalanceMethod;
     case Expander.kind:
       return ExpanderMethod;
+    case Autodrift.kind:
+      return AutodriftMethod;
     default:
       throw new Error(`Invalid rebalance type ${rebalanceType}`);
   }

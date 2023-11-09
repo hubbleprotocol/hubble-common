@@ -103,7 +103,7 @@ export type CustomError =
   | DepositLessThanMinimum
   | DepositWithoutInvestDisallowed
   | InvalidScopeChain
-  | InvalidTwapId
+  | InvalidScopeTWAPChain
   | PositionHasRemainingLiquidity
   | PoolRebalancing
   | PermissionlessRebalancingDisabled
@@ -129,6 +129,11 @@ export type CustomError =
   | UnexpectedProgramIdForPrerequisiteIx
   | ComputeFeesAndRewardsUpdateError
   | SharesNotZero
+  | InvalidScopeStakingRateChain
+  | StakingRateNotValid
+  | DecimalToU128ConversionFailed
+  | DecimalNegativeSqrtRoot
+  | DriftingOppositeDirection
 
 export class IntegerOverflow extends Error {
   static readonly code = 6000
@@ -1286,14 +1291,14 @@ export class InvalidScopeChain extends Error {
   }
 }
 
-export class InvalidTwapId extends Error {
+export class InvalidScopeTWAPChain extends Error {
   static readonly code = 6104
   readonly code = 6104
-  readonly name = "InvalidTwapId"
-  readonly msg = "Invalid Twap Value"
+  readonly name = "InvalidScopeTWAPChain"
+  readonly msg = "Invalid Scope TWAP Chain"
 
   constructor(readonly logs?: string[]) {
-    super("6104: Invalid Twap Value")
+    super("6104: Invalid Scope TWAP Chain")
   }
 }
 
@@ -1587,6 +1592,61 @@ export class SharesNotZero extends Error {
   }
 }
 
+export class InvalidScopeStakingRateChain extends Error {
+  static readonly code = 6130
+  readonly code = 6130
+  readonly name = "InvalidScopeStakingRateChain"
+  readonly msg = "Invalid Scope staking rate Chain"
+
+  constructor(readonly logs?: string[]) {
+    super("6130: Invalid Scope staking rate Chain")
+  }
+}
+
+export class StakingRateNotValid extends Error {
+  static readonly code = 6131
+  readonly code = 6131
+  readonly name = "StakingRateNotValid"
+  readonly msg = "Staking rate (provided by Scope) is not valid"
+
+  constructor(readonly logs?: string[]) {
+    super("6131: Staking rate (provided by Scope) is not valid")
+  }
+}
+
+export class DecimalToU128ConversionFailed extends Error {
+  static readonly code = 6132
+  readonly code = 6132
+  readonly name = "DecimalToU128ConversionFailed"
+  readonly msg = "Decimal to u128 conversion failed"
+
+  constructor(readonly logs?: string[]) {
+    super("6132: Decimal to u128 conversion failed")
+  }
+}
+
+export class DecimalNegativeSqrtRoot extends Error {
+  static readonly code = 6133
+  readonly code = 6133
+  readonly name = "DecimalNegativeSqrtRoot"
+  readonly msg = "Decimal sqrt on negative number"
+
+  constructor(readonly logs?: string[]) {
+    super("6133: Decimal sqrt on negative number")
+  }
+}
+
+export class DriftingOppositeDirection extends Error {
+  static readonly code = 6134
+  readonly code = 6134
+  readonly name = "DriftingOppositeDirection"
+  readonly msg = "Drifting strategy is moving in the opposite direction"
+
+  constructor(readonly logs?: string[]) {
+    super("6134: Drifting strategy is moving in the opposite direction")
+  }
+}
+
 export function fromCode(code: number, logs?: string[]): CustomError | null {
   switch (code) {
     case 6000:
@@ -1798,7 +1858,7 @@ export function fromCode(code: number, logs?: string[]): CustomError | null {
     case 6103:
       return new InvalidScopeChain(logs)
     case 6104:
-      return new InvalidTwapId(logs)
+      return new InvalidScopeTWAPChain(logs)
     case 6105:
       return new PositionHasRemainingLiquidity(logs)
     case 6106:
@@ -1849,6 +1909,16 @@ export function fromCode(code: number, logs?: string[]): CustomError | null {
       return new ComputeFeesAndRewardsUpdateError(logs)
     case 6129:
       return new SharesNotZero(logs)
+    case 6130:
+      return new InvalidScopeStakingRateChain(logs)
+    case 6131:
+      return new StakingRateNotValid(logs)
+    case 6132:
+      return new DecimalToU128ConversionFailed(logs)
+    case 6133:
+      return new DecimalNegativeSqrtRoot(logs)
+    case 6134:
+      return new DriftingOppositeDirection(logs)
   }
 
   return null
