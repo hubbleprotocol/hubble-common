@@ -265,7 +265,46 @@ export interface InputRebalanceFieldInfo {
   value: Decimal;
 }
 
+export interface InitStrategyIxs {
+  initStrategyIx: TransactionInstruction;
+  updateStrategyParamsIxs: TransactionInstruction[];
+  updateRebalanceParamsIx: TransactionInstruction;
+  openPositionIxs: TransactionInstruction[];
+}
+
+export interface WithdrawShares {
+  prerequisiteIxs: TransactionInstruction[];
+  withdrawIx: TransactionInstruction;
+}
+
+export interface MetadataProgramAddressesOrca {
+  position: PublicKey;
+  positionBump: number;
+  positionMetadata: PublicKey;
+  positionMetadataBump: number;
+}
+
+export interface MetadataProgramAddressesRaydium {
+  position: PublicKey;
+  positionBump: number;
+  protocolPosition: PublicKey;
+  protocolPositionBump: number;
+  positionMetadata: PublicKey;
+  positionMetadataBump: number;
+}
+
+export interface LowerAndUpperTickPubkeys {
+  lowerTick: PublicKey;
+  lowerTickBump: number;
+  upperTick: PublicKey;
+  upperTickBump: number;
+}
 export interface WithdrawAllAndCloseIxns {
   withdrawIxns: TransactionInstruction[];
   closeIxn: TransactionInstruction;
+}
+
+export interface InitPoolTickIfNeeded {
+  tick: PublicKey;
+  initTickIx: TransactionInstruction | undefined;
 }

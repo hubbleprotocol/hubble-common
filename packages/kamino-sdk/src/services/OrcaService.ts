@@ -12,7 +12,6 @@ import axios from 'axios';
 import { OrcaWhirlpoolsResponse, Whirlpool } from './OrcaWhirlpoolsResponse';
 import { SolanaCluster } from '@hubbleprotocol/hubble-config';
 import { CollateralInfos, GlobalConfig, WhirlpoolStrategy } from '../kamino-client/accounts';
-import { OraclePrices, Scope, ScopeToken } from '@hubbleprotocol/scope-sdk';
 import { Position } from '../whirpools-client';
 import { WhirlpoolAprApy } from './WhirlpoolAprApy';
 import {
@@ -25,7 +24,7 @@ import {
 } from '../utils';
 import { WHIRLPOOL_PROGRAM_ID } from '../whirpools-client/programId';
 import { CollateralInfo } from '../kamino-client/types';
-import { StrategyPrices } from '../models/StrategyPrices';
+import { KaminoPrices } from '../models';
 
 export class OrcaService {
   private readonly _connection: Connection;
@@ -56,7 +55,7 @@ export class OrcaService {
    */
   private getTokenPrices(
     strategy: WhirlpoolStrategy,
-    prices: OraclePrices,
+    prices: KaminoPrices,
     collateralInfos: CollateralInfo[]
   ): Record<string, Decimal> {
     const tokensPrices: Record<string, Decimal> = {};
@@ -67,20 +66,11 @@ export class OrcaService {
     const rewardToken1 = collateralInfos[strategy.reward1CollateralId.toNumber()];
     const rewardToken2 = collateralInfos[strategy.reward2CollateralId.toNumber()];
 
-    const aPrice = Scope.getPriceFromScopeChain(tokenA.scopePriceChain, prices);
-    const bPrice = Scope.getPriceFromScopeChain(tokenB.scopePriceChain, prices);
-    const reward0Price =
-      strategy.reward0Decimals.toNumber() !== 0
-        ? Scope.getPriceFromScopeChain(rewardToken0.scopePriceChain, prices)
-        : null;
-    const reward1Price =
-      strategy.reward1Decimals.toNumber() !== 0
-        ? Scope.getPriceFromScopeChain(rewardToken1.scopePriceChain, prices)
-        : null;
-    const reward2Price =
-      strategy.reward2Decimals.toNumber() !== 0
-        ? Scope.getPriceFromScopeChain(rewardToken2.scopePriceChain, prices)
-        : null;
+    const aPrice = prices[tokenA.mint.toString()];
+    const bPrice = prices[tokenB.mint.toString()];
+    const reward0Price = strategy.reward0Decimals.toNumber() !== 0 ? prices[rewardToken0.mint.toString()] : null;
+    const reward1Price = strategy.reward1Decimals.toNumber() !== 0 ? prices[rewardToken1.mint.toString()] : null;
+    const reward2Price = strategy.reward2Decimals.toNumber() !== 0 ? prices[rewardToken2.mint.toString()] : null;
 
     const [mintA, mintB] = [strategy.tokenAMint.toString(), strategy.tokenBMint.toString()];
     const reward0 = collateralInfos[strategy.reward0CollateralId.toNumber()]?.mint?.toString();
@@ -102,7 +92,7 @@ export class OrcaService {
     return tokensPrices;
   }
 
-  private getPoolTokensPrices(pool: PoolData, prices: ScopeToken[]) {
+  private getPoolTokensPrices(pool: PoolData, prices: KaminoPrices) {
     const tokensPrices: Record<string, Decimal> = {};
     const tokens = [
       pool.tokenMintA.toString(),
@@ -113,7 +103,7 @@ export class OrcaService {
     ];
     for (const mint of tokens) {
       if (mint) {
-        const price = prices.find((x) => x.mint?.toString() === mint)?.price;
+        const price = prices.spot[mint]?.price;
         if (!price) {
           throw new Error(`Could not get token ${mint} price`);
         }
@@ -134,18 +124,13 @@ export class OrcaService {
 
   async getStrategyWhirlpoolPoolAprApy(
     strategy: WhirlpoolStrategy,
-    whirlpools?: Whirlpool[],
-    prices?: OraclePrices
+    prices: KaminoPrices,
+    whirlpools?: Whirlpool[]
   ): Promise<WhirlpoolAprApy> {
     const orca = new OrcaWhirlpoolClient({
       connection: this._connection,
       network: this._orcaNetwork,
     });
-    const scope = new Scope(this._cluster, this._connection);
-    if (!prices) {
-      prices = await scope.getOraclePrices();
-    }
-
     const position = await Position.fetch(this._connection, strategy.position);
     if (!position) {
       throw new Error(`Position ${strategy.position} does not exist`);
@@ -277,17 +262,13 @@ export class OrcaService {
     poolPubkey: PublicKey,
     priceLower: Decimal,
     priceUpper: Decimal,
-    whirlpools?: Whirlpool[],
-    prices?: ScopeToken[]
+    prices: KaminoPrices,
+    whirlpools?: Whirlpool[]
   ): Promise<WhirlpoolAprApy> {
     const orca = new OrcaWhirlpoolClient({
       connection: this._connection,
       network: this._orcaNetwork,
     });
-    const scope = new Scope(this._cluster, this._connection);
-    if (!prices) {
-      prices = await scope.getAllPrices();
-    }
 
     const pool = await orca.getPool(poolPubkey);
     if (!whirlpools) {

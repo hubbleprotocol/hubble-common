@@ -20,20 +20,5 @@ const connection = new Connection(clusterApiUrl('mainnet-beta'));
 const scope = new Scope('mainnet-beta', web3Client.connection); 
 
 // get all prices supported by Scope Oracle 
-const tokens = await scope.getAllPrices();
-
-// get SOL token price 
-let token = await scope.getPrice('SOL');
-// get SOL price by mint  
-token = await scope.getPriceByMint('So11111111111111111111111111111111111111112');
-console.log(token.price);
-
-// get multiple tokens prices 
-let tokens = await scope.getPrices(['SOL', 'BTC', 'ETH']);
-
-// get multiple token prices by mint
-tokens = await scope.getPricesByMints(
-  ['So11111111111111111111111111111111111111112',
-    '9n4nbM75f5Ui33ZbPYXn59EwSgE8CGsHtAeTH5YFeJ9E',
-    '7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs']);
+const oraclePrices = await scope.getOraclePrices();
 ```
