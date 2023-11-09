@@ -1,4 +1,4 @@
-import { OracleType, Scope, scopeTokenToMint, SupportedTokens } from '../src';
+import { OracleType, Scope } from '../src';
 import * as chai from 'chai';
 import { expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
@@ -14,6 +14,7 @@ chai.use(chaiDecimalJs(Decimal));
 describe('Scope SDK Tests', async () => {
   let env: Env;
   let scope: Scope;
+  const ethTokenIndex = 1;
   beforeEach(async () => {
     env = await initEnv();
     scope = new Scope('localnet', env.provider.connection);
@@ -24,14 +25,6 @@ describe('Scope SDK Tests', async () => {
     // @ts-ignore
     const init = () => new Scope(cluster, undefined);
     expect(init).to.throw(Error);
-  });
-
-  it('should have all mints specified in the mint token map', async () => {
-    for (const supportedToken of SupportedTokens.filter((x) => !x.endsWith('Ema') && !x.endsWith('Twap'))) {
-      const mint = scopeTokenToMint(supportedToken);
-      console.log(supportedToken, mint);
-      expect(mint).not.to.be.undefined;
-    }
   });
 
   it('should initialise a new scope feed', async () => {
@@ -51,7 +44,7 @@ describe('Scope SDK Tests', async () => {
       await scope.updateFeedMapping(
         env.admin,
         env.priceFeed,
-        SupportedTokens.indexOf('ETH'),
+        ethTokenIndex,
         new OracleType.Pyth(),
         new PublicKey('Gnt27xtC473ZT2Mw5u8wZ68Z3gULkSTb5DuxJy7eJotD')
       );
@@ -61,8 +54,8 @@ describe('Scope SDK Tests', async () => {
     }
 
     const newMappings = await scope.getOracleMappings({ feed: env.priceFeed });
-    const newPriceTypeMapping = newMappings.priceTypes[SupportedTokens.indexOf('ETH')];
-    const newPriceAccountMapping = newMappings.priceInfoAccounts[SupportedTokens.indexOf('ETH')];
+    const newPriceTypeMapping = newMappings.priceTypes[ethTokenIndex];
+    const newPriceAccountMapping = newMappings.priceInfoAccounts[ethTokenIndex];
     expect(newPriceTypeMapping).to.equal(new OracleType.Pyth().discriminator);
     expect(newPriceAccountMapping.toBase58()).to.equal('Gnt27xtC473ZT2Mw5u8wZ68Z3gULkSTb5DuxJy7eJotD');
   });
@@ -72,20 +65,20 @@ describe('Scope SDK Tests', async () => {
     await scope.updateFeedMapping(
       env.admin,
       env.priceFeed,
-      SupportedTokens.indexOf('ETH'),
+      ethTokenIndex,
       new OracleType.Pyth(),
       new PublicKey('Gnt27xtC473ZT2Mw5u8wZ68Z3gULkSTb5DuxJy7eJotD')
     );
     const originalOraclePrices = await scope.getOraclePrices({ feed: env.priceFeed });
-    const originalPrice = originalOraclePrices.prices[SupportedTokens.indexOf('ETH')];
+    const originalPrice = originalOraclePrices.prices[ethTokenIndex];
     try {
-      await scope.refreshPriceList(env.admin, { feed: env.priceFeed }, [SupportedTokens.indexOf('ETH')]);
+      await scope.refreshPriceList(env.admin, { feed: env.priceFeed }, [ethTokenIndex]);
     } catch (e) {
       console.log(`Error: ${JSON.stringify(e)}`);
       throw e;
     }
     const newOraclePrices = await scope.getOraclePrices({ feed: env.priceFeed });
-    const newPrice = newOraclePrices.prices[SupportedTokens.indexOf('ETH')];
+    const newPrice = newOraclePrices.prices[ethTokenIndex];
     expect(newPrice.lastUpdatedSlot.toNumber()).gt(originalPrice.lastUpdatedSlot.toNumber());
   });
 
@@ -122,35 +115,4 @@ describe('Scope SDK Tests', async () => {
     expect(Scope.isScopeChainValid([0])).to.be.false;
     expect(Scope.isScopeChainValid([])).to.be.false;
   });
-
-  // test('should get all prices', async () => {
-  //   const scope = new Scope(cluster, connection);
-  //   const prices = await scope.getAllPrices();
-  //   expect(prices.length).toBeGreaterThan(0);
-  // });
-  //
-  // test('should get specific price', async () => {
-  //   const scope = new Scope(cluster, connection);
-  //   let price = await scope.getPrice('ETH');
-  //   expect(price.name).toEqual('ETH');
-  //   expect(price.id).not.toBeNaN();
-  //   expect(price.price).not.toBeUndefined();
-  //
-  //   price = await scope.getPrice('MSOL');
-  //   expect(price.name).toEqual('MSOL');
-  //   expect(price.id).not.toBeNaN();
-  //   expect(price.price).not.toBeUndefined();
-  //
-  //   price = await scope.getPrice('scnSOL');
-  //   expect(price.name).toEqual('scnSOL');
-  //   expect(price.id).not.toBeNaN();
-  //   expect(price.price).not.toBeUndefined();
-  //   console.log(price);
-  // });
-  //
-  // test('should get specific prices', async () => {
-  //   const scope = new Scope(cluster, connection);
-  //   const prices = await scope.getPrices(['ETH', 'BTC']);
-  //   expect(prices).toHaveLength(2);
-  // });
 });
