@@ -106,7 +106,7 @@ export const ExtraCollateralMap: ExtraCollateralToken[] = [
     id: 7,
     name: 'daoSOL',
     mint: 'GEJpt3Wjmr628FqXxTgxMce1pLntcPV4uFi8ksxMyPQh',
-    scopePriceChain: [10, 65535, 65535, 65535],
+    scopePriceChain: [10, 0, 65535, 65535],
     scopeTwapChain: [65535, 65535, 65535, 65535],
   },
   {
