@@ -2439,6 +2439,8 @@ export class Kamino {
           allAccounts: PublicKey[]
         ) => this.getJupSwapIxsV6(input, tokenAMint, tokenBMint, user, slippageBps, false, allAccounts, profiler);
 
+    console.log('single sided deposit tokenA tokenAMinPostDepositBalance', tokenAMinPostDepositBalance);
+    console.log('single sided deposit tokenA userTokenBalances.b', userTokenBalances.b);
     return await profiler(
       this.getSingleSidedDepositIxs(
         strategyWithAddress,
@@ -2723,11 +2725,11 @@ export class Kamino {
     );
 
     const getGlobalConfigPromise = GlobalConfig.fetch(this._connection, strategyState.globalConfig);
-    const [createAtasIxns, amountsToDepositWithSwap, globalConfig] = await profiler(
-      Promise.all([createAtasIxnsPromise, amountsToDepositWithSwapPromise, getGlobalConfigPromise]),
-      'B-promiseAll(createAtasIxns, amountsToDepositWithSwap)',
-      []
-    );
+    const [createAtasIxns, amountsToDepositWithSwap, globalConfig] = await Promise.all([
+      createAtasIxnsPromise,
+      amountsToDepositWithSwapPromise,
+      getGlobalConfigPromise,
+    ]);
 
     let checkExpectedVaultsBalancesIx = await profiler(
       this.getCheckExpectedVaultsBalancesIx(strategyWithAddress, owner, tokenAAta, tokenBAta, {
@@ -2744,6 +2746,8 @@ export class Kamino {
       tokenAMinPostDepositBalance: new BN(realTokenAMinPostDepositBalanceLamports.floor().toString()),
       tokenBMinPostDepositBalance: new BN(realTokenBMinPostDepositBalanceLamports.floor().toString()),
     };
+    console.log('realTokenAMinPostDepositBalanceLamports', realTokenAMinPostDepositBalanceLamports.toString());
+    console.log('realTokenBMinPostDepositBalanceLamports', realTokenBMinPostDepositBalanceLamports.toString());
 
     const accounts: SingleTokenDepositWithMinAccounts = {
       user: owner,
@@ -2762,7 +2766,7 @@ export class Kamino {
       sharesMint: strategyState.sharesMint,
       sharesMintAuthority: strategyState.sharesMintAuthority,
       scopePrices: strategyState.scopePrices,
-      tokenInfos: globalConfig.tokenInfos,
+      tokenInfos: globalConfig!.tokenInfos,
       tokenProgram: TOKEN_PROGRAM_ID,
       instructionSysvarAccount: SYSVAR_INSTRUCTIONS_PUBKEY,
     };
@@ -2783,6 +2787,25 @@ export class Kamino {
       ...extractKeys([singleSidedDepositIx]),
       ...extractKeys(cleanupIxs),
     ];
+
+    console.log(
+      'amountsToDepositWithSwap',
+      amountsToDepositWithSwap.requiredAAmountToDeposit.toString(),
+      amountsToDepositWithSwap.requiredBAmountToDeposit.toString(),
+      amountsToDepositWithSwap.tokenAToSwapAmount.toString(),
+      amountsToDepositWithSwap.tokenBToSwapAmount.toString()
+    );
+    // if we have no tokens to sell skip the jup tx
+    if (
+      amountsToDepositWithSwap.tokenAToSwapAmount.gte(ZERO) &&
+      amountsToDepositWithSwap.tokenBToSwapAmount.gte(ZERO)
+    ) {
+      console.log('SILVIU NO SWAP');
+      result = result.concat([checkExpectedVaultsBalancesIx, singleSidedDepositIx, ...cleanupIxs]);
+      return { instructions: result, lookupTablesAddresses: [] };
+    }
+
+    console.log('SILVIU SWAP');
 
     let [jupSwapIxs, lookupTablesAddresses] = await profiler(
       Kamino.retryAsync(async () =>
@@ -5116,13 +5139,47 @@ export class Kamino {
     let orcaAmountA = aAmounts.div(new Decimal(10).pow(tokenADecimals));
     let orcaAmountB = bAmounts.div(new Decimal(10).pow(tokenBDecimals));
 
-    let ratio = orcaAmountA.div(orcaAmountB);
-    ratio = ratio.div(priceBInA);
-
     // multiply by tokens delta to make sure that both values uses the same about of decimals
     let totalUserDepositInA = aAmount
       .mul(10 ** tokenAAddDecimals)
       .add(bAmount.mul(10 ** tokenBAddDecimals).mul(priceBInA));
+
+    // if the strategy is out of range we will deposit only one token so we will need to swap everything to that token
+    if (orcaAmountA.eq(ZERO)) {
+      let requiredAAmountToDeposit = ZERO;
+      let requiredBAmountToDeposit = totalUserDepositInA.mul(priceAInB);
+
+      let tokenAToSwapAmount = requiredAAmountToDeposit.sub(tokenAAmountUserDeposit);
+      let tokenBToSwapAmount = requiredBAmountToDeposit.sub(tokenBAmountUserDeposit);
+
+      let depositAmountsForSwap: DepositAmountsForSwap = {
+        requiredAAmountToDeposit,
+        requiredBAmountToDeposit,
+        tokenAToSwapAmount,
+        tokenBToSwapAmount,
+      };
+
+      return depositAmountsForSwap;
+    }
+
+    if (orcaAmountB.eq(ZERO)) {
+      let requiredAAmountToDeposit = totalUserDepositInA;
+      let requiredBAmountToDeposit = ZERO;
+
+      let tokenAToSwapAmount = requiredAAmountToDeposit.sub(tokenAAmountUserDeposit);
+      let tokenBToSwapAmount = requiredBAmountToDeposit.sub(tokenBAmountUserDeposit);
+
+      let depositAmountsForSwap: DepositAmountsForSwap = {
+        requiredAAmountToDeposit,
+        requiredBAmountToDeposit,
+        tokenAToSwapAmount,
+        tokenBToSwapAmount,
+      };
+
+      return depositAmountsForSwap;
+    }
+    let ratio = orcaAmountA.div(orcaAmountB);
+    ratio = ratio.div(priceBInA);
 
     let requiredAAmountToDeposit = totalUserDepositInA
       .mul(ratio)
