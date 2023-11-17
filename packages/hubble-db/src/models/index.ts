@@ -46,6 +46,7 @@ export * from './FarmEntity';
 export * from './FarmStateEntity';
 export * from './FarmUserEntity';
 export * from './FarmUserStateEntity';
+export * from './FarmRewardEntity';
 
 export const CLUSTER_TABLE: string = 'cluster';
 export const COLLATERAL_TABLE: string = 'collateral';
@@ -96,4 +97,5 @@ export const FARM_TABLE = 'farm';
 export const FARM_STATE_TABLE = 'farm_state';
 export const FARM_USER_TABLE = 'farm_user';
 export const FARM_USER_STATE_TABLE = 'farm_user_state';
+export const FARM_REWARD_TABLE = 'farm_reward';
 export const API_SCHEMA: string = 'api';

@@ -1,7 +1,5 @@
-import Decimal from 'decimal.js';
-
 export interface FarmStateEntity {
-  id: Decimal;
+  id: BigInt;
   raw_json: string;
   created_on: Date;
   farm_id: number;
