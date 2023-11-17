@@ -9,7 +9,7 @@ export interface CollateralInfoFields {
   upperHeuristic: BN
   expHeuristic: BN
   maxTwapDivergenceBps: BN
-  scopePriceIdTwap: BN
+  scopeTwapPriceChain: Array<number>
   scopePriceChain: Array<number>
   name: Array<number>
   maxAgePriceSeconds: BN
@@ -17,6 +17,7 @@ export interface CollateralInfoFields {
   maxIgnorableAmountAsReward: BN
   disabled: number
   padding0: Array<number>
+  scopeStakingRateChain: Array<number>
   padding: Array<BN>
 }
 
@@ -26,7 +27,7 @@ export interface CollateralInfoJSON {
   upperHeuristic: string
   expHeuristic: string
   maxTwapDivergenceBps: string
-  scopePriceIdTwap: string
+  scopeTwapPriceChain: Array<number>
   scopePriceChain: Array<number>
   name: Array<number>
   maxAgePriceSeconds: string
@@ -34,6 +35,7 @@ export interface CollateralInfoJSON {
   maxIgnorableAmountAsReward: string
   disabled: number
   padding0: Array<number>
+  scopeStakingRateChain: Array<number>
   padding: Array<string>
 }
 
@@ -43,7 +45,7 @@ export class CollateralInfo {
   readonly upperHeuristic: BN
   readonly expHeuristic: BN
   readonly maxTwapDivergenceBps: BN
-  readonly scopePriceIdTwap: BN
+  readonly scopeTwapPriceChain: Array<number>
   readonly scopePriceChain: Array<number>
   readonly name: Array<number>
   readonly maxAgePriceSeconds: BN
@@ -51,6 +53,7 @@ export class CollateralInfo {
   readonly maxIgnorableAmountAsReward: BN
   readonly disabled: number
   readonly padding0: Array<number>
+  readonly scopeStakingRateChain: Array<number>
   readonly padding: Array<BN>
 
   constructor(fields: CollateralInfoFields) {
@@ -59,7 +62,7 @@ export class CollateralInfo {
     this.upperHeuristic = fields.upperHeuristic
     this.expHeuristic = fields.expHeuristic
     this.maxTwapDivergenceBps = fields.maxTwapDivergenceBps
-    this.scopePriceIdTwap = fields.scopePriceIdTwap
+    this.scopeTwapPriceChain = fields.scopeTwapPriceChain
     this.scopePriceChain = fields.scopePriceChain
     this.name = fields.name
     this.maxAgePriceSeconds = fields.maxAgePriceSeconds
@@ -67,6 +70,7 @@ export class CollateralInfo {
     this.maxIgnorableAmountAsReward = fields.maxIgnorableAmountAsReward
     this.disabled = fields.disabled
     this.padding0 = fields.padding0
+    this.scopeStakingRateChain = fields.scopeStakingRateChain
     this.padding = fields.padding
   }
 
@@ -78,7 +82,7 @@ export class CollateralInfo {
         borsh.u64("upperHeuristic"),
         borsh.u64("expHeuristic"),
         borsh.u64("maxTwapDivergenceBps"),
-        borsh.u64("scopePriceIdTwap"),
+        borsh.array(borsh.u16(), 4, "scopeTwapPriceChain"),
         borsh.array(borsh.u16(), 4, "scopePriceChain"),
         borsh.array(borsh.u8(), 32, "name"),
         borsh.u64("maxAgePriceSeconds"),
@@ -86,7 +90,8 @@ export class CollateralInfo {
         borsh.u64("maxIgnorableAmountAsReward"),
         borsh.u8("disabled"),
         borsh.array(borsh.u8(), 7, "padding0"),
-        borsh.array(borsh.u64(), 9, "padding"),
+        borsh.array(borsh.u16(), 4, "scopeStakingRateChain"),
+        borsh.array(borsh.u64(), 8, "padding"),
       ],
       property
     )
@@ -100,7 +105,7 @@ export class CollateralInfo {
       upperHeuristic: obj.upperHeuristic,
       expHeuristic: obj.expHeuristic,
       maxTwapDivergenceBps: obj.maxTwapDivergenceBps,
-      scopePriceIdTwap: obj.scopePriceIdTwap,
+      scopeTwapPriceChain: obj.scopeTwapPriceChain,
       scopePriceChain: obj.scopePriceChain,
       name: obj.name,
       maxAgePriceSeconds: obj.maxAgePriceSeconds,
@@ -108,6 +113,7 @@ export class CollateralInfo {
       maxIgnorableAmountAsReward: obj.maxIgnorableAmountAsReward,
       disabled: obj.disabled,
       padding0: obj.padding0,
+      scopeStakingRateChain: obj.scopeStakingRateChain,
       padding: obj.padding,
     })
   }
@@ -119,7 +125,7 @@ export class CollateralInfo {
       upperHeuristic: fields.upperHeuristic,
       expHeuristic: fields.expHeuristic,
       maxTwapDivergenceBps: fields.maxTwapDivergenceBps,
-      scopePriceIdTwap: fields.scopePriceIdTwap,
+      scopeTwapPriceChain: fields.scopeTwapPriceChain,
       scopePriceChain: fields.scopePriceChain,
       name: fields.name,
       maxAgePriceSeconds: fields.maxAgePriceSeconds,
@@ -127,6 +133,7 @@ export class CollateralInfo {
       maxIgnorableAmountAsReward: fields.maxIgnorableAmountAsReward,
       disabled: fields.disabled,
       padding0: fields.padding0,
+      scopeStakingRateChain: fields.scopeStakingRateChain,
       padding: fields.padding,
     }
   }
@@ -138,7 +145,7 @@ export class CollateralInfo {
       upperHeuristic: this.upperHeuristic.toString(),
       expHeuristic: this.expHeuristic.toString(),
       maxTwapDivergenceBps: this.maxTwapDivergenceBps.toString(),
-      scopePriceIdTwap: this.scopePriceIdTwap.toString(),
+      scopeTwapPriceChain: this.scopeTwapPriceChain,
       scopePriceChain: this.scopePriceChain,
       name: this.name,
       maxAgePriceSeconds: this.maxAgePriceSeconds.toString(),
@@ -146,6 +153,7 @@ export class CollateralInfo {
       maxIgnorableAmountAsReward: this.maxIgnorableAmountAsReward.toString(),
       disabled: this.disabled,
       padding0: this.padding0,
+      scopeStakingRateChain: this.scopeStakingRateChain,
       padding: this.padding.map((item) => item.toString()),
     }
   }
@@ -157,7 +165,7 @@ export class CollateralInfo {
       upperHeuristic: new BN(obj.upperHeuristic),
       expHeuristic: new BN(obj.expHeuristic),
       maxTwapDivergenceBps: new BN(obj.maxTwapDivergenceBps),
-      scopePriceIdTwap: new BN(obj.scopePriceIdTwap),
+      scopeTwapPriceChain: obj.scopeTwapPriceChain,
       scopePriceChain: obj.scopePriceChain,
       name: obj.name,
       maxAgePriceSeconds: new BN(obj.maxAgePriceSeconds),
@@ -165,6 +173,7 @@ export class CollateralInfo {
       maxIgnorableAmountAsReward: new BN(obj.maxIgnorableAmountAsReward),
       disabled: obj.disabled,
       padding0: obj.padding0,
+      scopeStakingRateChain: obj.scopeStakingRateChain,
       padding: obj.padding.map((item) => new BN(item)),
     })
   }

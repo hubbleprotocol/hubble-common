@@ -14,6 +14,12 @@ export type CustomError =
   | BadScopeChainOrPrices
   | RefreshInCPI
   | RefreshWithUnexpectedIxs
+  | InvalidTokenUpdateMode
+  | UnableToDerivePDA
+  | BadTimestamp
+  | BadSlot
+  | PriceAccountNotExpected
+  | TwapSourceIndexOutOfRange
 
 export class IntegerOverflow extends Error {
   static readonly code = 6000
@@ -183,6 +189,72 @@ export class RefreshWithUnexpectedIxs extends Error {
   }
 }
 
+export class InvalidTokenUpdateMode extends Error {
+  static readonly code = 6015
+  readonly code = 6015
+  readonly name = "InvalidTokenUpdateMode"
+  readonly msg = "Invalid token metadata update mode"
+
+  constructor(readonly logs?: string[]) {
+    super("6015: Invalid token metadata update mode")
+  }
+}
+
+export class UnableToDerivePDA extends Error {
+  static readonly code = 6016
+  readonly code = 6016
+  readonly name = "UnableToDerivePDA"
+  readonly msg = "Unable to derive PDA address"
+
+  constructor(readonly logs?: string[]) {
+    super("6016: Unable to derive PDA address")
+  }
+}
+
+export class BadTimestamp extends Error {
+  static readonly code = 6017
+  readonly code = 6017
+  readonly name = "BadTimestamp"
+  readonly msg = "Invalid timestamp"
+
+  constructor(readonly logs?: string[]) {
+    super("6017: Invalid timestamp")
+  }
+}
+
+export class BadSlot extends Error {
+  static readonly code = 6018
+  readonly code = 6018
+  readonly name = "BadSlot"
+  readonly msg = "Invalid slot"
+
+  constructor(readonly logs?: string[]) {
+    super("6018: Invalid slot")
+  }
+}
+
+export class PriceAccountNotExpected extends Error {
+  static readonly code = 6019
+  readonly code = 6019
+  readonly name = "PriceAccountNotExpected"
+  readonly msg = "TWAP price account is different than Scope ID"
+
+  constructor(readonly logs?: string[]) {
+    super("6019: TWAP price account is different than Scope ID")
+  }
+}
+
+export class TwapSourceIndexOutOfRange extends Error {
+  static readonly code = 6020
+  readonly code = 6020
+  readonly name = "TwapSourceIndexOutOfRange"
+  readonly msg = "TWAP source index out of range"
+
+  constructor(readonly logs?: string[]) {
+    super("6020: TWAP source index out of range")
+  }
+}
+
 export function fromCode(code: number, logs?: string[]): CustomError | null {
   switch (code) {
     case 6000:
@@ -215,6 +287,18 @@ export function fromCode(code: number, logs?: string[]): CustomError | null {
       return new RefreshInCPI(logs)
     case 6014:
       return new RefreshWithUnexpectedIxs(logs)
+    case 6015:
+      return new InvalidTokenUpdateMode(logs)
+    case 6016:
+      return new UnableToDerivePDA(logs)
+    case 6017:
+      return new BadTimestamp(logs)
+    case 6018:
+      return new BadSlot(logs)
+    case 6019:
+      return new PriceAccountNotExpected(logs)
+    case 6020:
+      return new TwapSourceIndexOutOfRange(logs)
   }
 
   return null

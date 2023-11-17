@@ -5,19 +5,30 @@ import {
   Keypair,
   PublicKey,
   SystemProgram,
-  SYSVAR_CLOCK_PUBKEY,
   SYSVAR_INSTRUCTIONS_PUBKEY,
   Transaction,
 } from '@solana/web3.js';
 import Decimal from 'decimal.js';
-import { Configuration, GlobalConfig, OracleMappings, OraclePrices, WhirlpoolStrategy } from './accounts';
+import { Configuration, OracleMappings, OraclePrices } from './accounts';
 import { OracleType, OracleTypeKind, Price } from './types';
 import { U16_MAX } from './constants';
 import * as ScopeIx from './instructions';
 import { Provider, Wallet } from '@project-serum/anchor';
-import { getConfigurationPda, ORACLE_MAPPINGS_LEN, ORACLE_PRICES_LEN } from './utils';
+import {
+  getConfigurationPda,
+  ORACLE_MAPPINGS_LEN,
+  TOKEN_METADATAS_LEN,
+  ORACLE_PRICES_LEN,
+  ORACLE_TWAPS_LEN,
+} from './utils';
 import BN from 'bn.js';
 import { FeedParam, PricesParam, validateFeedParam, validatePricesParam } from './model';
+import { GlobalConfig, WhirlpoolStrategy } from './@codegen/kamino/accounts';
+
+export type ScopeDatedPrice = {
+  price: Decimal;
+  timestamp: Decimal;
+};
 
 export class Scope {
   private readonly _connection: Connection;
@@ -138,31 +149,45 @@ export class Scope {
    * @param chain
    * @param prices
    */
-  public static getPriceFromScopeChain(chain: Array<number>, prices: OraclePrices) {
+  public static getPriceFromScopeChain(chain: Array<number>, prices: OraclePrices): ScopeDatedPrice {
     // Protect from bad defaults
     if (chain.every((tokenId) => tokenId === 0)) {
       throw new Error('Token chain cannot be all 0s');
     }
     // Protect from bad defaults
-    chain = chain.filter((tokenId) => tokenId !== U16_MAX);
-    if (chain.length === 0) {
+    const filteredChain = chain.filter((tokenId) => tokenId !== U16_MAX);
+    if (filteredChain.length === 0) {
       throw new Error(`Token chain cannot be all ${U16_MAX}s (u16 max)`);
     }
-    const priceChain = chain.map((tokenId) => {
+    let oldestTimestamp = new Decimal('0');
+    const priceChain = filteredChain.map((tokenId) => {
       const datedPrice = prices.prices[tokenId];
       if (!datedPrice) {
         throw Error(`Could not get price for token ${tokenId}`);
+      }
+      const currentPxTs = new Decimal(datedPrice.unixTimestamp.toString());
+      if (oldestTimestamp.eq(new Decimal('0'))) {
+        oldestTimestamp = currentPxTs;
+      } else if (!currentPxTs.eq(new Decimal('0'))) {
+        oldestTimestamp = Decimal.min(oldestTimestamp, currentPxTs);
       }
       const priceInfo = datedPrice.price;
       return Scope.priceToDecimal(priceInfo);
     });
 
     if (priceChain.length === 1) {
-      return priceChain[0];
+      return {
+        price: priceChain[0],
+        timestamp: oldestTimestamp,
+      };
     }
 
     // Compute token value by multiplying all values of the chain
-    return priceChain.reduce((acc, price) => acc.mul(price), new Decimal(1));
+    const pxFromChain = priceChain.reduce((acc, price) => acc.mul(price), new Decimal(1));
+    return {
+      price: pxFromChain,
+      timestamp: oldestTimestamp,
+    };
   }
 
   /**
@@ -182,7 +207,7 @@ export class Scope {
    * @param chain
    * @param oraclePrices
    */
-  async getPriceFromChain(chain: Array<number>, oraclePrices?: OraclePrices): Promise<Decimal> {
+  async getPriceFromChain(chain: Array<number>, oraclePrices?: OraclePrices): Promise<ScopeDatedPrice> {
     let prices: OraclePrices;
     if (oraclePrices) {
       prices = oraclePrices;
@@ -227,12 +252,30 @@ export class Scope {
       space: ORACLE_MAPPINGS_LEN,
       programId: this._config.scope.programId,
     });
+    const tokenMetadatas = Keypair.generate();
+    const createTokenMetadatasIx = SystemProgram.createAccount({
+      fromPubkey: admin.publicKey,
+      newAccountPubkey: tokenMetadatas.publicKey,
+      lamports: await this._connection.getMinimumBalanceForRentExemption(TOKEN_METADATAS_LEN),
+      space: TOKEN_METADATAS_LEN,
+      programId: this._config.scope.programId,
+    });
+    const oracleTwaps = Keypair.generate();
+    const createOracleTwapsIx = SystemProgram.createAccount({
+      fromPubkey: admin.publicKey,
+      newAccountPubkey: oracleTwaps.publicKey,
+      lamports: await this._connection.getMinimumBalanceForRentExemption(ORACLE_TWAPS_LEN),
+      space: ORACLE_TWAPS_LEN,
+      programId: this._config.scope.programId,
+    });
     const initScopeIx = ScopeIx.initialize(
       { feedName: feed },
       {
         admin: admin.publicKey,
         configuration: config,
         oracleMappings: oracleMappings.publicKey,
+        oracleTwaps: oracleTwaps.publicKey,
+        tokenMetadatas: tokenMetadatas.publicKey,
         oraclePrices: oraclePrices.publicKey,
         systemProgram: SystemProgram.programId,
       },
@@ -242,8 +285,10 @@ export class Scope {
       commitment: this._connection.commitment,
     });
     const sig = await provider.send(
-      new Transaction().add(...[createOraclePricesIx, createOracleMappingsIx, initScopeIx]),
-      [admin, oraclePrices, oracleMappings]
+      new Transaction().add(
+        ...[createOraclePricesIx, createOracleMappingsIx, createOracleTwapsIx, createTokenMetadatasIx, initScopeIx]
+      ),
+      [admin, oraclePrices, oracleMappings, oracleTwaps, tokenMetadatas]
     );
     return [
       sig,
@@ -262,13 +307,17 @@ export class Scope {
    * @param index
    * @param oracleType
    * @param mapping
+   * @param twapEnabled
+   * @param twapSource
    */
   async updateFeedMapping(
     admin: Keypair,
     feed: string,
     index: number,
     oracleType: OracleTypeKind,
-    mapping: PublicKey
+    mapping: PublicKey,
+    twapEnabled: boolean = false,
+    twapSource: number = 0
   ): Promise<string> {
     const [config, configAccount] = await this.getFeedConfiguration({ feed });
     const updateIx = ScopeIx.updateMapping(
@@ -276,6 +325,8 @@ export class Scope {
         feedName: feed,
         token: new BN(index),
         priceType: oracleType.discriminator,
+        twapEnabled,
+        twapSource,
       },
       {
         admin: admin.publicKey,
@@ -300,7 +351,7 @@ export class Scope {
       {
         oracleMappings: configAccount.oracleMappings,
         oraclePrices: configAccount.oraclePrices,
-        clock: SYSVAR_CLOCK_PUBKEY,
+        oracleTwaps: configAccount.oracleTwaps,
         instructionSysvarAccountInfo: SYSVAR_INSTRUCTIONS_PUBKEY,
       },
       this._config.scope.programId

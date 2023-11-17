@@ -11,8 +11,8 @@ export interface RefreshOnePriceArgs {
 export interface RefreshOnePriceAccounts {
   oraclePrices: PublicKey
   oracleMappings: PublicKey
+  oracleTwaps: PublicKey
   priceInfo: PublicKey
-  clock: PublicKey
   instructionSysvarAccountInfo: PublicKey
 }
 
@@ -26,8 +26,8 @@ export function refreshOnePrice(
   const keys: Array<AccountMeta> = [
     { pubkey: accounts.oraclePrices, isSigner: false, isWritable: true },
     { pubkey: accounts.oracleMappings, isSigner: false, isWritable: false },
+    { pubkey: accounts.oracleTwaps, isSigner: false, isWritable: true },
     { pubkey: accounts.priceInfo, isSigner: false, isWritable: false },
-    { pubkey: accounts.clock, isSigner: false, isWritable: false },
     {
       pubkey: accounts.instructionSysvarAccountInfo,
       isSigner: false,

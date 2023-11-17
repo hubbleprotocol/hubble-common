@@ -65,7 +65,7 @@ export interface WhirlpoolStrategyFields {
   swapVaultMaxSlippageBps: number
   swapVaultMaxSlippageFromReferenceBps: number
   strategyType: BN
-  depositFee: BN
+  padding0: BN
   withdrawFee: BN
   feesFee: BN
   reward0Fee: BN
@@ -86,20 +86,22 @@ export interface WhirlpoolStrategyFields {
   reservedFlag2: number
   localAdminBlocked: number
   flashVaultSwapAllowed: number
-  referenceSwapPriceA: types.KaminoPriceFields
-  referenceSwapPriceB: types.KaminoPriceFields
+  referenceSwapPriceA: types.PriceFields
+  referenceSwapPriceB: types.PriceFields
   isCommunity: number
   rebalanceType: number
-  padding0: Array<number>
-  rebalanceRaw: types.RebalanceRawFields
   padding1: Array<number>
+  rebalanceRaw: types.RebalanceRawFields
+  padding2: Array<number>
   tokenAFeesFromRewardsCumulative: BN
   tokenBFeesFromRewardsCumulative: BN
   strategyLookupTable: PublicKey
-  padding3: Array<BN>
+  lastSwapUnevenStepTimestamp: BN
+  padding3: BN
   padding4: Array<BN>
   padding5: Array<BN>
   padding6: Array<BN>
+  padding7: Array<BN>
 }
 
 export interface WhirlpoolStrategyJSON {
@@ -163,7 +165,7 @@ export interface WhirlpoolStrategyJSON {
   swapVaultMaxSlippageBps: number
   swapVaultMaxSlippageFromReferenceBps: number
   strategyType: string
-  depositFee: string
+  padding0: string
   withdrawFee: string
   feesFee: string
   reward0Fee: string
@@ -184,20 +186,22 @@ export interface WhirlpoolStrategyJSON {
   reservedFlag2: number
   localAdminBlocked: number
   flashVaultSwapAllowed: number
-  referenceSwapPriceA: types.KaminoPriceJSON
-  referenceSwapPriceB: types.KaminoPriceJSON
+  referenceSwapPriceA: types.PriceJSON
+  referenceSwapPriceB: types.PriceJSON
   isCommunity: number
   rebalanceType: number
-  padding0: Array<number>
-  rebalanceRaw: types.RebalanceRawJSON
   padding1: Array<number>
+  rebalanceRaw: types.RebalanceRawJSON
+  padding2: Array<number>
   tokenAFeesFromRewardsCumulative: string
   tokenBFeesFromRewardsCumulative: string
   strategyLookupTable: string
-  padding3: Array<string>
+  lastSwapUnevenStepTimestamp: string
+  padding3: string
   padding4: Array<string>
   padding5: Array<string>
   padding6: Array<string>
+  padding7: Array<string>
 }
 
 export class WhirlpoolStrategy {
@@ -261,7 +265,7 @@ export class WhirlpoolStrategy {
   readonly swapVaultMaxSlippageBps: number
   readonly swapVaultMaxSlippageFromReferenceBps: number
   readonly strategyType: BN
-  readonly depositFee: BN
+  readonly padding0: BN
   readonly withdrawFee: BN
   readonly feesFee: BN
   readonly reward0Fee: BN
@@ -282,20 +286,22 @@ export class WhirlpoolStrategy {
   readonly reservedFlag2: number
   readonly localAdminBlocked: number
   readonly flashVaultSwapAllowed: number
-  readonly referenceSwapPriceA: types.KaminoPrice
-  readonly referenceSwapPriceB: types.KaminoPrice
+  readonly referenceSwapPriceA: types.Price
+  readonly referenceSwapPriceB: types.Price
   readonly isCommunity: number
   readonly rebalanceType: number
-  readonly padding0: Array<number>
-  readonly rebalanceRaw: types.RebalanceRaw
   readonly padding1: Array<number>
+  readonly rebalanceRaw: types.RebalanceRaw
+  readonly padding2: Array<number>
   readonly tokenAFeesFromRewardsCumulative: BN
   readonly tokenBFeesFromRewardsCumulative: BN
   readonly strategyLookupTable: PublicKey
-  readonly padding3: Array<BN>
+  readonly lastSwapUnevenStepTimestamp: BN
+  readonly padding3: BN
   readonly padding4: Array<BN>
   readonly padding5: Array<BN>
   readonly padding6: Array<BN>
+  readonly padding7: Array<BN>
 
   static readonly discriminator = Buffer.from([
     190, 178, 231, 184, 49, 186, 103, 13,
@@ -362,7 +368,7 @@ export class WhirlpoolStrategy {
     borsh.u32("swapVaultMaxSlippageBps"),
     borsh.u32("swapVaultMaxSlippageFromReferenceBps"),
     borsh.u64("strategyType"),
-    borsh.u64("depositFee"),
+    borsh.u64("padding0"),
     borsh.u64("withdrawFee"),
     borsh.u64("feesFee"),
     borsh.u64("reward0Fee"),
@@ -382,20 +388,22 @@ export class WhirlpoolStrategy {
     borsh.u8("reservedFlag2"),
     borsh.u8("localAdminBlocked"),
     borsh.u8("flashVaultSwapAllowed"),
-    types.KaminoPrice.layout("referenceSwapPriceA"),
-    types.KaminoPrice.layout("referenceSwapPriceB"),
+    types.Price.layout("referenceSwapPriceA"),
+    types.Price.layout("referenceSwapPriceB"),
     borsh.u8("isCommunity"),
     borsh.u8("rebalanceType"),
-    borsh.array(borsh.u8(), 6, "padding0"),
+    borsh.array(borsh.u8(), 6, "padding1"),
     types.RebalanceRaw.layout("rebalanceRaw"),
-    borsh.array(borsh.u8(), 7, "padding1"),
+    borsh.array(borsh.u8(), 7, "padding2"),
     borsh.u64("tokenAFeesFromRewardsCumulative"),
     borsh.u64("tokenBFeesFromRewardsCumulative"),
     borsh.publicKey("strategyLookupTable"),
-    borsh.array(borsh.u128(), 26, "padding3"),
-    borsh.array(borsh.u128(), 32, "padding4"),
+    borsh.u64("lastSwapUnevenStepTimestamp"),
+    borsh.u64("padding3"),
+    borsh.array(borsh.u128(), 25, "padding4"),
     borsh.array(borsh.u128(), 32, "padding5"),
     borsh.array(borsh.u128(), 32, "padding6"),
+    borsh.array(borsh.u128(), 32, "padding7"),
   ])
 
   constructor(fields: WhirlpoolStrategyFields) {
@@ -460,7 +468,7 @@ export class WhirlpoolStrategy {
     this.swapVaultMaxSlippageFromReferenceBps =
       fields.swapVaultMaxSlippageFromReferenceBps
     this.strategyType = fields.strategyType
-    this.depositFee = fields.depositFee
+    this.padding0 = fields.padding0
     this.withdrawFee = fields.withdrawFee
     this.feesFee = fields.feesFee
     this.reward0Fee = fields.reward0Fee
@@ -484,26 +492,28 @@ export class WhirlpoolStrategy {
     this.reservedFlag2 = fields.reservedFlag2
     this.localAdminBlocked = fields.localAdminBlocked
     this.flashVaultSwapAllowed = fields.flashVaultSwapAllowed
-    this.referenceSwapPriceA = new types.KaminoPrice({
+    this.referenceSwapPriceA = new types.Price({
       ...fields.referenceSwapPriceA,
     })
-    this.referenceSwapPriceB = new types.KaminoPrice({
+    this.referenceSwapPriceB = new types.Price({
       ...fields.referenceSwapPriceB,
     })
     this.isCommunity = fields.isCommunity
     this.rebalanceType = fields.rebalanceType
-    this.padding0 = fields.padding0
-    this.rebalanceRaw = new types.RebalanceRaw({ ...fields.rebalanceRaw })
     this.padding1 = fields.padding1
+    this.rebalanceRaw = new types.RebalanceRaw({ ...fields.rebalanceRaw })
+    this.padding2 = fields.padding2
     this.tokenAFeesFromRewardsCumulative =
       fields.tokenAFeesFromRewardsCumulative
     this.tokenBFeesFromRewardsCumulative =
       fields.tokenBFeesFromRewardsCumulative
     this.strategyLookupTable = fields.strategyLookupTable
+    this.lastSwapUnevenStepTimestamp = fields.lastSwapUnevenStepTimestamp
     this.padding3 = fields.padding3
     this.padding4 = fields.padding4
     this.padding5 = fields.padding5
     this.padding6 = fields.padding6
+    this.padding7 = fields.padding7
   }
 
   static async fetch(
@@ -611,7 +621,7 @@ export class WhirlpoolStrategy {
       swapVaultMaxSlippageFromReferenceBps:
         dec.swapVaultMaxSlippageFromReferenceBps,
       strategyType: dec.strategyType,
-      depositFee: dec.depositFee,
+      padding0: dec.padding0,
       withdrawFee: dec.withdrawFee,
       feesFee: dec.feesFee,
       reward0Fee: dec.reward0Fee,
@@ -637,24 +647,22 @@ export class WhirlpoolStrategy {
       reservedFlag2: dec.reservedFlag2,
       localAdminBlocked: dec.localAdminBlocked,
       flashVaultSwapAllowed: dec.flashVaultSwapAllowed,
-      referenceSwapPriceA: types.KaminoPrice.fromDecoded(
-        dec.referenceSwapPriceA
-      ),
-      referenceSwapPriceB: types.KaminoPrice.fromDecoded(
-        dec.referenceSwapPriceB
-      ),
+      referenceSwapPriceA: types.Price.fromDecoded(dec.referenceSwapPriceA),
+      referenceSwapPriceB: types.Price.fromDecoded(dec.referenceSwapPriceB),
       isCommunity: dec.isCommunity,
       rebalanceType: dec.rebalanceType,
-      padding0: dec.padding0,
-      rebalanceRaw: types.RebalanceRaw.fromDecoded(dec.rebalanceRaw),
       padding1: dec.padding1,
+      rebalanceRaw: types.RebalanceRaw.fromDecoded(dec.rebalanceRaw),
+      padding2: dec.padding2,
       tokenAFeesFromRewardsCumulative: dec.tokenAFeesFromRewardsCumulative,
       tokenBFeesFromRewardsCumulative: dec.tokenBFeesFromRewardsCumulative,
       strategyLookupTable: dec.strategyLookupTable,
+      lastSwapUnevenStepTimestamp: dec.lastSwapUnevenStepTimestamp,
       padding3: dec.padding3,
       padding4: dec.padding4,
       padding5: dec.padding5,
       padding6: dec.padding6,
+      padding7: dec.padding7,
     })
   }
 
@@ -721,7 +729,7 @@ export class WhirlpoolStrategy {
       swapVaultMaxSlippageFromReferenceBps:
         this.swapVaultMaxSlippageFromReferenceBps,
       strategyType: this.strategyType.toString(),
-      depositFee: this.depositFee.toString(),
+      padding0: this.padding0.toString(),
       withdrawFee: this.withdrawFee.toString(),
       feesFee: this.feesFee.toString(),
       reward0Fee: this.reward0Fee.toString(),
@@ -747,18 +755,20 @@ export class WhirlpoolStrategy {
       referenceSwapPriceB: this.referenceSwapPriceB.toJSON(),
       isCommunity: this.isCommunity,
       rebalanceType: this.rebalanceType,
-      padding0: this.padding0,
-      rebalanceRaw: this.rebalanceRaw.toJSON(),
       padding1: this.padding1,
+      rebalanceRaw: this.rebalanceRaw.toJSON(),
+      padding2: this.padding2,
       tokenAFeesFromRewardsCumulative:
         this.tokenAFeesFromRewardsCumulative.toString(),
       tokenBFeesFromRewardsCumulative:
         this.tokenBFeesFromRewardsCumulative.toString(),
       strategyLookupTable: this.strategyLookupTable.toString(),
-      padding3: this.padding3.map((item) => item.toString()),
+      lastSwapUnevenStepTimestamp: this.lastSwapUnevenStepTimestamp.toString(),
+      padding3: this.padding3.toString(),
       padding4: this.padding4.map((item) => item.toString()),
       padding5: this.padding5.map((item) => item.toString()),
       padding6: this.padding6.map((item) => item.toString()),
+      padding7: this.padding7.map((item) => item.toString()),
     }
   }
 
@@ -825,7 +835,7 @@ export class WhirlpoolStrategy {
       swapVaultMaxSlippageFromReferenceBps:
         obj.swapVaultMaxSlippageFromReferenceBps,
       strategyType: new BN(obj.strategyType),
-      depositFee: new BN(obj.depositFee),
+      padding0: new BN(obj.padding0),
       withdrawFee: new BN(obj.withdrawFee),
       feesFee: new BN(obj.feesFee),
       reward0Fee: new BN(obj.reward0Fee),
@@ -851,13 +861,13 @@ export class WhirlpoolStrategy {
       reservedFlag2: obj.reservedFlag2,
       localAdminBlocked: obj.localAdminBlocked,
       flashVaultSwapAllowed: obj.flashVaultSwapAllowed,
-      referenceSwapPriceA: types.KaminoPrice.fromJSON(obj.referenceSwapPriceA),
-      referenceSwapPriceB: types.KaminoPrice.fromJSON(obj.referenceSwapPriceB),
+      referenceSwapPriceA: types.Price.fromJSON(obj.referenceSwapPriceA),
+      referenceSwapPriceB: types.Price.fromJSON(obj.referenceSwapPriceB),
       isCommunity: obj.isCommunity,
       rebalanceType: obj.rebalanceType,
-      padding0: obj.padding0,
-      rebalanceRaw: types.RebalanceRaw.fromJSON(obj.rebalanceRaw),
       padding1: obj.padding1,
+      rebalanceRaw: types.RebalanceRaw.fromJSON(obj.rebalanceRaw),
+      padding2: obj.padding2,
       tokenAFeesFromRewardsCumulative: new BN(
         obj.tokenAFeesFromRewardsCumulative
       ),
@@ -865,10 +875,12 @@ export class WhirlpoolStrategy {
         obj.tokenBFeesFromRewardsCumulative
       ),
       strategyLookupTable: new PublicKey(obj.strategyLookupTable),
-      padding3: obj.padding3.map((item) => new BN(item)),
+      lastSwapUnevenStepTimestamp: new BN(obj.lastSwapUnevenStepTimestamp),
+      padding3: new BN(obj.padding3),
       padding4: obj.padding4.map((item) => new BN(item)),
       padding5: obj.padding5.map((item) => new BN(item)),
       padding6: obj.padding6.map((item) => new BN(item)),
+      padding7: obj.padding7.map((item) => new BN(item)),
     })
   }
 }

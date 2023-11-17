@@ -12,6 +12,8 @@ export interface InitializeAccounts {
   admin: PublicKey
   systemProgram: PublicKey
   configuration: PublicKey
+  tokenMetadatas: PublicKey
+  oracleTwaps: PublicKey
   oraclePrices: PublicKey
   oracleMappings: PublicKey
 }
@@ -27,6 +29,8 @@ export function initialize(
     { pubkey: accounts.admin, isSigner: true, isWritable: true },
     { pubkey: accounts.systemProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.configuration, isSigner: false, isWritable: true },
+    { pubkey: accounts.tokenMetadatas, isSigner: false, isWritable: true },
+    { pubkey: accounts.oracleTwaps, isSigner: false, isWritable: true },
     { pubkey: accounts.oraclePrices, isSigner: false, isWritable: true },
     { pubkey: accounts.oracleMappings, isSigner: false, isWritable: true },
   ]
