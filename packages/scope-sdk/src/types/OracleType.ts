@@ -187,6 +187,121 @@ export class PythEMA {
   }
 }
 
+export interface MsolStakeJSON {
+  kind: "MsolStake"
+}
+
+export class MsolStake {
+  static readonly discriminator = 8
+  static readonly kind = "MsolStake"
+  readonly discriminator = 8
+  readonly kind = "MsolStake"
+
+  toJSON(): MsolStakeJSON {
+    return {
+      kind: "MsolStake",
+    }
+  }
+
+  toEncodable() {
+    return {
+      MsolStake: {},
+    }
+  }
+}
+
+export interface KTokenToTokenAJSON {
+  kind: "KTokenToTokenA"
+}
+
+export class KTokenToTokenA {
+  static readonly discriminator = 9
+  static readonly kind = "KTokenToTokenA"
+  readonly discriminator = 9
+  readonly kind = "KTokenToTokenA"
+
+  toJSON(): KTokenToTokenAJSON {
+    return {
+      kind: "KTokenToTokenA",
+    }
+  }
+
+  toEncodable() {
+    return {
+      KTokenToTokenA: {},
+    }
+  }
+}
+
+export interface KTokenToTokenBJSON {
+  kind: "KTokenToTokenB"
+}
+
+export class KTokenToTokenB {
+  static readonly discriminator = 10
+  static readonly kind = "KTokenToTokenB"
+  readonly discriminator = 10
+  readonly kind = "KTokenToTokenB"
+
+  toJSON(): KTokenToTokenBJSON {
+    return {
+      kind: "KTokenToTokenB",
+    }
+  }
+
+  toEncodable() {
+    return {
+      KTokenToTokenB: {},
+    }
+  }
+}
+
+export interface JupiterLPJSON {
+  kind: "JupiterLP"
+}
+
+export class JupiterLP {
+  static readonly discriminator = 11
+  static readonly kind = "JupiterLP"
+  readonly discriminator = 11
+  readonly kind = "JupiterLP"
+
+  toJSON(): JupiterLPJSON {
+    return {
+      kind: "JupiterLP",
+    }
+  }
+
+  toEncodable() {
+    return {
+      JupiterLP: {},
+    }
+  }
+}
+
+export interface ScopeTwapJSON {
+  kind: "ScopeTwap"
+}
+
+export class ScopeTwap {
+  static readonly discriminator = 12
+  static readonly kind = "ScopeTwap"
+  readonly discriminator = 12
+  readonly kind = "ScopeTwap"
+
+  toJSON(): ScopeTwapJSON {
+    return {
+      kind: "ScopeTwap",
+    }
+  }
+
+  toEncodable() {
+    return {
+      ScopeTwap: {},
+    }
+  }
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function fromDecoded(obj: any): types.OracleTypeKind {
   if (typeof obj !== "object") {
@@ -216,6 +331,21 @@ export function fromDecoded(obj: any): types.OracleTypeKind {
   }
   if ("PythEMA" in obj) {
     return new PythEMA()
+  }
+  if ("MsolStake" in obj) {
+    return new MsolStake()
+  }
+  if ("KTokenToTokenA" in obj) {
+    return new KTokenToTokenA()
+  }
+  if ("KTokenToTokenB" in obj) {
+    return new KTokenToTokenB()
+  }
+  if ("JupiterLP" in obj) {
+    return new JupiterLP()
+  }
+  if ("ScopeTwap" in obj) {
+    return new ScopeTwap()
   }
 
   throw new Error("Invalid enum object")
@@ -247,6 +377,21 @@ export function fromJSON(obj: types.OracleTypeJSON): types.OracleTypeKind {
     case "PythEMA": {
       return new PythEMA()
     }
+    case "MsolStake": {
+      return new MsolStake()
+    }
+    case "KTokenToTokenA": {
+      return new KTokenToTokenA()
+    }
+    case "KTokenToTokenB": {
+      return new KTokenToTokenB()
+    }
+    case "JupiterLP": {
+      return new JupiterLP()
+    }
+    case "ScopeTwap": {
+      return new ScopeTwap()
+    }
   }
 }
 
@@ -260,6 +405,11 @@ export function layout(property?: string) {
     borsh.struct([], "SplStake"),
     borsh.struct([], "KToken"),
     borsh.struct([], "PythEMA"),
+    borsh.struct([], "MsolStake"),
+    borsh.struct([], "KTokenToTokenA"),
+    borsh.struct([], "KTokenToTokenB"),
+    borsh.struct([], "JupiterLP"),
+    borsh.struct([], "ScopeTwap"),
   ])
   if (property !== undefined) {
     return ret.replicate(property)

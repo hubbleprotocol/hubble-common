@@ -85,7 +85,8 @@ describe('Scope SDK Tests', async () => {
   it('should get prices by chain', async () => {
     // 88 = HNT/USD
     const price = await scope.getPriceFromChain([88, 65_535, 65_535, 65_535]);
-    expect(price.toNumber()).greaterThan(0);
+    expect(price.price.toNumber()).greaterThan(0);
+    expect(price.timestamp.toNumber()).greaterThan(0);
   });
 
   it('should get prices by chain when multiple steps', async () => {
@@ -93,7 +94,8 @@ describe('Scope SDK Tests', async () => {
     // 84 = IOT/HNT
     // gives us the price of IOT/USD
     const price = await scope.getPriceFromChain([88, 84, 65_535, 65_535]);
-    expect(price.toNumber()).gt(0);
+    expect(price.price.toNumber()).gt(0);
+    expect(price.timestamp.toNumber()).gt(0);
   });
 
   it('should throw on default 0 chain', async () => {

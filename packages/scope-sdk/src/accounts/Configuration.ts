@@ -8,6 +8,8 @@ export interface ConfigurationFields {
   admin: PublicKey
   oracleMappings: PublicKey
   oraclePrices: PublicKey
+  tokensMetadata: PublicKey
+  oracleTwaps: PublicKey
   padding: Array<BN>
 }
 
@@ -15,6 +17,8 @@ export interface ConfigurationJSON {
   admin: string
   oracleMappings: string
   oraclePrices: string
+  tokensMetadata: string
+  oracleTwaps: string
   padding: Array<string>
 }
 
@@ -22,6 +26,8 @@ export class Configuration {
   readonly admin: PublicKey
   readonly oracleMappings: PublicKey
   readonly oraclePrices: PublicKey
+  readonly tokensMetadata: PublicKey
+  readonly oracleTwaps: PublicKey
   readonly padding: Array<BN>
 
   static readonly discriminator = Buffer.from([
@@ -32,13 +38,17 @@ export class Configuration {
     borsh.publicKey("admin"),
     borsh.publicKey("oracleMappings"),
     borsh.publicKey("oraclePrices"),
-    borsh.array(borsh.u64(), 1267, "padding"),
+    borsh.publicKey("tokensMetadata"),
+    borsh.publicKey("oracleTwaps"),
+    borsh.array(borsh.u64(), 1259, "padding"),
   ])
 
   constructor(fields: ConfigurationFields) {
     this.admin = fields.admin
     this.oracleMappings = fields.oracleMappings
     this.oraclePrices = fields.oraclePrices
+    this.tokensMetadata = fields.tokensMetadata
+    this.oracleTwaps = fields.oracleTwaps
     this.padding = fields.padding
   }
 
@@ -89,6 +99,8 @@ export class Configuration {
       admin: dec.admin,
       oracleMappings: dec.oracleMappings,
       oraclePrices: dec.oraclePrices,
+      tokensMetadata: dec.tokensMetadata,
+      oracleTwaps: dec.oracleTwaps,
       padding: dec.padding,
     })
   }
@@ -98,6 +110,8 @@ export class Configuration {
       admin: this.admin.toString(),
       oracleMappings: this.oracleMappings.toString(),
       oraclePrices: this.oraclePrices.toString(),
+      tokensMetadata: this.tokensMetadata.toString(),
+      oracleTwaps: this.oracleTwaps.toString(),
       padding: this.padding.map((item) => item.toString()),
     }
   }
@@ -107,6 +121,8 @@ export class Configuration {
       admin: new PublicKey(obj.admin),
       oracleMappings: new PublicKey(obj.oracleMappings),
       oraclePrices: new PublicKey(obj.oraclePrices),
+      tokensMetadata: new PublicKey(obj.tokensMetadata),
+      oracleTwaps: new PublicKey(obj.oracleTwaps),
       padding: obj.padding.map((item) => new BN(item)),
     })
   }

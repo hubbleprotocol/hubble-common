@@ -7,6 +7,8 @@ import { PROGRAM_ID } from "../programId"
 export interface UpdateMappingArgs {
   token: BN
   priceType: number
+  twapEnabled: boolean
+  twapSource: number
   feedName: string
 }
 
@@ -20,6 +22,8 @@ export interface UpdateMappingAccounts {
 export const layout = borsh.struct([
   borsh.u64("token"),
   borsh.u8("priceType"),
+  borsh.bool("twapEnabled"),
+  borsh.u16("twapSource"),
   borsh.str("feedName"),
 ])
 
@@ -40,6 +44,8 @@ export function updateMapping(
     {
       token: args.token,
       priceType: args.priceType,
+      twapEnabled: args.twapEnabled,
+      twapSource: args.twapSource,
       feedName: args.feedName,
     },
     buffer

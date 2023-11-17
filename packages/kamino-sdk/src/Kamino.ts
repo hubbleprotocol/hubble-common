@@ -1753,7 +1753,7 @@ export class Kamino {
       if (collateralInfo.scopePriceChain && Scope.isScopeChainValid(collateralInfo.scopePriceChain)) {
         const spotPrice = await this._scope.getPriceFromChain(collateralInfo.scopePriceChain, oraclePrices);
         spotPrices[collateralInfo.mint.toString()] = {
-          price: spotPrice,
+          price: spotPrice.price,
           name: getTokenNameFromCollateralInfo(collateralInfo),
         };
 
@@ -1761,7 +1761,7 @@ export class Kamino {
         if (filteredTwapChain && Scope.isScopeChainValid(filteredTwapChain)) {
           const twap = await this._scope.getPriceFromChain(filteredTwapChain, oraclePrices);
           twaps[collateralInfo.mint.toString()] = {
-            price: twap,
+            price: twap.price,
             name: getTokenNameFromCollateralInfo(collateralInfo),
           };
         }
@@ -1827,13 +1827,13 @@ export class Kamino {
         : null;
 
     return {
-      aPrice,
-      bPrice,
-      aTwapPrice,
-      bTwapPrice,
-      reward0Price,
-      reward1Price,
-      reward2Price,
+      aPrice: aPrice.price,
+      bPrice: bPrice.price,
+      aTwapPrice: aTwapPrice?.price ?? null,
+      bTwapPrice: bTwapPrice?.price ?? null,
+      reward0Price: reward0Price?.price ?? null,
+      reward1Price: reward1Price?.price ?? null,
+      reward2Price: reward2Price?.price ?? null,
     };
   };
 

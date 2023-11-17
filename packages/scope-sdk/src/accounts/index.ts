@@ -1,24 +1,12 @@
-export { WhirlpoolStrategy } from "./WhirlpoolStrategy"
-export type {
-  WhirlpoolStrategyFields,
-  WhirlpoolStrategyJSON,
-} from "./WhirlpoolStrategy"
-export { GlobalConfig } from "./GlobalConfig"
-export type { GlobalConfigFields, GlobalConfigJSON } from "./GlobalConfig"
-export { CollateralInfos } from "./CollateralInfos"
-export type {
-  CollateralInfosFields,
-  CollateralInfosJSON,
-} from "./CollateralInfos"
-export { Whirlpool } from "./Whirlpool"
-export type { WhirlpoolFields, WhirlpoolJSON } from "./Whirlpool"
-export { Position } from "./Position"
-export type { PositionFields, PositionJSON } from "./Position"
-export { TickArray } from "./TickArray"
-export type { TickArrayFields, TickArrayJSON } from "./TickArray"
+export { Pool } from "./Pool"
+export type { PoolFields, PoolJSON } from "./Pool"
+export { OracleTwaps } from "./OracleTwaps"
+export type { OracleTwapsFields, OracleTwapsJSON } from "./OracleTwaps"
 export { OraclePrices } from "./OraclePrices"
 export type { OraclePricesFields, OraclePricesJSON } from "./OraclePrices"
 export { OracleMappings } from "./OracleMappings"
 export type { OracleMappingsFields, OracleMappingsJSON } from "./OracleMappings"
+export { TokenMetadatas } from "./TokenMetadatas"
+export type { TokenMetadatasFields, TokenMetadatasJSON } from "./TokenMetadatas"
 export { Configuration } from "./Configuration"
 export type { ConfigurationFields, ConfigurationJSON } from "./Configuration"

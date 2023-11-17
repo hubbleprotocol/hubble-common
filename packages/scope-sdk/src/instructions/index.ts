@@ -12,3 +12,10 @@ export type {
 } from "./refreshPriceList"
 export { updateMapping } from "./updateMapping"
 export type { UpdateMappingArgs, UpdateMappingAccounts } from "./updateMapping"
+export { resetTwap } from "./resetTwap"
+export type { ResetTwapArgs, ResetTwapAccounts } from "./resetTwap"
+export { updateTokenMetadata } from "./updateTokenMetadata"
+export type {
+  UpdateTokenMetadataArgs,
+  UpdateTokenMetadataAccounts,
+} from "./updateTokenMetadata"
