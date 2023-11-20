@@ -729,7 +729,7 @@ export class Hubble {
       if (collateral.scopePriceChain && Scope.isScopeChainValid(collateral.scopePriceChain)) {
         const spotPrice = await this._scope.getPriceFromChain(collateral.scopePriceChain, oraclePrices);
         spotPrices[collateral.mint!.toString()] = {
-          price: spotPrice.price,
+          price: spotPrice,
           name: collateral.name,
         };
 
@@ -737,7 +737,7 @@ export class Hubble {
         if (filteredTwapChain && Scope.isScopeChainValid(filteredTwapChain)) {
           const twap = await this._scope.getPriceFromChain(filteredTwapChain, oraclePrices);
           twaps[collateral.mint!.toString()] = {
-            price: twap.price,
+            price: twap,
             name: collateral.name,
           };
         }
