@@ -97,5 +97,5 @@ export const FARM_TABLE = 'farm';
 export const FARM_STATE_TABLE = 'farm_state';
 export const FARM_USER_TABLE = 'farm_user';
 export const FARM_USER_STATE_TABLE = 'farm_user_state';
-export const FARM_REWARD_TABLE = 'farm_reward';
+export const FARM_REWARD_TABLE = 'farm_reward_state';
 export const API_SCHEMA: string = 'api';
