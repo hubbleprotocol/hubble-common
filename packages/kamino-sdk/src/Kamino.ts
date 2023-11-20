@@ -1810,19 +1810,23 @@ export class Kamino {
     const bPrice = await this._scope.getPriceFromChain(tokenB.scopePriceChain, prices);
     const tokenATwap = stripTwapZeros(tokenA.scopeTwapPriceChain);
     const tokenBTwap = stripTwapZeros(tokenB.scopeTwapPriceChain);
-    const aTwapPrice = tokenATwap.length > 0 ? await this._scope.getPriceFromChain(tokenATwap, prices) : null;
-    const bTwapPrice = tokenBTwap.length > 0 ? await this._scope.getPriceFromChain(tokenBTwap, prices) : null;
+    const aTwapPrice = Scope.isScopeChainValid(tokenATwap)
+      ? await this._scope.getPriceFromChain(tokenATwap, prices)
+      : null;
+    const bTwapPrice = Scope.isScopeChainValid(tokenBTwap)
+      ? await this._scope.getPriceFromChain(tokenBTwap, prices)
+      : null;
 
     const reward0Price =
-      strategy.reward0Decimals.toNumber() !== 0
+      strategy.reward0Decimals.toNumber() !== 0 && Scope.isScopeChainValid(rewardToken0.scopePriceChain)
         ? await this._scope.getPriceFromChain(rewardToken0.scopePriceChain, prices)
         : null;
     const reward1Price =
-      strategy.reward1Decimals.toNumber() !== 0
+      strategy.reward1Decimals.toNumber() !== 0 && Scope.isScopeChainValid(rewardToken1.scopePriceChain)
         ? await this._scope.getPriceFromChain(rewardToken1.scopePriceChain, prices)
         : null;
     const reward2Price =
-      strategy.reward2Decimals.toNumber() !== 0
+      strategy.reward2Decimals.toNumber() !== 0 && Scope.isScopeChainValid(rewardToken2.scopePriceChain)
         ? await this._scope.getPriceFromChain(rewardToken2.scopePriceChain, prices)
         : null;
 
