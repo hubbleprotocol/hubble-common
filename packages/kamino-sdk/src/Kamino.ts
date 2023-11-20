@@ -2788,24 +2788,14 @@ export class Kamino {
       ...extractKeys(cleanupIxs),
     ];
 
-    console.log(
-      'amountsToDepositWithSwap',
-      amountsToDepositWithSwap.requiredAAmountToDeposit.toString(),
-      amountsToDepositWithSwap.requiredBAmountToDeposit.toString(),
-      amountsToDepositWithSwap.tokenAToSwapAmount.toString(),
-      amountsToDepositWithSwap.tokenBToSwapAmount.toString()
-    );
     // if we have no tokens to sell skip the jup tx
     if (
       amountsToDepositWithSwap.tokenAToSwapAmount.gte(ZERO) &&
       amountsToDepositWithSwap.tokenBToSwapAmount.gte(ZERO)
     ) {
-      console.log('SILVIU NO SWAP');
       result = result.concat([checkExpectedVaultsBalancesIx, singleSidedDepositIx, ...cleanupIxs]);
       return { instructions: result, lookupTablesAddresses: [] };
     }
-
-    console.log('SILVIU SWAP');
 
     let [jupSwapIxs, lookupTablesAddresses] = await profiler(
       Kamino.retryAsync(async () =>
