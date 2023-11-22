@@ -440,6 +440,52 @@ export class MinPerformanceFeeBps {
   }
 }
 
+export interface MinSwapUnevenSlippageToleranceBpsJSON {
+  kind: "MinSwapUnevenSlippageToleranceBps"
+}
+
+export class MinSwapUnevenSlippageToleranceBps {
+  static readonly discriminator = 19
+  static readonly kind = "MinSwapUnevenSlippageToleranceBps"
+  readonly discriminator = 19
+  readonly kind = "MinSwapUnevenSlippageToleranceBps"
+
+  toJSON(): MinSwapUnevenSlippageToleranceBpsJSON {
+    return {
+      kind: "MinSwapUnevenSlippageToleranceBps",
+    }
+  }
+
+  toEncodable() {
+    return {
+      MinSwapUnevenSlippageToleranceBps: {},
+    }
+  }
+}
+
+export interface MinReferencePriceSlippageToleranceBpsJSON {
+  kind: "MinReferencePriceSlippageToleranceBps"
+}
+
+export class MinReferencePriceSlippageToleranceBps {
+  static readonly discriminator = 20
+  static readonly kind = "MinReferencePriceSlippageToleranceBps"
+  readonly discriminator = 20
+  readonly kind = "MinReferencePriceSlippageToleranceBps"
+
+  toJSON(): MinReferencePriceSlippageToleranceBpsJSON {
+    return {
+      kind: "MinReferencePriceSlippageToleranceBps",
+    }
+  }
+
+  toEncodable() {
+    return {
+      MinReferencePriceSlippageToleranceBps: {},
+    }
+  }
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function fromDecoded(obj: any): types.GlobalConfigOptionKind {
   if (typeof obj !== "object") {
@@ -502,6 +548,12 @@ export function fromDecoded(obj: any): types.GlobalConfigOptionKind {
   }
   if ("MinPerformanceFeeBps" in obj) {
     return new MinPerformanceFeeBps()
+  }
+  if ("MinSwapUnevenSlippageToleranceBps" in obj) {
+    return new MinSwapUnevenSlippageToleranceBps()
+  }
+  if ("MinReferencePriceSlippageToleranceBps" in obj) {
+    return new MinReferencePriceSlippageToleranceBps()
   }
 
   throw new Error("Invalid enum object")
@@ -568,6 +620,12 @@ export function fromJSON(
     case "MinPerformanceFeeBps": {
       return new MinPerformanceFeeBps()
     }
+    case "MinSwapUnevenSlippageToleranceBps": {
+      return new MinSwapUnevenSlippageToleranceBps()
+    }
+    case "MinReferencePriceSlippageToleranceBps": {
+      return new MinReferencePriceSlippageToleranceBps()
+    }
   }
 }
 
@@ -592,6 +650,8 @@ export function layout(property?: string) {
     borsh.struct([], "ScopeProgramId"),
     borsh.struct([], "ScopePriceId"),
     borsh.struct([], "MinPerformanceFeeBps"),
+    borsh.struct([], "MinSwapUnevenSlippageToleranceBps"),
+    borsh.struct([], "MinReferencePriceSlippageToleranceBps"),
   ])
   if (property !== undefined) {
     return ret.replicate(property)
