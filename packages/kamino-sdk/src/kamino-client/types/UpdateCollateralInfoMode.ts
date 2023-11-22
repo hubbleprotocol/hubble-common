@@ -279,6 +279,29 @@ export class UpdateStakingRateChain {
   }
 }
 
+export interface UpdateMaxIgnorableAmountAsRewardJSON {
+  kind: "UpdateMaxIgnorableAmountAsReward"
+}
+
+export class UpdateMaxIgnorableAmountAsReward {
+  static readonly discriminator = 12
+  static readonly kind = "UpdateMaxIgnorableAmountAsReward"
+  readonly discriminator = 12
+  readonly kind = "UpdateMaxIgnorableAmountAsReward"
+
+  toJSON(): UpdateMaxIgnorableAmountAsRewardJSON {
+    return {
+      kind: "UpdateMaxIgnorableAmountAsReward",
+    }
+  }
+
+  toEncodable() {
+    return {
+      UpdateMaxIgnorableAmountAsReward: {},
+    }
+  }
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function fromDecoded(obj: any): types.UpdateCollateralInfoModeKind {
   if (typeof obj !== "object") {
@@ -320,6 +343,9 @@ export function fromDecoded(obj: any): types.UpdateCollateralInfoModeKind {
   }
   if ("UpdateStakingRateChain" in obj) {
     return new UpdateStakingRateChain()
+  }
+  if ("UpdateMaxIgnorableAmountAsReward" in obj) {
+    return new UpdateMaxIgnorableAmountAsReward()
   }
 
   throw new Error("Invalid enum object")
@@ -365,6 +391,9 @@ export function fromJSON(
     case "UpdateStakingRateChain": {
       return new UpdateStakingRateChain()
     }
+    case "UpdateMaxIgnorableAmountAsReward": {
+      return new UpdateMaxIgnorableAmountAsReward()
+    }
   }
 }
 
@@ -382,6 +411,7 @@ export function layout(property?: string) {
     borsh.struct([], "UpdateTwapMaxAge"),
     borsh.struct([], "UpdateDisabled"),
     borsh.struct([], "UpdateStakingRateChain"),
+    borsh.struct([], "UpdateMaxIgnorableAmountAsReward"),
   ])
   if (property !== undefined) {
     return ret.replicate(property)

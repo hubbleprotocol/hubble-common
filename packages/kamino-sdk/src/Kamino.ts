@@ -1753,7 +1753,7 @@ export class Kamino {
       if (collateralInfo.scopePriceChain && Scope.isScopeChainValid(collateralInfo.scopePriceChain)) {
         const spotPrice = await this._scope.getPriceFromChain(collateralInfo.scopePriceChain, oraclePrices);
         spotPrices[collateralInfo.mint.toString()] = {
-          price: spotPrice,
+          price: spotPrice.price,
           name: getTokenNameFromCollateralInfo(collateralInfo),
         };
 
@@ -1761,7 +1761,7 @@ export class Kamino {
         if (filteredTwapChain && Scope.isScopeChainValid(filteredTwapChain)) {
           const twap = await this._scope.getPriceFromChain(filteredTwapChain, oraclePrices);
           twaps[collateralInfo.mint.toString()] = {
-            price: twap,
+            price: twap.price,
             name: getTokenNameFromCollateralInfo(collateralInfo),
           };
         }
@@ -1810,30 +1810,34 @@ export class Kamino {
     const bPrice = await this._scope.getPriceFromChain(tokenB.scopePriceChain, prices);
     const tokenATwap = stripTwapZeros(tokenA.scopeTwapPriceChain);
     const tokenBTwap = stripTwapZeros(tokenB.scopeTwapPriceChain);
-    const aTwapPrice = tokenATwap.length > 0 ? await this._scope.getPriceFromChain(tokenATwap, prices) : null;
-    const bTwapPrice = tokenBTwap.length > 0 ? await this._scope.getPriceFromChain(tokenBTwap, prices) : null;
+    const aTwapPrice = Scope.isScopeChainValid(tokenATwap)
+      ? await this._scope.getPriceFromChain(tokenATwap, prices)
+      : null;
+    const bTwapPrice = Scope.isScopeChainValid(tokenBTwap)
+      ? await this._scope.getPriceFromChain(tokenBTwap, prices)
+      : null;
 
     const reward0Price =
-      strategy.reward0Decimals.toNumber() !== 0
+      strategy.reward0Decimals.toNumber() !== 0 && Scope.isScopeChainValid(rewardToken0.scopePriceChain)
         ? await this._scope.getPriceFromChain(rewardToken0.scopePriceChain, prices)
         : null;
     const reward1Price =
-      strategy.reward1Decimals.toNumber() !== 0
+      strategy.reward1Decimals.toNumber() !== 0 && Scope.isScopeChainValid(rewardToken1.scopePriceChain)
         ? await this._scope.getPriceFromChain(rewardToken1.scopePriceChain, prices)
         : null;
     const reward2Price =
-      strategy.reward2Decimals.toNumber() !== 0
+      strategy.reward2Decimals.toNumber() !== 0 && Scope.isScopeChainValid(rewardToken2.scopePriceChain)
         ? await this._scope.getPriceFromChain(rewardToken2.scopePriceChain, prices)
         : null;
 
     return {
-      aPrice,
-      bPrice,
-      aTwapPrice,
-      bTwapPrice,
-      reward0Price,
-      reward1Price,
-      reward2Price,
+      aPrice: aPrice.price,
+      bPrice: bPrice.price,
+      aTwapPrice: aTwapPrice?.price ?? null,
+      bTwapPrice: bTwapPrice?.price ?? null,
+      reward0Price: reward0Price?.price ?? null,
+      reward1Price: reward1Price?.price ?? null,
+      reward2Price: reward2Price?.price ?? null,
     };
   };
 

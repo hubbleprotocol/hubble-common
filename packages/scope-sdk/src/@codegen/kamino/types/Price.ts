@@ -3,21 +3,21 @@ import BN from "bn.js" // eslint-disable-line @typescript-eslint/no-unused-vars
 import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
 import * as borsh from "@coral-xyz/borsh"
 
-export interface KaminoPriceFields {
+export interface PriceFields {
   value: BN
   exp: BN
 }
 
-export interface KaminoPriceJSON {
+export interface PriceJSON {
   value: string
   exp: string
 }
 
-export class KaminoPrice {
+export class Price {
   readonly value: BN
   readonly exp: BN
 
-  constructor(fields: KaminoPriceFields) {
+  constructor(fields: PriceFields) {
     this.value = fields.value
     this.exp = fields.exp
   }
@@ -28,34 +28,34 @@ export class KaminoPrice {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   static fromDecoded(obj: any) {
-    return new KaminoPrice({
+    return new Price({
       value: obj.value,
       exp: obj.exp,
     })
   }
 
-  static toEncodable(fields: KaminoPriceFields) {
+  static toEncodable(fields: PriceFields) {
     return {
       value: fields.value,
       exp: fields.exp,
     }
   }
 
-  toJSON(): KaminoPriceJSON {
+  toJSON(): PriceJSON {
     return {
       value: this.value.toString(),
       exp: this.exp.toString(),
     }
   }
 
-  static fromJSON(obj: KaminoPriceJSON): KaminoPrice {
-    return new KaminoPrice({
+  static fromJSON(obj: PriceJSON): Price {
+    return new Price({
       value: new BN(obj.value),
       exp: new BN(obj.exp),
     })
   }
 
   toEncodable() {
-    return KaminoPrice.toEncodable(this)
+    return Price.toEncodable(this)
   }
 }

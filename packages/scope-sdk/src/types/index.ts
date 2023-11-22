@@ -1,31 +1,29 @@
+import * as TokenTypes from "./TokenTypes"
 import * as OracleType from "./OracleType"
 import * as ScopeChainError from "./ScopeChainError"
+import * as UpdateTokenMetadataMode from "./UpdateTokenMetadataMode"
 
-export { RebalanceRaw } from "./RebalanceRaw"
-export type { RebalanceRawFields, RebalanceRawJSON } from "./RebalanceRaw"
-export { KaminoRewardInfo } from "./KaminoRewardInfo"
+export { Limit } from "./Limit"
+export type { LimitFields, LimitJSON } from "./Limit"
+export { Fees } from "./Fees"
+export type { FeesFields, FeesJSON } from "./Fees"
+export { PoolApr } from "./PoolApr"
+export type { PoolAprFields, PoolAprJSON } from "./PoolApr"
+export { Fee } from "./Fee"
+export type { FeeFields, FeeJSON } from "./Fee"
+export { LiqPool } from "./LiqPool"
+export type { LiqPoolFields, LiqPoolJSON } from "./LiqPool"
+export { List } from "./List"
+export type { ListFields, ListJSON } from "./List"
+export { StakeSystem } from "./StakeSystem"
+export type { StakeSystemFields, StakeSystemJSON } from "./StakeSystem"
+export { ValidatorSystem } from "./ValidatorSystem"
 export type {
-  KaminoRewardInfoFields,
-  KaminoRewardInfoJSON,
-} from "./KaminoRewardInfo"
-export { CollateralInfo } from "./CollateralInfo"
-export type { CollateralInfoFields, CollateralInfoJSON } from "./CollateralInfo"
-export { KaminoPrice } from "./KaminoPrice"
-export type { KaminoPriceFields, KaminoPriceJSON } from "./KaminoPrice"
-export { WithdrawalCaps } from "./WithdrawalCaps"
-export type { WithdrawalCapsFields, WithdrawalCapsJSON } from "./WithdrawalCaps"
-export { PositionRewardInfo } from "./PositionRewardInfo"
-export type {
-  PositionRewardInfoFields,
-  PositionRewardInfoJSON,
-} from "./PositionRewardInfo"
-export { WhirlpoolRewardInfo } from "./WhirlpoolRewardInfo"
-export type {
-  WhirlpoolRewardInfoFields,
-  WhirlpoolRewardInfoJSON,
-} from "./WhirlpoolRewardInfo"
-export { Tick } from "./Tick"
-export type { TickFields, TickJSON } from "./Tick"
+  ValidatorSystemFields,
+  ValidatorSystemJSON,
+} from "./ValidatorSystem"
+export { State } from "./State"
+export type { StateFields, StateJSON } from "./State"
 export { SwitchboardDecimal } from "./SwitchboardDecimal"
 export type {
   SwitchboardDecimalFields,
@@ -47,6 +45,15 @@ export { Price } from "./Price"
 export type { PriceFields, PriceJSON } from "./Price"
 export { DatedPrice } from "./DatedPrice"
 export type { DatedPriceFields, DatedPriceJSON } from "./DatedPrice"
+export { EmaTwap } from "./EmaTwap"
+export type { EmaTwapFields, EmaTwapJSON } from "./EmaTwap"
+export { TokenMetadata } from "./TokenMetadata"
+export type { TokenMetadataFields, TokenMetadataJSON } from "./TokenMetadata"
+export { TokenTypes }
+
+export type TokenTypesKind = TokenTypes.TokenA | TokenTypes.TokenB
+export type TokenTypesJSON = TokenTypes.TokenAJSON | TokenTypes.TokenBJSON
+
 export { OracleType }
 
 export type OracleTypeKind =
@@ -58,6 +65,11 @@ export type OracleTypeKind =
   | OracleType.SplStake
   | OracleType.KToken
   | OracleType.PythEMA
+  | OracleType.MsolStake
+  | OracleType.KTokenToTokenA
+  | OracleType.KTokenToTokenB
+  | OracleType.JupiterLP
+  | OracleType.ScopeTwap
 export type OracleTypeJSON =
   | OracleType.PythJSON
   | OracleType.SwitchboardV1JSON
@@ -67,6 +79,11 @@ export type OracleTypeJSON =
   | OracleType.SplStakeJSON
   | OracleType.KTokenJSON
   | OracleType.PythEMAJSON
+  | OracleType.MsolStakeJSON
+  | OracleType.KTokenToTokenAJSON
+  | OracleType.KTokenToTokenBJSON
+  | OracleType.JupiterLPJSON
+  | OracleType.ScopeTwapJSON
 
 export { ScopeChainError }
 
@@ -85,3 +102,12 @@ export type ScopeChainErrorJSON =
   | ScopeChainError.InvalidPricesInChainJSON
   | ScopeChainError.MathOverflowJSON
   | ScopeChainError.IntegerConversionOverflowJSON
+
+export { UpdateTokenMetadataMode }
+
+export type UpdateTokenMetadataModeKind =
+  | UpdateTokenMetadataMode.Name
+  | UpdateTokenMetadataMode.MaxPriceAgeSeconds
+export type UpdateTokenMetadataModeJSON =
+  | UpdateTokenMetadataMode.NameJSON
+  | UpdateTokenMetadataMode.MaxPriceAgeSecondsJSON

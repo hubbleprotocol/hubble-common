@@ -7,19 +7,28 @@ import { PROGRAM_ID } from "../programId"
 export interface OracleMappingsFields {
   priceInfoAccounts: Array<PublicKey>
   priceTypes: Array<number>
-  reserved2: Array<BN>
+  twapSource: Array<number>
+  twapEnabled: Array<number>
+  reserved1: Array<number>
+  reserved2: Array<number>
 }
 
 export interface OracleMappingsJSON {
   priceInfoAccounts: Array<string>
   priceTypes: Array<number>
-  reserved2: Array<string>
+  twapSource: Array<number>
+  twapEnabled: Array<number>
+  reserved1: Array<number>
+  reserved2: Array<number>
 }
 
 export class OracleMappings {
   readonly priceInfoAccounts: Array<PublicKey>
   readonly priceTypes: Array<number>
-  readonly reserved2: Array<BN>
+  readonly twapSource: Array<number>
+  readonly twapEnabled: Array<number>
+  readonly reserved1: Array<number>
+  readonly reserved2: Array<number>
 
   static readonly discriminator = Buffer.from([
     40, 244, 110, 80, 255, 214, 243, 188,
@@ -28,12 +37,18 @@ export class OracleMappings {
   static readonly layout = borsh.struct([
     borsh.array(borsh.publicKey(), 512, "priceInfoAccounts"),
     borsh.array(borsh.u8(), 512, "priceTypes"),
-    borsh.array(borsh.u64(), 512, "reserved2"),
+    borsh.array(borsh.u16(), 512, "twapSource"),
+    borsh.array(borsh.u8(), 512, "twapEnabled"),
+    borsh.array(borsh.u8(), 512, "reserved1"),
+    borsh.array(borsh.u32(), 512, "reserved2"),
   ])
 
   constructor(fields: OracleMappingsFields) {
     this.priceInfoAccounts = fields.priceInfoAccounts
     this.priceTypes = fields.priceTypes
+    this.twapSource = fields.twapSource
+    this.twapEnabled = fields.twapEnabled
+    this.reserved1 = fields.reserved1
     this.reserved2 = fields.reserved2
   }
 
@@ -83,6 +98,9 @@ export class OracleMappings {
     return new OracleMappings({
       priceInfoAccounts: dec.priceInfoAccounts,
       priceTypes: dec.priceTypes,
+      twapSource: dec.twapSource,
+      twapEnabled: dec.twapEnabled,
+      reserved1: dec.reserved1,
       reserved2: dec.reserved2,
     })
   }
@@ -91,7 +109,10 @@ export class OracleMappings {
     return {
       priceInfoAccounts: this.priceInfoAccounts.map((item) => item.toString()),
       priceTypes: this.priceTypes,
-      reserved2: this.reserved2.map((item) => item.toString()),
+      twapSource: this.twapSource,
+      twapEnabled: this.twapEnabled,
+      reserved1: this.reserved1,
+      reserved2: this.reserved2,
     }
   }
 
@@ -101,7 +122,10 @@ export class OracleMappings {
         (item) => new PublicKey(item)
       ),
       priceTypes: obj.priceTypes,
-      reserved2: obj.reserved2.map((item) => new BN(item)),
+      twapSource: obj.twapSource,
+      twapEnabled: obj.twapEnabled,
+      reserved1: obj.reserved1,
+      reserved2: obj.reserved2,
     })
   }
 }
