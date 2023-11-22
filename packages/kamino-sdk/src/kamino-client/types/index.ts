@@ -50,6 +50,61 @@ export { WithdrawalCaps } from "./WithdrawalCaps"
 export type { WithdrawalCapsFields, WithdrawalCapsJSON } from "./WithdrawalCaps"
 export { Price } from "./Price"
 export type { PriceFields, PriceJSON } from "./Price"
+export { RebalanceAutodriftParams } from "./RebalanceAutodriftParams"
+export type {
+  RebalanceAutodriftParamsFields,
+  RebalanceAutodriftParamsJSON,
+} from "./RebalanceAutodriftParams"
+export { RebalanceAutodriftWindow } from "./RebalanceAutodriftWindow"
+export type {
+  RebalanceAutodriftWindowFields,
+  RebalanceAutodriftWindowJSON,
+} from "./RebalanceAutodriftWindow"
+export { RebalanceAutodriftState } from "./RebalanceAutodriftState"
+export type {
+  RebalanceAutodriftStateFields,
+  RebalanceAutodriftStateJSON,
+} from "./RebalanceAutodriftState"
+export { RebalanceDriftParams } from "./RebalanceDriftParams"
+export type {
+  RebalanceDriftParamsFields,
+  RebalanceDriftParamsJSON,
+} from "./RebalanceDriftParams"
+export { RebalanceDriftState } from "./RebalanceDriftState"
+export type {
+  RebalanceDriftStateFields,
+  RebalanceDriftStateJSON,
+} from "./RebalanceDriftState"
+export { RebalanceExpanderState } from "./RebalanceExpanderState"
+export type {
+  RebalanceExpanderStateFields,
+  RebalanceExpanderStateJSON,
+} from "./RebalanceExpanderState"
+export { RebalanceManualState } from "./RebalanceManualState"
+export type {
+  RebalanceManualStateFields,
+  RebalanceManualStateJSON,
+} from "./RebalanceManualState"
+export { PeriodicRebalanceState } from "./PeriodicRebalanceState"
+export type {
+  PeriodicRebalanceStateFields,
+  PeriodicRebalanceStateJSON,
+} from "./PeriodicRebalanceState"
+export { RebalancePricePercentageWithResetState } from "./RebalancePricePercentageWithResetState"
+export type {
+  RebalancePricePercentageWithResetStateFields,
+  RebalancePricePercentageWithResetStateJSON,
+} from "./RebalancePricePercentageWithResetState"
+export { RebalancePricePercentageState } from "./RebalancePricePercentageState"
+export type {
+  RebalancePricePercentageStateFields,
+  RebalancePricePercentageStateJSON,
+} from "./RebalancePricePercentageState"
+export { RebalanceTakeProfitState } from "./RebalanceTakeProfitState"
+export type {
+  RebalanceTakeProfitStateFields,
+  RebalanceTakeProfitStateJSON,
+} from "./RebalanceTakeProfitState"
 export { WithdrawalCapAccumulatorAction }
 
 export type WithdrawalCapAccumulatorActionKind =
@@ -104,6 +159,8 @@ export type GlobalConfigOptionKind =
   | GlobalConfigOption.ScopeProgramId
   | GlobalConfigOption.ScopePriceId
   | GlobalConfigOption.MinPerformanceFeeBps
+  | GlobalConfigOption.MinSwapUnevenSlippageToleranceBps
+  | GlobalConfigOption.MinReferencePriceSlippageToleranceBps
 export type GlobalConfigOptionJSON =
   | GlobalConfigOption.EmergencyModeJSON
   | GlobalConfigOption.BlockDepositJSON
@@ -124,6 +181,8 @@ export type GlobalConfigOptionJSON =
   | GlobalConfigOption.ScopeProgramIdJSON
   | GlobalConfigOption.ScopePriceIdJSON
   | GlobalConfigOption.MinPerformanceFeeBpsJSON
+  | GlobalConfigOption.MinSwapUnevenSlippageToleranceBpsJSON
+  | GlobalConfigOption.MinReferencePriceSlippageToleranceBpsJSON
 
 export { StrategyConfigOption }
 
@@ -174,6 +233,7 @@ export type StrategyConfigOptionKind =
   | StrategyConfigOption.UpdateReward0Amount
   | StrategyConfigOption.UpdateReward1Amount
   | StrategyConfigOption.UpdateReward2Amount
+  | StrategyConfigOption.UpdateFarm
 export type StrategyConfigOptionJSON =
   | StrategyConfigOption.UpdateDepositCapJSON
   | StrategyConfigOption.UpdateDepositCapIxnJSON
@@ -221,6 +281,7 @@ export type StrategyConfigOptionJSON =
   | StrategyConfigOption.UpdateReward0AmountJSON
   | StrategyConfigOption.UpdateReward1AmountJSON
   | StrategyConfigOption.UpdateReward2AmountJSON
+  | StrategyConfigOption.UpdateFarmJSON
 
 export { StrategyStatus }
 
@@ -307,6 +368,7 @@ export type UpdateCollateralInfoModeKind =
   | UpdateCollateralInfoMode.UpdateTwapMaxAge
   | UpdateCollateralInfoMode.UpdateDisabled
   | UpdateCollateralInfoMode.UpdateStakingRateChain
+  | UpdateCollateralInfoMode.UpdateMaxIgnorableAmountAsReward
 export type UpdateCollateralInfoModeJSON =
   | UpdateCollateralInfoMode.CollateralIdJSON
   | UpdateCollateralInfoMode.LowerHeuristicJSON
@@ -320,6 +382,7 @@ export type UpdateCollateralInfoModeJSON =
   | UpdateCollateralInfoMode.UpdateTwapMaxAgeJSON
   | UpdateCollateralInfoMode.UpdateDisabledJSON
   | UpdateCollateralInfoMode.UpdateStakingRateChainJSON
+  | UpdateCollateralInfoMode.UpdateMaxIgnorableAmountAsRewardJSON
 
 export { BalanceStatus }
 

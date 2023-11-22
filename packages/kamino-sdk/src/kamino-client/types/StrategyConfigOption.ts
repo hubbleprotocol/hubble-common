@@ -1061,6 +1061,29 @@ export class UpdateReward2Amount {
   }
 }
 
+export interface UpdateFarmJSON {
+  kind: "UpdateFarm"
+}
+
+export class UpdateFarm {
+  static readonly discriminator = 46
+  static readonly kind = "UpdateFarm"
+  readonly discriminator = 46
+  readonly kind = "UpdateFarm"
+
+  toJSON(): UpdateFarmJSON {
+    return {
+      kind: "UpdateFarm",
+    }
+  }
+
+  toEncodable() {
+    return {
+      UpdateFarm: {},
+    }
+  }
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function fromDecoded(obj: any): types.StrategyConfigOptionKind {
   if (typeof obj !== "object") {
@@ -1204,6 +1227,9 @@ export function fromDecoded(obj: any): types.StrategyConfigOptionKind {
   }
   if ("UpdateReward2Amount" in obj) {
     return new UpdateReward2Amount()
+  }
+  if ("UpdateFarm" in obj) {
+    return new UpdateFarm()
   }
 
   throw new Error("Invalid enum object")
@@ -1351,6 +1377,9 @@ export function fromJSON(
     case "UpdateReward2Amount": {
       return new UpdateReward2Amount()
     }
+    case "UpdateFarm": {
+      return new UpdateFarm()
+    }
   }
 }
 
@@ -1402,6 +1431,7 @@ export function layout(property?: string) {
     borsh.struct([], "UpdateReward0Amount"),
     borsh.struct([], "UpdateReward1Amount"),
     borsh.struct([], "UpdateReward2Amount"),
+    borsh.struct([], "UpdateFarm"),
   ])
   if (property !== undefined) {
     return ret.replicate(property)

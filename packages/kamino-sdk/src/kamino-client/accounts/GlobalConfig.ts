@@ -24,6 +24,8 @@ export interface GlobalConfigFields {
   tokenInfos: PublicKey
   blockLocalAdmin: BN
   minPerformanceFeeBps: BN
+  minSwapUnevenSlippageToleranceBps: BN
+  minReferencePriceSlippageToleranceBps: BN
   padding: Array<BN>
 }
 
@@ -47,6 +49,8 @@ export interface GlobalConfigJSON {
   tokenInfos: string
   blockLocalAdmin: string
   minPerformanceFeeBps: string
+  minSwapUnevenSlippageToleranceBps: string
+  minReferencePriceSlippageToleranceBps: string
   padding: Array<string>
 }
 
@@ -70,6 +74,8 @@ export class GlobalConfig {
   readonly tokenInfos: PublicKey
   readonly blockLocalAdmin: BN
   readonly minPerformanceFeeBps: BN
+  readonly minSwapUnevenSlippageToleranceBps: BN
+  readonly minReferencePriceSlippageToleranceBps: BN
   readonly padding: Array<BN>
 
   static readonly discriminator = Buffer.from([
@@ -96,7 +102,9 @@ export class GlobalConfig {
     borsh.publicKey("tokenInfos"),
     borsh.u64("blockLocalAdmin"),
     borsh.u64("minPerformanceFeeBps"),
-    borsh.array(borsh.u64(), 2042, "padding"),
+    borsh.u64("minSwapUnevenSlippageToleranceBps"),
+    borsh.u64("minReferencePriceSlippageToleranceBps"),
+    borsh.array(borsh.u64(), 2040, "padding"),
   ])
 
   constructor(fields: GlobalConfigFields) {
@@ -119,6 +127,10 @@ export class GlobalConfig {
     this.tokenInfos = fields.tokenInfos
     this.blockLocalAdmin = fields.blockLocalAdmin
     this.minPerformanceFeeBps = fields.minPerformanceFeeBps
+    this.minSwapUnevenSlippageToleranceBps =
+      fields.minSwapUnevenSlippageToleranceBps
+    this.minReferencePriceSlippageToleranceBps =
+      fields.minReferencePriceSlippageToleranceBps
     this.padding = fields.padding
   }
 
@@ -183,6 +195,9 @@ export class GlobalConfig {
       tokenInfos: dec.tokenInfos,
       blockLocalAdmin: dec.blockLocalAdmin,
       minPerformanceFeeBps: dec.minPerformanceFeeBps,
+      minSwapUnevenSlippageToleranceBps: dec.minSwapUnevenSlippageToleranceBps,
+      minReferencePriceSlippageToleranceBps:
+        dec.minReferencePriceSlippageToleranceBps,
       padding: dec.padding,
     })
   }
@@ -210,6 +225,10 @@ export class GlobalConfig {
       tokenInfos: this.tokenInfos.toString(),
       blockLocalAdmin: this.blockLocalAdmin.toString(),
       minPerformanceFeeBps: this.minPerformanceFeeBps.toString(),
+      minSwapUnevenSlippageToleranceBps:
+        this.minSwapUnevenSlippageToleranceBps.toString(),
+      minReferencePriceSlippageToleranceBps:
+        this.minReferencePriceSlippageToleranceBps.toString(),
       padding: this.padding.map((item) => item.toString()),
     }
   }
@@ -239,6 +258,12 @@ export class GlobalConfig {
       tokenInfos: new PublicKey(obj.tokenInfos),
       blockLocalAdmin: new BN(obj.blockLocalAdmin),
       minPerformanceFeeBps: new BN(obj.minPerformanceFeeBps),
+      minSwapUnevenSlippageToleranceBps: new BN(
+        obj.minSwapUnevenSlippageToleranceBps
+      ),
+      minReferencePriceSlippageToleranceBps: new BN(
+        obj.minReferencePriceSlippageToleranceBps
+      ),
       padding: obj.padding.map((item) => new BN(item)),
     })
   }
