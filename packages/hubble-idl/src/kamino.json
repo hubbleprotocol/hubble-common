@@ -3812,6 +3812,10 @@
             "type": "u64"
           },
           {
+            "name": "farm",
+            "type": "publicKey"
+          },
+          {
             "name": "padding3",
             "type": "u64"
           },
@@ -3820,7 +3824,7 @@
             "type": {
               "array": [
                 "u128",
-                25
+                23
               ]
             }
           },
@@ -3946,11 +3950,19 @@
             "type": "u64"
           },
           {
+            "name": "minSwapUnevenSlippageToleranceBps",
+            "type": "u64"
+          },
+          {
+            "name": "minReferencePriceSlippageToleranceBps",
+            "type": "u64"
+          },
+          {
             "name": "padding",
             "type": {
               "array": [
                 "u64",
-                2042
+                2040
               ]
             }
           }
@@ -4376,6 +4388,243 @@
       }
     },
     {
+      "name": "RebalanceAutodriftParams",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "initDriftTicksPerEpoch",
+            "type": "u32"
+          },
+          {
+            "name": "ticksBelowMid",
+            "type": "i32"
+          },
+          {
+            "name": "ticksAboveMid",
+            "type": "i32"
+          },
+          {
+            "name": "frontrunMultiplierBps",
+            "type": "u16"
+          },
+          {
+            "name": "stakingRateASource",
+            "type": {
+              "defined": "StakingRateSource"
+            }
+          },
+          {
+            "name": "stakingRateBSource",
+            "type": {
+              "defined": "StakingRateSource"
+            }
+          },
+          {
+            "name": "initDriftDirection",
+            "type": {
+              "defined": "DriftDirection"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "RebalanceAutodriftWindow",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "stakingRateA",
+            "type": {
+              "option": {
+                "defined": "Price"
+              }
+            }
+          },
+          {
+            "name": "stakingRateB",
+            "type": {
+              "option": {
+                "defined": "Price"
+              }
+            }
+          },
+          {
+            "name": "epoch",
+            "type": "u64"
+          },
+          {
+            "name": "theoreticalTick",
+            "type": "i32"
+          },
+          {
+            "name": "stratMidTick",
+            "type": "i32"
+          }
+        ]
+      }
+    },
+    {
+      "name": "RebalanceAutodriftState",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "lastWindow",
+            "type": {
+              "defined": "RebalanceAutodriftWindow"
+            }
+          },
+          {
+            "name": "currentWindow",
+            "type": {
+              "defined": "RebalanceAutodriftWindow"
+            }
+          },
+          {
+            "name": "step",
+            "type": {
+              "defined": "RebalanceAutodriftStep"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "RebalanceDriftParams",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "startMidTick",
+            "type": "i32"
+          },
+          {
+            "name": "ticksBelowMid",
+            "type": "i32"
+          },
+          {
+            "name": "ticksAboveMid",
+            "type": "i32"
+          },
+          {
+            "name": "secondsPerTick",
+            "type": "u64"
+          },
+          {
+            "name": "direction",
+            "type": {
+              "defined": "DriftDirection"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "RebalanceDriftState",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "step",
+            "type": {
+              "defined": "RebalanceDriftStep"
+            }
+          },
+          {
+            "name": "lastDriftTimestamp",
+            "type": "u64"
+          },
+          {
+            "name": "lastMidTick",
+            "type": "i32"
+          }
+        ]
+      }
+    },
+    {
+      "name": "RebalanceExpanderState",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "initialPoolPrice",
+            "type": "u128"
+          },
+          {
+            "name": "expansionCount",
+            "type": "u16"
+          }
+        ]
+      }
+    },
+    {
+      "name": "RebalanceManualState",
+      "type": {
+        "kind": "struct",
+        "fields": []
+      }
+    },
+    {
+      "name": "PeriodicRebalanceState",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "lastRebalanceTimestamp",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "RebalancePricePercentageWithResetState",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "lastRebalanceLowerResetPoolPrice",
+            "type": "u128"
+          },
+          {
+            "name": "lastRebalanceUpperResetPoolPrice",
+            "type": "u128"
+          }
+        ]
+      }
+    },
+    {
+      "name": "RebalancePricePercentageState",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "lastRebalanceLowerPoolPrice",
+            "type": "u128"
+          },
+          {
+            "name": "lastRebalanceUpperPoolPrice",
+            "type": "u128"
+          }
+        ]
+      }
+    },
+    {
+      "name": "RebalanceTakeProfitState",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "step",
+            "type": {
+              "defined": "RebalanceTakeProfitStep"
+            }
+          }
+        ]
+      }
+    },
+    {
       "name": "WithdrawalCapAccumulatorAction",
       "type": {
         "kind": "enum",
@@ -4519,6 +4768,12 @@
           },
           {
             "name": "MinPerformanceFeeBps"
+          },
+          {
+            "name": "MinSwapUnevenSlippageToleranceBps"
+          },
+          {
+            "name": "MinReferencePriceSlippageToleranceBps"
           }
         ]
       }
@@ -4665,6 +4920,9 @@
           },
           {
             "name": "UpdateReward2Amount"
+          },
+          {
+            "name": "UpdateFarm"
           }
         ]
       }
@@ -4817,6 +5075,9 @@
           },
           {
             "name": "UpdateStakingRateChain"
+          },
+          {
+            "name": "UpdateMaxIgnorableAmountAsReward"
           }
         ]
       }
