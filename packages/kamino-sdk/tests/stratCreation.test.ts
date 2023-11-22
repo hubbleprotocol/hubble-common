@@ -1526,7 +1526,7 @@ describe('Kamino strategy creation SDK Tests', () => {
       let bAtaBalance = await balance(kamino.getConnection(), signer, strategyState.tokenBMint);
       console.log('balances ', toJson({ aAtaBalance, bAtaBalance, sharesAtaBalanceBefore }));
 
-      let aPrice = await jupService.getPrice(strategyState.tokenAMint, USDCMintMainnet);
+      let aPrice = await JupService.getPrice(strategyState.tokenAMint, USDCMintMainnet);
 
       console.log('shareData', toJson(shareDataBefore));
       console.log('shares minted', strategyState.sharesIssued.toString());
@@ -1592,8 +1592,8 @@ describe('Kamino strategy creation SDK Tests', () => {
       let bAtaBalance = await balance(kamino.getConnection(), signer, strategyState.tokenBMint);
       console.log('balances ', toJson({ aAtaBalance, bAtaBalance, sharesAtaBalanceAfter }));
 
-      let aPrice = await jupService.getPrice(strategyState.tokenAMint, USDCMintMainnet);
-      let bPrice = await jupService.getPrice(strategyState.tokenBMint, USDCMintMainnet);
+      let aPrice = await JupService.getPrice(strategyState.tokenAMint, USDCMintMainnet);
+      let bPrice = await JupService.getPrice(strategyState.tokenBMint, USDCMintMainnet);
 
       console.log('shareData', toJson(shareDataAfter));
       console.log('shares minted', strategyState.sharesIssued.toString());
@@ -1694,14 +1694,14 @@ describe('Kamino strategy creation SDK Tests', () => {
       RAYDIUM_PROGRAM_ID
     );
 
-    let [, ix] = await kamino.initializeTickForOrcaPool(
+    let initPoolTickIfNeeded = await kamino.initializeTickForOrcaPool(
       signer.publicKey,
       new PublicKey('7qbRF6YsyGuLUVs6Y1q64bdVrfe4ZcUUz1JRdoVNUJnm'),
       new Decimal(0.1)
     );
 
-    if (ix) {
-      const initTickIx = await kamino.getTransactionV2Message(signer.publicKey, [ix]);
+    if (initPoolTickIfNeeded.initTickIx) {
+      const initTickIx = await kamino.getTransactionV2Message(signer.publicKey, [initPoolTickIfNeeded.initTickIx]);
       const txV0 = new VersionedTransaction(initTickIx);
       txV0.sign([signer]);
       //@ts-ignore
