@@ -2750,8 +2750,6 @@ export class Kamino {
       tokenAMinPostDepositBalance: new BN(realTokenAMinPostDepositBalanceLamports.floor().toString()),
       tokenBMinPostDepositBalance: new BN(realTokenBMinPostDepositBalanceLamports.floor().toString()),
     };
-    console.log('realTokenAMinPostDepositBalanceLamports', realTokenAMinPostDepositBalanceLamports.toString());
-    console.log('realTokenBMinPostDepositBalanceLamports', realTokenBMinPostDepositBalanceLamports.toString());
 
     const accounts: SingleTokenDepositWithMinAccounts = {
       user: owner,
