@@ -130,7 +130,7 @@ export class JupService {
       params.vsAmount = 100;
     }
 
-    const res = await axios.get('https://quote-api.jup.ag/v4/price', { params });
+    const res = await axios.get('https://quote-api.jup.ag/v6/price', { params });
     return res.data.data[inputMint.toString()].price;
   };
 
