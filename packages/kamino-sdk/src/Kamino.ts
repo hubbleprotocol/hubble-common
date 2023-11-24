@@ -1227,14 +1227,11 @@ export class Kamino {
         x.strategy.position.toString() !== PublicKey.default.toString()
     );
     const orcaPools = await this.getWhirlpools(orcaStrategies.map((x) => x.strategy.pool));
-    console.log('orcaPools length', orcaPools.size);
-    console.log('orcaPools', orcaPools);
     const orcaPositions = await this.getOrcaPositions(orcaStrategies.map((x) => x.strategy.position));
 
     const inactiveStrategies = strategiesWithAddresses.filter(
       (x) => x.strategy.position.toString() === PublicKey.default.toString()
     );
-    console.log('inactiveStrategies', inactiveStrategies.length);
     const collateralInfos = await this.getCollateralInfos();
     for (const { strategy, address } of inactiveStrategies) {
       const strategyPrices = await this.getStrategyPrices(
@@ -2007,23 +2004,17 @@ export class Kamino {
    * @param whirlpools
    */
   getWhirlpools = async (whirlpools: PublicKey[]): Promise<Map<string, Whirlpool | null>> => {
-    whirlpools.forEach((whirlpool) => {
-      console.log('getWhirlpools whirlpool', whirlpool.toString());
-    });
-
     let whirlpoolMap = new Map<string, Whirlpool | null>();
+
     const whirlpoolStrings = whirlpools.map((whirlpool) => whirlpool.toBase58());
     const uniqueWhirlpools = [...new Set(whirlpoolStrings)].map((value) => new PublicKey(value));
     if (uniqueWhirlpools.length === 1) {
-      console.log('getWhirlpools uniqueWhirlpools.length === 1', whirlpools[0].toString());
       const whirlpool = await this.getWhirlpoolByAddress(whirlpools[0]);
       whirlpoolMap.set(whirlpools[0].toString(), whirlpool);
       return whirlpoolMap;
     }
     const fetched = await batchFetch(uniqueWhirlpools, (chunk) => Whirlpool.fetchMultiple(this._connection, chunk));
-    console.log('fetched legnth', fetched);
-    const fetchedMap: Record<string, Whirlpool | null> = fetched.reduce((map, whirlpool, i) => {
-      console.log('uniqueWhirlpools[i].toBase58() ', uniqueWhirlpools[i].toBase58());
+    fetched.reduce((map, whirlpool, i) => {
       whirlpoolMap.set(uniqueWhirlpools[i].toString(), whirlpool);
       map[uniqueWhirlpools[i].toBase58()] = whirlpool;
       return map;
