@@ -1227,11 +1227,14 @@ export class Kamino {
         x.strategy.position.toString() !== PublicKey.default.toString()
     );
     const orcaPools = await this.getWhirlpools(orcaStrategies.map((x) => x.strategy.pool));
+    console.log('orcaPools length', orcaPools.size);
+    console.log('orcaPools', orcaPools);
     const orcaPositions = await this.getOrcaPositions(orcaStrategies.map((x) => x.strategy.position));
 
     const inactiveStrategies = strategiesWithAddresses.filter(
       (x) => x.strategy.position.toString() === PublicKey.default.toString()
     );
+    console.log('inactiveStrategies', inactiveStrategies.length);
     const collateralInfos = await this.getCollateralInfos();
     for (const { strategy, address } of inactiveStrategies) {
       const strategyPrices = await this.getStrategyPrices(
@@ -1301,7 +1304,7 @@ export class Kamino {
 
   private getBalance = <PoolT, PositionT>(
     strategies: StrategyWithAddress[],
-    pools: (PoolT | null)[],
+    pools: Map<string, PoolT | null>,
     positions: (PositionT | null)[],
     fetchBalance: (
       strategy: WhirlpoolStrategy,
@@ -1314,9 +1317,12 @@ export class Kamino {
     prices?: Record<string, OraclePrices>
   ): Promise<StrategyBalanceWithAddress>[] => {
     const fetchBalances: Promise<StrategyBalanceWithAddress>[] = [];
+
     for (let i = 0; i < strategies.length; i++) {
       const { strategy, address } = strategies[i];
-      const pool = pools[i];
+
+      const retrievedPool = { ...pools.get(strategy.pool.toString()) };
+      const pool = { ...retrievedPool };
       const position = positions[i];
       if (!pool) {
         throw new Error(`Pool ${strategy.pool.toString()} could not be found.`);
@@ -2000,19 +2006,29 @@ export class Kamino {
    * Get a list of Orca whirlpools from public keys
    * @param whirlpools
    */
-  getWhirlpools = async (whirlpools: PublicKey[]): Promise<(Whirlpool | null)[]> => {
+  getWhirlpools = async (whirlpools: PublicKey[]): Promise<Map<string, Whirlpool | null>> => {
+    whirlpools.forEach((whirlpool) => {
+      console.log('getWhirlpools whirlpool', whirlpool.toString());
+    });
+
+    let whirlpoolMap = new Map<string, Whirlpool | null>();
     const whirlpoolStrings = whirlpools.map((whirlpool) => whirlpool.toBase58());
     const uniqueWhirlpools = [...new Set(whirlpoolStrings)].map((value) => new PublicKey(value));
     if (uniqueWhirlpools.length === 1) {
+      console.log('getWhirlpools uniqueWhirlpools.length === 1', whirlpools[0].toString());
       const whirlpool = await this.getWhirlpoolByAddress(whirlpools[0]);
-      return [whirlpool];
+      whirlpoolMap.set(whirlpools[0].toString(), whirlpool);
+      return whirlpoolMap;
     }
     const fetched = await batchFetch(uniqueWhirlpools, (chunk) => Whirlpool.fetchMultiple(this._connection, chunk));
+    console.log('fetched legnth', fetched);
     const fetchedMap: Record<string, Whirlpool | null> = fetched.reduce((map, whirlpool, i) => {
+      console.log('uniqueWhirlpools[i].toBase58() ', uniqueWhirlpools[i].toBase58());
+      whirlpoolMap.set(uniqueWhirlpools[i].toString(), whirlpool);
       map[uniqueWhirlpools[i].toBase58()] = whirlpool;
       return map;
     }, {});
-    return whirlpools.map((whirlpool) => fetchedMap[whirlpool.toBase58()] || null);
+    return whirlpoolMap;
   };
 
   /**
@@ -2055,19 +2071,21 @@ export class Kamino {
    * Get a list of Raydium pools from public keys
    * @param pools
    */
-  getRaydiumPools = async (pools: PublicKey[]): Promise<(PoolState | null)[]> => {
+  getRaydiumPools = async (pools: PublicKey[]): Promise<Map<string, PoolState | null>> => {
+    let poolsMap = new Map<string, PoolState | null>();
+
     const poolStrings = pools.map((pool) => pool.toBase58());
     const uniquePools = [...new Set(poolStrings)].map((value) => new PublicKey(value));
     if (uniquePools.length === 1) {
       const pool = await this.getRaydiumPoolByAddress(pools[0]);
-      return [pool];
+      poolsMap.set(pools[0].toString(), pool);
     }
     const fetched = await batchFetch(uniquePools, (chunk) => PoolState.fetchMultiple(this._connection, chunk));
-    const fetchedMap: Record<string, PoolState | null> = fetched.reduce((map, whirlpool, i) => {
-      map[uniquePools[i].toBase58()] = whirlpool;
+    fetched.reduce((map, whirlpool, i) => {
+      poolsMap.set(uniquePools[i].toString(), whirlpool);
       return map;
     }, {});
-    return pools.map((whirlpool) => fetchedMap[whirlpool.toBase58()] || null);
+    return poolsMap;
   };
 
   getRaydiumAmmConfig = (config: PublicKey) => AmmConfig.fetch(this._connection, config);

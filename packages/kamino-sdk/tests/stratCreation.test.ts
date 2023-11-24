@@ -65,6 +65,23 @@ describe('Kamino strategy creation SDK Tests', () => {
     console.log('holdings', holdings);
   });
 
+  it.skip('readWhirlpool', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      GlobalConfigMainnet,
+      KaminoProgramIdMainnet,
+      WHIRLPOOL_PROGRAM_ID,
+      RAYDIUM_PROGRAM_ID
+    );
+
+    let res = await kamino.getStrategiesShareData([
+      new PublicKey('DWkn7bbqAjYeu4U84iQHTbKT9fBEBZwpTSLondcp6dpd'),
+      new PublicKey('B8CLmUAErBALZWwD16xUvWWxGDmH6BJBrQRqXUBVEhYN'),
+    ]);
+    console.log('res', res);
+  });
+
   it.skip('get pools for Raydium SOL-USDC pair', async () => {
     let kamino = new Kamino(
       cluster,
