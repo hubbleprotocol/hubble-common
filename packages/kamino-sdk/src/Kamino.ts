@@ -327,6 +327,7 @@ import {
   getPositionRangeFromAutodriftParams,
 } from './rebalance_methods/autodriftRebalance';
 import { KaminoPrices, OraclePricesAndCollateralInfos } from './models';
+import { transfer } from '@project-serum/serum/lib/token-instructions';
 export const KAMINO_IDL = KaminoIdl;
 
 export class Kamino {
@@ -2837,6 +2838,62 @@ export class Kamino {
     }
   }
 
+  /**
+   * Get transaction instruction to deposit SOL into topup vault.
+   * @param owner Owner (wallet, shareholder) public key
+   * @param amount Amount of SOL to deposit into topup vault
+   * @returns transaction instruction for adding SOL to topup vault
+   */
+  upkeepTopupVault = (owner: PublicKey, amount: Decimal): TransactionInstruction => {
+    if (amount.lessThanOrEqualTo(0)) {
+      throw Error('Must deposit a positive amount of SOL.');
+    }
+    const solToDeposit = lamportsToNumberDecimal(amount, DECIMALS_SOL);
+    const topupVault = this.getUserTopupVault(owner);
+    const ix = SystemProgram.transfer({
+      fromPubkey: owner,
+      toPubkey: topupVault,
+      lamports: solToDeposit.toNumber(),
+    });
+    return ix;
+  };
+
+  /**
+   * Get the topup vault balance in SOL.
+   * @param owner Owner (wallet, shareholder) public key
+   * @returns SOL amount in topup vault
+   */
+  topupVaultBalance = async (owner: PublicKey): Promise<Decimal> => {
+    let topupVault = this.getUserTopupVault(owner);
+    return lamportsToNumberDecimal(new Decimal(await this._connection.getBalance(topupVault)), DECIMALS_SOL);
+  };
+
+  /**
+   * Get transaction instruction to withdraw SOL from the topup vault.
+   * @param owner Owner (wallet, shareholder) public key
+   * @param amount Amount of SOL to withdraw from the topup vault
+   * @returns transaction instruction for removing SOL from the topup vault
+   */
+  // withdrawTopupVault = async (owner: PublicKey, amount: Decimal): Promise<TransactionInstruction> => {
+  //   if (amount.lessThanOrEqualTo(0)) {
+  //     throw Error('Must withdraw a positive amount of SOL.');
+  //   }
+  //   const solToWithdraw = lamportsToNumberDecimal(amount, DECIMALS_SOL);
+  //   const topupVault = this.getUserTopupVault(owner);
+  //   const args: WithdrawFromTopupArgs = {
+  //     amount: new BN(solToWithdraw.toString()),
+  //   };
+
+  //   const accounts: WithdrawFromTopupAccounts = {
+  //     adminAuthority: owner,
+  //     topupVault,
+  //     system: SystemProgram.programId,
+  //   };
+
+  //   let withdrawIxn = withdrawFromTopup(args, accounts);
+  //   return withdrawIxn;
+  // };
+
   getJupSwapIxsWithMaxAccounts = async (
     input: DepositAmountsForSwap,
     tokenAMint: PublicKey,
@@ -3126,7 +3183,7 @@ export class Kamino {
     }
     let reward1Vault = strategyState.baseVaultAuthority;
     let userReward1Ata = strategyState.baseVaultAuthority;
-    if (isVaultInitialized(strategyState.reward2Vault, strategyState.reward1Decimals)) {
+    if (isVaultInitialized(strategyState.reward1Vault, strategyState.reward1Decimals)) {
       reward1Vault = strategyState.reward1Vault;
       userReward1Ata = getAssociatedTokenAddress(
         collInfos[strategyState.reward1CollateralId.toNumber()].mint,
@@ -3199,6 +3256,14 @@ export class Kamino {
     };
 
     return closeStrategy(strategyAccounts);
+  };
+
+  getUserTopupVault = (user: PublicKey): PublicKey => {
+    const [topupVault, _topupVaultBump] = PublicKey.findProgramAddressSync(
+      [Buffer.from('topup_vault'), user.toBuffer()],
+      this.getProgramID()
+    );
+    return topupVault;
   };
 
   /**
