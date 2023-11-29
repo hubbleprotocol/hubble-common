@@ -5192,7 +5192,7 @@ export class Kamino {
     let bAmount = tokenBAmountUserDeposit;
 
     let [aAmounts, bAmounts] = await profiler(
-      this.calculateAmountsToBeDeposited(strategyWithAddress, undefined, profiler),
+      this.calculateAmountsRatioToBeDeposited(strategyWithAddress, undefined, profiler),
       'C-calculateDepositRatio',
       []
     );
@@ -5333,6 +5333,23 @@ export class Kamino {
   };
 
   calculateAmountsToBeDeposited = async (
+    strategy: PublicKey | StrategyWithAddress,
+    tokenAAmount?: Decimal,
+    tokenBAmount?: Decimal,
+    profiledFunctionExecution: ProfiledFunctionExecution = noopProfiledFunctionExecution
+  ): Promise<[Decimal, Decimal]> => {
+    const { strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
+    if (strategyState.shareCalculationMethod === DOLAR_BASED) {
+      return this.calculateDepostAmountsDollarBased(strategy, tokenAAmount, tokenBAmount, profiledFunctionExecution);
+    } else if (strategyState.shareCalculationMethod === PROPORTION_BASED) {
+      return this.calculateDepositAmountsProportional(strategy, tokenAAmount, tokenBAmount, profiledFunctionExecution);
+    } else {
+      throw new Error('Invalid share calculation method');
+    }
+  };
+
+  /// Returns an amount of tokenA and an amount of tokenB that define the ratio of the amounts that can be deposited
+  calculateAmountsRatioToBeDeposited = async (
     strategy: PublicKey | StrategyWithAddress,
     holdings?: TokenAmounts,
     profiler: ProfiledFunctionExecution = noopProfiledFunctionExecution
