@@ -5192,13 +5192,8 @@ export class Kamino {
     let bAmount = tokenBAmountUserDeposit;
 
     let [aAmounts, bAmounts] = await profiler(
-      this.calculateAmountsToBeDeposited(
-        strategy,
-        collToLamportsDecimal(new Decimal(100.0), tokenADecimals),
-        undefined,
-        profiler
-      ),
-      'C-calculateAmountsToBeDeposited',
+      this.calculateDepositRatio(strategyWithAddress, undefined, profiler),
+      'C-calculateDepositRatio',
       []
     );
 
@@ -5334,6 +5329,26 @@ export class Kamino {
       ];
     } else {
       throw new Error('Invalid dex, use RAYDIUM or ORCA');
+    }
+  };
+
+  calculateDepositRatio = async (
+    strategy: PublicKey | StrategyWithAddress,
+    holdings?: TokenAmounts,
+    profiler: ProfiledFunctionExecution = noopProfiledFunctionExecution
+  ): Promise<[Decimal, Decimal]> => {
+    const { strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
+    if (strategyState.shareCalculationMethod === DOLAR_BASED) {
+      return this.calculateDepostAmountsDollarBased(strategy, new Decimal(100), undefined, profiler);
+    } else if (strategyState.shareCalculationMethod === PROPORTION_BASED) {
+      let tokenHoldings = holdings;
+      if (!tokenHoldings) {
+        tokenHoldings = await profiler(this.getStrategyTokensHoldings(strategy), 'getStrategyTokensHoldings', []);
+      }
+      const { a, b } = tokenHoldings;
+      return [a, b];
+    } else {
+      throw new Error('Invalid share calculation method');
     }
   };
 
