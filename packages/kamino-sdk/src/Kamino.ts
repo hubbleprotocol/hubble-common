@@ -327,6 +327,7 @@ import {
   getPositionRangeFromAutodriftParams,
 } from './rebalance_methods/autodriftRebalance';
 import { KaminoPrices, OraclePricesAndCollateralInfos } from './models';
+import { transfer } from '@project-serum/serum/lib/token-instructions';
 export const KAMINO_IDL = KaminoIdl;
 
 export class Kamino {
@@ -1301,7 +1302,7 @@ export class Kamino {
 
   private getBalance = <PoolT, PositionT>(
     strategies: StrategyWithAddress[],
-    pools: (PoolT | null)[],
+    pools: Map<string, PoolT | null>,
     positions: (PositionT | null)[],
     fetchBalance: (
       strategy: WhirlpoolStrategy,
@@ -1314,9 +1315,12 @@ export class Kamino {
     prices?: Record<string, OraclePrices>
   ): Promise<StrategyBalanceWithAddress>[] => {
     const fetchBalances: Promise<StrategyBalanceWithAddress>[] = [];
+
     for (let i = 0; i < strategies.length; i++) {
       const { strategy, address } = strategies[i];
-      const pool = pools[i];
+
+      const retrievedPool = { ...pools.get(strategy.pool.toString()) };
+      const pool = { ...retrievedPool };
       const position = positions[i];
       if (!pool) {
         throw new Error(`Pool ${strategy.pool.toString()} could not be found.`);
@@ -2000,19 +2004,23 @@ export class Kamino {
    * Get a list of Orca whirlpools from public keys
    * @param whirlpools
    */
-  getWhirlpools = async (whirlpools: PublicKey[]): Promise<(Whirlpool | null)[]> => {
+  getWhirlpools = async (whirlpools: PublicKey[]): Promise<Map<string, Whirlpool | null>> => {
+    let whirlpoolMap = new Map<string, Whirlpool | null>();
+
     const whirlpoolStrings = whirlpools.map((whirlpool) => whirlpool.toBase58());
     const uniqueWhirlpools = [...new Set(whirlpoolStrings)].map((value) => new PublicKey(value));
     if (uniqueWhirlpools.length === 1) {
       const whirlpool = await this.getWhirlpoolByAddress(whirlpools[0]);
-      return [whirlpool];
+      whirlpoolMap.set(whirlpools[0].toString(), whirlpool);
+      return whirlpoolMap;
     }
     const fetched = await batchFetch(uniqueWhirlpools, (chunk) => Whirlpool.fetchMultiple(this._connection, chunk));
-    const fetchedMap: Record<string, Whirlpool | null> = fetched.reduce((map, whirlpool, i) => {
+    fetched.reduce((map, whirlpool, i) => {
+      whirlpoolMap.set(uniqueWhirlpools[i].toString(), whirlpool);
       map[uniqueWhirlpools[i].toBase58()] = whirlpool;
       return map;
     }, {});
-    return whirlpools.map((whirlpool) => fetchedMap[whirlpool.toBase58()] || null);
+    return whirlpoolMap;
   };
 
   /**
@@ -2055,19 +2063,21 @@ export class Kamino {
    * Get a list of Raydium pools from public keys
    * @param pools
    */
-  getRaydiumPools = async (pools: PublicKey[]): Promise<(PoolState | null)[]> => {
+  getRaydiumPools = async (pools: PublicKey[]): Promise<Map<string, PoolState | null>> => {
+    let poolsMap = new Map<string, PoolState | null>();
+
     const poolStrings = pools.map((pool) => pool.toBase58());
     const uniquePools = [...new Set(poolStrings)].map((value) => new PublicKey(value));
     if (uniquePools.length === 1) {
       const pool = await this.getRaydiumPoolByAddress(pools[0]);
-      return [pool];
+      poolsMap.set(pools[0].toString(), pool);
     }
     const fetched = await batchFetch(uniquePools, (chunk) => PoolState.fetchMultiple(this._connection, chunk));
-    const fetchedMap: Record<string, PoolState | null> = fetched.reduce((map, whirlpool, i) => {
-      map[uniquePools[i].toBase58()] = whirlpool;
+    fetched.reduce((map, whirlpool, i) => {
+      poolsMap.set(uniquePools[i].toString(), whirlpool);
       return map;
     }, {});
-    return pools.map((whirlpool) => fetchedMap[whirlpool.toBase58()] || null);
+    return poolsMap;
   };
 
   getRaydiumAmmConfig = (config: PublicKey) => AmmConfig.fetch(this._connection, config);
@@ -2837,6 +2847,62 @@ export class Kamino {
     }
   }
 
+  /**
+   * Get transaction instruction to deposit SOL into topup vault.
+   * @param owner Owner (wallet, shareholder) public key
+   * @param amount Amount of SOL to deposit into topup vault
+   * @returns transaction instruction for adding SOL to topup vault
+   */
+  upkeepTopupVault = (owner: PublicKey, amount: Decimal): TransactionInstruction => {
+    if (amount.lessThanOrEqualTo(0)) {
+      throw Error('Must deposit a positive amount of SOL.');
+    }
+    const solToDeposit = lamportsToNumberDecimal(amount, DECIMALS_SOL);
+    const topupVault = this.getUserTopupVault(owner);
+    const ix = SystemProgram.transfer({
+      fromPubkey: owner,
+      toPubkey: topupVault,
+      lamports: solToDeposit.toNumber(),
+    });
+    return ix;
+  };
+
+  /**
+   * Get the topup vault balance in SOL.
+   * @param owner Owner (wallet, shareholder) public key
+   * @returns SOL amount in topup vault
+   */
+  topupVaultBalance = async (owner: PublicKey): Promise<Decimal> => {
+    let topupVault = this.getUserTopupVault(owner);
+    return lamportsToNumberDecimal(new Decimal(await this._connection.getBalance(topupVault)), DECIMALS_SOL);
+  };
+
+  /**
+   * Get transaction instruction to withdraw SOL from the topup vault.
+   * @param owner Owner (wallet, shareholder) public key
+   * @param amount Amount of SOL to withdraw from the topup vault
+   * @returns transaction instruction for removing SOL from the topup vault
+   */
+  // withdrawTopupVault = async (owner: PublicKey, amount: Decimal): Promise<TransactionInstruction> => {
+  //   if (amount.lessThanOrEqualTo(0)) {
+  //     throw Error('Must withdraw a positive amount of SOL.');
+  //   }
+  //   const solToWithdraw = lamportsToNumberDecimal(amount, DECIMALS_SOL);
+  //   const topupVault = this.getUserTopupVault(owner);
+  //   const args: WithdrawFromTopupArgs = {
+  //     amount: new BN(solToWithdraw.toString()),
+  //   };
+
+  //   const accounts: WithdrawFromTopupAccounts = {
+  //     adminAuthority: owner,
+  //     topupVault,
+  //     system: SystemProgram.programId,
+  //   };
+
+  //   let withdrawIxn = withdrawFromTopup(args, accounts);
+  //   return withdrawIxn;
+  // };
+
   getJupSwapIxsWithMaxAccounts = async (
     input: DepositAmountsForSwap,
     tokenAMint: PublicKey,
@@ -3126,7 +3192,7 @@ export class Kamino {
     }
     let reward1Vault = strategyState.baseVaultAuthority;
     let userReward1Ata = strategyState.baseVaultAuthority;
-    if (isVaultInitialized(strategyState.reward2Vault, strategyState.reward1Decimals)) {
+    if (isVaultInitialized(strategyState.reward1Vault, strategyState.reward1Decimals)) {
       reward1Vault = strategyState.reward1Vault;
       userReward1Ata = getAssociatedTokenAddress(
         collInfos[strategyState.reward1CollateralId.toNumber()].mint,
@@ -3199,6 +3265,14 @@ export class Kamino {
     };
 
     return closeStrategy(strategyAccounts);
+  };
+
+  getUserTopupVault = (user: PublicKey): PublicKey => {
+    const [topupVault, _topupVaultBump] = PublicKey.findProgramAddressSync(
+      [Buffer.from('topup_vault'), user.toBuffer()],
+      this.getProgramID()
+    );
+    return topupVault;
   };
 
   /**
@@ -5118,13 +5192,8 @@ export class Kamino {
     let bAmount = tokenBAmountUserDeposit;
 
     let [aAmounts, bAmounts] = await profiler(
-      this.calculateAmountsToBeDeposited(
-        strategy,
-        collToLamportsDecimal(new Decimal(100.0), tokenADecimals),
-        undefined,
-        profiler
-      ),
-      'C-calculateAmountsToBeDeposited',
+      this.calculateAmountsRatioToBeDeposited(strategyWithAddress, undefined, profiler),
+      'C-calculateDepositRatio',
       []
     );
 
@@ -5274,6 +5343,27 @@ export class Kamino {
       return this.calculateDepostAmountsDollarBased(strategy, tokenAAmount, tokenBAmount, profiledFunctionExecution);
     } else if (strategyState.shareCalculationMethod === PROPORTION_BASED) {
       return this.calculateDepositAmountsProportional(strategy, tokenAAmount, tokenBAmount, profiledFunctionExecution);
+    } else {
+      throw new Error('Invalid share calculation method');
+    }
+  };
+
+  /// Returns an amount of tokenA and an amount of tokenB that define the ratio of the amounts that can be deposited
+  calculateAmountsRatioToBeDeposited = async (
+    strategy: PublicKey | StrategyWithAddress,
+    holdings?: TokenAmounts,
+    profiler: ProfiledFunctionExecution = noopProfiledFunctionExecution
+  ): Promise<[Decimal, Decimal]> => {
+    const { strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
+    if (strategyState.shareCalculationMethod === DOLAR_BASED) {
+      return this.calculateDepostAmountsDollarBased(strategy, new Decimal(100), undefined, profiler);
+    } else if (strategyState.shareCalculationMethod === PROPORTION_BASED) {
+      let tokenHoldings = holdings;
+      if (!tokenHoldings) {
+        tokenHoldings = await profiler(this.getStrategyTokensHoldings(strategy), 'getStrategyTokensHoldings', []);
+      }
+      const { a, b } = tokenHoldings;
+      return [a, b];
     } else {
       throw new Error('Invalid share calculation method');
     }

@@ -215,7 +215,7 @@ export interface SwapperIxBuilder {
 }
 
 export interface ProfiledFunctionExecution {
-  (promise: Promise<any>, transactionName: string, tags: [string, string][]): Promise<any>;
+  <T>(promise: Promise<T>, transactionName: string, tags: [string, string][]): Promise<T>;
 }
 
 export function noopProfiledFunctionExecution(promise: Promise<any>, transactionName: string): Promise<any> {

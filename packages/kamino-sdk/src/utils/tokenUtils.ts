@@ -78,25 +78,12 @@ export function createAssociatedTokenAccountInstruction(
   });
 }
 
-export function createAddExtraComputeUnitsTransaction(owner: PublicKey, units: number): TransactionInstruction {
-  const p = new PublicKey('ComputeBudget111111111111111111111111111111');
-  const params = { instruction: 0, units, fee: 0 };
-  const layout = struct([u8('instruction'), u32('units'), u32('fee')]);
-  const data = Buffer.alloc(layout.span);
-  layout.encode(params, data);
-  const keys = [{ pubkey: owner, isSigner: false, isWritable: false }];
-  return new TransactionInstruction({
-    keys,
-    programId: p,
-    data,
-  });
+export function createAddExtraComputeUnitsIx(units: number): TransactionInstruction {
+  return ComputeBudgetProgram.setComputeUnitLimit({ units });
 }
 
-export function createTransactionWithExtraBudget(payer: PublicKey, extraUnits: number = 400000) {
-  const tx = new Transaction();
-  const increaseBudgetIx = createAddExtraComputeUnitsTransaction(payer, extraUnits);
-  tx.add(increaseBudgetIx);
-  return tx;
+export function createTransactionWithExtraBudget(extraUnits: number = 400000) {
+  return new Transaction().add(createAddExtraComputeUnitsIx(extraUnits));
 }
 
 export async function assignBlockInfoToTransaction(connection: Connection, transaction: Transaction, payer: PublicKey) {

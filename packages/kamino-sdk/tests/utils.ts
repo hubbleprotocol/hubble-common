@@ -25,9 +25,8 @@ import { getTickArrayPubkeysFromRangeRaydium } from './raydium_utils';
 import { getTickArrayPubkeysFromRangeOrca } from './orca_utils';
 import { TokenInstructions } from '@project-serum/serum';
 import { collateralTokenToNumber, CollateralToken } from './token_utils';
-import { checkIfAccountExists, getAtasWithCreateIxnsIfMissing } from '../src/utils/transactions';
+import { checkIfAccountExists } from '../src/utils/transactions';
 import { FullBPS } from '../src/utils/CreationParameters';
-import { U16_MAX } from '@hubbleprotocol/scope-sdk';
 
 export const GlobalConfigMainnet = new PublicKey('GKnHiWh3RRrE1zsNzWxRkomymHc374TvJPSTv2wPeYdB');
 export const KaminoProgramIdMainnet = new PublicKey('6LtLpnUFNByNXLyCoK9wA2MykKAmQNZKBdY8s47dehDc');

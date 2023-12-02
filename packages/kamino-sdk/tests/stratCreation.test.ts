@@ -26,8 +26,6 @@ import { Manual, PricePercentage, PricePercentageWithReset } from '../src/kamino
 import { createWsolAtaIfMissing, getComputeBudgetAndPriorityFeeIxns } from '../src/utils/transactions';
 import { JupService } from '../src/services/JupService';
 import { MAINNET_GLOBAL_LOOKUP_TABLE } from '../src/constants/pubkeys';
-import { getPdaProtocolPositionAddress, i32ToBytes, TickMath, TickUtils } from '@raydium-io/raydium-sdk';
-import { PoolState } from '../src/raydium_client';
 
 describe('Kamino strategy creation SDK Tests', () => {
   let connection: Connection;
@@ -63,6 +61,23 @@ describe('Kamino strategy creation SDK Tests', () => {
 
     console.log('amounts', amounts);
     console.log('holdings', holdings);
+  });
+
+  it.skip('readWhirlpool', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      GlobalConfigMainnet,
+      KaminoProgramIdMainnet,
+      WHIRLPOOL_PROGRAM_ID,
+      RAYDIUM_PROGRAM_ID
+    );
+
+    let res = await kamino.getStrategiesShareData([
+      new PublicKey('DWkn7bbqAjYeu4U84iQHTbKT9fBEBZwpTSLondcp6dpd'),
+      new PublicKey('B8CLmUAErBALZWwD16xUvWWxGDmH6BJBrQRqXUBVEhYN'),
+    ]);
+    console.log('res', res);
   });
 
   it.skip('get pools for Raydium SOL-USDC pair', async () => {
@@ -611,7 +626,7 @@ describe('Kamino strategy creation SDK Tests', () => {
       new Decimal(10.0),
       new Decimal(24.0),
     ]);
-    let tx = createTransactionWithExtraBudget(signer.publicKey);
+    let tx = createTransactionWithExtraBudget();
     tx.add(updateRebalanceParamsIx);
     let updateRebalanceParamsTxHash = await sendTransactionWithLogs(connection, tx, signer.publicKey, [signer]);
     console.log('update Rebalance Params Tx Hash ', updateRebalanceParamsTxHash);
@@ -759,7 +774,7 @@ describe('Kamino strategy creation SDK Tests', () => {
       new Decimal(10.0),
       new Decimal(24.0),
     ]);
-    let tx = createTransactionWithExtraBudget(signer.publicKey);
+    let tx = createTransactionWithExtraBudget();
     tx.add(updateRebalanceParamsIx);
     let updateRebalanceParamsTxHash = await sendTransactionWithLogs(connection, tx, signer.publicKey, [signer]);
     console.log('update Rebalance Params Tx Hash ', updateRebalanceParamsTxHash);
