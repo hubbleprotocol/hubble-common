@@ -26,8 +26,6 @@ import { Manual, PricePercentage, PricePercentageWithReset } from '../src/kamino
 import { createWsolAtaIfMissing, getComputeBudgetAndPriorityFeeIxns } from '../src/utils/transactions';
 import { JupService } from '../src/services/JupService';
 import { MAINNET_GLOBAL_LOOKUP_TABLE } from '../src/constants/pubkeys';
-import { getPdaProtocolPositionAddress, i32ToBytes, TickMath, TickUtils } from '@raydium-io/raydium-sdk';
-import { PoolState } from '../src/raydium_client';
 
 describe('Kamino strategy creation SDK Tests', () => {
   let connection: Connection;
@@ -628,7 +626,7 @@ describe('Kamino strategy creation SDK Tests', () => {
       new Decimal(10.0),
       new Decimal(24.0),
     ]);
-    let tx = createTransactionWithExtraBudget(signer.publicKey);
+    let tx = createTransactionWithExtraBudget();
     tx.add(updateRebalanceParamsIx);
     let updateRebalanceParamsTxHash = await sendTransactionWithLogs(connection, tx, signer.publicKey, [signer]);
     console.log('update Rebalance Params Tx Hash ', updateRebalanceParamsTxHash);
@@ -776,7 +774,7 @@ describe('Kamino strategy creation SDK Tests', () => {
       new Decimal(10.0),
       new Decimal(24.0),
     ]);
-    let tx = createTransactionWithExtraBudget(signer.publicKey);
+    let tx = createTransactionWithExtraBudget();
     tx.add(updateRebalanceParamsIx);
     let updateRebalanceParamsTxHash = await sendTransactionWithLogs(connection, tx, signer.publicKey, [signer]);
     console.log('update Rebalance Params Tx Hash ', updateRebalanceParamsTxHash);
