@@ -2336,8 +2336,8 @@ export class Kamino {
     amountB: Decimal,
     owner: PublicKey
   ): Promise<TransactionInstruction> => {
-    if (amountA.lessThanOrEqualTo(0) || amountB.lessThanOrEqualTo(0)) {
-      throw Error('Token A or B amount cant be lower than or equal to 0.');
+    if (amountA.lessThanOrEqualTo(0) && amountB.lessThanOrEqualTo(0)) {
+      throw Error('Token A and B amount cant be lower than or equal to 0.');
     }
     const strategyState = await this.getStrategyStateIfNotFetched(strategy);
 
