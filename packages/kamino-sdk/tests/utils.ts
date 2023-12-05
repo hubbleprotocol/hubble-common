@@ -489,8 +489,8 @@ export function toCollateralInfoValue(value: bigint | PublicKey | Uint16Array | 
     for (let i = 0; i < value.length; i++) {
       buffer[i] = value[i];
     }
-  } else if (value.constructor === PublicKey) {
-    buffer = value.toBuffer(); // PublicKey, the previous if statement wasn't seeing value as an instance of PublicKey anymore (?)
+  } else if (value.constructor.name === 'PublicKey') {
+    buffer = (value as PublicKey).toBuffer();
   } else {
     throw 'Bad type ' + value + ' ' + typeof value;
   }
