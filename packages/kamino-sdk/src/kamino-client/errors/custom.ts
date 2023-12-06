@@ -134,6 +134,12 @@ export type CustomError =
   | DecimalToU128ConversionFailed
   | DecimalNegativeSqrtRoot
   | DriftingOppositeDirection
+  | WrongRewardCollateralId
+  | CollateralInfoAlreadyExists
+  | InvestTooEarly
+  | SwapUnevenTooEarly
+  | FlashSwapTooEarly
+  | RebalancesCapReached
 
 export class IntegerOverflow extends Error {
   static readonly code = 6000
@@ -1647,6 +1653,75 @@ export class DriftingOppositeDirection extends Error {
   }
 }
 
+export class WrongRewardCollateralId extends Error {
+  static readonly code = 6135
+  readonly code = 6135
+  readonly name = "WrongRewardCollateralId"
+  readonly msg = "Wrong reward collateral_id"
+
+  constructor(readonly logs?: string[]) {
+    super("6135: Wrong reward collateral_id")
+  }
+}
+
+export class CollateralInfoAlreadyExists extends Error {
+  static readonly code = 6136
+  readonly code = 6136
+  readonly name = "CollateralInfoAlreadyExists"
+  readonly msg = "Collateral info already exists for given index"
+
+  constructor(readonly logs?: string[]) {
+    super("6136: Collateral info already exists for given index")
+  }
+}
+
+export class InvestTooEarly extends Error {
+  static readonly code = 6137
+  readonly code = 6137
+  readonly name = "InvestTooEarly"
+  readonly msg = "Invest is too early after the position was opened"
+
+  constructor(readonly logs?: string[]) {
+    super("6137: Invest is too early after the position was opened")
+  }
+}
+
+export class SwapUnevenTooEarly extends Error {
+  static readonly code = 6138
+  readonly code = 6138
+  readonly name = "SwapUnevenTooEarly"
+  readonly msg = "Swap uneven is too early after the position was opened"
+
+  constructor(readonly logs?: string[]) {
+    super("6138: Swap uneven is too early after the position was opened")
+  }
+}
+
+export class FlashSwapTooEarly extends Error {
+  static readonly code = 6139
+  readonly code = 6139
+  readonly name = "FlashSwapTooEarly"
+  readonly msg = "Flash swap is too early after the position was opened"
+
+  constructor(readonly logs?: string[]) {
+    super("6139: Flash swap is too early after the position was opened")
+  }
+}
+
+export class RebalancesCapReached extends Error {
+  static readonly code = 6140
+  readonly code = 6140
+  readonly name = "RebalancesCapReached"
+  readonly msg =
+    "Rebalance caps reached, no rebalances are allowed until the end of the current interval"
+
+  constructor(readonly logs?: string[]) {
+    super(
+      "6140: Rebalance caps reached, no rebalances are allowed until the end of the current interval"
+    )
+  }
+}
+
 export function fromCode(code: number, logs?: string[]): CustomError | null {
   switch (code) {
     case 6000:
@@ -1919,6 +1994,18 @@ export function fromCode(code: number, logs?: string[]): CustomError | null {
       return new DecimalNegativeSqrtRoot(logs)
     case 6134:
       return new DriftingOppositeDirection(logs)
+    case 6135:
+      return new WrongRewardCollateralId(logs)
+    case 6136:
+      return new CollateralInfoAlreadyExists(logs)
+    case 6137:
+      return new InvestTooEarly(logs)
+    case 6138:
+      return new SwapUnevenTooEarly(logs)
+    case 6139:
+      return new FlashSwapTooEarly(logs)
+    case 6140:
+      return new RebalancesCapReached(logs)
   }
 
   return null

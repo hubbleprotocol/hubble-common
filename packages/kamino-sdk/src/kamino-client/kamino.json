@@ -311,6 +311,38 @@
       ]
     },
     {
+      "name": "insertCollateralInfo",
+      "accounts": [
+        {
+          "name": "adminAuthority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "globalConfig",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenInfos",
+          "isMut": true,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "index",
+          "type": "u64"
+        },
+        {
+          "name": "params",
+          "type": {
+            "defined": "CollateralInfoParams"
+          }
+        }
+      ]
+    },
+    {
       "name": "initializeSharesMetadata",
       "accounts": [
         {
@@ -1957,6 +1989,11 @@
           "name": "tokenProgram",
           "isMut": false,
           "isSigner": false
+        },
+        {
+          "name": "instructionSysvarAccount",
+          "isMut": false,
+          "isSigner": false
         }
       ],
       "args": [
@@ -2642,17 +2679,7 @@
           "isSigner": false
         },
         {
-          "name": "globalConfig",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "newPool",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "poolProgram",
           "isMut": false,
           "isSigner": false
         }
@@ -3816,6 +3843,12 @@
             "type": "publicKey"
           },
           {
+            "name": "rebalancesCap",
+            "type": {
+              "defined": "WithdrawalCaps"
+            }
+          },
+          {
             "name": "padding3",
             "type": "u64"
           },
@@ -3824,7 +3857,7 @@
             "type": {
               "array": [
                 "u128",
-                23
+                21
               ]
             }
           },
@@ -3958,11 +3991,15 @@
             "type": "u64"
           },
           {
+            "name": "actionsAfterRebalanceDelaySeconds",
+            "type": "u64"
+          },
+          {
             "name": "padding",
             "type": {
               "array": [
                 "u64",
-                2040
+                2039
               ]
             }
           }
@@ -4297,6 +4334,86 @@
               "array": [
                 "u64",
                 8
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "CollateralInfoParams",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "mint",
+            "type": "publicKey"
+          },
+          {
+            "name": "lowerHeuristic",
+            "type": "u64"
+          },
+          {
+            "name": "upperHeuristic",
+            "type": "u64"
+          },
+          {
+            "name": "expHeuristic",
+            "type": "u64"
+          },
+          {
+            "name": "maxTwapDivergenceBps",
+            "type": "u64"
+          },
+          {
+            "name": "scopeTwapPriceChain",
+            "type": {
+              "array": [
+                "u16",
+                4
+              ]
+            }
+          },
+          {
+            "name": "scopePriceChain",
+            "type": {
+              "array": [
+                "u16",
+                4
+              ]
+            }
+          },
+          {
+            "name": "name",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "maxAgePriceSeconds",
+            "type": "u64"
+          },
+          {
+            "name": "maxAgeTwapSeconds",
+            "type": "u64"
+          },
+          {
+            "name": "maxIgnorableAmountAsReward",
+            "type": "u64"
+          },
+          {
+            "name": "disabled",
+            "type": "u8"
+          },
+          {
+            "name": "scopeStakingRateChain",
+            "type": {
+              "array": [
+                "u16",
+                4
               ]
             }
           }
@@ -4774,6 +4891,9 @@
           },
           {
             "name": "MinReferencePriceSlippageToleranceBps"
+          },
+          {
+            "name": "ActionsAfterRebalanceDelaySeconds"
           }
         ]
       }
@@ -4923,6 +5043,15 @@
           },
           {
             "name": "UpdateFarm"
+          },
+          {
+            "name": "UpdateRebalancesCapCapacity"
+          },
+          {
+            "name": "UpdateRebalancesCapInterval"
+          },
+          {
+            "name": "UpdateRebalancesCapCurrentTotal"
           }
         ]
       }
@@ -6257,6 +6386,36 @@
       "code": 6134,
       "name": "DriftingOppositeDirection",
       "msg": "Drifting strategy is moving in the opposite direction"
+    },
+    {
+      "code": 6135,
+      "name": "WrongRewardCollateralId",
+      "msg": "Wrong reward collateral_id"
+    },
+    {
+      "code": 6136,
+      "name": "CollateralInfoAlreadyExists",
+      "msg": "Collateral info already exists for given index"
+    },
+    {
+      "code": 6137,
+      "name": "InvestTooEarly",
+      "msg": "Invest is too early after the position was opened"
+    },
+    {
+      "code": 6138,
+      "name": "SwapUnevenTooEarly",
+      "msg": "Swap uneven is too early after the position was opened"
+    },
+    {
+      "code": 6139,
+      "name": "FlashSwapTooEarly",
+      "msg": "Flash swap is too early after the position was opened"
+    },
+    {
+      "code": 6140,
+      "name": "RebalancesCapReached",
+      "msg": "Rebalance caps reached, no rebalances are allowed until the end of the current interval"
     }
   ]
 }

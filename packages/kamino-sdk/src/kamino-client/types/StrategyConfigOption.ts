@@ -1084,6 +1084,75 @@ export class UpdateFarm {
   }
 }
 
+export interface UpdateRebalancesCapCapacityJSON {
+  kind: "UpdateRebalancesCapCapacity"
+}
+
+export class UpdateRebalancesCapCapacity {
+  static readonly discriminator = 47
+  static readonly kind = "UpdateRebalancesCapCapacity"
+  readonly discriminator = 47
+  readonly kind = "UpdateRebalancesCapCapacity"
+
+  toJSON(): UpdateRebalancesCapCapacityJSON {
+    return {
+      kind: "UpdateRebalancesCapCapacity",
+    }
+  }
+
+  toEncodable() {
+    return {
+      UpdateRebalancesCapCapacity: {},
+    }
+  }
+}
+
+export interface UpdateRebalancesCapIntervalJSON {
+  kind: "UpdateRebalancesCapInterval"
+}
+
+export class UpdateRebalancesCapInterval {
+  static readonly discriminator = 48
+  static readonly kind = "UpdateRebalancesCapInterval"
+  readonly discriminator = 48
+  readonly kind = "UpdateRebalancesCapInterval"
+
+  toJSON(): UpdateRebalancesCapIntervalJSON {
+    return {
+      kind: "UpdateRebalancesCapInterval",
+    }
+  }
+
+  toEncodable() {
+    return {
+      UpdateRebalancesCapInterval: {},
+    }
+  }
+}
+
+export interface UpdateRebalancesCapCurrentTotalJSON {
+  kind: "UpdateRebalancesCapCurrentTotal"
+}
+
+export class UpdateRebalancesCapCurrentTotal {
+  static readonly discriminator = 49
+  static readonly kind = "UpdateRebalancesCapCurrentTotal"
+  readonly discriminator = 49
+  readonly kind = "UpdateRebalancesCapCurrentTotal"
+
+  toJSON(): UpdateRebalancesCapCurrentTotalJSON {
+    return {
+      kind: "UpdateRebalancesCapCurrentTotal",
+    }
+  }
+
+  toEncodable() {
+    return {
+      UpdateRebalancesCapCurrentTotal: {},
+    }
+  }
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function fromDecoded(obj: any): types.StrategyConfigOptionKind {
   if (typeof obj !== "object") {
@@ -1230,6 +1299,15 @@ export function fromDecoded(obj: any): types.StrategyConfigOptionKind {
   }
   if ("UpdateFarm" in obj) {
     return new UpdateFarm()
+  }
+  if ("UpdateRebalancesCapCapacity" in obj) {
+    return new UpdateRebalancesCapCapacity()
+  }
+  if ("UpdateRebalancesCapInterval" in obj) {
+    return new UpdateRebalancesCapInterval()
+  }
+  if ("UpdateRebalancesCapCurrentTotal" in obj) {
+    return new UpdateRebalancesCapCurrentTotal()
   }
 
   throw new Error("Invalid enum object")
@@ -1380,6 +1458,15 @@ export function fromJSON(
     case "UpdateFarm": {
       return new UpdateFarm()
     }
+    case "UpdateRebalancesCapCapacity": {
+      return new UpdateRebalancesCapCapacity()
+    }
+    case "UpdateRebalancesCapInterval": {
+      return new UpdateRebalancesCapInterval()
+    }
+    case "UpdateRebalancesCapCurrentTotal": {
+      return new UpdateRebalancesCapCurrentTotal()
+    }
   }
 }
 
@@ -1432,6 +1519,9 @@ export function layout(property?: string) {
     borsh.struct([], "UpdateReward1Amount"),
     borsh.struct([], "UpdateReward2Amount"),
     borsh.struct([], "UpdateFarm"),
+    borsh.struct([], "UpdateRebalancesCapCapacity"),
+    borsh.struct([], "UpdateRebalancesCapInterval"),
+    borsh.struct([], "UpdateRebalancesCapCurrentTotal"),
   ])
   if (property !== undefined) {
     return ret.replicate(property)
