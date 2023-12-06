@@ -1755,6 +1755,146 @@ describe('Kamino SDK Tests', () => {
     expect(performanceFees.reward2FeeBPS.eq(new Decimal(800))).to.be.true;
   });
 
+  it('should get RAYDIUM strategy holdings round down withdraw/default', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      fixtures.globalConfig,
+      fixtures.kaminoProgramId,
+      WHIRLPOOL_PROGRAM_ID,
+      LOCAL_RAYDIUM_PROGRAM_ID
+    );
+
+    const strategyState = (await kamino.getStrategyByAddress(fixtures.newRaydiumStrategy))!;
+    // Deposit some funds
+    await setupAta(connection, signer, strategyState.sharesMint, signer);
+    let depositTxn = createTransactionWithExtraBudget(1000000);
+    const depositIx = await kamino.deposit(
+      fixtures.newRaydiumStrategy,
+      new Decimal(99.999999),
+      new Decimal(99.999997),
+      signer.publicKey
+    );
+    depositTxn.add(depositIx);
+    depositTxn = await assignBlockInfoToTransaction(connection, depositTxn, signer.publicKey);
+    await sendAndConfirmTransaction(connection, depositTxn, [signer], {
+      commitment: 'processed',
+      skipPreflight: true,
+    });
+
+    const strategy = await kamino.getStrategyByAddress(fixtures.newRaydiumStrategy);
+    expect(strategy).not.to.be.null;
+    const amounts = await kamino.getStrategyTokensHoldings(fixtures.newRaydiumStrategy, 'WITHDRAW');
+    expect(amounts.a.toNumber()).to.be.greaterThanOrEqual(97387845);
+    expect(amounts.b.toNumber()).to.be.greaterThanOrEqual(99999997);
+    console.log(amounts);
+  });
+
+  it('should get RAYDIUM strategy holdings round up for deposit', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      fixtures.globalConfig,
+      fixtures.kaminoProgramId,
+      WHIRLPOOL_PROGRAM_ID,
+      LOCAL_RAYDIUM_PROGRAM_ID
+    );
+
+    const strategyState = (await kamino.getStrategyByAddress(fixtures.newRaydiumStrategy))!;
+    // Deposit some funds
+    await setupAta(connection, signer, strategyState.sharesMint, signer);
+    let depositTxn = createTransactionWithExtraBudget(1000000);
+    const depositIx = await kamino.deposit(
+      fixtures.newRaydiumStrategy,
+      new Decimal(99.999999),
+      new Decimal(99.999997),
+      signer.publicKey
+    );
+    depositTxn.add(depositIx);
+    depositTxn = await assignBlockInfoToTransaction(connection, depositTxn, signer.publicKey);
+    await sendAndConfirmTransaction(connection, depositTxn, [signer], {
+      commitment: 'processed',
+      skipPreflight: true,
+    });
+
+    const strategy = await kamino.getStrategyByAddress(fixtures.newRaydiumStrategy);
+    expect(strategy).not.to.be.null;
+    const amounts = await kamino.getStrategyTokensHoldings(fixtures.newRaydiumStrategy, 'DEPOSIT');
+    expect(amounts.a.toNumber()).to.be.greaterThanOrEqual(97387845);
+    expect(amounts.b.toNumber()).to.be.greaterThanOrEqual(99999997);
+    console.log(amounts);
+  });
+
+  it('should get Orca strategy holdings round down withdraw/default', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      fixtures.globalConfig,
+      fixtures.kaminoProgramId,
+      WHIRLPOOL_PROGRAM_ID,
+      LOCAL_RAYDIUM_PROGRAM_ID
+    );
+
+    const strategyState = (await kamino.getStrategyByAddress(fixtures.newOrcaStrategy))!;
+    // Deposit some funds
+    await setupAta(connection, signer, strategyState.sharesMint, signer);
+    let depositTxn = createTransactionWithExtraBudget(1000000);
+    const depositIx = await kamino.deposit(
+      fixtures.newOrcaStrategy,
+      new Decimal(99.999999),
+      new Decimal(99.999997),
+      signer.publicKey
+    );
+    depositTxn.add(depositIx);
+    depositTxn = await assignBlockInfoToTransaction(connection, depositTxn, signer.publicKey);
+    await sendAndConfirmTransaction(connection, depositTxn, [signer], {
+      commitment: 'processed',
+      skipPreflight: true,
+    });
+
+    const strategy = await kamino.getStrategyByAddress(fixtures.newOrcaStrategy);
+    expect(strategy).not.to.be.null;
+    const amounts = await kamino.getStrategyTokensHoldings(fixtures.newOrcaStrategy, 'WITHDRAW');
+    console.log(amounts);
+    expect(amounts.a.toNumber()).to.be.greaterThanOrEqual(97387845);
+    expect(amounts.b.toNumber()).to.be.greaterThanOrEqual(99999997);
+  });
+
+  it('should get Orca strategy holdings round up for deposit', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      fixtures.globalConfig,
+      fixtures.kaminoProgramId,
+      WHIRLPOOL_PROGRAM_ID,
+      LOCAL_RAYDIUM_PROGRAM_ID
+    );
+
+    const strategyState = (await kamino.getStrategyByAddress(fixtures.newOrcaStrategy))!;
+    // Deposit some funds
+    await setupAta(connection, signer, strategyState.sharesMint, signer);
+    let depositTxn = createTransactionWithExtraBudget(1000000);
+    const depositIx = await kamino.deposit(
+      fixtures.newOrcaStrategy,
+      new Decimal(99.999999),
+      new Decimal(99.999997),
+      signer.publicKey
+    );
+    depositTxn.add(depositIx);
+    depositTxn = await assignBlockInfoToTransaction(connection, depositTxn, signer.publicKey);
+    await sendAndConfirmTransaction(connection, depositTxn, [signer], {
+      commitment: 'processed',
+      skipPreflight: true,
+    });
+
+    const strategy = await kamino.getStrategyByAddress(fixtures.newOrcaStrategy);
+    expect(strategy).not.to.be.null;
+    const amounts = await kamino.getStrategyTokensHoldings(fixtures.newOrcaStrategy, 'DEPOSIT');
+    expect(amounts.a.toNumber()).to.be.greaterThanOrEqual(97387845);
+    expect(amounts.b.toNumber()).to.be.greaterThanOrEqual(99999997);
+    console.log(amounts);
+  });
+
   it('closes the strategy with no position open', async () => {
     let kamino = new Kamino(
       cluster,

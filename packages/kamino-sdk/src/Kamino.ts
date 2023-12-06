@@ -38,7 +38,6 @@ import {
   defaultSlippagePercentage,
   getNearestValidTickIndexFromTickIndex,
   getNextValidTickIndex,
-  getRemoveLiquidityQuote,
   getStartTickIndex,
   OrcaNetwork,
   OrcaWhirlpoolClient,
@@ -316,7 +315,6 @@ import {
 import { RebalanceTypeLabelName } from './rebalance_methods/consts';
 import WhirlpoolWithAddress from './models/WhirlpoolWithAddress';
 import { PoolSimulationResponse } from './models/PoolSimulationResponseData';
-import RaydiumPoollWithAddress from './models/RaydiumPoolWithAddress';
 import {
   deserializeAutodriftRebalanceWithStateOverride,
   deserializeAutodriftRebalanceFromOnchainParams,
@@ -327,7 +325,7 @@ import {
   getPositionRangeFromAutodriftParams,
 } from './rebalance_methods/autodriftRebalance';
 import { KaminoPrices, OraclePricesAndCollateralInfos } from './models';
-import { transfer } from '@project-serum/serum/lib/token-instructions';
+import { getRemoveLiquidityQuote } from './whirpools-client/shim/remove-liquidity';
 export const KAMINO_IDL = KaminoIdl;
 
 export class Kamino {
@@ -1217,22 +1215,17 @@ export class Kamino {
 
     const raydiumStrategies = strategiesWithAddresses.filter(
       (x) =>
-        x.strategy.strategyDex.toNumber() === dexToNumber('RAYDIUM') &&
-        x.strategy.position.toString() !== PublicKey.default.toString()
+        x.strategy.strategyDex.toNumber() === dexToNumber('RAYDIUM') && !x.strategy.position.equals(PublicKey.default)
     );
     const raydiumPools = await this.getRaydiumPools(raydiumStrategies.map((x) => x.strategy.pool));
     const raydiumPositions = await this.getRaydiumPositions(raydiumStrategies.map((x) => x.strategy.position));
     const orcaStrategies = strategiesWithAddresses.filter(
-      (x) =>
-        x.strategy.strategyDex.toNumber() === dexToNumber('ORCA') &&
-        x.strategy.position.toString() !== PublicKey.default.toString()
+      (x) => x.strategy.strategyDex.toNumber() === dexToNumber('ORCA') && !x.strategy.position.equals(PublicKey.default)
     );
     const orcaPools = await this.getWhirlpools(orcaStrategies.map((x) => x.strategy.pool));
     const orcaPositions = await this.getOrcaPositions(orcaStrategies.map((x) => x.strategy.position));
 
-    const inactiveStrategies = strategiesWithAddresses.filter(
-      (x) => x.strategy.position.toString() === PublicKey.default.toString()
-    );
+    const inactiveStrategies = strategiesWithAddresses.filter((x) => x.strategy.position.equals(PublicKey.default));
     const collateralInfos = await this.getCollateralInfos();
     for (const { strategy, address } of inactiveStrategies) {
       const strategyPrices = await this.getStrategyPrices(
@@ -1418,7 +1411,8 @@ export class Kamino {
   private getRaydiumTokensBalances = (
     strategy: WhirlpoolStrategy,
     pool: PoolState,
-    position: PersonalPositionState
+    position: PersonalPositionState,
+    mode: 'DEPOSIT' | 'WITHDRAW' = 'WITHDRAW'
   ): TokenHoldings => {
     const lowerSqrtPriceX64 = SqrtPriceMath.getSqrtPriceX64FromTick(position.tickLowerIndex);
     const upperSqrtPriceX64 = SqrtPriceMath.getSqrtPriceX64FromTick(position.tickUpperIndex);
@@ -1428,7 +1422,7 @@ export class Kamino {
       new BN(lowerSqrtPriceX64),
       new BN(upperSqrtPriceX64),
       position.liquidity,
-      false // round down so the holdings are not overestimated
+      mode === 'DEPOSIT'
     );
 
     const aAvailable = new Decimal(strategy.tokenAAmounts.toString());
@@ -1455,12 +1449,13 @@ export class Kamino {
     pool: Whirlpool,
     position: Position,
     collateralInfos: CollateralInfo[],
-    prices?: OraclePrices
+    prices?: OraclePrices,
+    mode: 'DEPOSIT' | 'WITHDRAW' = 'WITHDRAW'
   ): Promise<StrategyBalances> => {
     const strategyPrices = await this.getStrategyPrices(strategy, collateralInfos, prices);
     const rebalanceKind = numberToRebalanceType(strategy.rebalanceType);
 
-    let tokenHoldings = this.getOrcaTokensBalances(strategy, pool, position);
+    let tokenHoldings = this.getOrcaTokensBalances(strategy, pool, position, mode);
     const computedHoldings: Holdings = this.getStrategyHoldingsUsd(
       tokenHoldings.available.a,
       tokenHoldings.available.b,
@@ -1514,16 +1509,24 @@ export class Kamino {
     return balance;
   };
 
-  private getOrcaTokensBalances = (strategy: WhirlpoolStrategy, pool: Whirlpool, position: Position): TokenHoldings => {
-    const quote = getRemoveLiquidityQuote({
-      positionAddress: strategy.position,
-      liquidity: position.liquidity,
-      slippageTolerance: Percentage.fromFraction(0, 1000),
-      sqrtPrice: pool.sqrtPrice,
-      tickLowerIndex: position.tickLowerIndex,
-      tickUpperIndex: position.tickUpperIndex,
-      tickCurrentIndex: pool.tickCurrentIndex,
-    });
+  private getOrcaTokensBalances = (
+    strategy: WhirlpoolStrategy,
+    pool: Whirlpool,
+    position: Position,
+    mode: 'DEPOSIT' | 'WITHDRAW' = 'WITHDRAW'
+  ): TokenHoldings => {
+    const quote = getRemoveLiquidityQuote(
+      {
+        positionAddress: strategy.position,
+        liquidity: position.liquidity,
+        slippageTolerance: Percentage.fromFraction(0, 1000),
+        sqrtPrice: pool.sqrtPrice,
+        tickLowerIndex: position.tickLowerIndex,
+        tickUpperIndex: position.tickUpperIndex,
+        tickCurrentIndex: pool.tickCurrentIndex,
+      },
+      mode === 'DEPOSIT'
+    );
     const aAvailable = new Decimal(strategy.tokenAAmounts.toString());
     const bAvailable = new Decimal(strategy.tokenBAmounts.toString());
     const aInvested = new Decimal(quote.estTokenA.toString());
@@ -1605,31 +1608,42 @@ export class Kamino {
     }
   };
 
-  private getStrategyTokensBalances = async (strategy: WhirlpoolStrategy): Promise<TokenHoldings> => {
+  private getStrategyTokensBalances = async (
+    strategy: WhirlpoolStrategy,
+    mode: 'DEPOSIT' | 'WITHDRAW' = 'WITHDRAW'
+  ): Promise<TokenHoldings> => {
     if (strategy.strategyDex.toNumber() == dexToNumber('ORCA')) {
+      const [whirlpoolAcc, positionAcc] = await this.getConnection().getMultipleAccountsInfo([
+        strategy.pool,
+        strategy.position,
+      ]);
+      if (!whirlpoolAcc) {
+        throw Error(`Could not fetch Orca whirlpool state with pubkey ${strategy.pool.toString()}`);
+      }
+      if (!positionAcc) {
+        throw Error(`Could not fetch Orca whirlpool position state with pubkey ${strategy.position.toString()}`);
+      }
       const [whirlpool, position] = await Promise.all([
-        Whirlpool.fetch(this._connection, strategy.pool),
-        Position.fetch(this._connection, strategy.position),
+        Whirlpool.decode(whirlpoolAcc.data),
+        Position.decode(positionAcc.data),
       ]);
-      if (!whirlpool) {
-        throw Error(`Could not fetch whirlpool state with pubkey ${strategy.pool.toString()}`);
-      }
-      if (!position) {
-        throw Error(`Could not fetch position state with pubkey ${strategy.position.toString()}`);
-      }
-      return this.getOrcaTokensBalances(strategy, whirlpool, position);
+      return this.getOrcaTokensBalances(strategy, whirlpool, position, mode);
     } else if (strategy.strategyDex.toNumber() == dexToNumber('RAYDIUM')) {
-      const [poolState, position] = await Promise.all([
-        PoolState.fetch(this._connection, strategy.pool),
-        PersonalPositionState.fetch(this._connection, strategy.position),
+      const [poolStateAcc, positionAcc] = await this.getConnection().getMultipleAccountsInfo([
+        strategy.pool,
+        strategy.position,
       ]);
-      if (!poolState) {
+      if (!poolStateAcc) {
         throw Error(`Could not fetch Raydium pool state with pubkey ${strategy.pool.toString()}`);
       }
-      if (!position) {
-        throw Error(`Could not fetch position state with pubkey ${strategy.position.toString()}`);
+      if (!positionAcc) {
+        throw Error(`Could not fetch Raydium position state with pubkey ${strategy.position.toString()}`);
       }
-      return this.getRaydiumTokensBalances(strategy, poolState, position);
+      const [poolState, position] = await Promise.all([
+        PoolState.decode(poolStateAcc.data),
+        PersonalPositionState.decode(positionAcc.data),
+      ]);
+      return this.getRaydiumTokensBalances(strategy, poolState, position, mode);
     } else {
       throw new Error(`Invalid dex ${strategy.strategyDex.toString()}`);
     }
@@ -1669,19 +1683,20 @@ export class Kamino {
     collateralInfos: CollateralInfo[],
     scopePrices?: OraclePrices
   ): Promise<StrategyBalances> => {
-    const states = await Promise.all([
-      Whirlpool.fetch(this._connection, strategy.pool),
-      Position.fetch(this._connection, strategy.position),
+    const [whirlpoolAcc, positionAcc] = await this.getConnection().getMultipleAccountsInfo([
+      strategy.pool,
+      strategy.position,
     ]);
-    const whirlpool = states[0];
-    const position = states[1];
-
-    if (!position) {
-      throw new Error(`Position ${strategy.position.toString()} could not be found.`);
+    if (!whirlpoolAcc) {
+      throw Error(`Could not fetch Orca whirlpool state with pubkey ${strategy.pool.toString()}`);
     }
-    if (!whirlpool) {
-      throw new Error(`Whirlpool ${strategy.pool.toString()} could not be found.`);
+    if (!positionAcc) {
+      throw Error(`Could not fetch Orca whirlpool position state with pubkey ${strategy.position.toString()}`);
     }
+    const [whirlpool, position] = await Promise.all([
+      Whirlpool.decode(whirlpoolAcc.data),
+      Position.decode(positionAcc.data),
+    ]);
 
     return this.getOrcaBalances(strategy, whirlpool, position, collateralInfos, scopePrices);
   };
@@ -1691,21 +1706,22 @@ export class Kamino {
     collateralInfos: CollateralInfo[],
     scopePrices?: OraclePrices
   ): Promise<StrategyBalances> => {
-    const states = await Promise.all([
-      PoolState.fetch(this._connection, strategy.pool),
-      PersonalPositionState.fetch(this._connection, strategy.position),
+    const [poolStateAcc, positionAcc] = await this.getConnection().getMultipleAccountsInfo([
+      strategy.pool,
+      strategy.position,
     ]);
-    const poolState = states[0];
-    const positionState = states[1];
-
-    if (!positionState) {
-      throw new Error(`Raydium position ${strategy.position.toString()} could not be found.`);
+    if (!poolStateAcc) {
+      throw Error(`Could not fetch Raydium pool state with pubkey ${strategy.pool.toString()}`);
     }
-    if (!poolState) {
-      throw new Error(`Raydium pool ${strategy.pool.toString()} could not be found.`);
+    if (!positionAcc) {
+      throw Error(`Could not fetch Raydium position state with pubkey ${strategy.position.toString()}`);
     }
+    const [poolState, position] = await Promise.all([
+      PoolState.decode(poolStateAcc.data),
+      PersonalPositionState.decode(positionAcc.data),
+    ]);
 
-    return this.getRaydiumBalances(strategy, poolState, positionState, collateralInfos, scopePrices);
+    return this.getRaydiumBalances(strategy, poolState, position, collateralInfos, scopePrices);
   };
 
   private getStrategyHoldingsUsd = (
@@ -2336,8 +2352,8 @@ export class Kamino {
     amountB: Decimal,
     owner: PublicKey
   ): Promise<TransactionInstruction> => {
-    if (amountA.lessThanOrEqualTo(0) || amountB.lessThanOrEqualTo(0)) {
-      throw Error('Token A or B amount cant be lower than or equal to 0.');
+    if (amountA.lessThanOrEqualTo(0) && amountB.lessThanOrEqualTo(0)) {
+      throw Error('Token A and B amount cant be lower than or equal to 0.');
     }
     const strategyState = await this.getStrategyStateIfNotFetched(strategy);
 
@@ -5145,10 +5161,13 @@ export class Kamino {
     }
   };
 
-  getStrategyTokensHoldings = async (strategy: PublicKey | StrategyWithAddress): Promise<TokenAmounts> => {
+  getStrategyTokensHoldings = async (
+    strategy: PublicKey | StrategyWithAddress,
+    mode: 'DEPOSIT' | 'WITHDRAW' = 'WITHDRAW'
+  ): Promise<TokenAmounts> => {
     const { strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
 
-    const holdings = await this.getStrategyTokensBalances(strategyState);
+    const holdings = await this.getStrategyTokensBalances(strategyState, mode);
 
     const totalA = holdings.available.a.add(holdings.invested.a);
     const totalB = holdings.available.b.add(holdings.invested.b);
