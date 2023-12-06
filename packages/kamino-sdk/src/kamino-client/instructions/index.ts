@@ -22,6 +22,11 @@ export type {
   UpdateCollateralInfoArgs,
   UpdateCollateralInfoAccounts,
 } from "./updateCollateralInfo"
+export { insertCollateralInfo } from "./insertCollateralInfo"
+export type {
+  InsertCollateralInfoArgs,
+  InsertCollateralInfoAccounts,
+} from "./insertCollateralInfo"
 export { initializeSharesMetadata } from "./initializeSharesMetadata"
 export type {
   InitializeSharesMetadataArgs,

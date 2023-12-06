@@ -9,9 +9,7 @@ export interface ChangePoolAccounts {
   strategy: PublicKey
   oldPosition: PublicKey
   baseVaultAuthority: PublicKey
-  globalConfig: PublicKey
   newPool: PublicKey
-  poolProgram: PublicKey
 }
 
 export function changePool(accounts: ChangePoolAccounts) {
@@ -20,9 +18,7 @@ export function changePool(accounts: ChangePoolAccounts) {
     { pubkey: accounts.strategy, isSigner: false, isWritable: true },
     { pubkey: accounts.oldPosition, isSigner: false, isWritable: false },
     { pubkey: accounts.baseVaultAuthority, isSigner: false, isWritable: false },
-    { pubkey: accounts.globalConfig, isSigner: false, isWritable: false },
     { pubkey: accounts.newPool, isSigner: false, isWritable: false },
-    { pubkey: accounts.poolProgram, isSigner: false, isWritable: false },
   ]
   const identifier = Buffer.from([141, 221, 123, 235, 35, 9, 145, 201])
   const data = identifier

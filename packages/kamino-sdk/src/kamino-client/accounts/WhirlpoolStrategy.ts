@@ -98,6 +98,7 @@ export interface WhirlpoolStrategyFields {
   strategyLookupTable: PublicKey
   lastSwapUnevenStepTimestamp: BN
   farm: PublicKey
+  rebalancesCap: types.WithdrawalCapsFields
   padding3: BN
   padding4: Array<BN>
   padding5: Array<BN>
@@ -199,6 +200,7 @@ export interface WhirlpoolStrategyJSON {
   strategyLookupTable: string
   lastSwapUnevenStepTimestamp: string
   farm: string
+  rebalancesCap: types.WithdrawalCapsJSON
   padding3: string
   padding4: Array<string>
   padding5: Array<string>
@@ -300,6 +302,7 @@ export class WhirlpoolStrategy {
   readonly strategyLookupTable: PublicKey
   readonly lastSwapUnevenStepTimestamp: BN
   readonly farm: PublicKey
+  readonly rebalancesCap: types.WithdrawalCaps
   readonly padding3: BN
   readonly padding4: Array<BN>
   readonly padding5: Array<BN>
@@ -403,8 +406,9 @@ export class WhirlpoolStrategy {
     borsh.publicKey("strategyLookupTable"),
     borsh.u64("lastSwapUnevenStepTimestamp"),
     borsh.publicKey("farm"),
+    types.WithdrawalCaps.layout("rebalancesCap"),
     borsh.u64("padding3"),
-    borsh.array(borsh.u128(), 23, "padding4"),
+    borsh.array(borsh.u128(), 21, "padding4"),
     borsh.array(borsh.u128(), 32, "padding5"),
     borsh.array(borsh.u128(), 32, "padding6"),
     borsh.array(borsh.u128(), 32, "padding7"),
@@ -514,6 +518,7 @@ export class WhirlpoolStrategy {
     this.strategyLookupTable = fields.strategyLookupTable
     this.lastSwapUnevenStepTimestamp = fields.lastSwapUnevenStepTimestamp
     this.farm = fields.farm
+    this.rebalancesCap = new types.WithdrawalCaps({ ...fields.rebalancesCap })
     this.padding3 = fields.padding3
     this.padding4 = fields.padding4
     this.padding5 = fields.padding5
@@ -662,6 +667,7 @@ export class WhirlpoolStrategy {
       strategyLookupTable: dec.strategyLookupTable,
       lastSwapUnevenStepTimestamp: dec.lastSwapUnevenStepTimestamp,
       farm: dec.farm,
+      rebalancesCap: types.WithdrawalCaps.fromDecoded(dec.rebalancesCap),
       padding3: dec.padding3,
       padding4: dec.padding4,
       padding5: dec.padding5,
@@ -769,6 +775,7 @@ export class WhirlpoolStrategy {
       strategyLookupTable: this.strategyLookupTable.toString(),
       lastSwapUnevenStepTimestamp: this.lastSwapUnevenStepTimestamp.toString(),
       farm: this.farm.toString(),
+      rebalancesCap: this.rebalancesCap.toJSON(),
       padding3: this.padding3.toString(),
       padding4: this.padding4.map((item) => item.toString()),
       padding5: this.padding5.map((item) => item.toString()),
@@ -882,6 +889,7 @@ export class WhirlpoolStrategy {
       strategyLookupTable: new PublicKey(obj.strategyLookupTable),
       lastSwapUnevenStepTimestamp: new BN(obj.lastSwapUnevenStepTimestamp),
       farm: new PublicKey(obj.farm),
+      rebalancesCap: types.WithdrawalCaps.fromJSON(obj.rebalancesCap),
       padding3: new BN(obj.padding3),
       padding4: obj.padding4.map((item) => new BN(item)),
       padding5: obj.padding5.map((item) => new BN(item)),

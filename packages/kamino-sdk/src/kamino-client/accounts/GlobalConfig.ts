@@ -26,6 +26,7 @@ export interface GlobalConfigFields {
   minPerformanceFeeBps: BN
   minSwapUnevenSlippageToleranceBps: BN
   minReferencePriceSlippageToleranceBps: BN
+  actionsAfterRebalanceDelaySeconds: BN
   padding: Array<BN>
 }
 
@@ -51,6 +52,7 @@ export interface GlobalConfigJSON {
   minPerformanceFeeBps: string
   minSwapUnevenSlippageToleranceBps: string
   minReferencePriceSlippageToleranceBps: string
+  actionsAfterRebalanceDelaySeconds: string
   padding: Array<string>
 }
 
@@ -76,6 +78,7 @@ export class GlobalConfig {
   readonly minPerformanceFeeBps: BN
   readonly minSwapUnevenSlippageToleranceBps: BN
   readonly minReferencePriceSlippageToleranceBps: BN
+  readonly actionsAfterRebalanceDelaySeconds: BN
   readonly padding: Array<BN>
 
   static readonly discriminator = Buffer.from([
@@ -104,7 +107,8 @@ export class GlobalConfig {
     borsh.u64("minPerformanceFeeBps"),
     borsh.u64("minSwapUnevenSlippageToleranceBps"),
     borsh.u64("minReferencePriceSlippageToleranceBps"),
-    borsh.array(borsh.u64(), 2040, "padding"),
+    borsh.u64("actionsAfterRebalanceDelaySeconds"),
+    borsh.array(borsh.u64(), 2039, "padding"),
   ])
 
   constructor(fields: GlobalConfigFields) {
@@ -131,6 +135,8 @@ export class GlobalConfig {
       fields.minSwapUnevenSlippageToleranceBps
     this.minReferencePriceSlippageToleranceBps =
       fields.minReferencePriceSlippageToleranceBps
+    this.actionsAfterRebalanceDelaySeconds =
+      fields.actionsAfterRebalanceDelaySeconds
     this.padding = fields.padding
   }
 
@@ -198,6 +204,7 @@ export class GlobalConfig {
       minSwapUnevenSlippageToleranceBps: dec.minSwapUnevenSlippageToleranceBps,
       minReferencePriceSlippageToleranceBps:
         dec.minReferencePriceSlippageToleranceBps,
+      actionsAfterRebalanceDelaySeconds: dec.actionsAfterRebalanceDelaySeconds,
       padding: dec.padding,
     })
   }
@@ -229,6 +236,8 @@ export class GlobalConfig {
         this.minSwapUnevenSlippageToleranceBps.toString(),
       minReferencePriceSlippageToleranceBps:
         this.minReferencePriceSlippageToleranceBps.toString(),
+      actionsAfterRebalanceDelaySeconds:
+        this.actionsAfterRebalanceDelaySeconds.toString(),
       padding: this.padding.map((item) => item.toString()),
     }
   }
@@ -263,6 +272,9 @@ export class GlobalConfig {
       ),
       minReferencePriceSlippageToleranceBps: new BN(
         obj.minReferencePriceSlippageToleranceBps
+      ),
+      actionsAfterRebalanceDelaySeconds: new BN(
+        obj.actionsAfterRebalanceDelaySeconds
       ),
       padding: obj.padding.map((item) => new BN(item)),
     })

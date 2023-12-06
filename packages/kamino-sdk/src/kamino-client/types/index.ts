@@ -41,6 +41,11 @@ export { RebalanceRaw } from "./RebalanceRaw"
 export type { RebalanceRawFields, RebalanceRawJSON } from "./RebalanceRaw"
 export { CollateralInfo } from "./CollateralInfo"
 export type { CollateralInfoFields, CollateralInfoJSON } from "./CollateralInfo"
+export { CollateralInfoParams } from "./CollateralInfoParams"
+export type {
+  CollateralInfoParamsFields,
+  CollateralInfoParamsJSON,
+} from "./CollateralInfoParams"
 export { KaminoRewardInfo } from "./KaminoRewardInfo"
 export type {
   KaminoRewardInfoFields,
@@ -161,6 +166,7 @@ export type GlobalConfigOptionKind =
   | GlobalConfigOption.MinPerformanceFeeBps
   | GlobalConfigOption.MinSwapUnevenSlippageToleranceBps
   | GlobalConfigOption.MinReferencePriceSlippageToleranceBps
+  | GlobalConfigOption.ActionsAfterRebalanceDelaySeconds
 export type GlobalConfigOptionJSON =
   | GlobalConfigOption.EmergencyModeJSON
   | GlobalConfigOption.BlockDepositJSON
@@ -183,6 +189,7 @@ export type GlobalConfigOptionJSON =
   | GlobalConfigOption.MinPerformanceFeeBpsJSON
   | GlobalConfigOption.MinSwapUnevenSlippageToleranceBpsJSON
   | GlobalConfigOption.MinReferencePriceSlippageToleranceBpsJSON
+  | GlobalConfigOption.ActionsAfterRebalanceDelaySecondsJSON
 
 export { StrategyConfigOption }
 
@@ -234,6 +241,9 @@ export type StrategyConfigOptionKind =
   | StrategyConfigOption.UpdateReward1Amount
   | StrategyConfigOption.UpdateReward2Amount
   | StrategyConfigOption.UpdateFarm
+  | StrategyConfigOption.UpdateRebalancesCapCapacity
+  | StrategyConfigOption.UpdateRebalancesCapInterval
+  | StrategyConfigOption.UpdateRebalancesCapCurrentTotal
 export type StrategyConfigOptionJSON =
   | StrategyConfigOption.UpdateDepositCapJSON
   | StrategyConfigOption.UpdateDepositCapIxnJSON
@@ -282,6 +292,9 @@ export type StrategyConfigOptionJSON =
   | StrategyConfigOption.UpdateReward1AmountJSON
   | StrategyConfigOption.UpdateReward2AmountJSON
   | StrategyConfigOption.UpdateFarmJSON
+  | StrategyConfigOption.UpdateRebalancesCapCapacityJSON
+  | StrategyConfigOption.UpdateRebalancesCapIntervalJSON
+  | StrategyConfigOption.UpdateRebalancesCapCurrentTotalJSON
 
 export { StrategyStatus }
 

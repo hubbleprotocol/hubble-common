@@ -486,6 +486,29 @@ export class MinReferencePriceSlippageToleranceBps {
   }
 }
 
+export interface ActionsAfterRebalanceDelaySecondsJSON {
+  kind: "ActionsAfterRebalanceDelaySeconds"
+}
+
+export class ActionsAfterRebalanceDelaySeconds {
+  static readonly discriminator = 21
+  static readonly kind = "ActionsAfterRebalanceDelaySeconds"
+  readonly discriminator = 21
+  readonly kind = "ActionsAfterRebalanceDelaySeconds"
+
+  toJSON(): ActionsAfterRebalanceDelaySecondsJSON {
+    return {
+      kind: "ActionsAfterRebalanceDelaySeconds",
+    }
+  }
+
+  toEncodable() {
+    return {
+      ActionsAfterRebalanceDelaySeconds: {},
+    }
+  }
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function fromDecoded(obj: any): types.GlobalConfigOptionKind {
   if (typeof obj !== "object") {
@@ -554,6 +577,9 @@ export function fromDecoded(obj: any): types.GlobalConfigOptionKind {
   }
   if ("MinReferencePriceSlippageToleranceBps" in obj) {
     return new MinReferencePriceSlippageToleranceBps()
+  }
+  if ("ActionsAfterRebalanceDelaySeconds" in obj) {
+    return new ActionsAfterRebalanceDelaySeconds()
   }
 
   throw new Error("Invalid enum object")
@@ -626,6 +652,9 @@ export function fromJSON(
     case "MinReferencePriceSlippageToleranceBps": {
       return new MinReferencePriceSlippageToleranceBps()
     }
+    case "ActionsAfterRebalanceDelaySeconds": {
+      return new ActionsAfterRebalanceDelaySeconds()
+    }
   }
 }
 
@@ -652,6 +681,7 @@ export function layout(property?: string) {
     borsh.struct([], "MinPerformanceFeeBps"),
     borsh.struct([], "MinSwapUnevenSlippageToleranceBps"),
     borsh.struct([], "MinReferencePriceSlippageToleranceBps"),
+    borsh.struct([], "ActionsAfterRebalanceDelaySeconds"),
   ])
   if (property !== undefined) {
     return ret.replicate(property)
