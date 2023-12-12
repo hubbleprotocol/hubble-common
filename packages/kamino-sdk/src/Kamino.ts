@@ -2866,19 +2866,18 @@ export class Kamino {
   /**
    * Get transaction instruction to deposit SOL into topup vault.
    * @param owner Owner (wallet, shareholder) public key
-   * @param amount Amount of SOL to deposit into topup vault
+   * @param amountLamports Amount of SOL to deposit into topup vault
    * @returns transaction instruction for adding SOL to topup vault
    */
-  upkeepTopupVault = (owner: PublicKey, amount: Decimal): TransactionInstruction => {
-    if (amount.lessThanOrEqualTo(0)) {
+  upkeepTopupVault = (owner: PublicKey, amountLamports: Decimal): TransactionInstruction => {
+    if (amountLamports.lessThanOrEqualTo(0)) {
       throw Error('Must deposit a positive amount of SOL.');
     }
-    const solToDeposit = lamportsToNumberDecimal(amount, DECIMALS_SOL);
     const topupVault = this.getUserTopupVault(owner);
     const ix = SystemProgram.transfer({
       fromPubkey: owner,
       toPubkey: topupVault,
-      lamports: solToDeposit.toNumber(),
+      lamports: BigInt(amountLamports.floor().toString()),
     });
     return ix;
   };
