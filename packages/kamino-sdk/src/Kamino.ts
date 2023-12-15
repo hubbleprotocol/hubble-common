@@ -2420,7 +2420,8 @@ export class Kamino {
     swapIxsBuilder?: SwapperIxBuilder,
     initialUserTokenAtaBalances?: TokensBalances,
     priceAInB?: Decimal,
-    includeAtaIxns: boolean = true // if true it includes create and close wsol and token atas,
+    includeAtaIxns: boolean = true, // if true it includes create and close wsol and token atas,
+    onlyDirectRoutes?: boolean
   ): Promise<InstructionsWithLookupTables> => {
     const strategyWithAddress = await this.getStrategyStateIfNotFetched(strategy);
 
@@ -2467,7 +2468,18 @@ export class Kamino {
           user: PublicKey,
           slippageBps: Decimal,
           allAccounts: PublicKey[]
-        ) => this.getJupSwapIxsV6(input, tokenAMint, tokenBMint, user, slippageBps, false, allAccounts, profiler);
+        ) =>
+          this.getJupSwapIxsV6(
+            input,
+            tokenAMint,
+            tokenBMint,
+            user,
+            slippageBps,
+            false,
+            allAccounts,
+            profiler,
+            onlyDirectRoutes
+          );
 
     console.log('single sided deposit tokenA tokenAMinPostDepositBalance', tokenAMinPostDepositBalance);
     console.log('single sided deposit tokenA userTokenBalances.b', userTokenBalances.b);
@@ -2498,7 +2510,8 @@ export class Kamino {
     swapIxsBuilder?: SwapperIxBuilder,
     initialUserTokenAtaBalances?: TokensBalances,
     priceAInB?: Decimal,
-    includeAtaIxns: boolean = true // if true it includes create and close wsol and token atas,
+    includeAtaIxns: boolean = true, // if true it includes create and close wsol and token atas,
+    onlyDirectRoutes?: boolean
   ): Promise<InstructionsWithLookupTables> => {
     const strategyWithAddress = await this.getStrategyStateIfNotFetched(strategy);
 
@@ -2544,7 +2557,18 @@ export class Kamino {
           user: PublicKey,
           slippageBps: Decimal,
           allAccounts: PublicKey[]
-        ) => this.getJupSwapIxsV6(input, tokenAMint, tokenBMint, user, slippageBps, false, allAccounts, profiler);
+        ) =>
+          this.getJupSwapIxsV6(
+            input,
+            tokenAMint,
+            tokenBMint,
+            user,
+            slippageBps,
+            false,
+            allAccounts,
+            profiler,
+            onlyDirectRoutes
+          );
 
     return await profiler(
       this.getSingleSidedDepositIxs(
@@ -2927,7 +2951,8 @@ export class Kamino {
     useOnlyLegacyTransaction: boolean,
     existingAccounts: PublicKey[],
     maxAccounts: number,
-    profiler: ProfiledFunctionExecution = noopProfiledFunctionExecution
+    profiler: ProfiledFunctionExecution = noopProfiledFunctionExecution,
+    onlyDirectRoutes?: boolean
   ): Promise<[TransactionInstruction[], PublicKey[]]> => {
     let jupiterQuote: SwapResponse = input.tokenAToSwapAmount.lt(ZERO)
       ? await profiler(
@@ -2938,7 +2963,8 @@ export class Kamino {
             tokenBMint,
             slippageBps.toNumber(),
             useOnlyLegacyTransaction,
-            maxAccounts
+            maxAccounts,
+            onlyDirectRoutes
           ),
           'C-getBestRouteV6',
           []
@@ -2951,7 +2977,8 @@ export class Kamino {
             tokenAMint,
             slippageBps.toNumber(),
             useOnlyLegacyTransaction,
-            maxAccounts
+            maxAccounts,
+            onlyDirectRoutes
           ),
           'C-getBestRouteV6',
           []
@@ -2991,7 +3018,8 @@ export class Kamino {
     slippageBps: Decimal,
     useOnlyLegacyTransaction: boolean,
     existingAccounts: PublicKey[],
-    profiledFunctionExecution: ProfiledFunctionExecution = noopProfiledFunctionExecution
+    profiledFunctionExecution: ProfiledFunctionExecution = noopProfiledFunctionExecution,
+    onlyDirectRoutes?: boolean
   ): Promise<[TransactionInstruction[], PublicKey[]]> => {
     console.log('getJupSwapIxsV6', JSON.stringify(input));
 
@@ -3018,7 +3046,8 @@ export class Kamino {
           useOnlyLegacyTransaction,
           existingAccounts,
           maxAccounts,
-          profiledFunctionExecution
+          profiledFunctionExecution,
+          onlyDirectRoutes
         );
 
         return result;

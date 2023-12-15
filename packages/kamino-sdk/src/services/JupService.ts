@@ -36,7 +36,8 @@ export class JupService {
     outputMint: PublicKey,
     slippageBps: number,
     asLegacyTransaction?: boolean,
-    maxAccounts?: number
+    maxAccounts?: number,
+    onlyDirectRoutes?: boolean
   ): Promise<SwapResponse> => {
     try {
       const jupiterQuoteApi = createJupiterApiClient(); // config is optional
@@ -49,7 +50,8 @@ export class JupService {
         outputMint,
         slippageBps,
         asLegacyTransaction,
-        maxAccounts
+        maxAccounts,
+        onlyDirectRoutes
       );
 
       const transaction: SwapResponse = await jupiterQuoteApi.swapPost({
@@ -73,7 +75,8 @@ export class JupService {
     outputMint: PublicKey,
     slippageBps: number,
     asLegacyTransaction?: boolean,
-    maxAccounts?: number
+    maxAccounts?: number,
+    onlyDirectRoutes?: boolean
   ): Promise<QuoteResponse> => {
     try {
       const jupiterQuoteApi = createJupiterApiClient(); // config is optional
@@ -83,7 +86,7 @@ export class JupService {
         outputMint: outputMint.toString(),
         amount: amount.floor().toNumber(),
         slippageBps,
-        onlyDirectRoutes: false,
+        onlyDirectRoutes: onlyDirectRoutes,
         asLegacyTransaction,
         maxAccounts,
       };
