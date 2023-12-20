@@ -1153,6 +1153,29 @@ export class UpdateRebalancesCapCurrentTotal {
   }
 }
 
+export interface UpdateSwapUnevenAuthorityJSON {
+  kind: "UpdateSwapUnevenAuthority"
+}
+
+export class UpdateSwapUnevenAuthority {
+  static readonly discriminator = 50
+  static readonly kind = "UpdateSwapUnevenAuthority"
+  readonly discriminator = 50
+  readonly kind = "UpdateSwapUnevenAuthority"
+
+  toJSON(): UpdateSwapUnevenAuthorityJSON {
+    return {
+      kind: "UpdateSwapUnevenAuthority",
+    }
+  }
+
+  toEncodable() {
+    return {
+      UpdateSwapUnevenAuthority: {},
+    }
+  }
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function fromDecoded(obj: any): types.StrategyConfigOptionKind {
   if (typeof obj !== "object") {
@@ -1308,6 +1331,9 @@ export function fromDecoded(obj: any): types.StrategyConfigOptionKind {
   }
   if ("UpdateRebalancesCapCurrentTotal" in obj) {
     return new UpdateRebalancesCapCurrentTotal()
+  }
+  if ("UpdateSwapUnevenAuthority" in obj) {
+    return new UpdateSwapUnevenAuthority()
   }
 
   throw new Error("Invalid enum object")
@@ -1467,6 +1493,9 @@ export function fromJSON(
     case "UpdateRebalancesCapCurrentTotal": {
       return new UpdateRebalancesCapCurrentTotal()
     }
+    case "UpdateSwapUnevenAuthority": {
+      return new UpdateSwapUnevenAuthority()
+    }
   }
 }
 
@@ -1522,6 +1551,7 @@ export function layout(property?: string) {
     borsh.struct([], "UpdateRebalancesCapCapacity"),
     borsh.struct([], "UpdateRebalancesCapInterval"),
     borsh.struct([], "UpdateRebalancesCapCurrentTotal"),
+    borsh.struct([], "UpdateSwapUnevenAuthority"),
   ])
   if (property !== undefined) {
     return ret.replicate(property)

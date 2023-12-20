@@ -25,6 +25,7 @@ export interface FlashSwapUnevenVaultsEndAccounts {
   tokenInfos: PublicKey
   tokenProgram: PublicKey
   instructionSysvarAccount: PublicKey
+  consensusAccount: PublicKey
 }
 
 export const layout = borsh.struct([
@@ -65,6 +66,7 @@ export function flashSwapUnevenVaultsEnd(
       isSigner: false,
       isWritable: false,
     },
+    { pubkey: accounts.consensusAccount, isSigner: false, isWritable: false },
   ]
   const identifier = Buffer.from([226, 2, 190, 101, 202, 132, 156, 20])
   const buffer = Buffer.alloc(1000)
