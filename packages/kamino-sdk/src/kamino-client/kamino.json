@@ -1994,6 +1994,11 @@
           "name": "instructionSysvarAccount",
           "isMut": false,
           "isSigner": false
+        },
+        {
+          "name": "consensusAccount",
+          "isMut": false,
+          "isSigner": false
         }
       ],
       "args": [
@@ -2374,6 +2379,11 @@
           "name": "instructionSysvarAccount",
           "isMut": false,
           "isSigner": false
+        },
+        {
+          "name": "consensusAccount",
+          "isMut": false,
+          "isSigner": false
         }
       ],
       "args": [
@@ -2466,6 +2476,11 @@
         },
         {
           "name": "instructionSysvarAccount",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "consensusAccount",
           "isMut": false,
           "isSigner": false
         }
@@ -3849,6 +3864,10 @@
             }
           },
           {
+            "name": "swapUnevenAuthority",
+            "type": "publicKey"
+          },
+          {
             "name": "padding3",
             "type": "u64"
           },
@@ -3857,7 +3876,7 @@
             "type": {
               "array": [
                 "u128",
-                21
+                19
               ]
             }
           },
@@ -5052,6 +5071,9 @@
           },
           {
             "name": "UpdateRebalancesCapCurrentTotal"
+          },
+          {
+            "name": "UpdateSwapUnevenAuthority"
           }
         ]
       }
@@ -6416,6 +6438,11 @@
       "code": 6140,
       "name": "RebalancesCapReached",
       "msg": "Rebalance caps reached, no rebalances are allowed until the end of the current interval"
+    },
+    {
+      "code": 6141,
+      "name": "SwapUnevenInvalidAuthority",
+      "msg": "Cannot swap uneven because authority is set and the given signer does not correspond"
     }
   ]
 }

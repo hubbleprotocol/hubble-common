@@ -140,6 +140,7 @@ export type CustomError =
   | SwapUnevenTooEarly
   | FlashSwapTooEarly
   | RebalancesCapReached
+  | SwapUnevenInvalidAuthority
 
 export class IntegerOverflow extends Error {
   static readonly code = 6000
@@ -1722,6 +1723,20 @@ export class RebalancesCapReached extends Error {
   }
 }
 
+export class SwapUnevenInvalidAuthority extends Error {
+  static readonly code = 6141
+  readonly code = 6141
+  readonly name = "SwapUnevenInvalidAuthority"
+  readonly msg =
+    "Cannot swap uneven because authority is set and the given signer does not correspond"
+
+  constructor(readonly logs?: string[]) {
+    super(
+      "6141: Cannot swap uneven because authority is set and the given signer does not correspond"
+    )
+  }
+}
+
 export function fromCode(code: number, logs?: string[]): CustomError | null {
   switch (code) {
     case 6000:
@@ -2006,6 +2021,8 @@ export function fromCode(code: number, logs?: string[]): CustomError | null {
       return new FlashSwapTooEarly(logs)
     case 6140:
       return new RebalancesCapReached(logs)
+    case 6141:
+      return new SwapUnevenInvalidAuthority(logs)
   }
 
   return null

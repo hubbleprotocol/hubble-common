@@ -32,6 +32,7 @@ export interface SwapUnevenVaultsAccounts {
   tokenInfos: PublicKey
   tokenProgram: PublicKey
   instructionSysvarAccount: PublicKey
+  consensusAccount: PublicKey
 }
 
 export const layout = borsh.struct([borsh.u64("targetLimitBps")])
@@ -69,6 +70,7 @@ export function swapUnevenVaults(
       isSigner: false,
       isWritable: false,
     },
+    { pubkey: accounts.consensusAccount, isSigner: false, isWritable: false },
   ]
   const identifier = Buffer.from([143, 212, 101, 95, 105, 209, 184, 1])
   const buffer = Buffer.alloc(1000)
