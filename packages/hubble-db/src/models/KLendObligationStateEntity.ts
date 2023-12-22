@@ -6,4 +6,13 @@ export interface KlendObligationStateEntity {
   created_on: Date;
 }
 
+export interface ResampledObligationStateEntity {
+  id: BigInt;
+  klend_obligation_id: number;
+  raw_json: string;
+  metrics: string;
+  created_on: Date;
+  resampled_on: Date;
+}
+
 export default KlendObligationStateEntity;

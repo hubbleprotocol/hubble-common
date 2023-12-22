@@ -98,4 +98,13 @@ export const FARM_STATE_TABLE = 'farm_state';
 export const FARM_USER_TABLE = 'farm_user';
 export const FARM_USER_STATE_TABLE = 'farm_user_state';
 export const FARM_REWARD_TABLE = 'farm_reward_state';
+export type RESAMPLE_FREQUENCY = 'hour' | 'day';
+export const HOURLY_FREQUENCY = 'hour';
+export const DAILY_FREQUENCY = 'day';
+export const GET_OBLIGATION_STATE_RESAMPLED_TABLE = (frequency: RESAMPLE_FREQUENCY) => {
+  if (frequency !== HOURLY_FREQUENCY && frequency !== DAILY_FREQUENCY) {
+    throw Error(`Frequency ${frequency} not supported`);
+  }
+  return `klend_obligation_state_resampled_${frequency}`;
+};
 export const API_SCHEMA: string = 'api';
