@@ -9,6 +9,7 @@ export interface KlendObligationStateEntity {
 export interface ResampledObligationStateEntity {
   id: BigInt;
   klend_obligation_id: number;
+  klend_obligation_state_id: number;
   raw_json: string;
   metrics: string;
   created_on: Date;
