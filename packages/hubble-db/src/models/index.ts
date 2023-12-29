@@ -47,6 +47,7 @@ export * from './FarmStateEntity';
 export * from './FarmUserEntity';
 export * from './FarmUserStateEntity';
 export * from './FarmRewardEntity';
+export * from './KlendLeverageMetricsEntity';
 
 export const CLUSTER_TABLE: string = 'cluster';
 export const COLLATERAL_TABLE: string = 'collateral';
@@ -98,6 +99,8 @@ export const FARM_STATE_TABLE = 'farm_state';
 export const FARM_USER_TABLE = 'farm_user';
 export const FARM_USER_STATE_TABLE = 'farm_user_state';
 export const FARM_REWARD_TABLE = 'farm_reward_state';
+export const KLEND_LEVERAGE_METRICS_TABLE = 'klend_leverage_metrics';
+
 export type RESAMPLE_FREQUENCY = 'hour' | 'day';
 export const HOURLY_FREQUENCY = 'hour';
 export const DAILY_FREQUENCY = 'day';
@@ -107,4 +110,5 @@ export const GET_OBLIGATION_STATE_RESAMPLED_TABLE = (frequency: RESAMPLE_FREQUEN
   }
   return `klend_obligation_state_resampled_${frequency}`;
 };
+
 export const API_SCHEMA: string = 'api';
