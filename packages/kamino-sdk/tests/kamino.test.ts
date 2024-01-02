@@ -260,7 +260,7 @@ describe('Kamino SDK Tests', () => {
       signer,
       fixtures.newOrcaStrategy,
       new UpdateMaxDeviationBps(),
-      new Decimal(100)
+      new Decimal(1000)
     );
     await updateStrategyConfig(
       connection,
