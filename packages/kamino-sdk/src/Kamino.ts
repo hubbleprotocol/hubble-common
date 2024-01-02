@@ -156,6 +156,9 @@ import {
   withdraw,
   WithdrawAccounts,
   WithdrawArgs,
+  withdrawFromTopup,
+  WithdrawFromTopupAccounts,
+  WithdrawFromTopupArgs,
 } from './kamino-client/instructions';
 import BN from 'bn.js';
 import StrategyWithAddress from './models/StrategyWithAddress';
@@ -2922,25 +2925,25 @@ export class Kamino {
    * @param amount Amount of SOL to withdraw from the topup vault
    * @returns transaction instruction for removing SOL from the topup vault
    */
-  // withdrawTopupVault = async (owner: PublicKey, amount: Decimal): Promise<TransactionInstruction> => {
-  //   if (amount.lessThanOrEqualTo(0)) {
-  //     throw Error('Must withdraw a positive amount of SOL.');
-  //   }
-  //   const solToWithdraw = lamportsToNumberDecimal(amount, DECIMALS_SOL);
-  //   const topupVault = this.getUserTopupVault(owner);
-  //   const args: WithdrawFromTopupArgs = {
-  //     amount: new BN(solToWithdraw.toString()),
-  //   };
+  withdrawTopupVault = async (owner: PublicKey, amount: Decimal): Promise<TransactionInstruction> => {
+    if (amount.lessThanOrEqualTo(0)) {
+      throw Error('Must withdraw a positive amount of SOL.');
+    }
+    const solToWithdraw = lamportsToNumberDecimal(amount, DECIMALS_SOL);
+    const topupVault = this.getUserTopupVault(owner);
+    const args: WithdrawFromTopupArgs = {
+      amount: new BN(solToWithdraw.toString()),
+    };
 
-  //   const accounts: WithdrawFromTopupAccounts = {
-  //     adminAuthority: owner,
-  //     topupVault,
-  //     system: SystemProgram.programId,
-  //   };
+    const accounts: WithdrawFromTopupAccounts = {
+      adminAuthority: owner,
+      topupVault,
+      system: SystemProgram.programId,
+    };
 
-  //   let withdrawIxn = withdrawFromTopup(args, accounts);
-  //   return withdrawIxn;
-  // };
+    let withdrawIxn = withdrawFromTopup(args, accounts);
+    return withdrawIxn;
+  };
 
   getJupSwapIxsWithMaxAccounts = async (
     input: DepositAmountsForSwap,

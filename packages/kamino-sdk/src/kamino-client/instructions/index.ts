@@ -121,6 +121,11 @@ export type {
   WithdrawFromTreasuryArgs,
   WithdrawFromTreasuryAccounts,
 } from "./withdrawFromTreasury"
+export { withdrawFromTopup } from "./withdrawFromTopup"
+export type {
+  WithdrawFromTopupArgs,
+  WithdrawFromTopupAccounts,
+} from "./withdrawFromTopup"
 export { changePool } from "./changePool"
 export type { ChangePoolAccounts } from "./changePool"
 export { closeProgramAccount } from "./closeProgramAccount"
