@@ -289,7 +289,7 @@ describe('Kamino SDK Tests', () => {
       signer,
       fixtures.newRaydiumStrategy,
       new UpdateMaxDeviationBps(),
-      new Decimal(100)
+      new Decimal(2000)
     );
     await updateStrategyConfig(
       connection,
