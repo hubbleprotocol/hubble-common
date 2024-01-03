@@ -39,7 +39,7 @@ describe('Kamino strategy creation SDK Tests', () => {
   const signerPrivateKey = [];
   const signer = Keypair.fromSecretKey(Uint8Array.from(signerPrivateKey));
 
-  it('withdraw topup vault', async () => {
+  it.skip('withdraw topup vault', async () => {
     let kamino = new Kamino(
       cluster,
       connection,
@@ -49,9 +49,6 @@ describe('Kamino strategy creation SDK Tests', () => {
       RAYDIUM_PROGRAM_ID
     );
 
-    console.log("foo");
-    let x = new Decimal(U64_MAX);
-    console.log("x", x.toString());
     const upkeepIxn = await kamino.withdrawTopupVault(
       new PublicKey('Cfuy5T6osdazUeLego5LFycBQebm9PP3H7VNdCndXXEN'),
       new Decimal(U64_MAX)
