@@ -50,9 +50,18 @@ describe('Kamino strategy creation SDK Tests', () => {
     );
 
     const upkeepIxn = await kamino.withdrawTopupVault(
-      new PublicKey('Cfuy5T6osdazUeLego5LFycBQebm9PP3H7VNdCndXXEN'),
+      new PublicKey('HzZH5jHVUPsw3qawUcQXG1SZJqNom3gt94eFHCWhq1KF'),
       new Decimal(U64_MAX)
     );
+
+    let ixs: TransactionInstruction[] = [upkeepIxn];
+    console.log('ixs', ixs.length);
+    const createStratTx = await kamino.getTransactionV2Message(signer.publicKey, ixs);
+    const createStratTransactionV0 = new VersionedTransaction(createStratTx);
+    createStratTransactionV0.sign([signer]);
+    //@ts-ignore
+    let txHash = await sendAndConfirmTransaction(kamino._connection, createStratTransactionV0);
+    console.log('create strategy tx hash', txHash);
   });
 
   it('calculate amounts', async () => {
