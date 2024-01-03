@@ -329,6 +329,7 @@ import {
 } from './rebalance_methods/autodriftRebalance';
 import { KaminoPrices, OraclePricesAndCollateralInfos } from './models';
 import { getRemoveLiquidityQuote } from './whirpools-client/shim/remove-liquidity';
+import { U64_MAX } from './utils/consts';
 export const KAMINO_IDL = KaminoIdl;
 
 export class Kamino {
@@ -2929,8 +2930,15 @@ export class Kamino {
     if (amount.lessThanOrEqualTo(0)) {
       throw Error('Must withdraw a positive amount of SOL.');
     }
-    const solToWithdraw = lamportsToNumberDecimal(amount, DECIMALS_SOL);
     const topupVault = this.getUserTopupVault(owner);
+
+    let solToWithdraw: Decimal;
+    if (amount.eq(new Decimal(U64_MAX))) {
+      solToWithdraw = lamportsToNumberDecimal(new Decimal(await this._connection.getBalance(topupVault)), DECIMALS_SOL);
+    } else {
+      solToWithdraw = lamportsToNumberDecimal(amount, DECIMALS_SOL);
+    }
+
     const args: WithdrawFromTopupArgs = {
       amount: new BN(solToWithdraw.toString()),
     };
