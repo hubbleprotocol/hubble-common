@@ -164,7 +164,7 @@ import BN from 'bn.js';
 import StrategyWithAddress from './models/StrategyWithAddress';
 import { Idl, Program, Provider } from '@project-serum/anchor';
 import { Rebalancing, Uninitialized } from './kamino-client/types/StrategyStatus';
-import { FRONTEND_KAMINO_STRATEGY_URL, METADATA_PROGRAM_ID } from './constants';
+import { FRONTEND_KAMINO_STRATEGY_URL, METADATA_PROGRAM_ID, U64_MAX } from './constants';
 import {
   CollateralInfo,
   ExecutiveWithdrawActionKind,
@@ -329,7 +329,6 @@ import {
 } from './rebalance_methods/autodriftRebalance';
 import { KaminoPrices, OraclePricesAndCollateralInfos } from './models';
 import { getRemoveLiquidityQuote } from './whirpools-client/shim/remove-liquidity';
-import { U64_MAX } from './utils/consts';
 export const KAMINO_IDL = KaminoIdl;
 
 export class Kamino {
@@ -2927,8 +2926,6 @@ export class Kamino {
    * @returns transaction instruction for removing SOL from the topup vault
    */
   withdrawTopupVault = async (owner: PublicKey, amount: Decimal): Promise<TransactionInstruction> => {
-    console.log("siliu");
-    console.log("amount", amount.toString());
     if (amount.lessThanOrEqualTo(0)) {
       throw Error('Must withdraw a positive amount of SOL.');
     }
