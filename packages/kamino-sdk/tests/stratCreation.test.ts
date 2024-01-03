@@ -6,7 +6,7 @@ import {
   TransactionInstruction,
   VersionedTransaction,
 } from '@solana/web3.js';
-import { Kamino, OrcaService, RaydiumService, sendTransactionWithLogs, sleep } from '../src';
+import { Kamino, OrcaService, RaydiumService, sendTransactionWithLogs, sleep, U64_MAX } from '../src';
 import Decimal from 'decimal.js';
 import { createTransactionWithExtraBudget } from '../src';
 import {
@@ -39,7 +39,7 @@ describe('Kamino strategy creation SDK Tests', () => {
   const signerPrivateKey = [];
   const signer = Keypair.fromSecretKey(Uint8Array.from(signerPrivateKey));
 
-  it('calculate amounts', async () => {
+  it.skip('withdraw topup vault', async () => {
     let kamino = new Kamino(
       cluster,
       connection,
@@ -49,6 +49,13 @@ describe('Kamino strategy creation SDK Tests', () => {
       RAYDIUM_PROGRAM_ID
     );
 
+    const upkeepIxn = await kamino.withdrawTopupVault(
+      new PublicKey('Cfuy5T6osdazUeLego5LFycBQebm9PP3H7VNdCndXXEN'),
+      new Decimal(U64_MAX)
+    );
+  });
+
+  it('calculate amounts', async () => {
     let amounts = await kamino.calculateAmountsToBeDepositedWithSwap(
       new PublicKey('Cfuy5T6osdazUeLego5LFycBQebm9PP3H7VNdCndXXEN'),
       new Decimal(0),
