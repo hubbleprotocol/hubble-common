@@ -2930,16 +2930,12 @@ export class Kamino {
       throw Error('Must withdraw a positive amount of SOL.');
     }
     const topupVault = this.getUserTopupVault(owner);
-    console.log('topupVault', topupVault.toString());
 
     const solBalance = await this._connection.getBalance(topupVault);
-    console.log('solBalance', solBalance.toString());
 
     let solToWithdraw: Decimal;
     if (amount.eq(new Decimal(U64_MAX))) {
       solToWithdraw = new Decimal(await this._connection.getBalance(topupVault));
-
-      console.log('solToWithdraw', solToWithdraw.toString());
     } else {
       solToWithdraw = collToLamportsDecimal(amount, DECIMALS_SOL);
     }
