@@ -2931,11 +2931,13 @@ export class Kamino {
     }
     const topupVault = this.getUserTopupVault(owner);
 
+    const solBalance = await this._connection.getBalance(topupVault);
+
     let solToWithdraw: Decimal;
     if (amount.eq(new Decimal(U64_MAX))) {
-      solToWithdraw = lamportsToNumberDecimal(new Decimal(await this._connection.getBalance(topupVault)), DECIMALS_SOL);
+      solToWithdraw = new Decimal(await this._connection.getBalance(topupVault));
     } else {
-      solToWithdraw = lamportsToNumberDecimal(amount, DECIMALS_SOL);
+      solToWithdraw = collToLamportsDecimal(amount, DECIMALS_SOL);
     }
 
     const args: WithdrawFromTopupArgs = {
