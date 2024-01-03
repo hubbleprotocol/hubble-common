@@ -2927,6 +2927,8 @@ export class Kamino {
    * @returns transaction instruction for removing SOL from the topup vault
    */
   withdrawTopupVault = async (owner: PublicKey, amount: Decimal): Promise<TransactionInstruction> => {
+    console.log("siliu");
+    console.log("amount", amount.toString());
     if (amount.lessThanOrEqualTo(0)) {
       throw Error('Must withdraw a positive amount of SOL.');
     }
