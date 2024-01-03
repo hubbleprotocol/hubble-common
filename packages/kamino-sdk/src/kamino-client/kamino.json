@@ -2671,6 +2671,32 @@
       ]
     },
     {
+      "name": "withdrawFromTopup",
+      "accounts": [
+        {
+          "name": "adminAuthority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "topupVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "system",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
       "name": "changePool",
       "accounts": [
         {
