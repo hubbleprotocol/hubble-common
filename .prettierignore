@@ -4,6 +4,7 @@ dist
 # auto-generated rpc clients
 kamino-client
 whirpools-client
+meteora_client
 packages/scope-sdk/src/@codegen
 packages/scope-sdk/src/accounts
 packages/scope-sdk/src/instructions
