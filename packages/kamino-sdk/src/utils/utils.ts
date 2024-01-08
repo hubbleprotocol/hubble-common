@@ -26,6 +26,8 @@ import { RebalanceFieldInfo, RebalanceFieldsDict } from './types';
 import BN from 'bn.js';
 import { PoolPriceReferenceType, TwapPriceReferenceType } from './priceReferenceTypes';
 import { sqrtPriceX64ToPrice } from '@orca-so/whirlpool-sdk';
+import { METEORA_PROGRAM_ID } from '../meteora_client/programId';
+import { U64_MAX } from '../constants/numericalValues';
 
 export const DolarBasedMintingMethod = new Decimal(0);
 export const ProportionalMintingMethod = new Decimal(1);
@@ -36,7 +38,7 @@ export function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export const Dex = ['ORCA', 'RAYDIUM'] as const;
+export const Dex = ['ORCA', 'RAYDIUM', 'METEORA'] as const;
 export type Dex = (typeof Dex)[number];
 
 export const ReferencePriceType = [PoolPriceReferenceType, TwapPriceReferenceType] as const;
@@ -74,6 +76,8 @@ export function getDexProgramId(strategyState: WhirlpoolStrategy): PublicKey {
     return WHIRLPOOL_PROGRAM_ID;
   } else if (strategyState.strategyDex.toNumber() == dexToNumber('RAYDIUM')) {
     return RAYDIUM_PROGRAM_ID;
+  } else if (strategyState.strategyDex.toNumber() == dexToNumber('METEORA')) {
+    return METEORA_PROGRAM_ID;
   } else {
     throw Error(`Invalid DEX ${strategyState.strategyDex.toString()}`);
   }
@@ -109,6 +113,7 @@ export function buildStrategyRebalanceParams(
     writeBNUint64LE(buffer, new BN(params[3].toString()), 12);
     buffer.writeUint8(params[4].toNumber(), 20);
   } else if (rebalance_type.kind == RebalanceType.TakeProfit.kind) {
+    // TODO: fix this for meteora
     const lowerPrice = SqrtPriceMath.priceToSqrtPriceX64(params[0], tokenADecimals!, tokenBDecimals!);
     const upperPrice = SqrtPriceMath.priceToSqrtPriceX64(params[1], tokenADecimals!, tokenBDecimals!);
     writeBN128LE(buffer, lowerPrice, 0);
@@ -284,6 +289,10 @@ export function sqrtPriceToPrice(sqrtPrice: BN, dexNo: number, decimalsA: number
   }
   if (dex == 'RAYDIUM') {
     return SqrtPriceMath.sqrtPriceX64ToPrice(sqrtPrice, decimalsA, decimalsB);
+  }
+  if (dex == 'METEORA') {
+    let price = new Decimal(sqrtPrice.toString());
+    return price.div(new Decimal(U64_MAX));
   }
   throw new Error(`Got invalid dex number ${dex}`);
 }

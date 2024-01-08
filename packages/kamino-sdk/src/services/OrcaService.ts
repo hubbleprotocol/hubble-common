@@ -25,6 +25,7 @@ import {
 import { WHIRLPOOL_PROGRAM_ID } from '../whirpools-client/programId';
 import { CollateralInfo } from '../kamino-client/types';
 import { KaminoPrices } from '../models';
+import { PROGRAM_ID } from '../kamino-client/programId';
 
 export class OrcaService {
   private readonly _connection: Connection;
@@ -32,13 +33,20 @@ export class OrcaService {
   private readonly _orcaNetwork: OrcaNetwork;
   private readonly _orcaApiUrl: string;
   private readonly _globalConfig: PublicKey;
+  private readonly _kaminoProgramId: PublicKey;
 
-  constructor(connection: Connection, cluster: SolanaCluster, globalConfig: PublicKey) {
+  constructor(
+    connection: Connection,
+    cluster: SolanaCluster,
+    globalConfig: PublicKey,
+    kaminoProgramId: PublicKey = PROGRAM_ID
+  ) {
     this._connection = connection;
     this._cluster = cluster;
     this._globalConfig = globalConfig;
     this._orcaNetwork = cluster === 'mainnet-beta' ? OrcaNetwork.MAINNET : OrcaNetwork.DEVNET;
     this._orcaApiUrl = `https://api.${cluster === 'mainnet-beta' ? 'mainnet' : 'devnet'}.orca.so`;
+    this._kaminoProgramId = kaminoProgramId;
   }
 
   async getOrcaWhirlpools() {
@@ -167,11 +175,11 @@ export class OrcaService {
     const lpFeeRate = pool.feePercentage;
     const volume24hUsd = whirlpool?.volume?.day ?? new Decimal(0);
     const fee24Usd = new Decimal(volume24hUsd).mul(lpFeeRate).toNumber();
-    const config = await GlobalConfig.fetch(this._connection, this._globalConfig);
+    const config = await GlobalConfig.fetch(this._connection, this._globalConfig, this._kaminoProgramId);
     if (!config) {
       throw Error(`Could not fetch globalConfig with pubkey ${this._globalConfig}`);
     }
-    const collateralInfos = await CollateralInfos.fetch(this._connection, config.tokenInfos);
+    const collateralInfos = await CollateralInfos.fetch(this._connection, config.tokenInfos, this._kaminoProgramId);
     if (!collateralInfos) {
       throw Error('Could not fetch collateral infos');
     }
