@@ -6,4 +6,7 @@ export const PROGRAM_ID_CLI = new PublicKey(
 )
 
 // This constant will not get overwritten on subsequent code generations and it's safe to modify it's value.
-export const PROGRAM_ID: PublicKey = PROGRAM_ID_CLI
+export let METEORA_PROGRAM_ID: PublicKey = PROGRAM_ID_CLI;
+export const setMeteoraProgramId = (programId: PublicKey) => {
+  METEORA_PROGRAM_ID = programId;
+};

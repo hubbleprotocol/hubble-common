@@ -50,6 +50,7 @@
     "@types/mocha": "^10.0.1",
     "axios": "^1.2.6",
     "bn.js": "^5.2.1"
+    "@meteora-ag/dlmm-sdk": "0.7.3",
   },
   "peerDependencies": {
     "@solana/web3.js": "~1.78.4",

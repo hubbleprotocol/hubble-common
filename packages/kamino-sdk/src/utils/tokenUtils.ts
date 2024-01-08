@@ -17,6 +17,7 @@ import { WhirlpoolStrategy } from '../kamino-client/accounts';
 import { tickIndexToPrice } from '@orca-so/whirlpool-sdk';
 import Decimal from 'decimal.js';
 import { CollateralInfo } from '../kamino-client/types';
+import { getPriceOfBinByBinIdWithDecimals } from './meteora';
 
 export const ASSOCIATED_TOKEN_PROGRAM_ID = new PublicKey('ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL');
 export const TOKEN_PROGRAM_ID = new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA');
@@ -150,6 +151,36 @@ export function getStrategyPriceRangeRaydium(
   const poolPrice = tickIndexToPrice(tickCurrent, tokenADecimals, tokenBDecimals);
   const strategyOutOfRange = poolPrice.lt(priceLower) || poolPrice.gt(priceUpper);
   return { priceLower, poolPrice, priceUpper, strategyOutOfRange };
+}
+
+export function getStrategyPriceRangeMeteora(
+  priceLower: Decimal,
+  priceUpper: Decimal,
+  activeBinId: number,
+  binStep: number,
+  decimalsA: number,
+  decimalsB: number,
+) {
+  const poolPrice = getPriceOfBinByBinIdWithDecimals(
+    activeBinId,
+    binStep,
+    decimalsA,
+    decimalsB,
+  );
+  const strategyOutOfRange = poolPrice.lt(priceLower) || poolPrice.gt(priceUpper);
+  return { priceLower, poolPrice, priceUpper, strategyOutOfRange };
+}
+
+export function getMeteoraPriceLowerUpper(
+  tickLowerIndex: number,
+  tickUpperIndex: number,
+  tokenAMintDecimals: number,
+  tokenBMintDecimals: number,
+  binStep: number
+) {
+  const priceLower = getPriceOfBinByBinIdWithDecimals(tickLowerIndex, binStep, tokenAMintDecimals, tokenBMintDecimals); 
+  const priceUpper = getPriceOfBinByBinIdWithDecimals(tickUpperIndex, binStep, tokenAMintDecimals, tokenBMintDecimals);
+  return {priceLower, priceUpper}
 }
 
 export function getPriceLowerUpper(
