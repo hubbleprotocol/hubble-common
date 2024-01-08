@@ -37,6 +37,7 @@ export interface SingleTokenDepositAndInvestWithMinAccounts {
   tokenProgram: PublicKey
   poolProgram: PublicKey
   instructionSysvarAccount: PublicKey
+  eventAuthority: PublicKey
 }
 
 export const layout = borsh.struct([
@@ -73,8 +74,8 @@ export function singleTokenDepositAndInvestWithMin(
     { pubkey: accounts.baseVaultAuthority, isSigner: false, isWritable: true },
     { pubkey: accounts.tokenAAta, isSigner: false, isWritable: true },
     { pubkey: accounts.tokenBAta, isSigner: false, isWritable: true },
-    { pubkey: accounts.tokenAMint, isSigner: false, isWritable: true },
-    { pubkey: accounts.tokenBMint, isSigner: false, isWritable: true },
+    { pubkey: accounts.tokenAMint, isSigner: false, isWritable: false },
+    { pubkey: accounts.tokenBMint, isSigner: false, isWritable: false },
     { pubkey: accounts.userSharesAta, isSigner: false, isWritable: true },
     { pubkey: accounts.sharesMint, isSigner: false, isWritable: true },
     {
@@ -91,6 +92,7 @@ export function singleTokenDepositAndInvestWithMin(
       isSigner: false,
       isWritable: false,
     },
+    { pubkey: accounts.eventAuthority, isSigner: false, isWritable: false },
   ]
   const identifier = Buffer.from([118, 134, 143, 192, 188, 21, 131, 17])
   const buffer = Buffer.alloc(1000)

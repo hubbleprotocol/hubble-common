@@ -37,6 +37,7 @@ export interface DepositAndInvestAccounts {
   tokenProgram: PublicKey
   poolProgram: PublicKey
   instructionSysvarAccount: PublicKey
+  eventAuthority: PublicKey
 }
 
 export const layout = borsh.struct([
@@ -73,8 +74,8 @@ export function depositAndInvest(
     { pubkey: accounts.baseVaultAuthority, isSigner: false, isWritable: true },
     { pubkey: accounts.tokenAAta, isSigner: false, isWritable: true },
     { pubkey: accounts.tokenBAta, isSigner: false, isWritable: true },
-    { pubkey: accounts.tokenAMint, isSigner: false, isWritable: true },
-    { pubkey: accounts.tokenBMint, isSigner: false, isWritable: true },
+    { pubkey: accounts.tokenAMint, isSigner: false, isWritable: false },
+    { pubkey: accounts.tokenBMint, isSigner: false, isWritable: false },
     { pubkey: accounts.userSharesAta, isSigner: false, isWritable: true },
     { pubkey: accounts.sharesMint, isSigner: false, isWritable: true },
     {
@@ -91,6 +92,7 @@ export function depositAndInvest(
       isSigner: false,
       isWritable: false,
     },
+    { pubkey: accounts.eventAuthority, isSigner: false, isWritable: false },
   ]
   const identifier = Buffer.from([22, 157, 173, 6, 187, 25, 86, 109])
   const buffer = Buffer.alloc(1000)

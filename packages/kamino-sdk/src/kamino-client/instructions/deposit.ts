@@ -15,6 +15,8 @@ export interface DepositAccounts {
   globalConfig: PublicKey
   pool: PublicKey
   position: PublicKey
+  tickArrayLower: PublicKey
+  tickArrayUpper: PublicKey
   tokenAVault: PublicKey
   tokenBVault: PublicKey
   baseVaultAuthority: PublicKey
@@ -43,6 +45,8 @@ export function deposit(args: DepositArgs, accounts: DepositAccounts) {
     { pubkey: accounts.globalConfig, isSigner: false, isWritable: false },
     { pubkey: accounts.pool, isSigner: false, isWritable: false },
     { pubkey: accounts.position, isSigner: false, isWritable: false },
+    { pubkey: accounts.tickArrayLower, isSigner: false, isWritable: false },
+    { pubkey: accounts.tickArrayUpper, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenAVault, isSigner: false, isWritable: true },
     { pubkey: accounts.tokenBVault, isSigner: false, isWritable: true },
     { pubkey: accounts.baseVaultAuthority, isSigner: false, isWritable: false },

@@ -10,6 +10,8 @@ export interface InvestAccounts {
   globalConfig: PublicKey
   tokenAVault: PublicKey
   tokenBVault: PublicKey
+  tokenAMint: PublicKey
+  tokenBMint: PublicKey
   baseVaultAuthority: PublicKey
   pool: PublicKey
   tokenProgram: PublicKey
@@ -24,6 +26,7 @@ export interface InvestAccounts {
   tokenInfos: PublicKey
   poolProgram: PublicKey
   instructionSysvarAccount: PublicKey
+  eventAuthority: PublicKey
 }
 
 export function invest(accounts: InvestAccounts) {
@@ -33,6 +36,8 @@ export function invest(accounts: InvestAccounts) {
     { pubkey: accounts.globalConfig, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenAVault, isSigner: false, isWritable: true },
     { pubkey: accounts.tokenBVault, isSigner: false, isWritable: true },
+    { pubkey: accounts.tokenAMint, isSigner: false, isWritable: false },
+    { pubkey: accounts.tokenBMint, isSigner: false, isWritable: false },
     { pubkey: accounts.baseVaultAuthority, isSigner: false, isWritable: true },
     { pubkey: accounts.pool, isSigner: false, isWritable: true },
     { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
@@ -59,6 +64,7 @@ export function invest(accounts: InvestAccounts) {
       isSigner: false,
       isWritable: false,
     },
+    { pubkey: accounts.eventAuthority, isSigner: false, isWritable: false },
   ]
   const identifier = Buffer.from([13, 245, 180, 103, 254, 182, 121, 4])
   const data = identifier

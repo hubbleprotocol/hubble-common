@@ -3,37 +3,43 @@ import BN from "bn.js" // eslint-disable-line @typescript-eslint/no-unused-vars
 import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
 import * as borsh from "@project-serum/borsh"
 
-export type NewSqrtPriceRangeFields = [BN, BN]
-export type NewSqrtPriceRangeValue = [BN, BN]
+export type NewPriceRangeFields = [
+  types.DexSpecificPriceKind,
+  types.DexSpecificPriceKind
+]
+export type NewPriceRangeValue = [
+  types.DexSpecificPriceKind,
+  types.DexSpecificPriceKind
+]
 
-export interface NewSqrtPriceRangeJSON {
-  kind: "NewSqrtPriceRange"
-  value: [string, string]
+export interface NewPriceRangeJSON {
+  kind: "NewPriceRange"
+  value: [types.DexSpecificPriceJSON, types.DexSpecificPriceJSON]
 }
 
-export class NewSqrtPriceRange {
+export class NewPriceRange {
   static readonly discriminator = 0
-  static readonly kind = "NewSqrtPriceRange"
+  static readonly kind = "NewPriceRange"
   readonly discriminator = 0
-  readonly kind = "NewSqrtPriceRange"
-  readonly value: NewSqrtPriceRangeValue
+  readonly kind = "NewPriceRange"
+  readonly value: NewPriceRangeValue
 
-  constructor(value: NewSqrtPriceRangeFields) {
+  constructor(value: NewPriceRangeFields) {
     this.value = [value[0], value[1]]
   }
 
-  toJSON(): NewSqrtPriceRangeJSON {
+  toJSON(): NewPriceRangeJSON {
     return {
-      kind: "NewSqrtPriceRange",
-      value: [this.value[0].toString(), this.value[1].toString()],
+      kind: "NewPriceRange",
+      value: [this.value[0].toJSON(), this.value[1].toJSON()],
     }
   }
 
   toEncodable() {
     return {
-      NewSqrtPriceRange: {
-        _0: this.value[0],
-        _1: this.value[1],
+      NewPriceRange: {
+        _0: this.value[0].toEncodable(),
+        _1: this.value[1].toEncodable(),
       },
     }
   }
@@ -104,9 +110,12 @@ export function fromDecoded(obj: any): types.RebalanceActionKind {
     throw new Error("Invalid enum object")
   }
 
-  if ("NewSqrtPriceRange" in obj) {
-    const val = obj["NewSqrtPriceRange"]
-    return new NewSqrtPriceRange([val["_0"], val["_1"]])
+  if ("NewPriceRange" in obj) {
+    const val = obj["NewPriceRange"]
+    return new NewPriceRange([
+      types.DexSpecificPrice.fromDecoded(val["_0"]),
+      types.DexSpecificPrice.fromDecoded(val["_1"]),
+    ])
   }
   if ("NewTickRange" in obj) {
     const val = obj["NewTickRange"]
@@ -123,8 +132,11 @@ export function fromJSON(
   obj: types.RebalanceActionJSON
 ): types.RebalanceActionKind {
   switch (obj.kind) {
-    case "NewSqrtPriceRange": {
-      return new NewSqrtPriceRange([new BN(obj.value[0]), new BN(obj.value[1])])
+    case "NewPriceRange": {
+      return new NewPriceRange([
+        types.DexSpecificPrice.fromJSON(obj.value[0]),
+        types.DexSpecificPrice.fromJSON(obj.value[1]),
+      ])
     }
     case "NewTickRange": {
       return new NewTickRange([obj.value[0], obj.value[1]])
@@ -137,7 +149,13 @@ export function fromJSON(
 
 export function layout(property?: string) {
   const ret = borsh.rustEnum([
-    borsh.struct([borsh.u128("_0"), borsh.u128("_1")], "NewSqrtPriceRange"),
+    borsh.struct(
+      [
+        types.DexSpecificPrice.layout("_0"),
+        types.DexSpecificPrice.layout("_1"),
+      ],
+      "NewPriceRange"
+    ),
     borsh.struct([borsh.i32("_0"), borsh.i32("_1")], "NewTickRange"),
     borsh.struct([], "WithdrawAndFreeze"),
   ])

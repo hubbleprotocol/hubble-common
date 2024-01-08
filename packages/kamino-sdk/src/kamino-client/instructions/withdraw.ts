@@ -24,6 +24,8 @@ export interface WithdrawAccounts {
   poolTokenVaultB: PublicKey
   tokenAAta: PublicKey
   tokenBAta: PublicKey
+  tokenAMint: PublicKey
+  tokenBMint: PublicKey
   userSharesAta: PublicKey
   sharesMint: PublicKey
   treasuryFeeTokenAVault: PublicKey
@@ -32,6 +34,7 @@ export interface WithdrawAccounts {
   positionTokenAccount: PublicKey
   poolProgram: PublicKey
   instructionSysvarAccount: PublicKey
+  eventAuthority: PublicKey
 }
 
 export const layout = borsh.struct([borsh.u64("sharesAmount")])
@@ -57,6 +60,8 @@ export function withdraw(args: WithdrawArgs, accounts: WithdrawAccounts) {
     { pubkey: accounts.poolTokenVaultB, isSigner: false, isWritable: true },
     { pubkey: accounts.tokenAAta, isSigner: false, isWritable: true },
     { pubkey: accounts.tokenBAta, isSigner: false, isWritable: true },
+    { pubkey: accounts.tokenAMint, isSigner: false, isWritable: false },
+    { pubkey: accounts.tokenBMint, isSigner: false, isWritable: false },
     { pubkey: accounts.userSharesAta, isSigner: false, isWritable: true },
     { pubkey: accounts.sharesMint, isSigner: false, isWritable: true },
     {
@@ -81,6 +86,7 @@ export function withdraw(args: WithdrawArgs, accounts: WithdrawAccounts) {
       isSigner: false,
       isWritable: false,
     },
+    { pubkey: accounts.eventAuthority, isSigner: false, isWritable: false },
   ]
   const identifier = Buffer.from([183, 18, 70, 156, 148, 109, 161, 34])
   const buffer = Buffer.alloc(1000)

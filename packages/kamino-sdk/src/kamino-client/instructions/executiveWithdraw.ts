@@ -29,6 +29,7 @@ export interface ExecutiveWithdrawAccounts {
   tokenInfos: PublicKey
   tokenProgram: PublicKey
   poolProgram: PublicKey
+  eventAuthority: PublicKey
 }
 
 export const layout = borsh.struct([borsh.u8("action")])
@@ -60,12 +61,13 @@ export function executiveWithdraw(
     { pubkey: accounts.baseVaultAuthority, isSigner: false, isWritable: false },
     { pubkey: accounts.poolTokenVaultA, isSigner: false, isWritable: true },
     { pubkey: accounts.poolTokenVaultB, isSigner: false, isWritable: true },
-    { pubkey: accounts.tokenAMint, isSigner: false, isWritable: true },
-    { pubkey: accounts.tokenBMint, isSigner: false, isWritable: true },
+    { pubkey: accounts.tokenAMint, isSigner: false, isWritable: false },
+    { pubkey: accounts.tokenBMint, isSigner: false, isWritable: false },
     { pubkey: accounts.scopePrices, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenInfos, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.poolProgram, isSigner: false, isWritable: false },
+    { pubkey: accounts.eventAuthority, isSigner: false, isWritable: false },
   ]
   const identifier = Buffer.from([159, 39, 110, 137, 100, 234, 204, 141])
   const buffer = Buffer.alloc(1000)

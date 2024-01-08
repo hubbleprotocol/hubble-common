@@ -34,10 +34,13 @@ export interface OpenLiquidityPositionAccounts {
   oldPositionTokenAccountOrBaseVaultAuthority: PublicKey
   tokenAVault: PublicKey
   tokenBVault: PublicKey
+  tokenAMint: PublicKey
+  tokenBMint: PublicKey
   poolTokenVaultA: PublicKey
   poolTokenVaultB: PublicKey
   scopePrices: PublicKey
   tokenInfos: PublicKey
+  eventAuthority: PublicKey
 }
 
 export const layout = borsh.struct([
@@ -59,7 +62,7 @@ export function openLiquidityPosition(
     { pubkey: accounts.tickArrayUpper, isSigner: false, isWritable: true },
     { pubkey: accounts.baseVaultAuthority, isSigner: false, isWritable: true },
     { pubkey: accounts.position, isSigner: false, isWritable: true },
-    { pubkey: accounts.positionMint, isSigner: true, isWritable: true },
+    { pubkey: accounts.positionMint, isSigner: false, isWritable: true },
     {
       pubkey: accounts.positionMetadataAccount,
       isSigner: false,
@@ -106,10 +109,13 @@ export function openLiquidityPosition(
     },
     { pubkey: accounts.tokenAVault, isSigner: false, isWritable: true },
     { pubkey: accounts.tokenBVault, isSigner: false, isWritable: true },
+    { pubkey: accounts.tokenAMint, isSigner: false, isWritable: false },
+    { pubkey: accounts.tokenBMint, isSigner: false, isWritable: false },
     { pubkey: accounts.poolTokenVaultA, isSigner: false, isWritable: true },
     { pubkey: accounts.poolTokenVaultB, isSigner: false, isWritable: true },
     { pubkey: accounts.scopePrices, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenInfos, isSigner: false, isWritable: false },
+    { pubkey: accounts.eventAuthority, isSigner: false, isWritable: false },
   ]
   const identifier = Buffer.from([204, 234, 204, 219, 6, 91, 96, 241])
   const buffer = Buffer.alloc(1000)

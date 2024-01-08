@@ -1,3 +1,6 @@
+import * as BinAddLiquidityStrategy from "./BinAddLiquidityStrategy"
+import * as SimulationPrice from "./SimulationPrice"
+import * as DexSpecificPrice from "./DexSpecificPrice"
 import * as WithdrawalCapAccumulatorAction from "./WithdrawalCapAccumulatorAction"
 import * as RebalanceEffects from "./RebalanceEffects"
 import * as SwapLimit from "./SwapLimit"
@@ -110,6 +113,35 @@ export type {
   RebalanceTakeProfitStateFields,
   RebalanceTakeProfitStateJSON,
 } from "./RebalanceTakeProfitState"
+export { BinAddLiquidityStrategy }
+
+export type BinAddLiquidityStrategyKind =
+  | BinAddLiquidityStrategy.Uniform
+  | BinAddLiquidityStrategy.CurrentTick
+export type BinAddLiquidityStrategyJSON =
+  | BinAddLiquidityStrategy.UniformJSON
+  | BinAddLiquidityStrategy.CurrentTickJSON
+
+export { SimulationPrice }
+
+export type SimulationPriceKind =
+  | SimulationPrice.PoolPrice
+  | SimulationPrice.SqrtPrice
+  | SimulationPrice.TickIndex
+export type SimulationPriceJSON =
+  | SimulationPrice.PoolPriceJSON
+  | SimulationPrice.SqrtPriceJSON
+  | SimulationPrice.TickIndexJSON
+
+export { DexSpecificPrice }
+
+export type DexSpecificPriceKind =
+  | DexSpecificPrice.SqrtPrice
+  | DexSpecificPrice.Q64_64
+export type DexSpecificPriceJSON =
+  | DexSpecificPrice.SqrtPriceJSON
+  | DexSpecificPrice.Q64_64JSON
+
 export { WithdrawalCapAccumulatorAction }
 
 export type WithdrawalCapAccumulatorActionKind =
@@ -476,11 +508,11 @@ export type RebalanceTakeProfitStepJSON =
 export { RebalanceAction }
 
 export type RebalanceActionKind =
-  | RebalanceAction.NewSqrtPriceRange
+  | RebalanceAction.NewPriceRange
   | RebalanceAction.NewTickRange
   | RebalanceAction.WithdrawAndFreeze
 export type RebalanceActionJSON =
-  | RebalanceAction.NewSqrtPriceRangeJSON
+  | RebalanceAction.NewPriceRangeJSON
   | RebalanceAction.NewTickRangeJSON
   | RebalanceAction.WithdrawAndFreezeJSON
 
@@ -713,5 +745,5 @@ export type ScopePriceIdTestJSON =
 
 export { DEX }
 
-export type DEXKind = DEX.Orca | DEX.Raydium
-export type DEXJSON = DEX.OrcaJSON | DEX.RaydiumJSON
+export type DEXKind = DEX.Orca | DEX.Raydium | DEX.Meteora
+export type DEXJSON = DEX.OrcaJSON | DEX.RaydiumJSON | DEX.MeteoraJSON

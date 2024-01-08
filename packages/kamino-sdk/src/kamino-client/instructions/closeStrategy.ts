@@ -10,6 +10,9 @@ export interface CloseStrategyAccounts {
   oldPositionOrBaseVaultAuthority: PublicKey
   oldPositionMintOrBaseVaultAuthority: PublicKey
   oldPositionTokenAccountOrBaseVaultAuthority: PublicKey
+  oldTickArrayLowerOrBaseVaultAuthority: PublicKey
+  oldTickArrayUpperOrBaseVaultAuthority: PublicKey
+  pool: PublicKey
   tokenAVault: PublicKey
   tokenBVault: PublicKey
   userTokenAAta: PublicKey
@@ -42,6 +45,7 @@ export interface CloseStrategyAccounts {
   poolProgram: PublicKey
   tokenProgram: PublicKey
   system: PublicKey
+  eventAuthority: PublicKey
 }
 
 export function closeStrategy(accounts: CloseStrategyAccounts) {
@@ -63,6 +67,17 @@ export function closeStrategy(accounts: CloseStrategyAccounts) {
       isSigner: false,
       isWritable: true,
     },
+    {
+      pubkey: accounts.oldTickArrayLowerOrBaseVaultAuthority,
+      isSigner: false,
+      isWritable: true,
+    },
+    {
+      pubkey: accounts.oldTickArrayUpperOrBaseVaultAuthority,
+      isSigner: false,
+      isWritable: true,
+    },
+    { pubkey: accounts.pool, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenAVault, isSigner: false, isWritable: true },
     { pubkey: accounts.tokenBVault, isSigner: false, isWritable: true },
     { pubkey: accounts.userTokenAAta, isSigner: false, isWritable: true },
@@ -95,6 +110,7 @@ export function closeStrategy(accounts: CloseStrategyAccounts) {
     { pubkey: accounts.poolProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.system, isSigner: false, isWritable: false },
+    { pubkey: accounts.eventAuthority, isSigner: false, isWritable: false },
   ]
   const identifier = Buffer.from([56, 247, 170, 246, 89, 221, 134, 200])
   const data = identifier
