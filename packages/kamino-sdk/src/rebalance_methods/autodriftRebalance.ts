@@ -6,6 +6,7 @@ import { SqrtPriceMath } from '@raydium-io/raydium-sdk';
 import { RebalanceRaw } from '../kamino-client/types';
 import { RebalanceTypeLabelName } from './consts';
 import { upsertManyRebalanceFieldInfos } from './utils';
+import { getPriceOfBinByBinIdWithDecimals } from '../utils/meteora';
 
 export const DEFAULT_DRIFT_TICKS_PER_EPOCH = new Decimal(1);
 export const DEFAULT_TICKS_BELOW_MID = new Decimal(10);
@@ -20,6 +21,7 @@ export function getAutodriftRebalanceFieldInfos(
   dex: Dex,
   tokenADecimals: number,
   tokenBDecimals: number,
+  tickSpacing: number,
   lastMidTick: Decimal,
   initDriftTicksPerEpoch: Decimal,
   ticksBelowMid: Decimal,
@@ -91,7 +93,8 @@ export function getAutodriftRebalanceFieldInfos(
     tokenBDecimals,
     lastMidTick,
     ticksBelowMid,
-    ticksAboveMid
+    ticksAboveMid,
+    tickSpacing
   );
 
   let lowerRangeRebalanceFieldInfo: RebalanceFieldInfo = {
@@ -128,7 +131,8 @@ export function getPositionRangeFromAutodriftParams(
   tokenBDecimals: number,
   startMidTick: Decimal,
   ticksBelowMid: Decimal,
-  ticksAboveMid: Decimal
+  ticksAboveMid: Decimal,
+  tickSpacing: number
 ): PositionRange {
   let lowerTickIndex = startMidTick.sub(ticksBelowMid);
   let upperTickIndex = startMidTick.add(ticksAboveMid);
@@ -151,6 +155,22 @@ export function getPositionRangeFromAutodriftParams(
     );
 
     return { lowerPrice, upperPrice };
+  } else if (dex == 'METEORA') {
+    let lowerPrice = getPriceOfBinByBinIdWithDecimals(
+      lowerTickIndex.toNumber(),
+      tickSpacing,
+      tokenADecimals,
+      tokenBDecimals
+    );
+
+    let upperPrice = getPriceOfBinByBinIdWithDecimals(
+      upperTickIndex.toNumber(),
+      tickSpacing,
+      tokenADecimals,
+      tokenBDecimals
+    );
+
+    return { lowerPrice, upperPrice };
   } else {
     throw new Error(`Unknown DEX ${dex}`);
   }
@@ -161,7 +181,8 @@ export function getDefaultAutodriftRebalanceFieldInfos(
   dex: Dex,
   price: Decimal,
   tokenADecimals: number,
-  tokenBDecimals: number
+  tokenBDecimals: number,
+  tickSpacing: number
 ): RebalanceFieldInfo[] {
   let currentTickIndex = priceToTickIndex(price, tokenADecimals, tokenBDecimals);
   let startMidTick = new Decimal(currentTickIndex);
@@ -170,6 +191,7 @@ export function getDefaultAutodriftRebalanceFieldInfos(
     dex,
     tokenADecimals,
     tokenBDecimals,
+    tickSpacing,
     startMidTick,
     DEFAULT_DRIFT_TICKS_PER_EPOCH,
     DEFAULT_TICKS_BELOW_MID,
@@ -224,6 +246,7 @@ export function readAutodriftRebalanceStateFromStrategy(
   dex: Dex,
   tokenADecimals: number,
   tokenBDecimals: number,
+  tickSpacing: number,
   rebalanceRaw: RebalanceRaw
 ) {
   let params = readAutodriftRebalanceParamsFromStrategy(rebalanceRaw);
@@ -253,6 +276,20 @@ export function readAutodriftRebalanceStateFromStrategy(
       tokenADecimals,
       tokenBDecimals
     );
+  } else if (dex == 'METEORA') {
+    lowerPrice = getPriceOfBinByBinIdWithDecimals(
+      lowerTickIndex.toNumber(),
+      tickSpacing,
+      tokenADecimals,
+      tokenBDecimals
+    );
+
+    upperPrice = getPriceOfBinByBinIdWithDecimals(
+      upperTickIndex.toNumber(),
+      tickSpacing,
+      tokenADecimals,
+      tokenBDecimals
+    );
   } else {
     throw new Error(`Unknown DEX ${dex}`);
   }
@@ -277,6 +314,7 @@ export function deserializeAutodriftRebalanceFromOnchainParams(
   dex: Dex,
   tokenADecimals: number,
   tokenBDecimals: number,
+  tickSpacing: number,
   rebalanceRaw: RebalanceRaw
 ): RebalanceFieldInfo[] {
   let params = readAutodriftRebalanceParamsFromStrategy(rebalanceRaw);
@@ -286,6 +324,7 @@ export function deserializeAutodriftRebalanceFromOnchainParams(
     dex,
     tokenADecimals,
     tokenBDecimals,
+    tickSpacing,
     state['current_window_strat_mid_tick'],
     params['initDriftTicksPerEpoch'],
     params['ticksBelowMid'],
@@ -301,11 +340,24 @@ export function deserializeAutodriftRebalanceWithStateOverride(
   dex: Dex,
   tokenADecimals: number,
   tokenBDecimals: number,
+  tickSpacing: number,
   rebalanceRaw: RebalanceRaw
 ): RebalanceFieldInfo[] {
-  const stateFields = readAutodriftRebalanceStateFromStrategy(dex, tokenADecimals, tokenBDecimals, rebalanceRaw);
+  const stateFields = readAutodriftRebalanceStateFromStrategy(
+    dex,
+    tokenADecimals,
+    tokenBDecimals,
+    tickSpacing,
+    rebalanceRaw
+  );
 
-  let fields = deserializeAutodriftRebalanceFromOnchainParams(dex, tokenADecimals, tokenBDecimals, rebalanceRaw);
+  let fields = deserializeAutodriftRebalanceFromOnchainParams(
+    dex,
+    tokenADecimals,
+    tokenBDecimals,
+    tickSpacing,
+    rebalanceRaw
+  );
 
   return upsertManyRebalanceFieldInfos(fields, stateFields);
 }

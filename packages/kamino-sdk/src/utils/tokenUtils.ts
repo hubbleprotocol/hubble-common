@@ -159,14 +159,9 @@ export function getStrategyPriceRangeMeteora(
   activeBinId: number,
   binStep: number,
   decimalsA: number,
-  decimalsB: number,
+  decimalsB: number
 ) {
-  const poolPrice = getPriceOfBinByBinIdWithDecimals(
-    activeBinId,
-    binStep,
-    decimalsA,
-    decimalsB,
-  );
+  const poolPrice = getPriceOfBinByBinIdWithDecimals(activeBinId, binStep, decimalsA, decimalsB);
   const strategyOutOfRange = poolPrice.lt(priceLower) || poolPrice.gt(priceUpper);
   return { priceLower, poolPrice, priceUpper, strategyOutOfRange };
 }
@@ -178,9 +173,9 @@ export function getMeteoraPriceLowerUpper(
   tokenBMintDecimals: number,
   binStep: number
 ) {
-  const priceLower = getPriceOfBinByBinIdWithDecimals(tickLowerIndex, binStep, tokenAMintDecimals, tokenBMintDecimals); 
+  const priceLower = getPriceOfBinByBinIdWithDecimals(tickLowerIndex, binStep, tokenAMintDecimals, tokenBMintDecimals);
   const priceUpper = getPriceOfBinByBinIdWithDecimals(tickUpperIndex, binStep, tokenAMintDecimals, tokenBMintDecimals);
-  return {priceLower, priceUpper}
+  return { priceLower, priceUpper };
 }
 
 export function getPriceLowerUpper(
