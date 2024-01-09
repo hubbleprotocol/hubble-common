@@ -3,7 +3,7 @@
   "description": "Kamino SDK",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "version": "3.0.29",
+  "version": "3.0.29-staging",
   "scripts": {
     "build": "tsc",
     "build:watch": "tsc -w"
@@ -39,6 +39,7 @@
     "@hubbleprotocol/scope-sdk": "^3.0.6",
     "@jup-ag/api": "^6.0.1",
     "@jup-ag/core": "=3.0.0-beta.18",
+    "@meteora-ag/dlmm-sdk": "0.7.3",
     "@orca-so/sdk": "^1.2.26",
     "@orca-so/whirlpool-client-sdk": "^0.0.8",
     "@orca-so/whirlpool-sdk": "^0.4.2",
@@ -49,8 +50,7 @@
     "@solana/buffer-layout": "^4.0.1",
     "@types/mocha": "^10.0.1",
     "axios": "^1.2.6",
-    "bn.js": "^5.2.1",
-    "@meteora-ag/dlmm-sdk": "0.7.3"
+    "bn.js": "^5.2.1"
   },
   "peerDependencies": {
     "@solana/web3.js": "~1.78.4",
