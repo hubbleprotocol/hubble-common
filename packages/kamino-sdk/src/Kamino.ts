@@ -17,12 +17,6 @@ import {
 } from '@solana/web3.js';
 import { setKaminoProgramId } from './kamino-client/programId';
 import {
-  binIdToBinArrayIndex,
-  calculateSpotDistribution,
-  deriveBinArray,
-  getBinFromBinArray,
-} from '@meteora-ag/dlmm-sdk';
-import {
   GlobalConfig,
   TermsSignature,
   WhirlpoolStrategy,
@@ -338,10 +332,14 @@ import { getRemoveLiquidityQuote } from './whirpools-client/shim/remove-liquidit
 import { METEORA_PROGRAM_ID, setMeteoraProgramId } from './meteora_client/programId';
 import { MeteoraPool, MeteoraService } from './services/MeteoraService';
 import {
+  binIdToBinArrayIndex,
+  deriveBinArray,
+  getBinFromBinArray,
+  getBinFromBinArrays,
   getBinIdFromPriceWithDecimals,
   getPriceOfBinByBinId,
   getPriceOfBinByBinIdWithDecimals,
-  readPositionForUser,
+  MeteoraPosition,
 } from './utils/meteora';
 import { BinArray, LbPair, PositionV2 } from './meteora_client/accounts';
 import LbPairWithAddress from './models/LbPairWithAddress';
@@ -1192,8 +1190,11 @@ export class Kamino {
   getStrategies = async (strategies?: Array<PublicKey>): Promise<Array<WhirlpoolStrategy | null>> => {
     if (!strategies) {
       strategies = (await this.getAllStrategiesWithFilters({})).map((x) => x.address);
+      console.log('Fetches', strategies.length, 'strategies with filters');
     }
-    return await batchFetch(strategies, (chunk) => WhirlpoolStrategy.fetchMultiple(this._connection, chunk));
+    return await batchFetch(strategies, (chunk) =>
+      WhirlpoolStrategy.fetchMultiple(this._connection, chunk, this._kaminoProgramId)
+    );
   };
 
   /**
@@ -1205,7 +1206,9 @@ export class Kamino {
       return this.getAllStrategiesWithFilters({});
     }
     const result: StrategyWithAddress[] = [];
-    const states = await batchFetch(strategies, (chunk) => WhirlpoolStrategy.fetchMultiple(this._connection, chunk));
+    const states = await batchFetch(strategies, (chunk) =>
+      WhirlpoolStrategy.fetchMultiple(this._connection, chunk, this._kaminoProgramId)
+    );
     for (let i = 0; i < strategies.length; i++) {
       if (states[i]) {
         result.push({ address: strategies[i], strategy: states[i]! });
@@ -1648,15 +1651,10 @@ export class Kamino {
   };
 
   private getMeteoraTokensBalances = async (strategy: WhirlpoolStrategy): Promise<TokenHoldings> => {
-    const userPosition = await readPositionForUser(
-      this._connection,
-      strategy.pool,
-      strategy.baseVaultAuthority,
-      strategy.position
-    );
+    const userPosition = await this.readMeteoraPosition(strategy.pool, strategy.position);
 
-    const aInvested = userPosition.positionData.totalXAmount;
-    const bInvested = userPosition.positionData.totalYAmount;
+    const aInvested = userPosition.amountX;
+    const bInvested = userPosition.amountY;
 
     const aAvailable = new Decimal(strategy.tokenAAmounts.toString());
     const bAvailable = new Decimal(strategy.tokenBAmounts.toString());
@@ -4003,6 +4001,47 @@ export class Kamino {
       lowerTickBump,
       upperTick: upperTickPubkey,
       upperTickBump,
+    };
+  };
+
+  private readMeteoraPosition = async (poolPk: PublicKey, positionPk: PublicKey): Promise<MeteoraPosition> => {
+    let pool = await LbPair.fetch(this._connection, poolPk);
+    if (!pool) {
+      throw new Error(`Could not find position ${poolPk}`);
+    }
+    let position = await PositionV2.fetch(this._connection, positionPk);
+    if (!position) {
+      throw new Error(`Could not find position ${positionPk} for pool ${poolPk}`);
+    }
+    let { lowerTick: lowerTickPk, upperTick: upperTickPk } = this.getStartEndTicketIndexProgramAddressesMeteora(
+      poolPk,
+      position.lowerBinId
+    );
+    let lowerBinArray = await BinArray.fetch(this._connection, lowerTickPk);
+    let upperBinArray = await BinArray.fetch(this._connection, upperTickPk);
+    if (!lowerBinArray || !upperBinArray) {
+      throw new Error(`Could not find either ${lowerTickPk} or ${upperTickPk}`);
+    }
+    let binArrays = [lowerBinArray, upperBinArray];
+    let totalAmountX = new Decimal(0);
+    let totalAmountY = new Decimal(0);
+    for (let idx = position.lowerBinId; idx <= position.upperBinId; idx++) {
+      let bin = getBinFromBinArrays(idx, binArrays);
+      if (bin) {
+        const binX = new Decimal(bin.amountX.toString());
+        const binY = new Decimal(bin.amountY.toString());
+        const binLiq = new Decimal(bin.liquiditySupply.toString());
+        const positionLiq = new Decimal(position.liquidityShares[idx - position.lowerBinId].toString());
+
+        totalAmountX = totalAmountX.add(binX.mul(positionLiq).div(binLiq));
+        totalAmountY = totalAmountY.add(binY.mul(positionLiq).div(binLiq));
+      }
+    }
+
+    return {
+      publicKey: positionPk,
+      amountX: totalAmountX,
+      amountY: totalAmountY,
     };
   };
 
@@ -6410,8 +6449,12 @@ export class Kamino {
         throw new Error(`bin array ${binArrayPk.toString()} is not found`);
       }
       const bin = getBinFromBinArray(poolState.activeId, binArray);
-      const amountADecimal = new Decimal(bin.amountX.toString());
-      const amountBDecimal = new Decimal(bin.amountY.toString());
+      let amountADecimal = new Decimal(0);
+      let amountBDecimal = new Decimal(0);
+      if (bin) {
+        amountADecimal = new Decimal(bin.amountX.toString());
+        amountBDecimal = new Decimal(bin.amountY.toString());
+      }
       const ratio = amountADecimal.div(amountBDecimal);
       if (tokenAAmount === undefined || tokenAAmount.eq(ZERO)) {
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion

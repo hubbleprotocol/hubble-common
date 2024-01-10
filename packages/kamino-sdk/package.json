@@ -39,7 +39,6 @@
     "@hubbleprotocol/scope-sdk": "^3.0.6",
     "@jup-ag/api": "^6.0.1",
     "@jup-ag/core": "=3.0.0-beta.18",
-    "@meteora-ag/dlmm-sdk": "0.7.3",
     "@orca-so/sdk": "^1.2.26",
     "@orca-so/whirlpool-client-sdk": "^0.0.8",
     "@orca-so/whirlpool-sdk": "^0.4.2",

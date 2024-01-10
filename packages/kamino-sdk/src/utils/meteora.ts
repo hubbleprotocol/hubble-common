@@ -1,7 +1,12 @@
-import { BASIS_POINT_MAX, LBCLMM, PositionDataXs, PositionVersion } from '@meteora-ag/dlmm-sdk';
-import { Connection, PublicKey } from '@solana/web3.js';
+import { PublicKey } from '@solana/web3.js';
 import Decimal from 'decimal.js';
 import { U64_MAX } from '../constants/numericalValues';
+import { BinArray, LbPair, PositionV2 } from '../meteora_client/accounts';
+import { Bin } from '../meteora_client/types';
+import { BN } from '@project-serum/anchor';
+
+const BASIS_POINT_MAX = 10000;
+const MAX_BIN_ARRAY_SIZE = 70;
 
 export function getPriceOfBinByBinId(binId: number, tickSpacing: number): Decimal {
   const binStepNum = new Decimal(tickSpacing).div(new Decimal(BASIS_POINT_MAX));
@@ -41,35 +46,49 @@ export function getPriceFromQ64Price(price: Decimal, decimalsA: number, decimals
   return scaledPrice.div(new Decimal(U64_MAX));
 }
 
-export async function readPositionForUser(
-  connection: Connection,
-  pool: PublicKey,
-  user: PublicKey,
-  userPosition: PublicKey
-): Promise<MeteoraPosition> {
-  const positionsMap = await LBCLMM.getAllLbPairPositionsByUser(connection, user);
-  let position = positionsMap.get(pool.toString());
-  if (!position) {
-    throw new Error(`Could not find pool ${pool} when fetching all pool-positions for user ${user}`);
-  }
-  const poolPosition = position.lbPairPositionsData.find((position) => position.publicKey.equals(userPosition));
-  if (!poolPosition) {
-    throw new Error(
-      `Could not find position ${userPosition} when fetching all pool-positions for user ${user} and pool ${pool}`
-    );
-  }
+export function getBinArrayLowerUpperBinId(binArrayIndex: number): [number, number] {
+  const lowerBinId = binArrayIndex * MAX_BIN_ARRAY_SIZE;
+  const upperBinId = lowerBinId + MAX_BIN_ARRAY_SIZE - 1;
 
-  return {
-    publicKey: userPosition,
-    positionData: poolPosition.positionData,
-    version: poolPosition.version,
-  };
+  return [lowerBinId, upperBinId];
 }
 
-// export function
+export function getBinFromBinArray(binIndex: number, binArray: BinArray): Bin | null {
+  const [lowerBinId] = getBinArrayLowerUpperBinId(binArray.index.toNumber());
+  const offset = binIndex - lowerBinId;
+  if (offset >= 0 && offset < binArray.bins.length) {
+    return binArray.bins[offset];
+  }
+  return null;
+}
+
+export function getBinFromBinArrays(binIndex: number, binArrays: BinArray[]): Bin | null {
+  for (let i = 0; i < binArrays.length; i++) {
+    let bin = getBinFromBinArray(binIndex, binArrays[i]);
+    if (bin) {
+      return bin;
+    }
+  }
+  return null;
+}
+
+export function binIdToBinArrayIndex(binId: BN): BN {
+  const { div: idx, mod } = binId.divmod(new BN(MAX_BIN_ARRAY_SIZE));
+  return binId.isNeg() && !mod.isZero() ? idx.sub(new BN(1)) : idx;
+}
+
+export function deriveBinArray(lbPair: PublicKey, index: BN, programId: PublicKey) {
+  let binArrayBytes: Uint8Array;
+  if (index.isNeg()) {
+    binArrayBytes = new Uint8Array(index.toTwos(64).toBuffer('le', 8));
+  } else {
+    binArrayBytes = new Uint8Array(index.toBuffer('le', 8));
+  }
+  return PublicKey.findProgramAddressSync([Buffer.from('bin_array'), lbPair.toBytes(), binArrayBytes], programId);
+}
 
 export type MeteoraPosition = {
   publicKey: PublicKey;
-  positionData: PositionDataXs;
-  version: PositionVersion;
+  amountX: Decimal;
+  amountY: Decimal;
 };
