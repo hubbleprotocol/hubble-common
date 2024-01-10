@@ -247,12 +247,12 @@ export class MeteoraService {
       tokenMintB: pool.tokenYMint,
       price,
       // TODO: add these
-      feeRate: new Decimal(100),
+      feeRate: new Decimal(pool.parameters.baseFactor).mul(new Decimal(pool.binStep)).div(new Decimal(1e8)),
       volumeOnLast7d: new Decimal(100),
       tvl: new Decimal(100),
       tickSpacing: new Decimal(pool.binStep),
       // todo(Silviu): get real amount of positions
-      positions: new Decimal(0),
+      positions: new Decimal(await this.getPositionsCountByPool(poolPubkey)),
     };
     return poolInfo;
   }

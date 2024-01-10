@@ -214,7 +214,12 @@ import {
   DefaultPerformanceFeeBps,
   DefaultWithdrawFeeBps,
 } from './constants/DefaultStrategyConfig';
-import { DEVNET_GLOBAL_LOOKUP_TABLE, MAINNET_GLOBAL_LOOKUP_TABLE } from './constants/pubkeys';
+import {
+  DEVNET_GLOBAL_LOOKUP_TABLE,
+  MAINNET_GLOBAL_LOOKUP_TABLE,
+  STAGING_GLOBAL_LOOKUP_TABLE,
+  STAGING_KAMINO_PROGRAM_ID,
+} from './constants/pubkeys';
 import {
   AutodriftMethod,
   DefaultDex,
@@ -2771,7 +2776,7 @@ export class Kamino {
       tokenProgram: TOKEN_PROGRAM_ID,
       instructionSysvarAccount: SYSVAR_INSTRUCTIONS_PUBKEY,
       tickArrayLower: strategyState.strategy.tickArrayLower,
-      tickArrayUpper: strategyState.strategy.tickArrayLower,
+      tickArrayUpper: strategyState.strategy.tickArrayUpper,
     };
 
     return deposit(depositArgs, depositAccounts);
@@ -3192,7 +3197,7 @@ export class Kamino {
       tokenProgram: TOKEN_PROGRAM_ID,
       instructionSysvarAccount: SYSVAR_INSTRUCTIONS_PUBKEY,
       tickArrayLower: strategyWithAddress.strategy.tickArrayLower,
-      tickArrayUpper: strategyWithAddress.strategy.tickArrayLower,
+      tickArrayUpper: strategyWithAddress.strategy.tickArrayUpper,
     };
 
     let singleSidedDepositIx = singleTokenDepositWithMin(args, accounts);
@@ -5526,7 +5531,15 @@ export class Kamino {
   };
 
   getMainLookupTable = async (): Promise<AddressLookupTableAccount | undefined> => {
-    if (this._cluster == 'mainnet-beta') {
+    if (this._kaminoProgramId == STAGING_KAMINO_PROGRAM_ID) {
+      const lookupTableAccount = await this._connection
+        .getAddressLookupTable(STAGING_GLOBAL_LOOKUP_TABLE)
+        .then((res) => res.value);
+      if (!lookupTableAccount) {
+        throw new Error(`Could not get lookup table ${STAGING_GLOBAL_LOOKUP_TABLE}`);
+      }
+      return lookupTableAccount;
+    } else if (this._cluster == 'mainnet-beta') {
       const lookupTableAccount = await this._connection
         .getAddressLookupTable(MAINNET_GLOBAL_LOOKUP_TABLE)
         .then((res) => res.value);
