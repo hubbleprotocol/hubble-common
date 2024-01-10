@@ -3,7 +3,7 @@
   "description": "Kamino SDK",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "version": "3.0.29-staging",
+  "version": "3.0.30-staging",
   "scripts": {
     "build": "tsc",
     "build:watch": "tsc -w"
