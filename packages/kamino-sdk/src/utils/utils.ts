@@ -301,3 +301,7 @@ export function sqrtPriceToPrice(sqrtPrice: BN, dexNo: number, decimalsA: number
 export function stripTwapZeros(chain: number[]): number[] {
   return chain.filter((component) => component > 0);
 }
+
+export function percentageToBPS(pct: number): number {
+  return pct * 100;
+}

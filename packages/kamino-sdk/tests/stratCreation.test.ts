@@ -64,7 +64,32 @@ describe('Kamino strategy creation SDK Tests', () => {
     console.log('create strategy tx hash', txHash);
   });
 
+  it('read generic pool Meteora', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      GlobalConfigMainnet,
+      KaminoProgramIdMainnet,
+      WHIRLPOOL_PROGRAM_ID,
+      RAYDIUM_PROGRAM_ID
+    );
+
+    const poolInfo = await kamino.getGenericPoolInfo(
+      'METEORA',
+      new PublicKey('FoSDw2L5DmTuQTFe55gWPDXf88euaxAEKFre74CnvQbX')
+    );
+    console.log('poolInfo', poolInfo);
+  });
+
   it('calculate amounts', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      GlobalConfigMainnet,
+      KaminoProgramIdMainnet,
+      WHIRLPOOL_PROGRAM_ID,
+      RAYDIUM_PROGRAM_ID
+    );
     let amounts = await kamino.calculateAmountsToBeDepositedWithSwap(
       new PublicKey('Cfuy5T6osdazUeLego5LFycBQebm9PP3H7VNdCndXXEN'),
       new Decimal(0),

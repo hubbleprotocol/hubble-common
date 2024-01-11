@@ -1043,7 +1043,7 @@ export class Kamino {
       let pool = PublicKey.default;
       let pools = await this.getMeteoraPoolsForTokens(poolTokenA, poolTokenB);
       pools.forEach((element) => {
-        let feeRateBps = (element.pool.parameters.baseFactor * element.pool.binStep) / 1e4;
+        let feeRateBps = (element.pool.parameters.baseFactor * element.pool.binStep);
         if (feeRateBps == feeBPS.toNumber()) {
           pool = new PublicKey(element.key);
         }
