@@ -217,6 +217,7 @@ import {
 import {
   DEVNET_GLOBAL_LOOKUP_TABLE,
   MAINNET_GLOBAL_LOOKUP_TABLE,
+  STAGING_GLOBAL_CONFIG,
   STAGING_GLOBAL_LOOKUP_TABLE,
   STAGING_KAMINO_PROGRAM_ID,
 } from './constants/pubkeys';
@@ -385,11 +386,17 @@ export class Kamino {
     this._cluster = cluster;
     this._connection = connection;
     this._config = getConfigByCluster(cluster);
-    this._globalConfig = globalConfig ? globalConfig : new PublicKey(this._config.kamino.globalConfig);
+
     this._provider = new Provider(connection, getReadOnlyWallet(), {
       commitment: connection.commitment,
     });
-    this._kaminoProgramId = programId ? programId : this._config.kamino.programId;
+    if (programId === STAGING_KAMINO_PROGRAM_ID) {
+      this._kaminoProgramId = programId;
+      this._globalConfig = STAGING_GLOBAL_CONFIG;
+    } else {
+      this._kaminoProgramId = programId ? programId : this._config.kamino.programId;
+      this._globalConfig = globalConfig ? globalConfig : new PublicKey(this._config.kamino.globalConfig);
+    }
     this._kaminoProgram = new Program(KAMINO_IDL as Idl, this._kaminoProgramId, this._provider);
 
     this._scope = new Scope(cluster, connection);
@@ -1043,7 +1050,7 @@ export class Kamino {
       let pool = PublicKey.default;
       let pools = await this.getMeteoraPoolsForTokens(poolTokenA, poolTokenB);
       pools.forEach((element) => {
-        let feeRateBps = (element.pool.parameters.baseFactor * element.pool.binStep);
+        let feeRateBps = element.pool.parameters.baseFactor * element.pool.binStep;
         if (feeRateBps == feeBPS.toNumber()) {
           pool = new PublicKey(element.key);
         }
@@ -5531,7 +5538,7 @@ export class Kamino {
   };
 
   getMainLookupTable = async (): Promise<AddressLookupTableAccount | undefined> => {
-    if (this._kaminoProgramId == STAGING_KAMINO_PROGRAM_ID) {
+    if (this._kaminoProgramId === STAGING_KAMINO_PROGRAM_ID) {
       const lookupTableAccount = await this._connection
         .getAddressLookupTable(STAGING_GLOBAL_LOOKUP_TABLE)
         .then((res) => res.value);
