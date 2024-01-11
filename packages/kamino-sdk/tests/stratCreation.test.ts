@@ -26,6 +26,7 @@ import { Manual, PricePercentage, PricePercentageWithReset } from '../src/kamino
 import { createWsolAtaIfMissing, getComputeBudgetAndPriorityFeeIxns } from '../src/utils/transactions';
 import { JupService } from '../src/services/JupService';
 import { MAINNET_GLOBAL_LOOKUP_TABLE } from '../src/constants/pubkeys';
+import { METEORA_PROGRAM_ID } from '../src/meteora_client/programId';
 
 describe('Kamino strategy creation SDK Tests', () => {
   let connection: Connection;
@@ -71,7 +72,8 @@ describe('Kamino strategy creation SDK Tests', () => {
       GlobalConfigMainnet,
       KaminoProgramIdMainnet,
       WHIRLPOOL_PROGRAM_ID,
-      RAYDIUM_PROGRAM_ID
+      RAYDIUM_PROGRAM_ID,
+      METEORA_PROGRAM_ID
     );
 
     const poolInfo = await kamino.getGenericPoolInfo(
@@ -79,6 +81,10 @@ describe('Kamino strategy creation SDK Tests', () => {
       new PublicKey('FoSDw2L5DmTuQTFe55gWPDXf88euaxAEKFre74CnvQbX')
     );
     console.log('poolInfo', poolInfo);
+  });
+
+  it('both sides deposit in Meteora strtegy', async() => {
+    let strat = new PublicKey("6cM3MGNaJBfpBQy1P9oiZkDDzcWgSxjMaj6iWtz8ydSk");
   });
 
   it('calculate amounts', async () => {
