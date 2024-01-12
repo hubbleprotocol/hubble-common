@@ -25,7 +25,11 @@ import { PROGRAM_ID as RAYDIUM_PROGRAM_ID } from '../src/raydium_client/programI
 import { Manual, PricePercentage, PricePercentageWithReset } from '../src/kamino-client/types/RebalanceType';
 import { createWsolAtaIfMissing, getComputeBudgetAndPriorityFeeIxns } from '../src/utils/transactions';
 import { JupService } from '../src/services/JupService';
-import { MAINNET_GLOBAL_LOOKUP_TABLE } from '../src/constants/pubkeys';
+import {
+  MAINNET_GLOBAL_LOOKUP_TABLE,
+  STAGING_GLOBAL_CONFIG,
+  STAGING_KAMINO_PROGRAM_ID,
+} from '../src/constants/pubkeys';
 import { METEORA_PROGRAM_ID } from '../src/meteora_client/programId';
 
 describe('Kamino strategy creation SDK Tests', () => {
@@ -83,18 +87,56 @@ describe('Kamino strategy creation SDK Tests', () => {
     console.log('poolInfo', poolInfo);
   });
 
-  it('both sides deposit in Meteora strtegy', async() => {
-    let strat = new PublicKey("6cM3MGNaJBfpBQy1P9oiZkDDzcWgSxjMaj6iWtz8ydSk");
+  it('create Kamino staging', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      STAGING_GLOBAL_CONFIG,
+      STAGING_KAMINO_PROGRAM_ID,
+      WHIRLPOOL_PROGRAM_ID,
+      RAYDIUM_PROGRAM_ID,
+      METEORA_PROGRAM_ID
+    );
+  });
+
+  it('both sides deposit in Meteora strtegy', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      STAGING_GLOBAL_CONFIG,
+      STAGING_KAMINO_PROGRAM_ID,
+      WHIRLPOOL_PROGRAM_ID,
+      RAYDIUM_PROGRAM_ID,
+      METEORA_PROGRAM_ID
+    );
+
+    let strategy = new PublicKey('6cM3MGNaJBfpBQy1P9oiZkDDzcWgSxjMaj6iWtz8ydSk');
+    let amountAToDeposit = new Decimal(0.01);
+    let amountBToDeposit = new Decimal(1.0);
+
+    let strategyState = (await kamino.getStrategies([strategy]))[0];
+    if (!strategyState) {
+      throw new Error('strategy not found');
+    }
+
+    let depositIxs = await kamino.deposit(
+      { strategy: strategyState!, address: strategy },
+      amountAToDeposit,
+      amountBToDeposit,
+      signer.publicKey
+    );
+    console.log('depositIxs', depositIxs);
   });
 
   it('calculate amounts', async () => {
     let kamino = new Kamino(
       cluster,
       connection,
-      GlobalConfigMainnet,
-      KaminoProgramIdMainnet,
+      STAGING_GLOBAL_CONFIG,
+      STAGING_KAMINO_PROGRAM_ID,
       WHIRLPOOL_PROGRAM_ID,
-      RAYDIUM_PROGRAM_ID
+      RAYDIUM_PROGRAM_ID,
+      METEORA_PROGRAM_ID
     );
     let amounts = await kamino.calculateAmountsToBeDepositedWithSwap(
       new PublicKey('Cfuy5T6osdazUeLego5LFycBQebm9PP3H7VNdCndXXEN'),
