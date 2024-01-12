@@ -390,7 +390,7 @@ export class Kamino {
     this._provider = new Provider(connection, getReadOnlyWallet(), {
       commitment: connection.commitment,
     });
-    if (programId === STAGING_KAMINO_PROGRAM_ID) {
+    if (programId && programId.equals(STAGING_KAMINO_PROGRAM_ID)) {
       this._kaminoProgramId = programId;
       this._globalConfig = STAGING_GLOBAL_CONFIG;
     } else {
@@ -5538,7 +5538,7 @@ export class Kamino {
   };
 
   getMainLookupTable = async (): Promise<AddressLookupTableAccount | undefined> => {
-    if (this._kaminoProgramId === STAGING_KAMINO_PROGRAM_ID) {
+    if (this._kaminoProgramId.equals(STAGING_KAMINO_PROGRAM_ID)) {
       const lookupTableAccount = await this._connection
         .getAddressLookupTable(STAGING_GLOBAL_LOOKUP_TABLE)
         .then((res) => res.value);
