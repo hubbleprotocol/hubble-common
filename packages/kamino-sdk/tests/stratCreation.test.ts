@@ -6,7 +6,17 @@ import {
   TransactionInstruction,
   VersionedTransaction,
 } from '@solana/web3.js';
-import { Kamino, OrcaService, RaydiumService, sendTransactionWithLogs, sleep, U64_MAX } from '../src';
+import {
+  createAddExtraComputeUnitsIx,
+  createAddExtraComputeUnitsTransaction,
+  getAssociatedTokenAddressAndData,
+  Kamino,
+  OrcaService,
+  RaydiumService,
+  sendTransactionWithLogs,
+  sleep,
+  U64_MAX,
+} from '../src';
 import Decimal from 'decimal.js';
 import { createTransactionWithExtraBudget } from '../src';
 import {
@@ -87,6 +97,21 @@ describe('Kamino strategy creation SDK Tests', () => {
     console.log('poolInfo', poolInfo);
   });
 
+  it('read pool price Meteora', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      GlobalConfigMainnet,
+      KaminoProgramIdMainnet,
+      WHIRLPOOL_PROGRAM_ID,
+      RAYDIUM_PROGRAM_ID,
+      METEORA_PROGRAM_ID
+    );
+
+    let price = await kamino.getMeteoraPoolPrice(new PublicKey('FoSDw2L5DmTuQTFe55gWPDXf88euaxAEKFre74CnvQbX'));
+    console.log('pool price', price);
+  });
+
   it('create Kamino staging', async () => {
     let kamino = new Kamino(
       cluster,
@@ -97,9 +122,25 @@ describe('Kamino strategy creation SDK Tests', () => {
       RAYDIUM_PROGRAM_ID,
       METEORA_PROGRAM_ID
     );
+
+    const globalConfig = kamino.getGlobalConfig();
+    expect(globalConfig.equals(STAGING_GLOBAL_CONFIG)).to.be.true;
+
+    let kamino2 = new Kamino(
+      cluster,
+      connection,
+      undefined,
+      STAGING_KAMINO_PROGRAM_ID,
+      WHIRLPOOL_PROGRAM_ID,
+      RAYDIUM_PROGRAM_ID,
+      METEORA_PROGRAM_ID
+    );
+
+    const globalConfig2 = kamino.getGlobalConfig();
+    expect(globalConfig2.equals(STAGING_GLOBAL_CONFIG)).to.be.true;
   });
 
-  it('both sides deposit in Meteora strtegy', async () => {
+  it('both sides deposit in Meteora strategy', async () => {
     let kamino = new Kamino(
       cluster,
       connection,
@@ -119,13 +160,121 @@ describe('Kamino strategy creation SDK Tests', () => {
       throw new Error('strategy not found');
     }
 
-    let depositIxs = await kamino.deposit(
+    let depositIx = await kamino.deposit(
       { strategy: strategyState!, address: strategy },
       amountAToDeposit,
       amountBToDeposit,
       signer.publicKey
     );
-    console.log('depositIxs', depositIxs);
+    console.log('depositIxs', depositIx);
+
+    const [sharesAta, sharesMintData] = await getAssociatedTokenAddressAndData(
+      connection,
+      strategyState.sharesMint,
+      signer.publicKey
+    );
+    const [tokenAAta, tokenAData] = await getAssociatedTokenAddressAndData(
+      connection,
+      strategyState.tokenAMint,
+      signer.publicKey
+    );
+    const [tokenBAta, tokenBData] = await getAssociatedTokenAddressAndData(
+      connection,
+      strategyState.tokenBMint,
+      signer.publicKey
+    );
+
+    let strategyWithAddres = { address: strategy, strategy: strategyState };
+    const ataInstructions = await kamino.getCreateAssociatedTokenAccountInstructionsIfNotExist(
+      signer.publicKey,
+      strategyWithAddres,
+      tokenAData,
+      tokenAAta,
+      tokenBData,
+      tokenBAta,
+      sharesMintData,
+      sharesAta
+    );
+
+    const increaseBudgetIx = createAddExtraComputeUnitsIx(1_000_000);
+    const depositTx = await kamino.getTransactionV2Message(
+      signer.publicKey,
+      [increaseBudgetIx, ...ataInstructions, depositIx],
+      [strategyState.strategyLookupTable]
+    );
+    const depositTransactionV0 = new VersionedTransaction(depositTx);
+    depositTransactionV0.sign([signer]);
+    //@ts-ignore
+    let txHash = await sendAndConfirmTransaction(kamino._connection, depositTransactionV0, { skipPreflight: true });
+    console.log('deposit tx hash', txHash);
+  });
+
+  it('single sided deposit in Meteora strategy', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      STAGING_GLOBAL_CONFIG,
+      STAGING_KAMINO_PROGRAM_ID,
+      WHIRLPOOL_PROGRAM_ID,
+      RAYDIUM_PROGRAM_ID,
+      METEORA_PROGRAM_ID
+    );
+
+    let strategy = new PublicKey('6cM3MGNaJBfpBQy1P9oiZkDDzcWgSxjMaj6iWtz8ydSk');
+    let amountToDeposit = new Decimal(5.0);
+
+    let strategyState = (await kamino.getStrategies([strategy]))[0];
+    if (!strategyState) {
+      throw new Error('strategy not found');
+    }
+
+    let depositIx = await kamino.singleSidedDepositTokenB(
+      { strategy: strategyState!, address: strategy },
+      amountToDeposit,
+      signer.publicKey,
+      new Decimal(500)
+    );
+
+    const [sharesAta, sharesMintData] = await getAssociatedTokenAddressAndData(
+      connection,
+      strategyState.sharesMint,
+      signer.publicKey
+    );
+    const [tokenAAta, tokenAData] = await getAssociatedTokenAddressAndData(
+      connection,
+      strategyState.tokenAMint,
+      signer.publicKey
+    );
+    const [tokenBAta, tokenBData] = await getAssociatedTokenAddressAndData(
+      connection,
+      strategyState.tokenBMint,
+      signer.publicKey
+    );
+
+    let strategyWithAddres = { address: strategy, strategy: strategyState };
+    const ataInstructions = await kamino.getCreateAssociatedTokenAccountInstructionsIfNotExist(
+      signer.publicKey,
+      strategyWithAddres,
+      tokenAData,
+      tokenAAta,
+      tokenBData,
+      tokenBAta,
+      sharesMintData,
+      sharesAta
+    );
+
+    const increaseBudgetIx = createAddExtraComputeUnitsIx(1_400_000);
+    const depositTx = await kamino.getTransactionV2Message(
+      signer.publicKey,
+      [increaseBudgetIx, ...depositIx.instructions],
+      [strategyState.strategyLookupTable, ...depositIx.lookupTablesAddresses]
+    );
+    const depositTransactionV0 = new VersionedTransaction(depositTx);
+    depositTransactionV0.sign([signer]);
+    //@ts-ignore
+    let txHash = await sendAndConfirmTransaction(kamino._connection, depositTransactionV0);
+    // let txHash = await sendAndConfirmTransaction(kamino._connection, depositTransactionV0, { skipPreflight: true });
+    console.log('deposit tx hash', txHash);
   });
 
   it('calculate amounts', async () => {
