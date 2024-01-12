@@ -544,7 +544,7 @@ export class Kamino {
       case PricePercentageWithResetRangeRebalanceMethod:
         return this.getFieldsForPricePercentageWithResetMethod(dex, fieldOverrides, tokenAMint, tokenBMint, poolPrice);
       case DriftRebalanceMethod:
-        return this.getFieldsForDriftRebalanceMethod(dex, fieldOverrides, tokenAMint, tokenBMint, poolPrice);
+        return this.getFieldsForDriftRebalanceMethod(dex, fieldOverrides, tickSpacing, tokenAMint, tokenBMint, poolPrice);
       case TakeProfitMethod:
         return this.getFieldsForTakeProfitRebalanceMethod(dex, fieldOverrides, tokenAMint, tokenBMint, poolPrice);
       case PeriodicRebalanceMethod:
@@ -667,6 +667,7 @@ export class Kamino {
   getFieldsForDriftRebalanceMethod = async (
     dex: Dex,
     fieldOverrides: RebalanceFieldInfo[],
+    tickSpacing: number,
     tokenAMint: PublicKey,
     tokenBMint: PublicKey,
     poolPrice?: Decimal
@@ -675,7 +676,7 @@ export class Kamino {
     const tokenBDecimals = await getMintDecimals(this._connection, tokenBMint);
     const price = poolPrice ? poolPrice : new Decimal(await this.getPriceForPair(dex, tokenAMint, tokenBMint));
 
-    const defaultFields = getDefaultDriftRebalanceFieldInfos(dex, price, tokenADecimals, tokenBDecimals);
+    const defaultFields = getDefaultDriftRebalanceFieldInfos(dex, tickSpacing, price, tokenADecimals, tokenBDecimals);
 
     let startMidTick = defaultFields.find((x) => x.label == 'startMidTick')!.value;
     let startMidTickInput = fieldOverrides.find((x) => x.label == 'startMidTick');
@@ -711,6 +712,7 @@ export class Kamino {
       dex,
       tokenADecimals,
       tokenBDecimals,
+      tickSpacing,
       new Decimal(startMidTick),
       new Decimal(ticksBelowMid),
       new Decimal(ticksAboveMid),
@@ -994,7 +996,7 @@ export class Kamino {
       case PricePercentageWithResetRangeRebalanceMethod:
         return getDefaultPricePercentageWithResetRebalanceFieldInfos(price);
       case DriftRebalanceMethod:
-        return getDefaultDriftRebalanceFieldInfos(dex, price, tokenADecimals, tokenBDecimals);
+        return getDefaultDriftRebalanceFieldInfos(dex, tickSpacing, price, tokenADecimals, tokenBDecimals);
       case TakeProfitMethod:
         return getDefaultTakeProfitRebalanceFieldsInfos(price);
       case PeriodicRebalanceMethod:
@@ -5087,6 +5089,7 @@ export class Kamino {
       case RebalanceType.Drift.kind:
         return getPositionRangeFromDriftParams(
           dex,
+	  tickSpacing,
           tokenADecimals,
           tokenBDecimals,
           rebalanceParams[0],
@@ -5293,8 +5296,10 @@ export class Kamino {
       let dex = numberToDex(strategyWithAddress.strategy.strategyDex.toNumber());
       let tokenADecimals = await getMintDecimals(this._connection, strategyWithAddress.strategy.tokenAMint);
       let tokenBDecimals = await getMintDecimals(this._connection, strategyWithAddress.strategy.tokenBMint);
+      let tickSpacing = await this.getPoolTickSpacing(dex, strategyWithAddress.strategy.pool);
       return deserializeDriftRebalanceFromOnchainParams(
         dex,
+	tickSpacing,
         tokenADecimals,
         tokenBDecimals,
         strategyWithAddress.strategy.rebalanceRaw
@@ -5365,8 +5370,10 @@ export class Kamino {
       let dex = numberToDex(strategyWithAddress.strategy.strategyDex.toNumber());
       let tokenADecimals = await getMintDecimals(this._connection, strategyWithAddress.strategy.tokenAMint);
       let tokenBDecimals = await getMintDecimals(this._connection, strategyWithAddress.strategy.tokenBMint);
+      let tickSpacing = await this.getPoolTickSpacing(dex, strategyWithAddress.strategy.pool);
       return deserializeDriftRebalanceWithStateOverride(
         dex,
+	tickSpacing,
         tokenADecimals,
         tokenBDecimals,
         strategyWithAddress.strategy.rebalanceRaw
