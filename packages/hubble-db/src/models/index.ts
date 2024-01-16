@@ -53,6 +53,9 @@ export * from './PointsKlendEntity';
 export * from './PointsStrategiesEntity';
 export * from './PointsSourceEntity';
 export * from './KlendObligationTypeEntity';
+export * from './StakedSolTokenEntity';
+export * from './StablecoinTokenEntity';
+export * from './PointsLeaderboardBlacklistEntity';
 
 export const CLUSTER_TABLE: string = 'cluster';
 export const COLLATERAL_TABLE: string = 'collateral';
@@ -111,6 +114,9 @@ export const POINTS_STRATEGIES_TABLE = 'points_strategies';
 export const POINTS_KLEND_TABLE = 'points_klend';
 export const POINTS_TOTAL_TABLE = 'points_total';
 export const POINTS_LEADERBOARD_TABLE = 'points_leaderboard';
+export const STAKED_SOL_TOKEN_TABLE = 'staked_sol_token';
+export const POINTS_LEADERBOARD_BLACKLIST_TABLE = 'points_leaderboard_blacklist';
+export const STABLECOIN_TOKEN_TABLE = 'stablecoin_token';
 
 export type RESAMPLE_FREQUENCY = 'hour' | 'day';
 export const HOURLY_FREQUENCY = 'hour';
