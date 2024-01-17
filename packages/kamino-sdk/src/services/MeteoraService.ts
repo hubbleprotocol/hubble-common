@@ -116,7 +116,7 @@ export class MeteoraService {
   async getMeteoraPools(): Promise<MeteoraPool[]> {
     const rawPools = await this._connection.getProgramAccounts(METEORA_PROGRAM_ID, {
       commitment: 'confirmed',
-      filters: [{ memcmp: { bytes: LbPair.discriminator.toString(), offset: 0 } }],
+      filters: [{ dataSize: 8120 }],
     });
     let pools: MeteoraPool[] = [];
     for (let i = 0; i < rawPools.length; i++) {
@@ -127,45 +127,58 @@ export class MeteoraService {
   }
 
   async getStrategyMeteoraPoolAprApy(strategy: WhirlpoolStrategy, prices: KaminoPrices): Promise<WhirlpoolAprApy> {
-    throw new Error('unimplemented getStrategyMeteoraPoolAprApy');
-    // const position = await this.getPosition(strategy.position);
-    // if (!position) {
-    //   throw new Error(`Position ${strategy.position} does not exist`);
-    // }
+    // throw new Error('unimplemented getStrategyMeteoraPoolAprApy');
+    const position = await this.getPosition(strategy.position);
+    if (!position) {
+      throw new Error(`Position ${strategy.position} does not exist`);
+    }
 
-    // const pool = await this.getPool(strategy.pool);
-    // if (!pool) {
-    //   throw Error(`Could not get meteora pool data for ${strategy.pool}`);
-    // }
-    // let decimalsX = strategy.tokenAMintDecimals.toNumber();
-    // let decimalsY = strategy.tokenBMintDecimals.toNumber();
-    // let {priceLower, priceUpper} = getMeteoraPriceLowerUpper(position.lowerBinId, position.upperBinId, decimalsX, decimalsY, pool.binStep);
-    // const priceRange = getStrategyPriceRangeMeteora(priceLower, priceUpper, pool.activeId, pool.binStep, decimalsX, decimalsY);
-    // if (priceRange.strategyOutOfRange) {
-    //   return {
-    //     ...priceRange,
-    //     rewardsApy: [],
-    //     rewardsApr: [],
-    //     feeApy: ZERO,
-    //     feeApr: ZERO,
-    //     totalApy: ZERO,
-    //     totalApr: ZERO,
-    //   };
-    // }
+    const pool = await this.getPool(strategy.pool);
+    if (!pool) {
+      throw Error(`Could not get meteora pool data for ${strategy.pool}`);
+    }
+    let decimalsX = strategy.tokenAMintDecimals.toNumber();
+    let decimalsY = strategy.tokenBMintDecimals.toNumber();
+    let { priceLower, priceUpper } = getMeteoraPriceLowerUpper(
+      position.lowerBinId,
+      position.upperBinId,
+      decimalsX,
+      decimalsY,
+      pool.binStep
+    );
+    const priceRange = getStrategyPriceRangeMeteora(
+      priceLower,
+      priceUpper,
+      pool.activeId,
+      pool.binStep,
+      decimalsX,
+      decimalsY
+    );
+    if (priceRange.strategyOutOfRange) {
+      return {
+        ...priceRange,
+        rewardsApy: [],
+        rewardsApr: [],
+        feeApy: ZERO,
+        feeApr: ZERO,
+        totalApy: ZERO,
+        totalApr: ZERO,
+      };
+    }
 
-    // // TODO: fix this
-    // let totalApr = new Decimal(100);
-    // let feeApr = new Decimal(100);
-    // let rewardsApr = [new Decimal(100)];
-    // return {
-    //   totalApr,
-    //   totalApy: aprToApy(totalApr, 365),
-    //   feeApr,
-    //   feeApy: aprToApy(feeApr, 365),
-    //   rewardsApr,
-    //   rewardsApy: rewardsApr.map((x) => aprToApy(x, 365)),
-    //   ...priceRange,
-    // };
+    // TODO: fix this
+    let totalApr = new Decimal(100);
+    let feeApr = new Decimal(100);
+    let rewardsApr = [new Decimal(100)];
+    return {
+      totalApr,
+      totalApy: aprToApy(totalApr, 365),
+      feeApr,
+      feeApy: aprToApy(feeApr, 365),
+      rewardsApr,
+      rewardsApy: rewardsApr.map((x) => aprToApy(x, 365)),
+      ...priceRange,
+    };
   }
 
   // strongly recommended to pass lowestTick and highestTick because fetching the lowest and highest existent takes very long
@@ -175,20 +188,27 @@ export class MeteoraService {
     lowestTick?: number,
     highestTick?: number
   ): Promise<LiquidityDistribution> {
-    throw new Error('unimplemented getMeteoraLiquidityDistribution');
-    // TODO: fix this
-    // const pool = await this.getPool(poolKey);
-    // if (!pool) {
-    //   throw Error(`Could not get meteora pool data for ${poolKey}`);
-    // }
-    // let currentTickIndex = pool.activeId;
-    // let tokenXDecimals = await getMintDecimals(this._connection, pool.tokenXMint);
-    // let tokenYDecimals = await getMintDecimals(this._connection, pool.tokenYMint);
-    // const currentPrice = getPriceOfBinByBinIdWithDecimals(currentTickIndex, pool.binStep, tokenXDecimals, tokenYDecimals);
-    // // TODO: add actual distribution
-    // return {
-    //   currentPrice, currentTickIndex, distribution: []
-    // };
+    // throw new Error('unimplemented getMeteoraLiquidityDistribution');
+    //TODO: fix this
+    const pool = await this.getPool(poolKey);
+    if (!pool) {
+      throw Error(`Could not get meteora pool data for ${poolKey}`);
+    }
+    let currentTickIndex = pool.activeId;
+    let tokenXDecimals = await getMintDecimals(this._connection, pool.tokenXMint);
+    let tokenYDecimals = await getMintDecimals(this._connection, pool.tokenYMint);
+    const currentPrice = getPriceOfBinByBinIdWithDecimals(
+      currentTickIndex,
+      pool.binStep,
+      tokenXDecimals,
+      tokenYDecimals
+    );
+    // TODO: add actual distribution
+    return {
+      currentPrice,
+      currentTickIndex,
+      distribution: [],
+    };
   }
 
   async getMeteoraPositionAprApy(
@@ -197,38 +217,45 @@ export class MeteoraService {
     priceUpper: Decimal,
     prices: KaminoPrices
   ): Promise<WhirlpoolAprApy> {
-    throw new Error('unimplemented getMeteoraPositionAprApy');
+    // throw new Error('unimplemented getMeteoraPositionAprApy');
 
-    // const pool = await this.getPool(poolPubkey);
-    // if (!pool) {
-    //   throw Error(`Could not get meteora pool data for ${poolPubkey}`);
-    // }
-    // let tokenXDecimals = await getMintDecimals(this._connection, pool.tokenXMint);
-    // let tokenYDecimals = await getMintDecimals(this._connection, pool.tokenYMint);
-    // const priceRange = getStrategyPriceRangeMeteora(priceLower, priceUpper, pool.activeId, pool.binStep, tokenXDecimals, tokenYDecimals);
-    // if (priceRange.strategyOutOfRange) {
-    //   return {
-    //     ...priceRange,
-    //     rewardsApy: [],
-    //     rewardsApr: [],
-    //     feeApy: ZERO,
-    //     feeApr: ZERO,
-    //     totalApy: ZERO,
-    //     totalApr: ZERO,
-    //   };
-    // }
-    // let totalApr = new Decimal(100);
-    // let feeApr = new Decimal(100);
-    // let rewardsApr = [new Decimal(100)];
-    // return {
-    //   totalApr,
-    //   totalApy: aprToApy(totalApr, 365),
-    //   feeApr,
-    //   feeApy: aprToApy(feeApr, 365),
-    //   rewardsApr,
-    //   rewardsApy: rewardsApr.map((x) => aprToApy(x, 365)),
-    //   ...priceRange,
-    // };
+    const pool = await this.getPool(poolPubkey);
+    if (!pool) {
+      throw Error(`Could not get meteora pool data for ${poolPubkey}`);
+    }
+    let tokenXDecimals = await getMintDecimals(this._connection, pool.tokenXMint);
+    let tokenYDecimals = await getMintDecimals(this._connection, pool.tokenYMint);
+    const priceRange = getStrategyPriceRangeMeteora(
+      priceLower,
+      priceUpper,
+      pool.activeId,
+      pool.binStep,
+      tokenXDecimals,
+      tokenYDecimals
+    );
+    if (priceRange.strategyOutOfRange) {
+      return {
+        ...priceRange,
+        rewardsApy: [],
+        rewardsApr: [],
+        feeApy: ZERO,
+        feeApr: ZERO,
+        totalApy: ZERO,
+        totalApr: ZERO,
+      };
+    }
+    let totalApr = new Decimal(100);
+    let feeApr = new Decimal(100);
+    let rewardsApr = [new Decimal(100)];
+    return {
+      totalApr,
+      totalApy: aprToApy(totalApr, 365),
+      feeApr,
+      feeApy: aprToApy(feeApr, 365),
+      rewardsApr,
+      rewardsApy: rewardsApr.map((x) => aprToApy(x, 365)),
+      ...priceRange,
+    };
   }
 
   async getGenericPoolInfo(poolPubkey: PublicKey) {
@@ -246,8 +273,8 @@ export class MeteoraService {
       tokenMintA: pool.tokenXMint,
       tokenMintB: pool.tokenYMint,
       price,
-      // TODO: add these
       feeRate: new Decimal(pool.parameters.baseFactor).mul(new Decimal(pool.binStep)).div(new Decimal(1e6)),
+      // TODO: add these
       volumeOnLast7d: new Decimal(100),
       tvl: new Decimal(100),
       tickSpacing: new Decimal(pool.binStep),
