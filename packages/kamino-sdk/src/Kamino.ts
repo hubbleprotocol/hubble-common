@@ -1104,6 +1104,15 @@ export class Kamino {
       dataSize: 4064,
     });
 
+    if (strategyFilters.owner) {
+      filters.push({
+        memcmp: {
+          bytes: strategyFilters.owner.toBase58(),
+          offset: 8,
+        },
+      });
+    }
+
     if (strategyFilters.strategyCreationStatus) {
       filters.push({
         memcmp: {
@@ -5073,7 +5082,7 @@ export class Kamino {
     strategyFilters: StrategiesFilters = { strategyCreationStatus: 'LIVE' }
   ): Promise<KaminoPosition[]> => {
     const userTokenAccounts = await this.getAllTokenAccounts(wallet);
-    const liveStrategies = await this.getAllStrategiesWithFilters(strategyFilters);
+    const liveStrategies = await this.getAllStrategiesWithFilters({ ...strategyFilters, owner: wallet });
     const positions: KaminoPosition[] = [];
     for (const tokenAccount of userTokenAccounts) {
       const accountData = tokenAccount.account.data as Data;
