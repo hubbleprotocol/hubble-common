@@ -544,7 +544,14 @@ export class Kamino {
       case PricePercentageWithResetRangeRebalanceMethod:
         return this.getFieldsForPricePercentageWithResetMethod(dex, fieldOverrides, tokenAMint, tokenBMint, poolPrice);
       case DriftRebalanceMethod:
-        return this.getFieldsForDriftRebalanceMethod(dex, fieldOverrides, tickSpacing, tokenAMint, tokenBMint, poolPrice);
+        return this.getFieldsForDriftRebalanceMethod(
+          dex,
+          fieldOverrides,
+          tickSpacing,
+          tokenAMint,
+          tokenBMint,
+          poolPrice
+        );
       case TakeProfitMethod:
         return this.getFieldsForTakeProfitRebalanceMethod(dex, fieldOverrides, tokenAMint, tokenBMint, poolPrice);
       case PeriodicRebalanceMethod:
@@ -5089,7 +5096,7 @@ export class Kamino {
       case RebalanceType.Drift.kind:
         return getPositionRangeFromDriftParams(
           dex,
-	  tickSpacing,
+          tickSpacing,
           tokenADecimals,
           tokenBDecimals,
           rebalanceParams[0],
@@ -5299,7 +5306,7 @@ export class Kamino {
       let tickSpacing = await this.getPoolTickSpacing(dex, strategyWithAddress.strategy.pool);
       return deserializeDriftRebalanceFromOnchainParams(
         dex,
-	tickSpacing,
+        tickSpacing,
         tokenADecimals,
         tokenBDecimals,
         strategyWithAddress.strategy.rebalanceRaw
@@ -5373,7 +5380,7 @@ export class Kamino {
       let tickSpacing = await this.getPoolTickSpacing(dex, strategyWithAddress.strategy.pool);
       return deserializeDriftRebalanceWithStateOverride(
         dex,
-	tickSpacing,
+        tickSpacing,
         tokenADecimals,
         tokenBDecimals,
         strategyWithAddress.strategy.rebalanceRaw
