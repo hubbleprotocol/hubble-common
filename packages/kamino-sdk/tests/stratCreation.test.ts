@@ -97,6 +97,24 @@ describe('Kamino strategy creation SDK Tests', () => {
     console.log('poolInfo', poolInfo);
   });
 
+  it('read all pools for tokens Meteora', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      GlobalConfigMainnet,
+      KaminoProgramIdMainnet,
+      WHIRLPOOL_PROGRAM_ID,
+      RAYDIUM_PROGRAM_ID,
+      METEORA_PROGRAM_ID
+    );
+
+    const poolInfo = await kamino.getGenericPoolInfo(
+      'METEORA',
+      new PublicKey('FoSDw2L5DmTuQTFe55gWPDXf88euaxAEKFre74CnvQbX')
+    );
+    console.log('poolInfo', poolInfo);
+  });
+
   it('read pool price Meteora', async () => {
     let kamino = new Kamino(
       cluster,

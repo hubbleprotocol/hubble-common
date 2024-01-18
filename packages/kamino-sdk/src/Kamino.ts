@@ -2219,7 +2219,7 @@ export class Kamino {
     if (strategyState.position == PublicKey.default) {
       return { lowerPrice: ZERO, upperPrice: ZERO };
     } else {
-      return this.getPositionRangeRaydium(
+      return this.getPositionRangeMeteora(
         strategyState.position,
         strategyState.tokenAMintDecimals.toNumber(),
         strategyState.tokenBMintDecimals.toNumber()
