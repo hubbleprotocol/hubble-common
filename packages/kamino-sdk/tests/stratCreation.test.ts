@@ -108,11 +108,13 @@ describe('Kamino strategy creation SDK Tests', () => {
       METEORA_PROGRAM_ID
     );
 
-    const poolInfo = await kamino.getGenericPoolInfo(
-      'METEORA',
-      new PublicKey('FoSDw2L5DmTuQTFe55gWPDXf88euaxAEKFre74CnvQbX')
+    const pools = await kamino.getMeteoraPoolsForTokens(
+      new PublicKey('So11111111111111111111111111111111111111112'),
+      new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v')
     );
-    console.log('poolInfo', poolInfo);
+    console.log('pools', pools.length);
+    console.log('pools', pools[0].key.toString());
+    console.log('pools', pools[1].key.toString());
   });
 
   it('read pool price Meteora', async () => {
