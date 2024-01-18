@@ -5082,7 +5082,7 @@ export class Kamino {
     strategyFilters: StrategiesFilters = { strategyCreationStatus: 'LIVE' }
   ): Promise<KaminoPosition[]> => {
     const userTokenAccounts = await this.getAllTokenAccounts(wallet);
-    const liveStrategies = await this.getAllStrategiesWithFilters({ ...strategyFilters, owner: wallet });
+    const liveStrategies = await this.getAllStrategiesWithFilters(strategyFilters);
     const positions: KaminoPosition[] = [];
     for (const tokenAccount of userTokenAccounts) {
       const accountData = tokenAccount.account.data as Data;
