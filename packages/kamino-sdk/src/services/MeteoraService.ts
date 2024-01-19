@@ -116,7 +116,7 @@ export class MeteoraService {
   async getMeteoraPools(): Promise<MeteoraPool[]> {
     const rawPools = await this._connection.getProgramAccounts(METEORA_PROGRAM_ID, {
       commitment: 'confirmed',
-      filters: [{ dataSize: 8120 }],
+      filters: [{ dataSize: 904 }],
     });
     let pools: MeteoraPool[] = [];
     for (let i = 0; i < rawPools.length; i++) {

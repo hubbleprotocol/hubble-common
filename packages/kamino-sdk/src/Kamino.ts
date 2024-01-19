@@ -5504,7 +5504,7 @@ export class Kamino {
       throw new Error(`Meteora poolState ${pool.toString()} is not found`);
     }
     let decimalsX = await getMintDecimals(this._connection, poolState.tokenXMint);
-    let decimalsY = await getMintDecimals(this._connection, poolState.tokenXMint);
+    let decimalsY = await getMintDecimals(this._connection, poolState.tokenYMint);
     return getPriceOfBinByBinIdWithDecimals(poolState.activeId, poolState.binStep, decimalsX, decimalsY);
   }
 
@@ -6033,7 +6033,6 @@ export class Kamino {
     if (!priceAInB) {
       priceAInB = await this.getCurrentPrice(strategyWithAddress);
     }
-
     const priceBInA = new Decimal(1).div(priceAInB);
 
     let tokenADecimals = strategyState.tokenAMintDecimals.toNumber();

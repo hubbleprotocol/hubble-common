@@ -6,7 +6,17 @@ import {
   TransactionInstruction,
   VersionedTransaction,
 } from '@solana/web3.js';
-import { Kamino, OrcaService, RaydiumService, sendTransactionWithLogs, sleep, U64_MAX } from '../src';
+import {
+  createAddExtraComputeUnitsIx,
+  createAddExtraComputeUnitsTransaction,
+  getAssociatedTokenAddressAndData,
+  Kamino,
+  OrcaService,
+  RaydiumService,
+  sendTransactionWithLogs,
+  sleep,
+  U64_MAX,
+} from '../src';
 import Decimal from 'decimal.js';
 import { createTransactionWithExtraBudget } from '../src';
 import {
@@ -25,7 +35,12 @@ import { PROGRAM_ID as RAYDIUM_PROGRAM_ID } from '../src/raydium_client/programI
 import { Manual, PricePercentage, PricePercentageWithReset } from '../src/kamino-client/types/RebalanceType';
 import { createWsolAtaIfMissing, getComputeBudgetAndPriorityFeeIxns } from '../src/utils/transactions';
 import { JupService } from '../src/services/JupService';
-import { MAINNET_GLOBAL_LOOKUP_TABLE } from '../src/constants/pubkeys';
+import {
+  MAINNET_GLOBAL_LOOKUP_TABLE,
+  STAGING_GLOBAL_CONFIG,
+  STAGING_KAMINO_PROGRAM_ID,
+} from '../src/constants/pubkeys';
+import { METEORA_PROGRAM_ID } from '../src/meteora_client/programId';
 
 describe('Kamino strategy creation SDK Tests', () => {
   let connection: Connection;
@@ -71,7 +86,8 @@ describe('Kamino strategy creation SDK Tests', () => {
       GlobalConfigMainnet,
       KaminoProgramIdMainnet,
       WHIRLPOOL_PROGRAM_ID,
-      RAYDIUM_PROGRAM_ID
+      RAYDIUM_PROGRAM_ID,
+      METEORA_PROGRAM_ID
     );
 
     const poolInfo = await kamino.getGenericPoolInfo(
@@ -81,14 +97,215 @@ describe('Kamino strategy creation SDK Tests', () => {
     console.log('poolInfo', poolInfo);
   });
 
-  it('calculate amounts', async () => {
+  it('read all pools for tokens Meteora', async () => {
     let kamino = new Kamino(
       cluster,
       connection,
       GlobalConfigMainnet,
       KaminoProgramIdMainnet,
       WHIRLPOOL_PROGRAM_ID,
-      RAYDIUM_PROGRAM_ID
+      RAYDIUM_PROGRAM_ID,
+      METEORA_PROGRAM_ID
+    );
+
+    const pools = await kamino.getMeteoraPoolsForTokens(
+      new PublicKey('So11111111111111111111111111111111111111112'),
+      new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v')
+    );
+    console.log('pools', pools.length);
+    console.log('pools', pools[0].key.toString());
+    console.log('pools', pools[1].key.toString());
+  });
+
+  it('read pool price Meteora', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      GlobalConfigMainnet,
+      KaminoProgramIdMainnet,
+      WHIRLPOOL_PROGRAM_ID,
+      RAYDIUM_PROGRAM_ID,
+      METEORA_PROGRAM_ID
+    );
+
+    let price = await kamino.getMeteoraPoolPrice(new PublicKey('FoSDw2L5DmTuQTFe55gWPDXf88euaxAEKFre74CnvQbX'));
+    console.log('pool price', price);
+  });
+
+  it('create Kamino staging', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      STAGING_GLOBAL_CONFIG,
+      STAGING_KAMINO_PROGRAM_ID,
+      WHIRLPOOL_PROGRAM_ID,
+      RAYDIUM_PROGRAM_ID,
+      METEORA_PROGRAM_ID
+    );
+
+    const globalConfig = kamino.getGlobalConfig();
+    expect(globalConfig.equals(STAGING_GLOBAL_CONFIG)).to.be.true;
+
+    let kamino2 = new Kamino(
+      cluster,
+      connection,
+      undefined,
+      STAGING_KAMINO_PROGRAM_ID,
+      WHIRLPOOL_PROGRAM_ID,
+      RAYDIUM_PROGRAM_ID,
+      METEORA_PROGRAM_ID
+    );
+
+    const globalConfig2 = kamino.getGlobalConfig();
+    expect(globalConfig2.equals(STAGING_GLOBAL_CONFIG)).to.be.true;
+  });
+
+  it('both sides deposit in Meteora strategy', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      STAGING_GLOBAL_CONFIG,
+      STAGING_KAMINO_PROGRAM_ID,
+      WHIRLPOOL_PROGRAM_ID,
+      RAYDIUM_PROGRAM_ID,
+      METEORA_PROGRAM_ID
+    );
+
+    let strategy = new PublicKey('6cM3MGNaJBfpBQy1P9oiZkDDzcWgSxjMaj6iWtz8ydSk');
+    let amountAToDeposit = new Decimal(0.01);
+    let amountBToDeposit = new Decimal(1.0);
+
+    let strategyState = (await kamino.getStrategies([strategy]))[0];
+    if (!strategyState) {
+      throw new Error('strategy not found');
+    }
+
+    let depositIx = await kamino.deposit(
+      { strategy: strategyState!, address: strategy },
+      amountAToDeposit,
+      amountBToDeposit,
+      signer.publicKey
+    );
+    console.log('depositIxs', depositIx);
+
+    const [sharesAta, sharesMintData] = await getAssociatedTokenAddressAndData(
+      connection,
+      strategyState.sharesMint,
+      signer.publicKey
+    );
+    const [tokenAAta, tokenAData] = await getAssociatedTokenAddressAndData(
+      connection,
+      strategyState.tokenAMint,
+      signer.publicKey
+    );
+    const [tokenBAta, tokenBData] = await getAssociatedTokenAddressAndData(
+      connection,
+      strategyState.tokenBMint,
+      signer.publicKey
+    );
+
+    let strategyWithAddres = { address: strategy, strategy: strategyState };
+    const ataInstructions = await kamino.getCreateAssociatedTokenAccountInstructionsIfNotExist(
+      signer.publicKey,
+      strategyWithAddres,
+      tokenAData,
+      tokenAAta,
+      tokenBData,
+      tokenBAta,
+      sharesMintData,
+      sharesAta
+    );
+
+    const increaseBudgetIx = createAddExtraComputeUnitsIx(1_000_000);
+    const depositTx = await kamino.getTransactionV2Message(
+      signer.publicKey,
+      [increaseBudgetIx, ...ataInstructions, depositIx],
+      [strategyState.strategyLookupTable]
+    );
+    const depositTransactionV0 = new VersionedTransaction(depositTx);
+    depositTransactionV0.sign([signer]);
+    //@ts-ignore
+    let txHash = await sendAndConfirmTransaction(kamino._connection, depositTransactionV0, { skipPreflight: true });
+    console.log('deposit tx hash', txHash);
+  });
+
+  it('single sided deposit in Meteora strategy', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      STAGING_GLOBAL_CONFIG,
+      STAGING_KAMINO_PROGRAM_ID,
+      WHIRLPOOL_PROGRAM_ID,
+      RAYDIUM_PROGRAM_ID,
+      METEORA_PROGRAM_ID
+    );
+
+    let strategy = new PublicKey('6cM3MGNaJBfpBQy1P9oiZkDDzcWgSxjMaj6iWtz8ydSk');
+    let amountToDeposit = new Decimal(5.0);
+
+    let strategyState = (await kamino.getStrategies([strategy]))[0];
+    if (!strategyState) {
+      throw new Error('strategy not found');
+    }
+
+    let depositIx = await kamino.singleSidedDepositTokenB(
+      { strategy: strategyState!, address: strategy },
+      amountToDeposit,
+      signer.publicKey,
+      new Decimal(500)
+    );
+
+    const [sharesAta, sharesMintData] = await getAssociatedTokenAddressAndData(
+      connection,
+      strategyState.sharesMint,
+      signer.publicKey
+    );
+    const [tokenAAta, tokenAData] = await getAssociatedTokenAddressAndData(
+      connection,
+      strategyState.tokenAMint,
+      signer.publicKey
+    );
+    const [tokenBAta, tokenBData] = await getAssociatedTokenAddressAndData(
+      connection,
+      strategyState.tokenBMint,
+      signer.publicKey
+    );
+
+    let strategyWithAddres = { address: strategy, strategy: strategyState };
+    const ataInstructions = await kamino.getCreateAssociatedTokenAccountInstructionsIfNotExist(
+      signer.publicKey,
+      strategyWithAddres,
+      tokenAData,
+      tokenAAta,
+      tokenBData,
+      tokenBAta,
+      sharesMintData,
+      sharesAta
+    );
+
+    const increaseBudgetIx = createAddExtraComputeUnitsIx(1_400_000);
+    const depositTx = await kamino.getTransactionV2Message(
+      signer.publicKey,
+      [increaseBudgetIx, ...depositIx.instructions],
+      [strategyState.strategyLookupTable, ...depositIx.lookupTablesAddresses]
+    );
+    const depositTransactionV0 = new VersionedTransaction(depositTx);
+    depositTransactionV0.sign([signer]);
+    //@ts-ignore
+    let txHash = await sendAndConfirmTransaction(kamino._connection, depositTransactionV0);
+    // let txHash = await sendAndConfirmTransaction(kamino._connection, depositTransactionV0, { skipPreflight: true });
+    console.log('deposit tx hash', txHash);
+  });
+
+  it('calculate amounts', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      STAGING_GLOBAL_CONFIG,
+      STAGING_KAMINO_PROGRAM_ID,
+      WHIRLPOOL_PROGRAM_ID,
+      RAYDIUM_PROGRAM_ID,
+      METEORA_PROGRAM_ID
     );
     let amounts = await kamino.calculateAmountsToBeDepositedWithSwap(
       new PublicKey('Cfuy5T6osdazUeLego5LFycBQebm9PP3H7VNdCndXXEN'),

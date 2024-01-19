@@ -1,4 +1,4 @@
-import { PublicKey, SystemProgram, TransactionInstruction } from '@solana/web3.js';
+import { ComputeBudgetProgram, PublicKey, SystemProgram, TransactionInstruction } from '@solana/web3.js';
 import { WhirlpoolStrategy } from '../kamino-client/accounts';
 import { WHIRLPOOL_PROGRAM_ID } from '../whirpools-client/programId';
 import { PROGRAM_ID as RAYDIUM_PROGRAM_ID } from '../raydium_client/programId';
@@ -304,4 +304,11 @@ export function stripTwapZeros(chain: number[]): number[] {
 
 export function percentageToBPS(pct: number): number {
   return pct * 100;
+}
+
+export function createAddExtraComputeUnitsTransaction(units: number, microLamports: number): TransactionInstruction[] {
+  let ix1 = ComputeBudgetProgram.setComputeUnitLimit({ units });
+  let ix2 = ComputeBudgetProgram.setComputeUnitLimit({ units });
+  const ixns = [ix1, ix2];
+  return ixns;
 }
