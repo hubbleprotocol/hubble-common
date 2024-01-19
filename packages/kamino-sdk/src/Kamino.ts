@@ -54,6 +54,7 @@ import {
   getEmptyShareData,
   Holdings,
   KaminoPosition,
+  KaminoStrategyWithShareMint,
   MintToPriceMap,
   ShareData,
   ShareDataWithAddress,
@@ -5107,7 +5108,10 @@ export class Kamino {
    * @param wallet user wallet address
    * @returns list of kamino strategy positions
    */
-  getUserPositions = async (wallet: PublicKey): Promise<KaminoPosition[]> => {
+  getUserPositions = async (
+    wallet: PublicKey,
+    strategiesWithShareMintsMap: Map<string, KaminoStrategyWithShareMint>
+  ): Promise<KaminoPosition[]> => {
     const accounts = await this._connection.getParsedTokenAccountsByOwner(wallet, {
       programId: TOKEN_PROGRAM_ID,
     });
@@ -5117,7 +5121,8 @@ export class Kamino {
     });
     const mintInfos = await batchFetch(mints, (chunk) => this.getConnection().getMultipleAccountsInfo(chunk));
 
-    const kaminoMintWithAccountInfo: [PublicKey, AccountInfo<ParsedAccountData>][] = [];
+    const kaminoStrategyAdresses: PublicKey[] = [];
+    const kaminoAccountInfos: Array<AccountInfo<ParsedAccountData>> = [];
 
     for (const index of mints.keys()) {
       const mint = mints[index];
@@ -5134,32 +5139,34 @@ export class Kamino {
       const mintData = this._deserializeMint(mintInfo.data);
 
       if (mintData.mintAuthority !== null && mintData.mintAuthority.equals(expectedMintAuthority)) {
-        kaminoMintWithAccountInfo.push([mint, accountInfo.account]);
+        const shareMintAddress = accounts.value[index].account.data.parsed.info.mint;
+        const address = strategiesWithShareMintsMap.get(shareMintAddress)?.address;
+
+        if (!address) continue;
+
+        kaminoStrategyAdresses.push(new PublicKey(address));
+        kaminoAccountInfos.push(accountInfo.account);
       }
     }
 
-    const strategies = await batchFetch(
-      kaminoMintWithAccountInfo,
-      (chunk) => Promise.all(chunk.map(([mint]) => this.getStrategyByKTokenMint(mint))),
-      25
-    );
+    const strategies = await batchFetch(kaminoStrategyAdresses, (chunk) => this.getStrategies(chunk));
 
     const positions: KaminoPosition[] = [];
 
     for (const index of strategies.keys()) {
       const strategy = strategies[index];
-      const accountData = kaminoMintWithAccountInfo[index][1];
+      const accountData = kaminoAccountInfos[index];
+      const address = kaminoStrategyAdresses[index];
 
       if (!strategy || !accountData) {
-        console.error('Could not retrieve strategy');
         continue;
       }
 
       positions.push({
-        shareMint: strategy.strategy.sharesMint,
-        strategy: strategy.address,
+        shareMint: strategy.sharesMint,
+        strategy: address,
         sharesAmount: new Decimal(accountData.data.parsed.info.tokenAmount.uiAmountString),
-        strategyDex: numberToDex(strategy.strategy.strategyDex.toNumber()),
+        strategyDex: numberToDex(strategy.strategyDex.toNumber()),
       });
     }
 
