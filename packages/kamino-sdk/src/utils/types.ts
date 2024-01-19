@@ -13,6 +13,7 @@ export type StrategiesFilters = {
   strategyType?: StrategyType;
   strategyCreationStatus?: StrategyCreationStatus;
   isCommunity?: boolean;
+  owner?: PublicKey;
 };
 
 export function strategyTypeToBase58(strategyType: StrategyType): string {

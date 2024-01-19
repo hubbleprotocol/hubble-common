@@ -14,6 +14,7 @@ import {
   Keypair,
   AddressLookupTableProgram,
   Transaction,
+  ParsedAccountData,
 } from '@solana/web3.js';
 import { setKaminoProgramId } from './kamino-client/programId';
 import {
@@ -53,6 +54,7 @@ import {
   getEmptyShareData,
   Holdings,
   KaminoPosition,
+  KaminoStrategyWithShareMint,
   MintToPriceMap,
   ShareData,
   ShareDataWithAddress,
@@ -121,7 +123,7 @@ import {
   stripTwapZeros,
   getTokenNameFromCollateralInfo,
 } from './utils';
-import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID } from '@solana/spl-token';
+import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID, MintInfo, MintLayout, u64 } from '@solana/spl-token';
 import {
   checkExpectedVaultsBalances,
   CheckExpectedVaultsBalancesAccounts,
@@ -1245,6 +1247,15 @@ export class Kamino {
     filters.push({
       dataSize: 4064,
     });
+
+    if (strategyFilters.owner) {
+      filters.push({
+        memcmp: {
+          bytes: strategyFilters.owner.toBase58(),
+          offset: 8,
+        },
+      });
+    }
 
     if (strategyFilters.strategyCreationStatus) {
       filters.push({
@@ -5839,6 +5850,36 @@ export class Kamino {
   };
 
   /**
+   * Deserialize a buffer to MintInfo
+   * @param data Buffer
+   * @returns
+   */
+  _deserializeMint(data: Buffer): MintInfo {
+    if (data.length !== MintLayout.span) {
+      throw new Error('Not a valid Mint');
+    }
+
+    const mintInfo = MintLayout.decode(data);
+
+    if (mintInfo.mintAuthorityOption === 0) {
+      mintInfo.mintAuthority = null;
+    } else {
+      mintInfo.mintAuthority = new PublicKey(mintInfo.mintAuthority);
+    }
+
+    mintInfo.supply = u64.fromBuffer(mintInfo.supply);
+    mintInfo.isInitialized = mintInfo.isInitialized !== 0;
+
+    if (mintInfo.freezeAuthorityOption === 0) {
+      mintInfo.freezeAuthority = null;
+    } else {
+      mintInfo.freezeAuthority = new PublicKey(mintInfo.freezeAuthority);
+    }
+
+    return mintInfo;
+  }
+
+  /**
    * Get a list of user's Kamino strategy positions
    * @param wallet user wallet address
    * @param strategyFilters
@@ -5865,6 +5906,76 @@ export class Kamino {
         });
       }
     }
+    return positions;
+  };
+
+  /**
+   * Get a list of user's Kamino strategy positions
+   * @param wallet user wallet address
+   * @returns list of kamino strategy positions
+   */
+  getUserPositionsByStrategiesMap = async (
+    wallet: PublicKey,
+    strategiesWithShareMintsMap: Map<string, KaminoStrategyWithShareMint>
+  ): Promise<KaminoPosition[]> => {
+    const accounts = await this._connection.getParsedTokenAccountsByOwner(wallet, {
+      programId: TOKEN_PROGRAM_ID,
+    });
+
+    const mints = accounts.value.map((accountInfo) => {
+      return new PublicKey(accountInfo.account.data.parsed.info.mint);
+    });
+    const mintInfos = await batchFetch(mints, (chunk) => this.getConnection().getMultipleAccountsInfo(chunk));
+
+    const kaminoStrategyAdresses: PublicKey[] = [];
+    const kaminoAccountInfos: Array<AccountInfo<ParsedAccountData>> = [];
+
+    for (const index of mints.keys()) {
+      const mint = mints[index];
+      const mintInfo = mintInfos[index];
+      const accountInfo = accounts.value[index];
+
+      if (!mint || !mintInfo || !accountInfo) continue;
+
+      const [expectedMintAuthority] = PublicKey.findProgramAddressSync(
+        [Buffer.from('authority'), mint.toBuffer()],
+        this.getProgramID()
+      );
+
+      const mintData = this._deserializeMint(mintInfo.data);
+
+      if (mintData.mintAuthority !== null && mintData.mintAuthority.equals(expectedMintAuthority)) {
+        const shareMintAddress = accounts.value[index].account.data.parsed.info.mint;
+        const address = strategiesWithShareMintsMap.get(shareMintAddress)?.address;
+
+        if (!address) continue;
+
+        kaminoStrategyAdresses.push(new PublicKey(address));
+        kaminoAccountInfos.push(accountInfo.account);
+      }
+    }
+
+    const strategies = await batchFetch(kaminoStrategyAdresses, (chunk) => this.getStrategies(chunk));
+
+    const positions: KaminoPosition[] = [];
+
+    for (const index of strategies.keys()) {
+      const strategy = strategies[index];
+      const accountData = kaminoAccountInfos[index];
+      const address = kaminoStrategyAdresses[index];
+
+      if (!strategy || !accountData) {
+        continue;
+      }
+
+      positions.push({
+        shareMint: strategy.sharesMint,
+        strategy: address,
+        sharesAmount: new Decimal(accountData.data.parsed.info.tokenAmount.uiAmountString),
+        strategyDex: numberToDex(strategy.strategyDex.toNumber()),
+      });
+    }
+
     return positions;
   };
 
