@@ -5106,9 +5106,39 @@ export class Kamino {
   /**
    * Get a list of user's Kamino strategy positions
    * @param wallet user wallet address
+   * @param strategyFilters
    * @returns list of kamino strategy positions
    */
   getUserPositions = async (
+    wallet: PublicKey,
+    strategyFilters: StrategiesFilters = { strategyCreationStatus: 'LIVE' }
+  ): Promise<KaminoPosition[]> => {
+    const userTokenAccounts = await this.getAllTokenAccounts(wallet);
+    const liveStrategies = await this.getAllStrategiesWithFilters(strategyFilters);
+    const positions: KaminoPosition[] = [];
+    for (const tokenAccount of userTokenAccounts) {
+      const accountData = tokenAccount.account.data as Data;
+      const strategy = liveStrategies.find(
+        (x) => x.strategy.sharesMint.toString() === accountData.parsed.info.mint.toString()
+      );
+      if (strategy) {
+        positions.push({
+          shareMint: strategy.strategy.sharesMint,
+          strategy: strategy.address,
+          sharesAmount: new Decimal(accountData.parsed.info.tokenAmount.uiAmountString),
+          strategyDex: numberToDex(strategy.strategy.strategyDex.toNumber()),
+        });
+      }
+    }
+    return positions;
+  };
+
+  /**
+   * Get a list of user's Kamino strategy positions
+   * @param wallet user wallet address
+   * @returns list of kamino strategy positions
+   */
+  getUserPositionsByStrategiesMap = async (
     wallet: PublicKey,
     strategiesWithShareMintsMap: Map<string, KaminoStrategyWithShareMint>
   ): Promise<KaminoPosition[]> => {
