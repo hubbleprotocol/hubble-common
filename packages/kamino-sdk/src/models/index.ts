@@ -15,3 +15,4 @@ export * from './StrategyProgramAddress';
 export * from './StrategyVaultTokens';
 export * from './ShareData';
 export * from './EnrichedScopePrice';
+export * from './KaminoStrategyWithShareMint';
