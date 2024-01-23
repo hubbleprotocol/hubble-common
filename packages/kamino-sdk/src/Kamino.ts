@@ -229,6 +229,7 @@ import {
   DefaultFeeTierOrca,
   DefaultMintTokenA,
   DefaultMintTokenB,
+  DefaultTickSpacing,
   DriftRebalanceMethod,
   ExpanderMethod,
   FullBPS,
@@ -338,7 +339,7 @@ import {
 import { KaminoPrices, OraclePricesAndCollateralInfos } from './models';
 import { getRemoveLiquidityQuote } from './whirpools-client/shim/remove-liquidity';
 import { METEORA_PROGRAM_ID, setMeteoraProgramId } from './meteora_client/programId';
-import { MeteoraPool, MeteoraService } from './services/MeteoraService';
+import { computeMeteoraFee, MeteoraPool, MeteoraService } from './services/MeteoraService';
 import {
   binIdToBinArrayIndex,
   deriveBinArray,
@@ -492,7 +493,7 @@ export class Kamino {
     const tokenMintB = DefaultMintTokenB;
     const rebalanceMethod = this.getDefaultRebalanceMethod();
     const feeTier = DefaultFeeTierOrca;
-    const tickSpacing = 1;
+    const tickSpacing = DefaultTickSpacing;
     let rebalancingParameters = await this.getDefaultRebalanceFields(
       dex,
       tokenMintA,
@@ -1141,9 +1142,7 @@ export class Kamino {
             tokenMintA: pool.pool.tokenXMint,
             tokenMintB: pool.pool.tokenYMint,
             tvl: new Decimal(0),
-            feeRate: new Decimal(pool.pool.parameters.baseFactor)
-              .mul(new Decimal(pool.pool.binStep))
-              .div(new Decimal(1e8)),
+            feeRate: computeMeteoraFee(pool.pool).div(1e2), // Transform it to rate
             volumeOnLast7d: new Decimal(0),
             tickSpacing: new Decimal(pool.pool.binStep),
             positions: positionsCount,
@@ -1213,7 +1212,6 @@ export class Kamino {
   getStrategies = async (strategies?: Array<PublicKey>): Promise<Array<WhirlpoolStrategy | null>> => {
     if (!strategies) {
       strategies = (await this.getAllStrategiesWithFilters({})).map((x) => x.address);
-      console.log('Fetches', strategies.length, 'strategies with filters');
     }
     return await batchFetch(strategies, (chunk) =>
       WhirlpoolStrategy.fetchMultiple(this._connection, chunk, this._kaminoProgramId)

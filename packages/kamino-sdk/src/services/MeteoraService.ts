@@ -127,7 +127,6 @@ export class MeteoraService {
   }
 
   async getStrategyMeteoraPoolAprApy(strategy: WhirlpoolStrategy, prices: KaminoPrices): Promise<WhirlpoolAprApy> {
-    // throw new Error('unimplemented getStrategyMeteoraPoolAprApy');
     const position = await this.getPosition(strategy.position);
     if (!position) {
       throw new Error(`Position ${strategy.position} does not exist`);
@@ -167,9 +166,9 @@ export class MeteoraService {
     }
 
     // TODO: fix this
-    let totalApr = new Decimal(100);
-    let feeApr = new Decimal(100);
-    let rewardsApr = [new Decimal(100)];
+    let totalApr = new Decimal(0);
+    let feeApr = new Decimal(0);
+    let rewardsApr = [new Decimal(0)];
     return {
       totalApr,
       totalApy: aprToApy(totalApr, 365),
@@ -188,7 +187,6 @@ export class MeteoraService {
     lowestTick?: number,
     highestTick?: number
   ): Promise<LiquidityDistribution> {
-    // throw new Error('unimplemented getMeteoraLiquidityDistribution');
     //TODO: fix this
     const pool = await this.getPool(poolKey);
     if (!pool) {
@@ -217,8 +215,6 @@ export class MeteoraService {
     priceUpper: Decimal,
     prices: KaminoPrices
   ): Promise<WhirlpoolAprApy> {
-    // throw new Error('unimplemented getMeteoraPositionAprApy');
-
     const pool = await this.getPool(poolPubkey);
     if (!pool) {
       throw Error(`Could not get meteora pool data for ${poolPubkey}`);
@@ -244,9 +240,9 @@ export class MeteoraService {
         totalApr: ZERO,
       };
     }
-    let totalApr = new Decimal(100);
-    let feeApr = new Decimal(100);
-    let rewardsApr = [new Decimal(100)];
+    let totalApr = new Decimal(0);
+    let feeApr = new Decimal(0);
+    let rewardsApr = [new Decimal(0)];
     return {
       totalApr,
       totalApy: aprToApy(totalApr, 365),
@@ -273,10 +269,10 @@ export class MeteoraService {
       tokenMintA: pool.tokenXMint,
       tokenMintB: pool.tokenYMint,
       price,
-      feeRate: new Decimal(pool.parameters.baseFactor).mul(new Decimal(pool.binStep)).div(new Decimal(1e6)),
+      feeRate: computeMeteoraFee(pool),
       // TODO: add these
-      volumeOnLast7d: new Decimal(100),
-      tvl: new Decimal(100),
+      volumeOnLast7d: new Decimal(0),
+      tvl: new Decimal(0),
       tickSpacing: new Decimal(pool.binStep),
       // todo(Silviu): get real amount of positions
       positions: new Decimal(await this.getPositionsCountByPool(poolPubkey)),
@@ -292,4 +288,8 @@ export class MeteoraService {
 
     return rawPositions.length;
   }
+}
+
+export function computeMeteoraFee(pool: LbPair): Decimal {
+  return new Decimal(pool.parameters.baseFactor).mul(new Decimal(pool.binStep)).div(new Decimal(1e6));
 }
