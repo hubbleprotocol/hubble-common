@@ -1,6 +1,6 @@
 import { TransactionInstruction, PublicKey, AccountMeta } from "@solana/web3.js" // eslint-disable-line @typescript-eslint/no-unused-vars
 import BN from "bn.js" // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as borsh from "@project-serum/borsh" // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as borsh from "@coral-xyz/borsh" // eslint-disable-line @typescript-eslint/no-unused-vars
 import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
 import { PROGRAM_ID } from "../programId"
 
@@ -10,6 +10,9 @@ export interface CloseStrategyAccounts {
   oldPositionOrBaseVaultAuthority: PublicKey
   oldPositionMintOrBaseVaultAuthority: PublicKey
   oldPositionTokenAccountOrBaseVaultAuthority: PublicKey
+  oldTickArrayLowerOrBaseVaultAuthority: PublicKey
+  oldTickArrayUpperOrBaseVaultAuthority: PublicKey
+  pool: PublicKey
   tokenAVault: PublicKey
   tokenBVault: PublicKey
   userTokenAAta: PublicKey
@@ -42,9 +45,13 @@ export interface CloseStrategyAccounts {
   poolProgram: PublicKey
   tokenProgram: PublicKey
   system: PublicKey
+  eventAuthority: PublicKey
 }
 
-export function closeStrategy(accounts: CloseStrategyAccounts) {
+export function closeStrategy(
+  accounts: CloseStrategyAccounts,
+  programId: PublicKey = PROGRAM_ID
+) {
   const keys: Array<AccountMeta> = [
     { pubkey: accounts.adminAuthority, isSigner: true, isWritable: true },
     { pubkey: accounts.strategy, isSigner: false, isWritable: true },
@@ -63,6 +70,17 @@ export function closeStrategy(accounts: CloseStrategyAccounts) {
       isSigner: false,
       isWritable: true,
     },
+    {
+      pubkey: accounts.oldTickArrayLowerOrBaseVaultAuthority,
+      isSigner: false,
+      isWritable: true,
+    },
+    {
+      pubkey: accounts.oldTickArrayUpperOrBaseVaultAuthority,
+      isSigner: false,
+      isWritable: true,
+    },
+    { pubkey: accounts.pool, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenAVault, isSigner: false, isWritable: true },
     { pubkey: accounts.tokenBVault, isSigner: false, isWritable: true },
     { pubkey: accounts.userTokenAAta, isSigner: false, isWritable: true },
@@ -95,9 +113,10 @@ export function closeStrategy(accounts: CloseStrategyAccounts) {
     { pubkey: accounts.poolProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.system, isSigner: false, isWritable: false },
+    { pubkey: accounts.eventAuthority, isSigner: false, isWritable: false },
   ]
   const identifier = Buffer.from([56, 247, 170, 246, 89, 221, 134, 200])
   const data = identifier
-  const ix = new TransactionInstruction({ keys, programId: PROGRAM_ID, data })
+  const ix = new TransactionInstruction({ keys, programId, data })
   return ix
 }

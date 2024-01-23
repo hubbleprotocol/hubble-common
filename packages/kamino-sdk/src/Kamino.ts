@@ -216,13 +216,20 @@ import {
   DefaultPerformanceFeeBps,
   DefaultWithdrawFeeBps,
 } from './constants/DefaultStrategyConfig';
-import { DEVNET_GLOBAL_LOOKUP_TABLE, MAINNET_GLOBAL_LOOKUP_TABLE } from './constants/pubkeys';
+import {
+  DEVNET_GLOBAL_LOOKUP_TABLE,
+  MAINNET_GLOBAL_LOOKUP_TABLE,
+  STAGING_GLOBAL_CONFIG,
+  STAGING_GLOBAL_LOOKUP_TABLE,
+  STAGING_KAMINO_PROGRAM_ID,
+} from './constants/pubkeys';
 import {
   AutodriftMethod,
   DefaultDex,
   DefaultFeeTierOrca,
   DefaultMintTokenA,
   DefaultMintTokenB,
+  DefaultTickSpacing,
   DriftRebalanceMethod,
   ExpanderMethod,
   FullBPS,
@@ -331,6 +338,21 @@ import {
 } from './rebalance_methods/autodriftRebalance';
 import { KaminoPrices, OraclePricesAndCollateralInfos } from './models';
 import { getRemoveLiquidityQuote } from './whirpools-client/shim/remove-liquidity';
+import { METEORA_PROGRAM_ID, setMeteoraProgramId } from './meteora_client/programId';
+import { computeMeteoraFee, MeteoraPool, MeteoraService } from './services/MeteoraService';
+import {
+  binIdToBinArrayIndex,
+  deriveBinArray,
+  getBinFromBinArray,
+  getBinFromBinArrays,
+  getBinIdFromPriceWithDecimals,
+  getPriceOfBinByBinId,
+  getPriceOfBinByBinIdWithDecimals,
+  MeteoraPosition,
+} from './utils/meteora';
+import { BinArray, LbPair, PositionV2 } from './meteora_client/accounts';
+import LbPairWithAddress from './models/LbPairWithAddress';
+import { initializeBinArray, InitializeBinArrayAccounts, InitializeBinArrayArgs } from './meteora_client/instructions';
 export const KAMINO_IDL = KaminoIdl;
 
 export class Kamino {
@@ -344,6 +366,7 @@ export class Kamino {
   private readonly _kaminoProgramId: PublicKey;
   private readonly _orcaService: OrcaService;
   private readonly _raydiumService: RaydiumService;
+  private readonly _meteoraService: MeteoraService;
 
   /**
    * Create a new instance of the Kamino SDK class.
@@ -360,16 +383,23 @@ export class Kamino {
     globalConfig?: PublicKey,
     programId?: PublicKey,
     whirlpoolProgramId?: PublicKey,
-    raydiumProgramId?: PublicKey
+    raydiumProgramId?: PublicKey,
+    meteoraProgramId?: PublicKey
   ) {
     this._cluster = cluster;
     this._connection = connection;
     this._config = getConfigByCluster(cluster);
-    this._globalConfig = globalConfig ? globalConfig : new PublicKey(this._config.kamino.globalConfig);
+
     this._provider = new Provider(connection, getReadOnlyWallet(), {
       commitment: connection.commitment,
     });
-    this._kaminoProgramId = programId ? programId : this._config.kamino.programId;
+    if (programId && programId.equals(STAGING_KAMINO_PROGRAM_ID)) {
+      this._kaminoProgramId = programId;
+      this._globalConfig = STAGING_GLOBAL_CONFIG;
+    } else {
+      this._kaminoProgramId = programId ? programId : this._config.kamino.programId;
+      this._globalConfig = globalConfig ? globalConfig : new PublicKey(this._config.kamino.globalConfig);
+    }
     this._kaminoProgram = new Program(KAMINO_IDL as Idl, this._kaminoProgramId, this._provider);
 
     this._scope = new Scope(cluster, connection);
@@ -385,8 +415,13 @@ export class Kamino {
       }
     }
 
+    if (meteoraProgramId) {
+      setMeteoraProgramId(meteoraProgramId);
+    }
+
     this._orcaService = new OrcaService(connection, cluster, this._globalConfig);
     this._raydiumService = new RaydiumService(connection, cluster);
+    this._meteoraService = new MeteoraService(connection, this._globalConfig);
   }
 
   getConnection = () => this._connection;
@@ -407,20 +442,22 @@ export class Kamino {
   };
 
   getCollateralInfos = async () => {
-    const config = await GlobalConfig.fetch(this._connection, this._globalConfig);
+    const config = await GlobalConfig.fetch(this._connection, this._globalConfig, this._kaminoProgramId);
     if (!config) {
       throw Error(`Could not fetch globalConfig with pubkey ${this.getGlobalConfig().toString()}`);
     }
     return this.getCollateralInfo(config.tokenInfos);
   };
 
-  getSupportedDexes = (): Dex[] => ['ORCA', 'RAYDIUM'];
+  getSupportedDexes = (): Dex[] => ['ORCA', 'RAYDIUM', 'METEORA'];
 
   // todo: see if we can read this dynamically
   getFeeTiersForDex = (dex: Dex): Decimal[] => {
     if (dex == 'ORCA') {
       return [new Decimal(0.0001), new Decimal(0.0005), new Decimal(0.003), new Decimal(0.01)];
     } else if (dex == 'RAYDIUM') {
+      return [new Decimal(0.0001), new Decimal(0.0005), new Decimal(0.0025), new Decimal(0.01)];
+    } else if (dex == 'METEORA') {
       return [new Decimal(0.0001), new Decimal(0.0005), new Decimal(0.0025), new Decimal(0.01)];
     } else {
       throw new Error(`Dex ${dex} is not supported`);
@@ -456,7 +493,14 @@ export class Kamino {
     const tokenMintB = DefaultMintTokenB;
     const rebalanceMethod = this.getDefaultRebalanceMethod();
     const feeTier = DefaultFeeTierOrca;
-    let rebalancingParameters = await this.getDefaultRebalanceFields(dex, tokenMintA, tokenMintB, rebalanceMethod);
+    const tickSpacing = DefaultTickSpacing;
+    let rebalancingParameters = await this.getDefaultRebalanceFields(
+      dex,
+      tokenMintA,
+      tokenMintB,
+      tickSpacing,
+      rebalanceMethod
+    );
     let defaultParameters: VaultParameters = {
       dex,
       tokenMintA,
@@ -492,6 +536,7 @@ export class Kamino {
     fieldOverrides: RebalanceFieldInfo[],
     tokenAMint: PublicKey,
     tokenBMint: PublicKey,
+    tickSpacing: number,
     poolPrice?: Decimal
   ): Promise<RebalanceFieldInfo[]> => {
     switch (rebalanceMethod) {
@@ -502,7 +547,14 @@ export class Kamino {
       case PricePercentageWithResetRangeRebalanceMethod:
         return this.getFieldsForPricePercentageWithResetMethod(dex, fieldOverrides, tokenAMint, tokenBMint, poolPrice);
       case DriftRebalanceMethod:
-        return this.getFieldsForDriftRebalanceMethod(dex, fieldOverrides, tokenAMint, tokenBMint, poolPrice);
+        return this.getFieldsForDriftRebalanceMethod(
+          dex,
+          fieldOverrides,
+          tickSpacing,
+          tokenAMint,
+          tokenBMint,
+          poolPrice
+        );
       case TakeProfitMethod:
         return this.getFieldsForTakeProfitRebalanceMethod(dex, fieldOverrides, tokenAMint, tokenBMint, poolPrice);
       case PeriodicRebalanceMethod:
@@ -510,7 +562,14 @@ export class Kamino {
       case ExpanderMethod:
         return this.getFieldsForExpanderRebalanceMethod(dex, fieldOverrides, tokenAMint, tokenBMint, poolPrice);
       case AutodriftMethod:
-        return this.getFieldsForAutodriftRebalanceMethod(dex, fieldOverrides, tokenAMint, tokenBMint, poolPrice);
+        return this.getFieldsForAutodriftRebalanceMethod(
+          dex,
+          fieldOverrides,
+          tokenAMint,
+          tokenBMint,
+          tickSpacing,
+          poolPrice
+        );
       default:
         throw new Error(`Rebalance method ${rebalanceMethod} is not supported`);
     }
@@ -618,6 +677,7 @@ export class Kamino {
   getFieldsForDriftRebalanceMethod = async (
     dex: Dex,
     fieldOverrides: RebalanceFieldInfo[],
+    tickSpacing: number,
     tokenAMint: PublicKey,
     tokenBMint: PublicKey,
     poolPrice?: Decimal
@@ -626,7 +686,7 @@ export class Kamino {
     const tokenBDecimals = await getMintDecimals(this._connection, tokenBMint);
     const price = poolPrice ? poolPrice : new Decimal(await this.getPriceForPair(dex, tokenAMint, tokenBMint));
 
-    const defaultFields = getDefaultDriftRebalanceFieldInfos(dex, price, tokenADecimals, tokenBDecimals);
+    const defaultFields = getDefaultDriftRebalanceFieldInfos(dex, tickSpacing, price, tokenADecimals, tokenBDecimals);
 
     let startMidTick = defaultFields.find((x) => x.label == 'startMidTick')!.value;
     let startMidTickInput = fieldOverrides.find((x) => x.label == 'startMidTick');
@@ -662,6 +722,7 @@ export class Kamino {
       dex,
       tokenADecimals,
       tokenBDecimals,
+      tickSpacing,
       new Decimal(startMidTick),
       new Decimal(ticksBelowMid),
       new Decimal(ticksAboveMid),
@@ -813,6 +874,7 @@ export class Kamino {
     fieldOverrides: RebalanceFieldInfo[],
     tokenAMint: PublicKey,
     tokenBMint: PublicKey,
+    tickSpacing: number,
     poolPrice?: Decimal
   ): Promise<RebalanceFieldInfo[]> => {
     const tokenADecimals = await getMintDecimals(this._connection, tokenAMint);
@@ -820,7 +882,13 @@ export class Kamino {
     const price = poolPrice ? poolPrice : new Decimal(await this.getPriceForPair(dex, tokenAMint, tokenBMint));
 
     // TODO: maybe we will need to get real staking price instead of pool price for this to be accurate.
-    const defaultFields = getDefaultAutodriftRebalanceFieldInfos(dex, price, tokenADecimals, tokenBDecimals);
+    const defaultFields = getDefaultAutodriftRebalanceFieldInfos(
+      dex,
+      price,
+      tokenADecimals,
+      tokenBDecimals,
+      tickSpacing
+    );
 
     let lastMidTick = defaultFields.find((x) => x.label == 'lastMidTick')!.value;
 
@@ -869,6 +937,7 @@ export class Kamino {
       dex,
       tokenADecimals,
       tokenBDecimals,
+      tickSpacing,
       new Decimal(lastMidTick),
       new Decimal(initDriftTicksPerEpoch),
       new Decimal(ticksBelowMid),
@@ -900,6 +969,19 @@ export class Kamino {
         throw new Error(`No pool found for ${poolTokenA.toString()} and ${poolTokenB.toString()}`);
       }
       return pools[0].price;
+    } else if (dex == 'METEORA') {
+      let pools = await this.getMeteoraPoolsForTokens(poolTokenA, poolTokenB);
+      if (pools.length == 0) {
+        throw new Error(`No pool found for ${poolTokenA.toString()} and ${poolTokenB.toString()}`);
+      }
+      let decimalsX = await getMintDecimals(this._connection, poolTokenA);
+      let decimalsY = await getMintDecimals(this._connection, poolTokenB);
+      return getPriceOfBinByBinIdWithDecimals(
+        pools[0].pool.activeId,
+        pools[0].pool.binStep,
+        decimalsX,
+        decimalsY
+      ).toNumber();
     } else {
       throw new Error(`Dex ${dex} is not supported`);
     }
@@ -909,6 +991,7 @@ export class Kamino {
     dex: Dex,
     poolTokenA: PublicKey,
     poolTokenB: PublicKey,
+    tickSpacing: number,
     rebalanceMethod: RebalanceMethod
   ): Promise<RebalanceFieldInfo[]> => {
     const price = new Decimal(await this.getPriceForPair(dex, poolTokenA, poolTokenB));
@@ -923,7 +1006,7 @@ export class Kamino {
       case PricePercentageWithResetRangeRebalanceMethod:
         return getDefaultPricePercentageWithResetRebalanceFieldInfos(price);
       case DriftRebalanceMethod:
-        return getDefaultDriftRebalanceFieldInfos(dex, price, tokenADecimals, tokenBDecimals);
+        return getDefaultDriftRebalanceFieldInfos(dex, tickSpacing, price, tokenADecimals, tokenBDecimals);
       case TakeProfitMethod:
         return getDefaultTakeProfitRebalanceFieldsInfos(price);
       case PeriodicRebalanceMethod:
@@ -931,7 +1014,7 @@ export class Kamino {
       case ExpanderMethod:
         return getDefaultExpanderRebalanceFieldInfos(price);
       case AutodriftMethod:
-        return getDefaultAutodriftRebalanceFieldInfos(dex, price, tokenADecimals, tokenBDecimals);
+        return getDefaultAutodriftRebalanceFieldInfos(dex, price, tokenADecimals, tokenBDecimals, tickSpacing);
       default:
         throw new Error(`Rebalance method ${rebalanceMethod} is not supported`);
     }
@@ -972,6 +1055,16 @@ export class Kamino {
         if (element.ammConfig.tickSpacing < tickSpacing) {
           pool = new PublicKey(element.id);
           tickSpacing = element.ammConfig.tickSpacing;
+        }
+      });
+      return pool;
+    } else if (dex == 'METEORA') {
+      let pool = PublicKey.default;
+      let pools = await this.getMeteoraPoolsForTokens(poolTokenA, poolTokenB);
+      pools.forEach((element) => {
+        let feeRateBps = element.pool.parameters.baseFactor * element.pool.binStep;
+        if (feeRateBps == feeBPS.toNumber()) {
+          pool = new PublicKey(element.key);
         }
       });
       return pool;
@@ -1033,6 +1126,32 @@ export class Kamino {
       );
 
       return genericPoolInfos;
+    } else if (dex == 'METEORA') {
+      let pools = await this.getMeteoraPoolsForTokens(tokenMintA, tokenMintB);
+      let genericPoolInfos: GenericPoolInfo[] = await Promise.all(
+        pools.map(async (pool: MeteoraPool) => {
+          let positionsCount = new Decimal(await this.getPositionsCountForPool(dex, pool.key));
+          let decimalsX = await getMintDecimals(this._connection, pool.pool.tokenXMint);
+          let decimalsY = await getMintDecimals(this._connection, pool.pool.tokenYMint);
+          let price = getPriceOfBinByBinIdWithDecimals(pool.pool.activeId, pool.pool.binStep, decimalsX, decimalsY);
+
+          let poolInfo: GenericPoolInfo = {
+            dex,
+            address: pool.key,
+            price,
+            tokenMintA: pool.pool.tokenXMint,
+            tokenMintB: pool.pool.tokenYMint,
+            tvl: new Decimal(0),
+            feeRate: computeMeteoraFee(pool.pool).div(1e2), // Transform it to rate
+            volumeOnLast7d: new Decimal(0),
+            tickSpacing: new Decimal(pool.pool.binStep),
+            positions: positionsCount,
+          };
+          return poolInfo;
+        })
+      );
+
+      return genericPoolInfos;
     } else {
       throw new Error(`Dex ${dex} is not supported`);
     }
@@ -1069,6 +1188,23 @@ export class Kamino {
     return pools;
   };
 
+  getMeteoraPoolsForTokens = async (poolTokenA: PublicKey, poolTokenB: PublicKey): Promise<MeteoraPool[]> => {
+    let pools: MeteoraPool[] = [];
+    let meteoraPools = await this._meteoraService.getMeteoraPools();
+    meteoraPools.forEach((element) => {
+      if (
+        (element.pool.tokenXMint.toString() == poolTokenA.toString() &&
+          element.pool.tokenYMint.toString() == poolTokenB.toString()) ||
+        (element.pool.tokenXMint.toString() == poolTokenB.toString() &&
+          element.pool.tokenYMint.toString() == poolTokenA.toString())
+      ) {
+        pools.push(element);
+      }
+    });
+
+    return pools;
+  };
+
   /**
    * Return a list of all Kamino whirlpool strategies
    * @param strategies Limit results to these strategy addresses
@@ -1077,7 +1213,9 @@ export class Kamino {
     if (!strategies) {
       strategies = (await this.getAllStrategiesWithFilters({})).map((x) => x.address);
     }
-    return await batchFetch(strategies, (chunk) => WhirlpoolStrategy.fetchMultiple(this._connection, chunk));
+    return await batchFetch(strategies, (chunk) =>
+      WhirlpoolStrategy.fetchMultiple(this._connection, chunk, this._kaminoProgramId)
+    );
   };
 
   /**
@@ -1089,7 +1227,9 @@ export class Kamino {
       return this.getAllStrategiesWithFilters({});
     }
     const result: StrategyWithAddress[] = [];
-    const states = await batchFetch(strategies, (chunk) => WhirlpoolStrategy.fetchMultiple(this._connection, chunk));
+    const states = await batchFetch(strategies, (chunk) =>
+      WhirlpoolStrategy.fetchMultiple(this._connection, chunk, this._kaminoProgramId)
+    );
     for (let i = 0; i < strategies.length; i++) {
       if (states[i]) {
         result.push({ address: strategies[i], strategy: states[i]! });
@@ -1155,7 +1295,8 @@ export class Kamino {
    * Get a Kamino whirlpool strategy by its public key address
    * @param address
    */
-  getStrategyByAddress = (address: PublicKey) => WhirlpoolStrategy.fetch(this._connection, address);
+  getStrategyByAddress = (address: PublicKey) =>
+    WhirlpoolStrategy.fetch(this._connection, address, this._kaminoProgramId);
 
   /**
    * Get a Kamino whirlpool strategy by its kToken mint address
@@ -1238,6 +1379,12 @@ export class Kamino {
     );
     const orcaPools = await this.getWhirlpools(orcaStrategies.map((x) => x.strategy.pool));
     const orcaPositions = await this.getOrcaPositions(orcaStrategies.map((x) => x.strategy.position));
+    const meteoraStrategies = strategiesWithAddresses.filter(
+      (x) =>
+        x.strategy.strategyDex.toNumber() === dexToNumber('METEORA') && !x.strategy.position.equals(PublicKey.default)
+    );
+    const meteoraPools = await this.getMeteoraPools(meteoraStrategies.map((x) => x.strategy.pool));
+    const meteoraPositions = await this.getMeteoraPositions(meteoraStrategies.map((x) => x.strategy.position));
 
     const inactiveStrategies = strategiesWithAddresses.filter((x) => x.strategy.position.equals(PublicKey.default));
     const collateralInfos = await this.getCollateralInfos();
@@ -1279,6 +1426,17 @@ export class Kamino {
         orcaPools,
         orcaPositions,
         this.getOrcaBalances,
+        collateralInfos,
+        scopePricesMap
+      )
+    );
+
+    fetchBalances.push(
+      ...this.getBalance<LbPair, PositionV2>(
+        meteoraStrategies,
+        meteoraPools,
+        meteoraPositions,
+        this.getMeteoraBalances,
         collateralInfos,
         scopePricesMap
       )
@@ -1422,6 +1580,70 @@ export class Kamino {
     return balance;
   };
 
+  private getMeteoraBalances = async (
+    strategy: WhirlpoolStrategy,
+    pool: LbPair,
+    position: PositionV2,
+    collateralInfos: CollateralInfo[],
+    prices?: OraclePrices
+  ): Promise<StrategyBalances> => {
+    const strategyPrices = await this.getStrategyPrices(strategy, collateralInfos, prices);
+    const rebalanceKind = numberToRebalanceType(strategy.rebalanceType);
+    const tokenHoldings = await this.getMeteoraTokensBalances(strategy);
+
+    let computedHoldings: Holdings = this.getStrategyHoldingsUsd(
+      tokenHoldings.available.a,
+      tokenHoldings.available.b,
+      tokenHoldings.invested.a,
+      tokenHoldings.invested.b,
+      new Decimal(strategy.tokenAMintDecimals.toString()),
+      new Decimal(strategy.tokenBMintDecimals.toString()),
+      strategyPrices.aPrice,
+      strategyPrices.bPrice
+    );
+
+    let decimalsA = strategy.tokenAMintDecimals.toNumber();
+    let decimalsB = strategy.tokenBMintDecimals.toNumber();
+
+    const twapPrice =
+      strategyPrices.aTwapPrice !== null && strategyPrices.bTwapPrice !== null
+        ? strategyPrices.aTwapPrice.div(strategyPrices.bTwapPrice)
+        : null;
+    const poolPrice = getPriceOfBinByBinIdWithDecimals(pool.activeId, pool.binStep, decimalsA, decimalsB);
+    const lowerPrice = getPriceOfBinByBinIdWithDecimals(position.lowerBinId, pool.binStep, decimalsA, decimalsB);
+    const upperPrice = getPriceOfBinByBinIdWithDecimals(position.upperBinId, pool.binStep, decimalsA, decimalsB);
+    let lowerResetPrice: Decimal | null = null;
+    let upperResetPrice: Decimal | null = null;
+    let dex = numberToDex(strategy.strategyDex.toNumber());
+    if (rebalanceKind.kind === PricePercentageWithReset.kind) {
+      const state = deserializePricePercentageWithResetRebalanceWithStateOverride(
+        dex,
+        decimalsA,
+        decimalsB,
+        poolPrice,
+        strategy.rebalanceRaw
+      );
+      [lowerResetPrice, upperResetPrice] = extractPricesFromDeserializedState(state);
+    } else if (rebalanceKind.kind === Expander.kind) {
+      const state = deserializeExpanderRebalanceWithStateOverride(
+        dex,
+        decimalsA,
+        decimalsB,
+        poolPrice,
+        strategy.rebalanceRaw
+      );
+      [lowerResetPrice, upperResetPrice] = extractPricesFromDeserializedState(state);
+    }
+
+    const balance: StrategyBalances = {
+      computedHoldings,
+      prices: { ...strategyPrices, poolPrice, lowerPrice, upperPrice, twapPrice, lowerResetPrice, upperResetPrice },
+      tokenAAmounts: tokenHoldings.available.a.plus(tokenHoldings.invested.a),
+      tokenBAmounts: tokenHoldings.available.b.plus(tokenHoldings.invested.b),
+    };
+    return balance;
+  };
+
   private getRaydiumTokensBalances = (
     strategy: WhirlpoolStrategy,
     pool: PoolState,
@@ -1452,6 +1674,29 @@ export class Kamino {
       invested: {
         a: aInvested,
         b: bInvested,
+      },
+    };
+
+    return holdings;
+  };
+
+  private getMeteoraTokensBalances = async (strategy: WhirlpoolStrategy): Promise<TokenHoldings> => {
+    const userPosition = await this.readMeteoraPosition(strategy.pool, strategy.position);
+
+    const aInvested = userPosition.amountX;
+    const bInvested = userPosition.amountY;
+
+    const aAvailable = new Decimal(strategy.tokenAAmounts.toString());
+    const bAvailable = new Decimal(strategy.tokenBAmounts.toString());
+
+    let holdings: TokenHoldings = {
+      available: {
+        a: aAvailable,
+        b: bAvailable,
+      },
+      invested: {
+        a: new Decimal(aInvested),
+        b: new Decimal(bInvested),
       },
     };
 
@@ -1617,6 +1862,8 @@ export class Kamino {
       return this.getStrategyBalancesOrca(strategy, collateralInfos, scopePrices);
     } else if (strategy.strategyDex.toNumber() == dexToNumber('RAYDIUM')) {
       return this.getStrategyBalancesRaydium(strategy, collateralInfos, scopePrices);
+    } else if (strategy.strategyDex.toNumber() == dexToNumber('METEORA')) {
+      return this.getStrategyBalancesMeteora(strategy, collateralInfos, scopePrices);
     } else {
       throw new Error(`Invalid dex ${strategy.strategyDex.toString()}`);
     }
@@ -1658,6 +1905,8 @@ export class Kamino {
         PersonalPositionState.decode(positionAcc.data),
       ]);
       return this.getRaydiumTokensBalances(strategy, poolState, position, mode);
+    } else if (strategy.strategyDex.toNumber() == dexToNumber('METEORA')) {
+      return this.getMeteoraTokensBalances(strategy);
     } else {
       throw new Error(`Invalid dex ${strategy.strategyDex.toString()}`);
     }
@@ -1736,6 +1985,29 @@ export class Kamino {
     ]);
 
     return this.getRaydiumBalances(strategy, poolState, position, collateralInfos, scopePrices);
+  };
+
+  private getStrategyBalancesMeteora = async (
+    strategy: WhirlpoolStrategy,
+    collateralInfos: CollateralInfo[],
+    scopePrices?: OraclePrices
+  ): Promise<StrategyBalances> => {
+    const [poolStateAcc, positionAcc] = await this.getConnection().getMultipleAccountsInfo([
+      strategy.pool,
+      strategy.position,
+    ]);
+    if (!poolStateAcc) {
+      throw Error(`Could not fetch Meteora pool state with pubkey ${strategy.pool.toString()}`);
+    }
+    if (!positionAcc) {
+      throw Error(`Could not fetch Meteora position state with pubkey ${strategy.position.toString()}`);
+    }
+    const [poolState, position] = await Promise.all([
+      LbPair.decode(poolStateAcc.data),
+      PositionV2.decode(positionAcc.data),
+    ]);
+
+    return this.getMeteoraBalances(strategy, poolState, position, collateralInfos, scopePrices);
   };
 
   private getStrategyHoldingsUsd = (
@@ -1915,6 +2187,8 @@ export class Kamino {
       return this.getStrategyRangeOrca(strategy);
     } else if (stratWithAddress.strategy.strategyDex.toNumber() == dexToNumber('RAYDIUM')) {
       return this.getStrategyRangeRaydium(strategy);
+    } else if (stratWithAddress.strategy.strategyDex.toNumber() == dexToNumber('METEORA')) {
+      return this.getStrategyRangeMeteora(strategy);
     } else {
       throw Error(`Dex {stratWithAddress.strategy.strategyDex.toNumber()} not supported`);
     }
@@ -1948,6 +2222,20 @@ export class Kamino {
     }
   };
 
+  getStrategyRangeMeteora = async (strategy: PublicKey | StrategyWithAddress): Promise<PositionRange> => {
+    const { strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
+
+    if (strategyState.position == PublicKey.default) {
+      return { lowerPrice: ZERO, upperPrice: ZERO };
+    } else {
+      return this.getPositionRangeMeteora(
+        strategyState.position,
+        strategyState.tokenAMintDecimals.toNumber(),
+        strategyState.tokenBMintDecimals.toNumber()
+      );
+    }
+  };
+
   getPositionRange = async (
     dex: Dex,
     position: PublicKey,
@@ -1958,6 +2246,8 @@ export class Kamino {
       return this.getPositionRangeOrca(position, decimalsA, decimalsB);
     } else if (dex == 'RAYDIUM') {
       return this.getPositionRangeRaydium(position, decimalsA, decimalsB);
+    } else if (dex == 'METEORA') {
+      return this.getPositionRangeMeteora(position, decimalsA, decimalsB);
     } else {
       throw Error(`Unsupported dex ${dex}`);
     }
@@ -2006,6 +2296,31 @@ export class Kamino {
       decimalsA,
       decimalsB
     );
+
+    let positionRange: PositionRange = { lowerPrice, upperPrice };
+
+    return positionRange;
+  };
+
+  getPositionRangeMeteora = async (
+    positionPk: PublicKey,
+    decimalsA: number,
+    decimalsB: number
+  ): Promise<PositionRange> => {
+    if (positionPk.toString() === PublicKey.default.toString()) {
+      return { lowerPrice: ZERO, upperPrice: ZERO };
+    }
+    let position = await PositionV2.fetch(this._connection, positionPk);
+    if (!position) {
+      return { lowerPrice: ZERO, upperPrice: ZERO };
+    }
+    let pool = await LbPair.fetch(this._connection, position.lbPair);
+    if (!pool) {
+      return { lowerPrice: ZERO, upperPrice: ZERO };
+    }
+    let lowerPrice = getPriceOfBinByBinIdWithDecimals(position.lowerBinId, pool.binStep, decimalsA, decimalsB);
+
+    let upperPrice = getPriceOfBinByBinIdWithDecimals(position.upperBinId, pool.binStep, decimalsA, decimalsB);
 
     let positionRange: PositionRange = { lowerPrice, upperPrice };
 
@@ -2083,6 +2398,16 @@ export class Kamino {
     return positions.map((position) => fetchedMap[position.toBase58()] || null);
   };
 
+  getMeteoraPositions = async (positions: PublicKey[]): Promise<(PositionV2 | null)[]> => {
+    const nonDefaults = positions.filter((value) => value.toBase58() !== PublicKey.default.toBase58());
+    const fetched = await batchFetch(nonDefaults, (chunk) => PositionV2.fetchMultiple(this._connection, chunk));
+    const fetchedMap: Record<string, PositionV2 | null> = fetched.reduce((map, position, i) => {
+      map[nonDefaults[i].toBase58()] = position;
+      return map;
+    }, {});
+    return positions.map((position) => fetchedMap[position.toBase58()] || null);
+  };
+
   /**
    * Get whirlpool from public key
    * @param whirlpool pubkey of the orca whirlpool
@@ -2110,6 +2435,23 @@ export class Kamino {
     return poolsMap;
   };
 
+  getMeteoraPools = async (pools: PublicKey[]): Promise<Map<string, LbPair | null>> => {
+    let poolsMap = new Map<string, LbPair | null>();
+
+    const poolStrings = pools.map((pool) => pool.toBase58());
+    const uniquePools = [...new Set(poolStrings)].map((value) => new PublicKey(value));
+    if (uniquePools.length === 1) {
+      const pool = await this.getMeteoraPoolByAddress(pools[0]);
+      poolsMap.set(pools[0].toString(), pool);
+    }
+    const fetched = await batchFetch(uniquePools, (chunk) => LbPair.fetchMultiple(this._connection, chunk));
+    fetched.reduce((map, whirlpool, i) => {
+      poolsMap.set(uniquePools[i].toString(), whirlpool);
+      return map;
+    }, {});
+    return poolsMap;
+  };
+
   getRaydiumAmmConfig = (config: PublicKey) => AmmConfig.fetch(this._connection, config);
 
   /**
@@ -2117,6 +2459,20 @@ export class Kamino {
    * @param pool pubkey of the orca whirlpool
    */
   getRaydiumPoolByAddress = (pool: PublicKey) => PoolState.fetch(this._connection, pool);
+
+  getMeteoraPoolByAddress = (pool: PublicKey) => LbPair.fetch(this._connection, pool);
+
+  getEventAuthorityPDA = (dex: BN): PublicKey => {
+    if (dex.toNumber() == dexToNumber('ORCA') || dex.toNumber() == dexToNumber('RAYDIUM')) {
+      return this._kaminoProgramId;
+    }
+
+    if (dex.toNumber() == dexToNumber('METEORA')) {
+      const [key, _] = PublicKey.findProgramAddressSync([Buffer.from('__event_authority')], METEORA_PROGRAM_ID);
+      return key;
+    }
+    throw new Error('Invalid dex');
+  };
 
   /**
    * Return transaction instruction to withdraw shares from a strategy owner (wallet) and get back token A and token B
@@ -2135,6 +2491,7 @@ export class Kamino {
     }
     const strategyState = await this.getStrategyStateIfNotFetched(strategy);
 
+    const eventAuthority = this.getEventAuthorityPDA(strategyState.strategy.strategyDex);
     const { treasuryFeeTokenAVault, treasuryFeeTokenBVault } = this.getTreasuryFeeVaultPDAs(
       strategyState.strategy.tokenAMint,
       strategyState.strategy.tokenBMint
@@ -2175,6 +2532,9 @@ export class Kamino {
       raydiumProtocolPositionOrBaseVaultAuthority: strategyState.strategy.raydiumProtocolPositionOrBaseVaultAuthority,
       poolProgram: programId,
       instructionSysvarAccount: SYSVAR_INSTRUCTIONS_PUBKEY,
+      tokenAMint: strategyState.strategy.tokenAMint,
+      tokenBMint: strategyState.strategy.tokenBMint,
+      eventAuthority,
     };
 
     const withdrawIx = withdraw(args, accounts);
@@ -2304,6 +2664,22 @@ export class Kamino {
     }
   };
 
+  private getMeteoraStateIfNotFetched = async (lbPair: PublicKey | LbPairWithAddress): Promise<LbPairWithAddress> => {
+    const hasLbPairBeenFetched = (object: PublicKey | LbPairWithAddress): object is LbPairWithAddress => {
+      return 'lbPair' in object;
+    };
+
+    if (hasLbPairBeenFetched(lbPair)) {
+      return lbPair;
+    } else {
+      const lbPairState = await this.getMeteoraPoolByAddress(lbPair);
+      if (!lbPairState) {
+        throw Error(`Could not fetch meteora lb pair state with pubkey ${lbPair.toString()}`);
+      }
+      return { pool: lbPairState, address: lbPair };
+    }
+  };
+
   /**
    * Get treasury fee vault program addresses from for token A and B mints
    * @param tokenAMint
@@ -2371,7 +2747,11 @@ export class Kamino {
     }
     const strategyState = await this.getStrategyStateIfNotFetched(strategy);
 
-    const globalConfig = await GlobalConfig.fetch(this._connection, strategyState.strategy.globalConfig);
+    const globalConfig = await GlobalConfig.fetch(
+      this._connection,
+      strategyState.strategy.globalConfig,
+      this._kaminoProgramId
+    );
     if (!globalConfig) {
       throw Error(`Could not fetch global config with pubkey ${strategyState.strategy.globalConfig.toString()}`);
     }
@@ -2420,6 +2800,8 @@ export class Kamino {
       tokenInfos: globalConfig.tokenInfos,
       tokenProgram: TOKEN_PROGRAM_ID,
       instructionSysvarAccount: SYSVAR_INSTRUCTIONS_PUBKEY,
+      tickArrayLower: strategyState.strategy.tickArrayLower,
+      tickArrayUpper: strategyState.strategy.tickArrayUpper,
     };
 
     return deposit(depositArgs, depositAccounts);
@@ -2792,7 +3174,11 @@ export class Kamino {
       owner
     );
 
-    const getGlobalConfigPromise = GlobalConfig.fetch(this._connection, strategyState.globalConfig);
+    const getGlobalConfigPromise = GlobalConfig.fetch(
+      this._connection,
+      strategyState.globalConfig,
+      this._kaminoProgramId
+    );
     const [createAtasIxns, amountsToDepositWithSwap, globalConfig] = await Promise.all([
       createAtasIxnsPromise,
       amountsToDepositWithSwapPromise,
@@ -2835,6 +3221,8 @@ export class Kamino {
       tokenInfos: globalConfig!.tokenInfos,
       tokenProgram: TOKEN_PROGRAM_ID,
       instructionSysvarAccount: SYSVAR_INSTRUCTIONS_PUBKEY,
+      tickArrayLower: strategyWithAddress.strategy.tickArrayLower,
+      tickArrayUpper: strategyWithAddress.strategy.tickArrayUpper,
     };
 
     let singleSidedDepositIx = singleTokenDepositWithMin(args, accounts);
@@ -3161,9 +3549,16 @@ export class Kamino {
       }
       tokenAMint = raydiumPoolState.tokenMint0;
       tokenBMint = raydiumPoolState.tokenMint1;
+    } else if (dex == 'METEORA') {
+      const meteoraPoolState = await LbPair.fetch(this._connection, pool);
+      if (!meteoraPoolState) {
+        throw Error(`Could not fetch Meteora pool state with pubkey ${pool.toString()}`);
+      }
+      tokenAMint = meteoraPoolState.tokenXMint;
+      tokenBMint = meteoraPoolState.tokenYMint;
     }
 
-    let config = await GlobalConfig.fetch(this._connection, this._globalConfig);
+    let config = await GlobalConfig.fetch(this._connection, this._globalConfig, this._kaminoProgramId);
     if (!config) {
       throw Error(`Could not fetch globalConfig  with pubkey ${this.getGlobalConfig().toString()}`);
     }
@@ -3237,14 +3632,19 @@ export class Kamino {
     const { address: _strategyPubkey, strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
     let collInfos = await this.getCollateralInfos();
 
+    const eventAuthority = this.getEventAuthorityPDA(strategyState.strategyDex);
     const poolProgram = getDexProgramId(strategyState);
     let oldPositionOrBaseVaultAuthority = strategyState.baseVaultAuthority;
     let oldPositionMintOrBaseVaultAuthority = strategyState.baseVaultAuthority;
     let oldPositionTokenAccountOrBaseVaultAuthority = strategyState.baseVaultAuthority;
+    let oldTickArrayLowerOrBaseVaultAuthority = strategyState.baseVaultAuthority;
+    let oldTickArrayUpperOrBaseVaultAuthority = strategyState.baseVaultAuthority;
     if (!strategyState.position.equals(PublicKey.default)) {
       oldPositionOrBaseVaultAuthority = strategyState.position;
       oldPositionMintOrBaseVaultAuthority = strategyState.positionMint;
       oldPositionTokenAccountOrBaseVaultAuthority = strategyState.positionTokenAccount;
+      oldTickArrayLowerOrBaseVaultAuthority = strategyState.tickArrayLower;
+      oldTickArrayUpperOrBaseVaultAuthority = strategyState.tickArrayUpper;
     }
     let userTokenAAta = getAssociatedTokenAddress(strategyState.tokenAMint, strategyState.adminAuthority);
     let userTokenBAta = getAssociatedTokenAddress(strategyState.tokenBMint, strategyState.adminAuthority);
@@ -3329,6 +3729,10 @@ export class Kamino {
       userKaminoReward0Ata,
       userKaminoReward1Ata,
       userKaminoReward2Ata,
+      oldTickArrayLowerOrBaseVaultAuthority,
+      oldTickArrayUpperOrBaseVaultAuthority,
+      pool: strategyState.pool,
+      eventAuthority,
     };
 
     return closeStrategy(strategyAccounts);
@@ -3429,6 +3833,7 @@ export class Kamino {
   ): Promise<TransactionInstruction> => {
     const { address: strategyPubkey, strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
 
+    const eventAuthority = this.getEventAuthorityPDA(strategyState.strategyDex);
     const { treasuryFeeTokenAVault, treasuryFeeTokenBVault, treasuryFeeVaultAuthority } = this.getTreasuryFeeVaultPDAs(
       strategyState.tokenAMint,
       strategyState.tokenBMint
@@ -3439,6 +3844,9 @@ export class Kamino {
     let poolRewardVault0 = PublicKey.default;
     let poolRewardVault1 = PublicKey.default;
     let poolRewardVault2 = PublicKey.default;
+    let rewardMint0 = PublicKey.default;
+    let rewardMint1 = PublicKey.default;
+    let rewardMint2 = PublicKey.default;
     if (strategyState.strategyDex.toNumber() == dexToNumber('ORCA')) {
       const whirlpool = await Whirlpool.fetch(this._connection, strategyState.pool);
       if (!whirlpool) {
@@ -3448,6 +3856,9 @@ export class Kamino {
       poolRewardVault0 = whirlpool.rewardInfos[0].vault;
       poolRewardVault1 = whirlpool.rewardInfos[1].vault;
       poolRewardVault2 = whirlpool.rewardInfos[2].vault;
+      rewardMint0 = whirlpool.rewardInfos[0].mint;
+      rewardMint1 = whirlpool.rewardInfos[1].mint;
+      rewardMint2 = whirlpool.rewardInfos[2].mint;
     } else if (strategyState.strategyDex.toNumber() == dexToNumber('RAYDIUM')) {
       programId = RAYDIUM_PROGRAM_ID;
 
@@ -3458,6 +3869,22 @@ export class Kamino {
       poolRewardVault0 = poolState.rewardInfos[0].tokenVault;
       poolRewardVault1 = poolState.rewardInfos[1].tokenVault;
       poolRewardVault2 = poolState.rewardInfos[2].tokenVault;
+      rewardMint0 = poolState.rewardInfos[0].tokenMint;
+      rewardMint1 = poolState.rewardInfos[1].tokenMint;
+      rewardMint2 = poolState.rewardInfos[2].tokenMint;
+    } else if (strategyState.strategyDex.toNumber() == dexToNumber('METEORA')) {
+      programId = METEORA_PROGRAM_ID;
+
+      const poolState = await LbPair.fetch(this._connection, strategyState.pool);
+      if (!poolState) {
+        throw Error(`Could not fetch Meteora pool state with pubkey ${strategyState.pool.toString()}`);
+      }
+      poolRewardVault0 = poolState.rewardInfos[0].vault;
+      poolRewardVault1 = poolState.rewardInfos[1].vault;
+      poolRewardVault2 = poolState.rewardInfos[2].vault;
+      rewardMint0 = poolState.rewardInfos[0].mint;
+      rewardMint1 = poolState.rewardInfos[1].mint;
+      rewardMint2 = poolState.rewardInfos[2].mint;
     }
 
     const accounts: CollectFeesAndRewardsAccounts = {
@@ -3492,6 +3919,10 @@ export class Kamino {
       tokenProgram: TOKEN_PROGRAM_ID,
       poolProgram: programId,
       instructionSysvarAccount: SYSVAR_INSTRUCTIONS_PUBKEY,
+      reward0Mint: strategyState.reward0Decimals.toNumber() > 0 ? rewardMint0 : this._kaminoProgramId,
+      reward1Mint: strategyState.reward1Decimals.toNumber() > 0 ? rewardMint1 : this._kaminoProgramId,
+      reward2Mint: strategyState.reward2Decimals.toNumber() > 0 ? rewardMint2 : this._kaminoProgramId,
+      eventAuthority,
     };
 
     return collectFeesAndRewards(accounts);
@@ -3603,6 +4034,67 @@ export class Kamino {
     };
   };
 
+  private readMeteoraPosition = async (poolPk: PublicKey, positionPk: PublicKey): Promise<MeteoraPosition> => {
+    let pool = await LbPair.fetch(this._connection, poolPk);
+    if (!pool) {
+      throw new Error(`Could not find position ${poolPk}`);
+    }
+    let position = await PositionV2.fetch(this._connection, positionPk);
+    if (!position) {
+      throw new Error(`Could not find position ${positionPk} for pool ${poolPk}`);
+    }
+    let { lowerTick: lowerTickPk, upperTick: upperTickPk } = this.getStartEndTicketIndexProgramAddressesMeteora(
+      poolPk,
+      position.lowerBinId
+    );
+    let lowerBinArray = await BinArray.fetch(this._connection, lowerTickPk);
+    let upperBinArray = await BinArray.fetch(this._connection, upperTickPk);
+    if (!lowerBinArray || !upperBinArray) {
+      throw new Error(`Could not find either ${lowerTickPk} or ${upperTickPk}`);
+    }
+    let binArrays = [lowerBinArray, upperBinArray];
+    let totalAmountX = new Decimal(0);
+    let totalAmountY = new Decimal(0);
+    for (let idx = position.lowerBinId; idx <= position.upperBinId; idx++) {
+      let bin = getBinFromBinArrays(idx, binArrays);
+      if (bin) {
+        const binX = new Decimal(bin.amountX.toString());
+        const binY = new Decimal(bin.amountY.toString());
+        const binLiq = new Decimal(bin.liquiditySupply.toString());
+        const positionLiq = new Decimal(position.liquidityShares[idx - position.lowerBinId].toString());
+
+        totalAmountX = totalAmountX.add(binX.mul(positionLiq).div(binLiq));
+        totalAmountY = totalAmountY.add(binY.mul(positionLiq).div(binLiq));
+      }
+    }
+
+    return {
+      publicKey: positionPk,
+      amountX: totalAmountX,
+      amountY: totalAmountY,
+    };
+  };
+
+  private getStartEndTicketIndexProgramAddressesMeteora = (
+    pool: PublicKey,
+    tickLowerIndex: number
+  ): LowerAndUpperTickPubkeys => {
+    const meteoraProgramId = METEORA_PROGRAM_ID;
+
+    const lowerBinArrayIndex = binIdToBinArrayIndex(new BN(tickLowerIndex));
+    const [lowerTick, lowerTickBump] = deriveBinArray(pool, lowerBinArrayIndex, meteoraProgramId);
+
+    const upperBinArrayIndex = lowerBinArrayIndex.add(new BN(1));
+
+    const [upperTick, upperTickBump] = deriveBinArray(pool, upperBinArrayIndex, meteoraProgramId);
+
+    return {
+      lowerTick,
+      lowerTickBump,
+      upperTick,
+      upperTickBump,
+    };
+  };
   /**
    * Get a transaction to open liquidity position for a Kamino strategy
    * @param strategy strategy you want to open liquidity position for
@@ -3622,6 +4114,7 @@ export class Kamino {
     if (!strategyState) {
       throw Error(`Could not fetch strategy state with pubkey ${strategy.toString()}`);
     }
+    const eventAuthority = this.getEventAuthorityPDA(strategyState.strategyDex);
 
     if (strategyState.strategyDex.toNumber() == dexToNumber('ORCA')) {
       return this.openPositionOrca(
@@ -3634,11 +4127,14 @@ export class Kamino {
         priceUpper,
         strategyState.tokenAVault,
         strategyState.tokenBVault,
+        strategyState.tokenAMint,
+        strategyState.tokenBMint,
         strategyState.position,
         strategyState.positionMint,
         strategyState.positionTokenAccount,
         strategyState.tickArrayLower,
         strategyState.tickArrayUpper,
+        eventAuthority,
         status
       );
     } else if (strategyState.strategyDex.toNumber() == dexToNumber('RAYDIUM')) {
@@ -3665,16 +4161,40 @@ export class Kamino {
         priceUpper,
         strategyState.tokenAVault,
         strategyState.tokenBVault,
+        strategyState.tokenAMint,
+        strategyState.tokenBMint,
         strategyState.tickArrayLower,
         strategyState.tickArrayUpper,
         strategyState.position,
         strategyState.positionMint,
         strategyState.positionTokenAccount,
         strategyState.raydiumProtocolPositionOrBaseVaultAuthority,
+        eventAuthority,
         status,
         reward0Vault,
         reward1Vault,
         reward2Vault
+      );
+    } else if (strategyState.strategyDex.toNumber() == dexToNumber('METEORA')) {
+      return this.openPositionMeteora(
+        strategyState.adminAuthority,
+        strategyAddress,
+        strategyState.baseVaultAuthority,
+        strategyState.pool,
+        positionMint,
+        priceLower,
+        priceUpper,
+        strategyState.tokenAVault,
+        strategyState.tokenBVault,
+        strategyState.tokenAMint,
+        strategyState.tokenBMint,
+        strategyState.position,
+        strategyState.positionMint,
+        strategyState.positionTokenAccount,
+        strategyState.tickArrayLower,
+        strategyState.tickArrayUpper,
+        eventAuthority,
+        status
       );
     } else {
       throw new Error(`Invalid dex ${strategyState.strategyDex.toString()}`);
@@ -3699,11 +4219,14 @@ export class Kamino {
     priceUpper: Decimal,
     tokenAVault: PublicKey,
     tokenBVault: PublicKey,
+    tokenAMint: PublicKey,
+    tokenBMint: PublicKey,
     oldPositionOrBaseVaultAuthority: PublicKey,
     oldPositionMintOrBaseVaultAuthority: PublicKey,
     oldPositionTokenAccountOrBaseVaultAuthority: PublicKey,
     oldTickArrayLowerOrBaseVaultAuthority: PublicKey,
     oldTickArrayUpperOrBaseVaultAuthority: PublicKey,
+    eventAuthority: PublicKey,
     status: StrategyStatusKind = new Uninitialized()
   ): Promise<TransactionInstruction> => {
     const whirlpool = await Whirlpool.fetch(this._connection, pool);
@@ -3741,7 +4264,7 @@ export class Kamino {
       tickUpperIndex
     );
 
-    const globalConfig = await GlobalConfig.fetch(this._connection, this._globalConfig);
+    const globalConfig = await GlobalConfig.fetch(this._connection, this._globalConfig, this._kaminoProgramId);
     if (!globalConfig) {
       throw Error(`Could not fetch global config with pubkey ${this._globalConfig.toString()}`);
     }
@@ -3776,9 +4299,15 @@ export class Kamino {
       poolTokenVaultB: whirlpool.tokenVaultB,
       scopePrices: globalConfig.scopePriceId,
       tokenInfos: globalConfig.tokenInfos,
+      tokenAMint,
+      tokenBMint,
+      eventAuthority,
     };
 
-    return openLiquidityPosition(args, accounts);
+    let ixn = openLiquidityPosition(args, accounts);
+    const accountIndex = ixn.keys.findIndex((accs) => accs.pubkey.equals(positionMint));
+    ixn.keys[accountIndex].isSigner = true;
+    return ixn;
   };
 
   /**
@@ -3799,12 +4328,15 @@ export class Kamino {
     priceUpper: Decimal,
     tokenAVault: PublicKey,
     tokenBVault: PublicKey,
+    tokenAMint: PublicKey,
+    tokenBMint: PublicKey,
     oldTickArrayLowerOrBaseVaultAuthority: PublicKey,
     oldTickArrayUpperOrBaseVaultAuthority: PublicKey,
     oldPositionOrBaseVaultAuthority: PublicKey,
     oldPositionMintOrBaseVaultAuthority: PublicKey,
     oldPositionTokenAccountOrBaseVaultAuthority: PublicKey,
     oldProtocolPositionOrBaseVaultAuthority: PublicKey,
+    eventAuthority: PublicKey,
     status: StrategyStatusKind = new Uninitialized(),
     strategyRewardOVault?: PublicKey,
     strategyReward1Vault?: PublicKey,
@@ -3856,7 +4388,7 @@ export class Kamino {
       tickUpperIndex
     );
 
-    const globalConfig = await GlobalConfig.fetch(this._connection, this._globalConfig);
+    const globalConfig = await GlobalConfig.fetch(this._connection, this._globalConfig, this._kaminoProgramId);
     if (!globalConfig) {
       throw Error(`Could not fetch global config with pubkey ${this._globalConfig.toString()}`);
     }
@@ -3890,6 +4422,9 @@ export class Kamino {
       poolTokenVaultB: poolState.tokenVault1,
       scopePrices: globalConfig.scopePriceId,
       tokenInfos: globalConfig.tokenInfos,
+      tokenAMint,
+      tokenBMint,
+      eventAuthority,
     };
 
     let ix = openLiquidityPosition(args, accounts);
@@ -3917,7 +4452,110 @@ export class Kamino {
         { pubkey: strategyReward2Vault, isSigner: false, isWritable: true },
       ]);
     }
+    const accountIndex = ix.keys.findIndex((accs) => accs.pubkey.equals(positionMint));
+    ix.keys[accountIndex].isSigner = true;
     return ix;
+  };
+
+  /**
+   * Get a transaction to open liquidity position for a Kamino strategy
+   * @param strategy strategy you want to open liquidity position for
+   * @param positionMint new liquidity position account pubkey
+   * @param priceLower new position's lower price of the range
+   * @param priceUpper new position's upper price of the range
+   * @param status strategy status
+   */
+  openPositionMeteora = async (
+    adminAuthority: PublicKey,
+    strategy: PublicKey,
+    baseVaultAuthority: PublicKey,
+    pool: PublicKey,
+    position: PublicKey,
+    priceLower: Decimal,
+    priceUpper: Decimal,
+    tokenAVault: PublicKey,
+    tokenBVault: PublicKey,
+    tokenAMint: PublicKey,
+    tokenBMint: PublicKey,
+    oldPositionOrBaseVaultAuthority: PublicKey,
+    oldPositionMintOrBaseVaultAuthority: PublicKey,
+    oldPositionTokenAccountOrBaseVaultAuthority: PublicKey,
+    oldTickArrayLowerOrBaseVaultAuthority: PublicKey,
+    oldTickArrayUpperOrBaseVaultAuthority: PublicKey,
+    eventAuthority: PublicKey,
+    status: StrategyStatusKind = new Uninitialized()
+  ): Promise<TransactionInstruction> => {
+    const lbPair = await LbPair.fetch(this._connection, pool);
+    if (!lbPair) {
+      throw Error(`Could not fetch meteora lbpair state with pubkey ${pool.toString()}`);
+    }
+
+    const isRebalancing = status.discriminator === Rebalancing.discriminator;
+    let decimalsA = await getMintDecimals(this._connection, lbPair.tokenXMint);
+    let decimalsB = await getMintDecimals(this._connection, lbPair.tokenYMint);
+
+    let tickLowerIndex = getBinIdFromPriceWithDecimals(priceLower, lbPair.binStep, true, decimalsA, decimalsB);
+    let tickUpperIndex = getBinIdFromPriceWithDecimals(priceUpper, lbPair.binStep, true, decimalsA, decimalsB);
+
+    const { position: positionMint, positionBump, positionMetadata } = this.getMetadataProgramAddressesOrca(position);
+
+    const positionTokenAccount = getAssociatedTokenAddress(position, baseVaultAuthority);
+
+    const args: OpenLiquidityPositionArgs = {
+      tickLowerIndex: new BN(tickLowerIndex),
+      tickUpperIndex: new BN(tickUpperIndex),
+      bump: positionBump,
+    };
+
+    const { lowerTick: startTickIndex, upperTick: endTickIndex } = this.getStartEndTicketIndexProgramAddressesMeteora(
+      pool,
+      tickLowerIndex
+    );
+
+    const globalConfig = await GlobalConfig.fetch(this._connection, this._globalConfig, this._kaminoProgramId);
+    if (!globalConfig) {
+      throw Error(`Could not fetch global config with pubkey ${this._globalConfig.toString()}`);
+    }
+
+    const accounts: OpenLiquidityPositionAccounts = {
+      adminAuthority: adminAuthority,
+      strategy,
+      pool: pool,
+      tickArrayLower: startTickIndex,
+      tickArrayUpper: endTickIndex,
+      baseVaultAuthority: baseVaultAuthority,
+      position,
+      positionMint,
+      positionMetadataAccount: positionMetadata,
+      positionTokenAccount,
+      rent: SYSVAR_RENT_PUBKEY,
+      system: SystemProgram.programId,
+      tokenProgram: TOKEN_PROGRAM_ID,
+      associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+      poolProgram: WHIRLPOOL_PROGRAM_ID,
+      oldPositionOrBaseVaultAuthority: isRebalancing ? oldPositionOrBaseVaultAuthority : baseVaultAuthority,
+      oldPositionMintOrBaseVaultAuthority: isRebalancing ? oldPositionMintOrBaseVaultAuthority : positionMint,
+      oldPositionTokenAccountOrBaseVaultAuthority: isRebalancing
+        ? oldPositionTokenAccountOrBaseVaultAuthority
+        : positionTokenAccount,
+      globalConfig: this._globalConfig,
+      oldTickArrayLowerOrBaseVaultAuthority: isRebalancing ? oldTickArrayLowerOrBaseVaultAuthority : baseVaultAuthority,
+      oldTickArrayUpperOrBaseVaultAuthority: isRebalancing ? oldTickArrayUpperOrBaseVaultAuthority : baseVaultAuthority,
+      tokenAVault,
+      tokenBVault,
+      poolTokenVaultA: lbPair.reserveX,
+      poolTokenVaultB: lbPair.reserveY,
+      scopePrices: globalConfig.scopePriceId,
+      tokenInfos: globalConfig.tokenInfos,
+      tokenAMint,
+      tokenBMint,
+      eventAuthority,
+    };
+
+    let ixn = openLiquidityPosition(args, accounts);
+    const accountIndex = ixn.keys.findIndex((accs) => accs.pubkey.equals(position));
+    ixn.keys[accountIndex].isSigner = true;
+    return ixn;
   };
 
   /**
@@ -3931,8 +4569,9 @@ export class Kamino {
     action: ExecutiveWithdrawActionKind
   ): Promise<TransactionInstruction> => {
     const { address: strategyPubkey, strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
+    const eventAuthority = this.getEventAuthorityPDA(strategyState.strategyDex);
 
-    let globalConfig = await GlobalConfig.fetch(this._connection, strategyState.globalConfig);
+    let globalConfig = await GlobalConfig.fetch(this._connection, strategyState.globalConfig, this._kaminoProgramId);
     if (globalConfig == null) {
       throw new Error(`Unable to fetch GlobalConfig with Pubkey ${strategyState.globalConfig}`);
     }
@@ -3963,6 +4602,7 @@ export class Kamino {
       tokenProgram: TOKEN_PROGRAM_ID,
       poolProgram: programId,
       tokenInfos: globalConfig.tokenInfos,
+      eventAuthority,
     };
 
     let executiveWithdrawIx = executiveWithdraw(args, accounts);
@@ -4030,12 +4670,13 @@ export class Kamino {
       throw Error(`Could not fetch strategy state with pubkey ${strategy.toString()}`);
     }
 
-    const globalConfig = await GlobalConfig.fetch(this._connection, strategyState.globalConfig);
+    const globalConfig = await GlobalConfig.fetch(this._connection, strategyState.globalConfig, this._kaminoProgramId);
     if (!globalConfig) {
       throw Error(`Could not fetch global config with pubkey ${strategyState.globalConfig.toString()}`);
     }
 
     let programId = getDexProgramId(strategyState);
+    const eventAuthority = this.getEventAuthorityPDA(strategyState.strategyDex);
 
     const accounts: InvestAccounts = {
       position: strategyState.position,
@@ -4057,6 +4698,9 @@ export class Kamino {
       tokenInfos: globalConfig.tokenInfos,
       poolProgram: programId,
       instructionSysvarAccount: SYSVAR_INSTRUCTIONS_PUBKEY,
+      tokenAMint: strategyState.tokenAMint,
+      tokenBMint: strategyState.tokenBMint,
+      eventAuthority,
     };
 
     return invest(accounts);
@@ -4120,6 +4764,8 @@ export class Kamino {
         );
       }
     } else if (dex == 'RAYDIUM') {
+      // no processing needed
+    } else if (dex == 'METEORA') {
       // no processing needed
     } else {
       throw Error(`Invalid dex ${dex}`);
@@ -4224,7 +4870,7 @@ export class Kamino {
   ): Promise<InitStrategyIxs> => {
     let feeTier: Decimal = feeTierBps.div(FullBPS);
     // check both tokens exist in collateralInfo
-    let config = await GlobalConfig.fetch(this._connection, this._globalConfig);
+    let config = await GlobalConfig.fetch(this._connection, this._globalConfig, this._kaminoProgramId);
     if (!config) {
       throw Error(`Could not fetch globalConfig  with pubkey ${this.getGlobalConfig().toString()}`);
     }
@@ -4246,6 +4892,7 @@ export class Kamino {
 
     let tokenMintA: PublicKey;
     let tokenMintB: PublicKey;
+    let tickSpacing: number;
     if (dex == 'ORCA') {
       const whirlpoolState = await Whirlpool.fetch(this._connection, pool);
       if (!whirlpoolState) {
@@ -4253,6 +4900,7 @@ export class Kamino {
       }
       tokenMintA = whirlpoolState.tokenMintA;
       tokenMintB = whirlpoolState.tokenMintB;
+      tickSpacing = whirlpoolState.tickSpacing;
     } else if (dex == 'RAYDIUM') {
       const raydiumPoolState = await PoolState.fetch(this._connection, pool);
       if (!raydiumPoolState) {
@@ -4260,6 +4908,15 @@ export class Kamino {
       }
       tokenMintA = raydiumPoolState.tokenMint0;
       tokenMintB = raydiumPoolState.tokenMint1;
+      tickSpacing = raydiumPoolState.tickSpacing;
+    } else if (dex == 'METEORA') {
+      const meteoraPoolState = await LbPair.fetch(this._connection, pool);
+      if (!meteoraPoolState) {
+        throw Error(`Could not fetch Meteora pool state with pubkey ${pool.toString()}`);
+      }
+      tokenMintA = meteoraPoolState.tokenXMint;
+      tokenMintB = meteoraPoolState.tokenYMint;
+      tickSpacing = meteoraPoolState.binStep;
     } else {
       throw new Error(`Dex ${dex} is not supported`);
     }
@@ -4297,11 +4954,13 @@ export class Kamino {
       price,
       tokenAMint,
       tokenBMint,
+      tickSpacing,
       rebalanceKind,
       rebalanceParams
     );
 
     let openPositionIxs: TransactionInstruction[] = [];
+    const eventAuthority = this.getEventAuthorityPDA(new BN(dexToNumber(dex)));
     if (dex == 'ORCA') {
       const whirlpoolWithAddress = await this.getWhirlpoolStateIfNotFetched(pool);
       if (!whirlpoolWithAddress) {
@@ -4320,11 +4979,14 @@ export class Kamino {
         upperPrice,
         tokenAVault,
         tokenBVault,
+        tokenAMint,
+        tokenBMint,
         baseVaultAuthority,
         baseVaultAuthority,
         baseVaultAuthority,
         baseVaultAuthority,
-        baseVaultAuthority
+        baseVaultAuthority,
+        eventAuthority
       );
       if (initLowerTickIfNeeded.initTickIx) {
         openPositionIxs.push(initLowerTickIfNeeded.initTickIx);
@@ -4344,14 +5006,51 @@ export class Kamino {
         upperPrice,
         tokenAVault,
         tokenBVault,
+        tokenAMint,
+        tokenBMint,
         baseVaultAuthority,
         baseVaultAuthority,
         baseVaultAuthority,
         baseVaultAuthority,
         baseVaultAuthority,
-        baseVaultAuthority
+        baseVaultAuthority,
+        eventAuthority
       );
 
+      openPositionIxs.push(openPositionIx);
+    } else if (dex == 'METEORA') {
+      const lbPair = await this.getMeteoraStateIfNotFetched(pool);
+      if (!lbPair) {
+        throw Error(`Could not fetch whirlpool state with pubkey ${pool.toString()}`);
+      }
+      const initLowerTickIfNeeded = await this.initializeTickForMeteoraPool(strategyAdmin, pool, lowerPrice);
+      const initUpperTickIfNeeded = await this.initializeTickForMeteoraPool(strategyAdmin, pool, upperPrice);
+
+      const openPositionIx = await this.openPositionMeteora(
+        strategyAdmin,
+        strategy,
+        baseVaultAuthority,
+        pool,
+        positionMint,
+        lowerPrice,
+        upperPrice,
+        tokenAVault,
+        tokenBVault,
+        tokenAMint,
+        tokenBMint,
+        baseVaultAuthority,
+        baseVaultAuthority,
+        baseVaultAuthority,
+        baseVaultAuthority,
+        baseVaultAuthority,
+        eventAuthority
+      );
+      if (initLowerTickIfNeeded.initTickIx) {
+        openPositionIxs.push(initLowerTickIfNeeded.initTickIx);
+      }
+      if (initUpperTickIfNeeded.initTickIx) {
+        openPositionIxs.push(initUpperTickIfNeeded.initTickIx);
+      }
       openPositionIxs.push(openPositionIx);
     } else {
       throw new Error(`Dex ${dex} is not supported`);
@@ -4375,8 +5074,17 @@ export class Kamino {
     const tokenAMint = strategyState.strategy.tokenAMint;
     const tokenBMint = strategyState.strategy.tokenBMint;
     let price = await this.getCurrentPriceFromPool(dex, strategyState.strategy.pool);
+    let tickSpacing = await this.getPoolTickSpacing(dex, strategyState.strategy.pool);
 
-    return this.getRebalancePositionRange(dex, price, tokenAMint, tokenBMint, rebalanceKind, rebalanceParams);
+    return this.getRebalancePositionRange(
+      dex,
+      price,
+      tokenAMint,
+      tokenBMint,
+      tickSpacing,
+      rebalanceKind,
+      rebalanceParams
+    );
   }
 
   private async getRebalancePositionRange(
@@ -4384,6 +5092,7 @@ export class Kamino {
     price: Decimal,
     tokenAMint: PublicKey,
     tokenBMint: PublicKey,
+    tickSpacing: number,
     rebalanceKind: RebalanceTypeKind,
     rebalanceParams: Decimal[]
   ): Promise<PositionRange> {
@@ -4404,6 +5113,7 @@ export class Kamino {
       case RebalanceType.Drift.kind:
         return getPositionRangeFromDriftParams(
           dex,
+          tickSpacing,
           tokenADecimals,
           tokenBDecimals,
           rebalanceParams[0],
@@ -4426,7 +5136,8 @@ export class Kamino {
           tokenBDecimals,
           startMidTick,
           rebalanceParams[1],
-          rebalanceParams[2]
+          rebalanceParams[2],
+          tickSpacing
         );
 
       default:
@@ -4447,6 +5158,32 @@ export class Kamino {
       return this.getOrcaPoolPrice(pool);
     } else if (dex == 'RAYDIUM') {
       return this.getRaydiumPoolPrice(pool);
+    } else if (dex == 'METEORA') {
+      return this.getMeteoraPoolPrice(pool);
+    } else {
+      throw new Error(`Dex ${dex} is not supported`);
+    }
+  }
+
+  async getPoolTickSpacing(dex: Dex, pool: PublicKey): Promise<number> {
+    if (dex == 'ORCA') {
+      const whirlpoolState = await Whirlpool.fetch(this._connection, pool);
+      if (!whirlpoolState) {
+        throw Error(`Could not fetch whirlpool state with pubkey ${pool.toString()}`);
+      }
+      return whirlpoolState.tickSpacing;
+    } else if (dex == 'RAYDIUM') {
+      const raydiumPoolState = await PoolState.fetch(this._connection, pool);
+      if (!raydiumPoolState) {
+        throw Error(`Could not fetch Raydium pool state with pubkey ${pool.toString()}`);
+      }
+      return raydiumPoolState.tickSpacing;
+    } else if (dex == 'METEORA') {
+      const meteoraPoolState = await LbPair.fetch(this._connection, pool);
+      if (!meteoraPoolState) {
+        throw Error(`Could not fetch Meteora pool state with pubkey ${pool.toString()}`);
+      }
+      return meteoraPoolState.binStep;
     } else {
       throw new Error(`Dex ${dex} is not supported`);
     }
@@ -4463,6 +5200,8 @@ export class Kamino {
       poolPrice = await this.getOrcaPoolPrice(pool);
     } else if (dex == 'RAYDIUM') {
       poolPrice = await this.getRaydiumPoolPrice(pool);
+    } else if (dex == 'METEORA') {
+      poolPrice = await this.getMeteoraPoolPrice(pool);
     } else {
       throw new Error(`Invalid dex ${dex}`);
     }
@@ -4581,8 +5320,10 @@ export class Kamino {
       let dex = numberToDex(strategyWithAddress.strategy.strategyDex.toNumber());
       let tokenADecimals = await getMintDecimals(this._connection, strategyWithAddress.strategy.tokenAMint);
       let tokenBDecimals = await getMintDecimals(this._connection, strategyWithAddress.strategy.tokenBMint);
+      let tickSpacing = await this.getPoolTickSpacing(dex, strategyWithAddress.strategy.pool);
       return deserializeDriftRebalanceFromOnchainParams(
         dex,
+        tickSpacing,
         tokenADecimals,
         tokenBDecimals,
         strategyWithAddress.strategy.rebalanceRaw
@@ -4605,10 +5346,12 @@ export class Kamino {
       let dex = numberToDex(strategyWithAddress.strategy.strategyDex.toNumber());
       let tokenADecimals = await getMintDecimals(this._connection, strategyWithAddress.strategy.tokenAMint);
       let tokenBDecimals = await getMintDecimals(this._connection, strategyWithAddress.strategy.tokenBMint);
+      let tickSpacing = await this.getPoolTickSpacing(dex, strategyWithAddress.strategy.pool);
       return deserializeAutodriftRebalanceFromOnchainParams(
         dex,
         tokenADecimals,
         tokenBDecimals,
+        tickSpacing,
         strategyWithAddress.strategy.rebalanceRaw
       );
     } else {
@@ -4651,8 +5394,10 @@ export class Kamino {
       let dex = numberToDex(strategyWithAddress.strategy.strategyDex.toNumber());
       let tokenADecimals = await getMintDecimals(this._connection, strategyWithAddress.strategy.tokenAMint);
       let tokenBDecimals = await getMintDecimals(this._connection, strategyWithAddress.strategy.tokenBMint);
+      let tickSpacing = await this.getPoolTickSpacing(dex, strategyWithAddress.strategy.pool);
       return deserializeDriftRebalanceWithStateOverride(
         dex,
+        tickSpacing,
         tokenADecimals,
         tokenBDecimals,
         strategyWithAddress.strategy.rebalanceRaw
@@ -4681,10 +5426,12 @@ export class Kamino {
       let dex = numberToDex(strategyWithAddress.strategy.strategyDex.toNumber());
       let tokenADecimals = await getMintDecimals(this._connection, strategyWithAddress.strategy.tokenAMint);
       let tokenBDecimals = await getMintDecimals(this._connection, strategyWithAddress.strategy.tokenBMint);
+      let tickSpacing = await this.getPoolTickSpacing(dex, strategyWithAddress.strategy.pool);
       return deserializeAutodriftRebalanceWithStateOverride(
         dex,
         tokenADecimals,
         tokenBDecimals,
+        tickSpacing,
         strategyWithAddress.strategy.rebalanceRaw
       );
     } else {
@@ -4733,6 +5480,8 @@ export class Kamino {
       return this.getOrcaPoolPrice(pool);
     } else if (dex == 'RAYDIUM') {
       return this.getRaydiumPoolPrice(pool);
+    } else if (dex == 'METEORA') {
+      return this.getMeteoraPoolPrice(pool);
     } else {
       throw new Error(`Invalid dex ${dex}`);
     }
@@ -4766,12 +5515,24 @@ export class Kamino {
     return price;
   }
 
+  async getMeteoraPoolPrice(pool: PublicKey): Promise<Decimal> {
+    const poolState = await LbPair.fetch(this._connection, pool);
+    if (!poolState) {
+      throw new Error(`Meteora poolState ${pool.toString()} is not found`);
+    }
+    let decimalsX = await getMintDecimals(this._connection, poolState.tokenXMint);
+    let decimalsY = await getMintDecimals(this._connection, poolState.tokenYMint);
+    return getPriceOfBinByBinIdWithDecimals(poolState.activeId, poolState.binStep, decimalsX, decimalsY);
+  }
+
   async getGenericPoolInfo(dex: Dex, pool: PublicKey): Promise<GenericPoolInfo> {
     let poolInfo: GenericPoolInfo;
     if (dex == 'ORCA') {
       poolInfo = await this._orcaService.getGenericPoolInfo(pool);
     } else if (dex == 'RAYDIUM') {
       poolInfo = await this._raydiumService.getGenericPoolInfo(pool);
+    } else if (dex == 'METEORA') {
+      poolInfo = await this._meteoraService.getGenericPoolInfo(pool);
     } else {
       throw new Error(`Invalid dex ${dex}`);
     }
@@ -4808,7 +5569,15 @@ export class Kamino {
   };
 
   getMainLookupTable = async (): Promise<AddressLookupTableAccount | undefined> => {
-    if (this._cluster == 'mainnet-beta') {
+    if (this._kaminoProgramId.equals(STAGING_KAMINO_PROGRAM_ID)) {
+      const lookupTableAccount = await this._connection
+        .getAddressLookupTable(STAGING_GLOBAL_LOOKUP_TABLE)
+        .then((res) => res.value);
+      if (!lookupTableAccount) {
+        throw new Error(`Could not get lookup table ${STAGING_GLOBAL_LOOKUP_TABLE}`);
+      }
+      return lookupTableAccount;
+    } else if (this._cluster == 'mainnet-beta') {
       const lookupTableAccount = await this._connection
         .getAddressLookupTable(MAINNET_GLOBAL_LOOKUP_TABLE)
         .then((res) => res.value);
@@ -4994,6 +5763,8 @@ export class Kamino {
       return this.getEstimatedApyAndVolumeOnRangeOrca(pool, lowerPrice, upperPrice);
     } else if (dex == 'RAYDIUM') {
       return this.getEstimatedApyAndVolumeOnRangeRaydium(pool, lowerPrice, upperPrice);
+    } else if (dex == 'METEORA') {
+      return this.getEstimatedApyAndVolumeOnRangeMeteora(pool, lowerPrice, upperPrice);
     } else {
       throw new Error(`Dex ${dex} is not supported`);
     }
@@ -5011,6 +5782,17 @@ export class Kamino {
   };
 
   getEstimatedApyAndVolumeOnRangeRaydium = async (
+    pool: PublicKey,
+    lowerPrice: Decimal,
+    upperPrice: Decimal
+  ): Promise<GenericPositionRangeInfo> => {
+    return {
+      estimatedApy: new Decimal(0),
+      estimatedVolume: new Decimal(0),
+    };
+  };
+
+  getEstimatedApyAndVolumeOnRangeMeteora = async (
     pool: PublicKey,
     lowerPrice: Decimal,
     upperPrice: Decimal
@@ -5218,6 +6000,7 @@ export class Kamino {
     const dex = Number(strategyState.strategyDex);
     const isOrca = dexToNumber('ORCA') === dex;
     const isRaydium = dexToNumber('RAYDIUM') === dex;
+    const isMeteora = dexToNumber('METEORA') === dex;
     if (strategyState.position.toString() === PublicKey.default.toString()) {
       return {
         totalApr: ZERO,
@@ -5239,6 +6022,10 @@ export class Kamino {
     if (isRaydium) {
       return this._raydiumService.getStrategyWhirlpoolPoolAprApy(strategyState, raydiumPools);
     }
+    if (isMeteora) {
+      const prices = await this.getAllPrices();
+      return this._meteoraService.getStrategyMeteoraPoolAprApy(strategyState, prices);
+    }
     throw Error(`Strategy dex ${dex} not supported`);
   };
 
@@ -5248,7 +6035,8 @@ export class Kamino {
   ): Promise<PerformanceFees> => {
     const { strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
 
-    const globalConfigState = globalConfig || (await GlobalConfig.fetch(this._connection, strategyState.globalConfig));
+    const globalConfigState =
+      globalConfig || (await GlobalConfig.fetch(this._connection, strategyState.globalConfig, this._kaminoProgramId));
 
     if (globalConfigState == null) {
       throw new Error(`Unable to fetch GlobalConfig with Pubkey ${strategyState.globalConfig}`);
@@ -5277,6 +6065,15 @@ export class Kamino {
     return this._raydiumService.getRaydiumPoolLiquidityDistribution(pool, keepOrder, lowestTick, highestTick);
   };
 
+  getLiquidityDistributionMeteoraPool = (
+    pool: PublicKey,
+    keepOrder: boolean = true,
+    lowestTick?: number,
+    highestTick?: number
+  ): Promise<LiquidityDistribution> => {
+    return this._meteoraService.getMeteoraLiquidityDistribution(pool, keepOrder, lowestTick, highestTick);
+  };
+
   getLiquidityDistributionOrcaWhirlpool = (
     pool: PublicKey,
     keepOrder: boolean = true,
@@ -5297,6 +6094,8 @@ export class Kamino {
       return this.getLiquidityDistributionOrcaWhirlpool(pool, keepOrder, lowestTick, highestTick);
     } else if (dex == 'RAYDIUM') {
       return this.getLiquidityDistributionRaydiumPool(pool, keepOrder, lowestTick, highestTick);
+    } else if (dex == 'METEORA') {
+      return this.getLiquidityDistributionMeteoraPool(pool, keepOrder, lowestTick, highestTick);
     } else {
       throw Error(`Dex ${dex} not supported`);
     }
@@ -5307,6 +6106,8 @@ export class Kamino {
       return this._orcaService.getPositionsCountByPool(pool);
     } else if (dex == 'RAYDIUM') {
       return this._raydiumService.getPositionsCountByPool(pool);
+    } else if (dex == 'METEORA') {
+      return this._meteoraService.getPositionsCountByPool(pool);
     } else {
       throw Error(`Dex ${dex} not supported`);
     }
@@ -5349,7 +6150,6 @@ export class Kamino {
     if (!priceAInB) {
       priceAInB = await this.getCurrentPrice(strategyWithAddress);
     }
-
     const priceBInA = new Decimal(1).div(priceAInB);
 
     let tokenADecimals = strategyState.tokenAMintDecimals.toNumber();
@@ -5434,6 +6234,9 @@ export class Kamino {
     return depositAmountsForSwap;
   };
 
+  /**
+   * @deprecated The method should not be used
+   */
   calculateAmountsDistributionWithPriceRange = async (
     dex: Dex,
     pool: PublicKey,
@@ -5497,8 +6300,19 @@ export class Kamino {
         lamportsToNumberDecimal(addLiqResult.estTokenA.toNumber(), decimalsA),
         lamportsToNumberDecimal(addLiqResult.estTokenB.toNumber(), decimalsB),
       ];
+    } else if (dex == 'METEORA') {
+      let poolState = await LbPair.fetch(this._connection, pool);
+      if (!poolState) {
+        throw new Error(`Meteora poolState ${pool.toString()} is not found`);
+      }
+      let tokenMintA = poolState.tokenXMint;
+      let tokenMintB = poolState.tokenYMint;
+      let decimalsA = await getMintDecimals(this._connection, tokenMintA);
+      let decimalsB = await getMintDecimals(this._connection, tokenMintB);
+
+      return [new Decimal(0), new Decimal(0)];
     } else {
-      throw new Error('Invalid dex, use RAYDIUM or ORCA');
+      throw new Error('Invalid dex, use RAYDIUM or ORCA or METEORA');
     }
   };
 
@@ -5599,6 +6413,7 @@ export class Kamino {
     const dex = Number(strategyState.strategyDex);
     const isOrca = dexToNumber('ORCA') === dex;
     const isRaydium = dexToNumber('RAYDIUM') === dex;
+    const isMeteora = dexToNumber('METEORA') === dex;
     if (isOrca) {
       const whirlpool = await Whirlpool.fetch(this._connection, strategyState.pool);
       if (!whirlpool) {
@@ -5615,6 +6430,8 @@ export class Kamino {
       });
     } else if (isRaydium) {
       return this.calculateAmountsRaydium({ strategyState, tokenAAmount, tokenBAmount });
+    } else if (isMeteora) {
+      return this.calculateAmountsMeteora({ strategyState, tokenAAmount, tokenBAmount });
     } else {
       throw new Error(`The strategy ${strategy.toString()} is not Orca or Raydium`);
     }
@@ -5752,10 +6569,58 @@ export class Kamino {
     return [new Decimal(0), new Decimal(0)];
   };
 
+  calculateAmountsMeteora = async ({
+    strategyState,
+    tokenAAmount,
+    tokenBAmount,
+  }: {
+    strategyState: WhirlpoolStrategy;
+    tokenAAmount?: Decimal;
+    tokenBAmount?: Decimal;
+  }): Promise<[Decimal, Decimal]> => {
+    if (!tokenAAmount && !tokenBAmount) {
+      return [new Decimal(0), new Decimal(0)];
+    }
+
+    const poolState = await LbPair.fetch(this._connection, strategyState.pool);
+    if (!poolState) {
+      throw new Error(`poolState ${strategyState.pool.toString()} is not found`);
+    }
+
+    // TODO: this is just a simple approximation, but it's used only for the first deposit.
+    if (tokenAAmount && tokenBAmount && tokenAAmount.gt(0) && tokenBAmount.gt(0)) {
+      // Use everything that is given in case there are both tokens
+      return [tokenAAmount, tokenBAmount];
+    } else {
+      const binArrayIndex = binIdToBinArrayIndex(new BN(poolState.activeId));
+      const [binArrayPk] = deriveBinArray(strategyState.pool, binArrayIndex, METEORA_PROGRAM_ID);
+      const binArray = await BinArray.fetch(this._connection, binArrayPk);
+      if (!binArray) {
+        throw new Error(`bin array ${binArrayPk.toString()} is not found`);
+      }
+      const bin = getBinFromBinArray(poolState.activeId, binArray);
+      let amountADecimal = new Decimal(0);
+      let amountBDecimal = new Decimal(0);
+      if (bin) {
+        amountADecimal = new Decimal(bin.amountX.toString());
+        amountBDecimal = new Decimal(bin.amountY.toString());
+      }
+      const ratio = amountADecimal.div(amountBDecimal);
+      if (tokenAAmount === undefined || tokenAAmount.eq(ZERO)) {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        return [tokenBAmount!.mul(ratio), tokenBAmount!];
+      }
+
+      if (tokenBAmount === undefined || tokenBAmount.eq(ZERO)) {
+        return [tokenAAmount, tokenAAmount.div(ratio)];
+      }
+    }
+
+    return [new Decimal(0), new Decimal(0)];
+  };
+
   /**
-   * Get amounts of tokenA and tokenB to be deposited
-   * @param strategy
-   * @param amountA
+   * @deprecated The method should not be used
    */
   getDepositRatioFromTokenA = async (
     strategy: PublicKey | StrategyWithAddress,
@@ -5766,6 +6631,7 @@ export class Kamino {
 
     const isOrca = dexToNumber('ORCA') === dex;
     const isRaydium = dexToNumber('RAYDIUM') === dex;
+    const isMeteora = dexToNumber('METEORA') === dex;
 
     if (isOrca) {
       return this.getDepositRatioFromAOrca(strategy, amountA);
@@ -5773,13 +6639,14 @@ export class Kamino {
     if (isRaydium) {
       return this.getDepositRatioFromARaydium(strategy, amountA);
     }
+    if (isMeteora) {
+      return this.getDepositRatioFromAMeteora(strategy, amountA);
+    }
     throw Error(`Strategy dex ${dex} not supported`);
   };
 
   /**
-   * Get amounts of tokenA and tokenB to be deposited
-   * @param strategy
-   * @param amountB
+   * @deprecated The method should not be used
    */
   getDepositRatioFromTokenB = async (
     strategy: PublicKey | StrategyWithAddress,
@@ -5790,12 +6657,16 @@ export class Kamino {
 
     const isOrca = dexToNumber('ORCA') === dex;
     const isRaydium = dexToNumber('RAYDIUM') === dex;
+    const isMeteora = dexToNumber('METEORA') === dex;
 
     if (isOrca) {
       return this.getDepositRatioFromBOrca(strategy, amountB);
     }
     if (isRaydium) {
       return this.getDepositRatioFromBRaydium(strategy, amountB);
+    }
+    if (isMeteora) {
+      return this.getDepositRatioFromBMeteora(strategy, amountB);
     }
     throw Error(`Strategy dex ${dex} not supported`);
   };
@@ -5808,7 +6679,7 @@ export class Kamino {
     const pdaSeed = [Buffer.from('signature'), owner.toBuffer()];
     const [signatureStateKey, _signatureStateBump] = PublicKey.findProgramAddressSync(pdaSeed, this._kaminoProgramId);
 
-    return await TermsSignature.fetch(this._connection, signatureStateKey);
+    return await TermsSignature.fetch(this._connection, signatureStateKey, this._kaminoProgramId);
   }
 
   /**
@@ -5865,6 +6736,44 @@ export class Kamino {
     const quote: InternalAddLiquidityQuote = getAddLiquidityQuote(params);
 
     return { amountSlippageA: quote.estTokenA, amountSlippageB: quote.estTokenB };
+  }
+
+  private async getDepositRatioFromAMeteora(
+    strategy: PublicKey | StrategyWithAddress,
+    amountA: BN
+  ): Promise<{ amountSlippageA: BN; amountSlippageB: BN }> {
+    const { strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
+
+    const poolState = await LbPair.fetch(this._connection, strategyState.pool);
+    if (!poolState) {
+      throw Error(`Could not fetch lb pair state with pubkey ${strategyState.pool.toString()}`);
+    }
+
+    const position = await PositionV2.fetch(this._connection, strategyState.position);
+    if (!position) {
+      throw new Error(`Meteora position ${strategyState.position} does not exist`);
+    }
+
+    return { amountSlippageA: new BN(0), amountSlippageB: new BN(0) };
+  }
+
+  private async getDepositRatioFromBMeteora(
+    strategy: PublicKey | StrategyWithAddress,
+    amountA: BN
+  ): Promise<{ amountSlippageA: BN; amountSlippageB: BN }> {
+    const { strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
+
+    const poolState = await LbPair.fetch(this._connection, strategyState.pool);
+    if (!poolState) {
+      throw Error(`Could not fetch lb pair state with pubkey ${strategyState.pool.toString()}`);
+    }
+
+    const position = await PositionV2.fetch(this._connection, strategyState.position);
+    if (!position) {
+      throw new Error(`Meteora position ${strategyState.position} does not exist`);
+    }
+
+    return { amountSlippageA: new BN(0), amountSlippageB: new BN(0) };
   }
 
   private getDepositRatioFromBOrca = async (
@@ -5967,7 +6876,7 @@ export class Kamino {
   };
 
   getCollateralInfo = async (collateralInfo: PublicKey): Promise<CollateralInfo[]> => {
-    const collateralInfos = await CollateralInfos.fetch(this._connection, collateralInfo);
+    const collateralInfos = await CollateralInfos.fetch(this._connection, collateralInfo, this._kaminoProgramId);
     if (!collateralInfos) {
       throw Error('Could not fetch collateral infos');
     }
@@ -6054,11 +6963,11 @@ export class Kamino {
     strategyOwner: PublicKey,
     strategy: PublicKey
   ): Promise<[TransactionInstruction, Keypair][]> => {
-    let strategyState = await WhirlpoolStrategy.fetch(this._connection, strategy);
+    let strategyState = await WhirlpoolStrategy.fetch(this._connection, strategy, this._kaminoProgramId);
     if (!strategyState) {
       throw Error(`Could not fetch strategy state with pubkey ${strategy.toString()}`);
     }
-    let globalConfig = await GlobalConfig.fetch(this._connection, strategyState.globalConfig);
+    let globalConfig = await GlobalConfig.fetch(this._connection, strategyState.globalConfig, this._kaminoProgramId);
     if (!globalConfig) {
       throw Error(`Could not fetch global config with pubkey ${strategyState.globalConfig.toString()}`);
     }
@@ -6138,6 +7047,43 @@ export class Kamino {
         }
       }
       return result;
+    } else if (strategyState.strategyDex.toNumber() == dexToNumber('RAYDIUM')) {
+      const poolState = await LbPair.fetch(this._connection, strategyState.pool);
+      if (!poolState) {
+        throw new Error(`Could not fetch meteora state with pubkey ${strategyState.pool.toString()}`);
+      }
+      for (let i = 0; i < 2; i++) {
+        if (poolState.rewardInfos[i].mint.toString() != PublicKey.default.toString()) {
+          let collateralId = this.getCollateralIdFromMint(poolState.rewardInfos[i].mint, collateralInfos);
+          if (collateralId == -1) {
+            throw Error(`Could not find collateral id for mint ${poolState.rewardInfos[i].mint.toString()}`);
+          }
+
+          let rewardVault = Keypair.generate();
+          let args: UpdateRewardMappingArgs = {
+            rewardIndex: i,
+            collateralToken: collateralId,
+          };
+
+          let accounts: UpdateRewardMappingAccounts = {
+            payer: strategyOwner,
+            globalConfig: strategyState.globalConfig,
+            strategy: strategy,
+            pool: strategyState.pool,
+            rewardMint: poolState.rewardInfos[i].mint,
+            rewardVault: rewardVault.publicKey,
+            baseVaultAuthority: strategyState.baseVaultAuthority,
+            systemProgram: SystemProgram.programId,
+            rent: SYSVAR_RENT_PUBKEY,
+            tokenProgram: TOKEN_PROGRAM_ID,
+            tokenInfos: globalConfig.tokenInfos,
+          };
+
+          let ix = updateRewardMapping(args, accounts);
+          result.push([ix, rewardVault]);
+        }
+      }
+      return result;
     } else {
       throw new Error(`Dex ${strategyState.strategyDex} not supported`);
     }
@@ -6178,6 +7124,42 @@ export class Kamino {
       return {
         tick: startTickIndexPk,
         initTickIx: initializeTickArray(initTickArrayArgs, initTickArrayAccounts),
+      };
+    }
+    return {
+      tick: startTickIndexPk,
+      initTickIx: undefined,
+    };
+  };
+
+  initializeTickForMeteoraPool = async (
+    payer: PublicKey,
+    pool: PublicKey | LbPairWithAddress,
+    price: Decimal
+  ): Promise<InitPoolTickIfNeeded> => {
+    const { address: poolAddress, pool: poolState } = await this.getMeteoraStateIfNotFetched(pool);
+
+    const decimalsA = await getMintDecimals(this._connection, poolState.tokenXMint);
+    const decimalsB = await getMintDecimals(this._connection, poolState.tokenYMint);
+    const binArray = getBinIdFromPriceWithDecimals(price, poolState.binStep, true, decimalsA, decimalsB);
+    const binArrayIndex = binIdToBinArrayIndex(new BN(binArray));
+
+    const [startTickIndexPk, _startTickIndexBump] = deriveBinArray(poolAddress, binArrayIndex, METEORA_PROGRAM_ID);
+    let tick = await TickArray.fetch(this._connection, startTickIndexPk);
+    // initialize tick if it doesn't exist
+    if (!tick) {
+      let initTickArrayArgs: InitializeBinArrayArgs = {
+        index: new BN(binArrayIndex),
+      };
+      let initTickArrayAccounts: InitializeBinArrayAccounts = {
+        funder: payer,
+        binArray: startTickIndexPk,
+        systemProgram: SystemProgram.programId,
+        lbPair: poolAddress,
+      };
+      return {
+        tick: startTickIndexPk,
+        initTickIx: initializeBinArray(initTickArrayArgs, initTickArrayAccounts),
       };
     }
     return {

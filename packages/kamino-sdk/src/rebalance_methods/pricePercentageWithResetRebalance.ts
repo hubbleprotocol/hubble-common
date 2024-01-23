@@ -12,6 +12,7 @@ import { sqrtPriceX64ToPrice } from '@orca-so/whirlpool-sdk';
 import BN from 'bn.js';
 import { upsertManyRebalanceFieldInfos } from './utils';
 import { getPriceRangeFromPriceAndDiffBPS, getResetRangeFromPriceAndDiffBPS } from './math_utils';
+import { getPriceFromQ64Price } from '../utils/meteora';
 
 export const PricePercentageWithResetRebalanceTypeName = 'pricePercentageWithReset';
 
@@ -223,6 +224,17 @@ export function readPricePercentageWithResetRebalanceStateFromStrategy(
   } else if (dex == 'RAYDIUM') {
     lowerResetPrice = sqrtPriceX64ToPrice(new BN(lowerResetSqrtPriceX64.toString()), tokenADecimals, tokenBDecimals);
     upperResetPrice = sqrtPriceX64ToPrice(new BN(upperResetSqrtPriceX64.toString()), tokenADecimals, tokenBDecimals);
+  } else if (dex == 'METEORA') {
+    lowerResetPrice = getPriceFromQ64Price(
+      new Decimal(lowerResetSqrtPriceX64.toString()),
+      tokenADecimals,
+      tokenBDecimals
+    );
+    upperResetPrice = getPriceFromQ64Price(
+      new Decimal(upperResetSqrtPriceX64.toString()),
+      tokenADecimals,
+      tokenBDecimals
+    );
   } else {
     throw new Error(`Unknown DEX ${dex}`);
   }

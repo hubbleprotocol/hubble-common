@@ -271,7 +271,7 @@ export class RaydiumService {
     };
   };
 
-  async getGenericPoolInfo(poolPubkey: PublicKey, pools?: Pool[]) {
+  async getGenericPoolInfo(poolPubkey: PublicKey, pools?: Pool[]): Promise<GenericPoolInfo> {
     const poolState = await PoolState.fetch(this._connection, poolPubkey);
     if (!poolState) {
       throw Error(`Raydium pool state ${poolPubkey} does not exist`);

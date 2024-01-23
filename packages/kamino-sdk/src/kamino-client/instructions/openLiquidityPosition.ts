@@ -1,6 +1,6 @@
 import { TransactionInstruction, PublicKey, AccountMeta } from "@solana/web3.js" // eslint-disable-line @typescript-eslint/no-unused-vars
 import BN from "bn.js" // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as borsh from "@project-serum/borsh" // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as borsh from "@coral-xyz/borsh" // eslint-disable-line @typescript-eslint/no-unused-vars
 import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
 import { PROGRAM_ID } from "../programId"
 
@@ -34,10 +34,13 @@ export interface OpenLiquidityPositionAccounts {
   oldPositionTokenAccountOrBaseVaultAuthority: PublicKey
   tokenAVault: PublicKey
   tokenBVault: PublicKey
+  tokenAMint: PublicKey
+  tokenBMint: PublicKey
   poolTokenVaultA: PublicKey
   poolTokenVaultB: PublicKey
   scopePrices: PublicKey
   tokenInfos: PublicKey
+  eventAuthority: PublicKey
 }
 
 export const layout = borsh.struct([
@@ -48,7 +51,8 @@ export const layout = borsh.struct([
 
 export function openLiquidityPosition(
   args: OpenLiquidityPositionArgs,
-  accounts: OpenLiquidityPositionAccounts
+  accounts: OpenLiquidityPositionAccounts,
+  programId: PublicKey = PROGRAM_ID
 ) {
   const keys: Array<AccountMeta> = [
     { pubkey: accounts.adminAuthority, isSigner: true, isWritable: true },
@@ -59,7 +63,7 @@ export function openLiquidityPosition(
     { pubkey: accounts.tickArrayUpper, isSigner: false, isWritable: true },
     { pubkey: accounts.baseVaultAuthority, isSigner: false, isWritable: true },
     { pubkey: accounts.position, isSigner: false, isWritable: true },
-    { pubkey: accounts.positionMint, isSigner: true, isWritable: true },
+    { pubkey: accounts.positionMint, isSigner: false, isWritable: true },
     {
       pubkey: accounts.positionMetadataAccount,
       isSigner: false,
@@ -106,10 +110,13 @@ export function openLiquidityPosition(
     },
     { pubkey: accounts.tokenAVault, isSigner: false, isWritable: true },
     { pubkey: accounts.tokenBVault, isSigner: false, isWritable: true },
+    { pubkey: accounts.tokenAMint, isSigner: false, isWritable: false },
+    { pubkey: accounts.tokenBMint, isSigner: false, isWritable: false },
     { pubkey: accounts.poolTokenVaultA, isSigner: false, isWritable: true },
     { pubkey: accounts.poolTokenVaultB, isSigner: false, isWritable: true },
     { pubkey: accounts.scopePrices, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenInfos, isSigner: false, isWritable: false },
+    { pubkey: accounts.eventAuthority, isSigner: false, isWritable: false },
   ]
   const identifier = Buffer.from([204, 234, 204, 219, 6, 91, 96, 241])
   const buffer = Buffer.alloc(1000)
@@ -122,6 +129,6 @@ export function openLiquidityPosition(
     buffer
   )
   const data = Buffer.concat([identifier, buffer]).slice(0, 8 + len)
-  const ix = new TransactionInstruction({ keys, programId: PROGRAM_ID, data })
+  const ix = new TransactionInstruction({ keys, programId, data })
   return ix
 }

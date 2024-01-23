@@ -1,7 +1,7 @@
 import { PublicKey } from "@solana/web3.js" // eslint-disable-line @typescript-eslint/no-unused-vars
 import BN from "bn.js" // eslint-disable-line @typescript-eslint/no-unused-vars
 import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as borsh from "@project-serum/borsh"
+import * as borsh from "@coral-xyz/borsh"
 
 export interface OrcaJSON {
   kind: "Orca"
@@ -49,6 +49,29 @@ export class Raydium {
   }
 }
 
+export interface MeteoraJSON {
+  kind: "Meteora"
+}
+
+export class Meteora {
+  static readonly discriminator = 2
+  static readonly kind = "Meteora"
+  readonly discriminator = 2
+  readonly kind = "Meteora"
+
+  toJSON(): MeteoraJSON {
+    return {
+      kind: "Meteora",
+    }
+  }
+
+  toEncodable() {
+    return {
+      Meteora: {},
+    }
+  }
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function fromDecoded(obj: any): types.DEXKind {
   if (typeof obj !== "object") {
@@ -60,6 +83,9 @@ export function fromDecoded(obj: any): types.DEXKind {
   }
   if ("Raydium" in obj) {
     return new Raydium()
+  }
+  if ("Meteora" in obj) {
+    return new Meteora()
   }
 
   throw new Error("Invalid enum object")
@@ -73,6 +99,9 @@ export function fromJSON(obj: types.DEXJSON): types.DEXKind {
     case "Raydium": {
       return new Raydium()
     }
+    case "Meteora": {
+      return new Meteora()
+    }
   }
 }
 
@@ -80,6 +109,7 @@ export function layout(property?: string) {
   const ret = borsh.rustEnum([
     borsh.struct([], "Orca"),
     borsh.struct([], "Raydium"),
+    borsh.struct([], "Meteora"),
   ])
   if (property !== undefined) {
     return ret.replicate(property)

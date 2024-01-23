@@ -141,6 +141,10 @@ export type CustomError =
   | FlashSwapTooEarly
   | RebalancesCapReached
   | SwapUnevenInvalidAuthority
+  | InvalidTick
+  | MeteoraMathOverflow
+  | StrategyTickArrayNotValid
+  | WrongEventAuthority
 
 export class IntegerOverflow extends Error {
   static readonly code = 6000
@@ -1737,6 +1741,50 @@ export class SwapUnevenInvalidAuthority extends Error {
   }
 }
 
+export class InvalidTick extends Error {
+  static readonly code = 6142
+  readonly code = 6142
+  readonly name = "InvalidTick"
+  readonly msg = "Invalid tick requested"
+
+  constructor(readonly logs?: string[]) {
+    super("6142: Invalid tick requested")
+  }
+}
+
+export class MeteoraMathOverflow extends Error {
+  static readonly code = 6143
+  readonly code = 6143
+  readonly name = "MeteoraMathOverflow"
+  readonly msg = "Meteora math overflowed"
+
+  constructor(readonly logs?: string[]) {
+    super("6143: Meteora math overflowed")
+  }
+}
+
+export class StrategyTickArrayNotValid extends Error {
+  static readonly code = 6144
+  readonly code = 6144
+  readonly name = "StrategyTickArrayNotValid"
+  readonly msg = "Expected strategy tick arrays to be initialized"
+
+  constructor(readonly logs?: string[]) {
+    super("6144: Expected strategy tick arrays to be initialized")
+  }
+}
+
+export class WrongEventAuthority extends Error {
+  static readonly code = 6145
+  readonly code = 6145
+  readonly name = "WrongEventAuthority"
+  readonly msg = "Wrong event authority"
+
+  constructor(readonly logs?: string[]) {
+    super("6145: Wrong event authority")
+  }
+}
+
 export function fromCode(code: number, logs?: string[]): CustomError | null {
   switch (code) {
     case 6000:
@@ -2023,6 +2071,14 @@ export function fromCode(code: number, logs?: string[]): CustomError | null {
       return new RebalancesCapReached(logs)
     case 6141:
       return new SwapUnevenInvalidAuthority(logs)
+    case 6142:
+      return new InvalidTick(logs)
+    case 6143:
+      return new MeteoraMathOverflow(logs)
+    case 6144:
+      return new StrategyTickArrayNotValid(logs)
+    case 6145:
+      return new WrongEventAuthority(logs)
   }
 
   return null

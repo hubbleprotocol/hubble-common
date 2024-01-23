@@ -6,6 +6,7 @@ import { sqrtPriceX64ToPrice } from '@orca-so/whirlpool-sdk';
 import BN from 'bn.js';
 import { RebalanceRaw } from '../kamino-client/types';
 import { SqrtPriceMath } from '@raydium-io/raydium-sdk';
+import { getPriceFromQ64Price } from '../utils/meteora';
 
 export const DEFAULT_LOWER_RANGE_PRICE_DIFF_BPS = new Decimal(500);
 export const DEFAULT_UPPER_RANGE_PRICE_DIFF_BPS = new Decimal(500);
@@ -65,6 +66,10 @@ export function getPositionRangeFromTakeProfitParams(
   } else if (dex == 'RAYDIUM') {
     let lowerPrice = sqrtPriceX64ToPrice(new BN(lowerSqrtPriceX64.toString()), tokenADecimals, tokenBDecimals);
     let upperPrice = sqrtPriceX64ToPrice(new BN(upperSqrtPriceX64.toString()), tokenADecimals, tokenBDecimals);
+    return { lowerPrice, upperPrice };
+  } else if (dex == 'METEORA') {
+    let lowerPrice = getPriceFromQ64Price(new Decimal(lowerSqrtPriceX64.toString()), tokenADecimals, tokenBDecimals);
+    let upperPrice = getPriceFromQ64Price(new Decimal(upperSqrtPriceX64.toString()), tokenADecimals, tokenBDecimals);
     return { lowerPrice, upperPrice };
   } else {
     throw new Error(`Unknown DEX ${dex}`);

@@ -14,6 +14,7 @@ import { sqrtPriceX64ToPrice } from '@orca-so/whirlpool-sdk';
 import BN from 'bn.js';
 import { upsertManyRebalanceFieldInfos } from './utils';
 import { getPriceRangeFromPriceAndDiffBPS, getResetRangeFromPriceAndDiffBPS } from './math_utils';
+import { getPriceFromQ64Price } from '../utils/meteora';
 
 export const DefaultMaxNumberOfExpansions = new Decimal(10);
 export const DefaultExpansionSizeBPS = new Decimal(100);
@@ -283,6 +284,8 @@ export function readExpanderRebalanceStateFromStrategy(
     initialPrice = sqrtPriceX64ToPrice(new BN(initialPriceX64.toString()), tokenADecimals, tokenBDecimals);
   } else if (dex == 'RAYDIUM') {
     initialPrice = sqrtPriceX64ToPrice(new BN(initialPriceX64.toString()), tokenADecimals, tokenBDecimals);
+  } else if (dex == 'METEORA') {
+    initialPrice = getPriceFromQ64Price(new Decimal(initialPriceX64.toString()), tokenADecimals, tokenBDecimals);
   } else {
     throw new Error(`Unknown DEX ${dex}`);
   }

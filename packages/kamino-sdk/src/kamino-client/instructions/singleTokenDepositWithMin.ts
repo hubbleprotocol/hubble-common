@@ -1,6 +1,6 @@
 import { TransactionInstruction, PublicKey, AccountMeta } from "@solana/web3.js" // eslint-disable-line @typescript-eslint/no-unused-vars
 import BN from "bn.js" // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as borsh from "@project-serum/borsh" // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as borsh from "@coral-xyz/borsh" // eslint-disable-line @typescript-eslint/no-unused-vars
 import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
 import { PROGRAM_ID } from "../programId"
 
@@ -15,6 +15,8 @@ export interface SingleTokenDepositWithMinAccounts {
   globalConfig: PublicKey
   pool: PublicKey
   position: PublicKey
+  tickArrayLower: PublicKey
+  tickArrayUpper: PublicKey
   tokenAVault: PublicKey
   tokenBVault: PublicKey
   baseVaultAuthority: PublicKey
@@ -38,7 +40,8 @@ export const layout = borsh.struct([
 
 export function singleTokenDepositWithMin(
   args: SingleTokenDepositWithMinArgs,
-  accounts: SingleTokenDepositWithMinAccounts
+  accounts: SingleTokenDepositWithMinAccounts,
+  programId: PublicKey = PROGRAM_ID
 ) {
   const keys: Array<AccountMeta> = [
     { pubkey: accounts.user, isSigner: true, isWritable: true },
@@ -46,6 +49,8 @@ export function singleTokenDepositWithMin(
     { pubkey: accounts.globalConfig, isSigner: false, isWritable: false },
     { pubkey: accounts.pool, isSigner: false, isWritable: false },
     { pubkey: accounts.position, isSigner: false, isWritable: false },
+    { pubkey: accounts.tickArrayLower, isSigner: false, isWritable: false },
+    { pubkey: accounts.tickArrayUpper, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenAVault, isSigner: false, isWritable: true },
     { pubkey: accounts.tokenBVault, isSigner: false, isWritable: true },
     { pubkey: accounts.baseVaultAuthority, isSigner: false, isWritable: false },
@@ -79,6 +84,6 @@ export function singleTokenDepositWithMin(
     buffer
   )
   const data = Buffer.concat([identifier, buffer]).slice(0, 8 + len)
-  const ix = new TransactionInstruction({ keys, programId: PROGRAM_ID, data })
+  const ix = new TransactionInstruction({ keys, programId, data })
   return ix
 }
