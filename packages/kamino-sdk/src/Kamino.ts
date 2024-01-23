@@ -4306,7 +4306,10 @@ export class Kamino {
       eventAuthority,
     };
 
-    return openLiquidityPosition(args, accounts);
+    let ixn = openLiquidityPosition(args, accounts);
+    const accountIndex = ixn.keys.findIndex((accs) => accs.pubkey.equals(positionMint));
+    ixn.keys[accountIndex].isSigner = true;
+    return ixn;
   };
 
   /**
@@ -4451,6 +4454,8 @@ export class Kamino {
         { pubkey: strategyReward2Vault, isSigner: false, isWritable: true },
       ]);
     }
+    const accountIndex = ix.keys.findIndex((accs) => accs.pubkey.equals(positionMint));
+    ix.keys[accountIndex].isSigner = true;
     return ix;
   };
 
@@ -4467,7 +4472,7 @@ export class Kamino {
     strategy: PublicKey,
     baseVaultAuthority: PublicKey,
     pool: PublicKey,
-    positionMint: PublicKey,
+    position: PublicKey,
     priceLower: Decimal,
     priceUpper: Decimal,
     tokenAVault: PublicKey,
@@ -4494,9 +4499,9 @@ export class Kamino {
     let tickLowerIndex = getBinIdFromPriceWithDecimals(priceLower, lbPair.binStep, true, decimalsA, decimalsB);
     let tickUpperIndex = getBinIdFromPriceWithDecimals(priceUpper, lbPair.binStep, true, decimalsA, decimalsB);
 
-    const { position, positionBump, positionMetadata } = this.getMetadataProgramAddressesOrca(positionMint);
+    const { position: positionMint, positionBump, positionMetadata } = this.getMetadataProgramAddressesOrca(position);
 
-    const positionTokenAccount = getAssociatedTokenAddress(positionMint, baseVaultAuthority);
+    const positionTokenAccount = getAssociatedTokenAddress(position, baseVaultAuthority);
 
     const args: OpenLiquidityPositionArgs = {
       tickLowerIndex: new BN(tickLowerIndex),
@@ -4549,7 +4554,10 @@ export class Kamino {
       eventAuthority,
     };
 
-    return openLiquidityPosition(args, accounts);
+    let ixn = openLiquidityPosition(args, accounts);
+    const accountIndex = ixn.keys.findIndex((accs) => accs.pubkey.equals(position));
+    ixn.keys[accountIndex].isSigner = true;
+    return ixn;
   };
 
   /**
