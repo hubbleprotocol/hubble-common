@@ -1212,7 +1212,6 @@ export class Kamino {
   getStrategies = async (strategies?: Array<PublicKey>): Promise<Array<WhirlpoolStrategy | null>> => {
     if (!strategies) {
       strategies = (await this.getAllStrategiesWithFilters({})).map((x) => x.address);
-      console.log('Fetches', strategies.length, 'strategies with filters');
     }
     return await batchFetch(strategies, (chunk) =>
       WhirlpoolStrategy.fetchMultiple(this._connection, chunk, this._kaminoProgramId)

@@ -244,7 +244,7 @@ export class MeteoraService {
       tokenMintA: pool.tokenXMint,
       tokenMintB: pool.tokenYMint,
       price,
-      feeRate: new Decimal(pool.parameters.baseFactor).mul(new Decimal(pool.binStep)).div(new Decimal(1e6)),
+      feeRate: computeMeteoraFee(pool),
       // TODO: add these
       volumeOnLast7d: new Decimal(100),
       tvl: new Decimal(100),
