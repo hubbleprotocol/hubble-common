@@ -29,7 +29,7 @@ import { checkIfAccountExists } from '../src/utils/transactions';
 import { FullBPS } from '../src/utils/CreationParameters';
 
 export const GlobalConfigMainnet = new PublicKey('GKnHiWh3RRrE1zsNzWxRkomymHc374TvJPSTv2wPeYdB');
-export const GlobalConfigStaging = new PublicKey("7D9KE8xxqvsSsPbpTK9DbvkYaodda1wVevPvZJbLGJ71");
+export const GlobalConfigStaging = new PublicKey('7D9KE8xxqvsSsPbpTK9DbvkYaodda1wVevPvZJbLGJ71');
 export const KaminoProgramIdMainnet = new PublicKey('6LtLpnUFNByNXLyCoK9wA2MykKAmQNZKBdY8s47dehDc');
 export const KaminoProgramIdStaging = new PublicKey('SKY3EZaE5p8iXG1ed4kiandK1wnwwqxmWBhjEFykaHB');
 export const SOLMintMainnet = new PublicKey('So11111111111111111111111111111111111111112');
