@@ -1,9 +1,9 @@
-import { Instruction } from '@jup-ag/api';
+import { AccountMeta, Instruction } from '@jup-ag/api';
 import { PublicKey, TransactionInstruction } from '@solana/web3.js';
 
 export function instructionToTransactionInstruction(ix: Instruction): TransactionInstruction {
   return new TransactionInstruction({
-    keys: ix.accounts.map((acc) => {
+    keys: ix.accounts.map((acc: AccountMeta) => {
       return {
         pubkey: new PublicKey(acc.pubkey),
         isSigner: acc.isSigner,

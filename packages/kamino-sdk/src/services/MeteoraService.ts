@@ -43,68 +43,6 @@ export class MeteoraService {
     this._globalConfig = globalConfig;
   }
 
-  /**
-   * Get token prices for a strategy - for use with meteora sdk
-   * @param strategy
-   * @param prices
-   * @param collateralInfos
-   * @returns {Record<string, Decimal>} - token prices by mint string
-   * @private
-   */
-  private getTokenPrices(
-    strategy: WhirlpoolStrategy,
-    prices: KaminoPrices,
-    collateralInfos: CollateralInfo[]
-  ): Record<string, Decimal> {
-    const tokensPrices: Record<string, Decimal> = {};
-
-    const tokenA = collateralInfos[strategy.tokenACollateralId.toNumber()];
-    const tokenB = collateralInfos[strategy.tokenBCollateralId.toNumber()];
-    const rewardToken0 = collateralInfos[strategy.reward0CollateralId.toNumber()];
-    const rewardToken1 = collateralInfos[strategy.reward1CollateralId.toNumber()];
-
-    const aPrice = prices[tokenA.mint.toString()];
-    const bPrice = prices[tokenB.mint.toString()];
-    const reward0Price = strategy.reward0Decimals.toNumber() !== 0 ? prices[rewardToken0.mint.toString()] : null;
-    const reward1Price = strategy.reward1Decimals.toNumber() !== 0 ? prices[rewardToken1.mint.toString()] : null;
-
-    const [mintA, mintB] = [strategy.tokenAMint.toString(), strategy.tokenBMint.toString()];
-    const reward0 = collateralInfos[strategy.reward0CollateralId.toNumber()]?.mint?.toString();
-    const reward1 = collateralInfos[strategy.reward1CollateralId.toNumber()]?.mint?.toString();
-
-    tokensPrices[mintA] = aPrice;
-    tokensPrices[mintB] = bPrice;
-    if (reward0Price !== null) {
-      tokensPrices[reward0] = reward0Price;
-    }
-    if (reward1Price !== null) {
-      tokensPrices[reward1] = reward1Price;
-    }
-
-    return tokensPrices;
-  }
-
-  private getPoolTokensPrices(pool: PoolData, prices: KaminoPrices) {
-    const tokensPrices: Record<string, Decimal> = {};
-    const tokens = [
-      pool.tokenMintA.toString(),
-      pool.tokenMintB.toString(),
-      pool.rewards[0].mint.toString(),
-      pool.rewards[1].mint.toString(),
-    ];
-    for (const mint of tokens) {
-      if (mint) {
-        const price = prices.spot[mint]?.price;
-        if (!price) {
-          throw new Error(`Could not get token ${mint} price`);
-        }
-        tokensPrices[mint] = price;
-      }
-    }
-
-    return tokensPrices;
-  }
-
   async getPool(poolAddress: PublicKey): Promise<LbPair | null> {
     return await LbPair.fetch(this._connection, poolAddress);
   }
@@ -120,39 +58,49 @@ export class MeteoraService {
     });
     let pools: MeteoraPool[] = [];
     for (let i = 0; i < rawPools.length; i++) {
-      let lbPair = LbPair.decode(rawPools[i].account.data);
-      pools.push({ pool: lbPair, key: rawPools[i].pubkey });
+      try {
+        let lbPair = LbPair.decode(rawPools[i].account.data);
+        pools.push({ pool: lbPair, key: rawPools[i].pubkey });
+      } catch (e) {
+        console.log(e);
+      }
     }
     return pools;
   }
 
   async getStrategyMeteoraPoolAprApy(strategy: WhirlpoolStrategy, prices: KaminoPrices): Promise<WhirlpoolAprApy> {
     const position = await this.getPosition(strategy.position);
-    if (!position) {
-      throw new Error(`Position ${strategy.position} does not exist`);
-    }
 
     const pool = await this.getPool(strategy.pool);
-    if (!pool) {
-      throw Error(`Could not get meteora pool data for ${strategy.pool}`);
-    }
+
     let decimalsX = strategy.tokenAMintDecimals.toNumber();
     let decimalsY = strategy.tokenBMintDecimals.toNumber();
-    let { priceLower, priceUpper } = getMeteoraPriceLowerUpper(
-      position.lowerBinId,
-      position.upperBinId,
-      decimalsX,
-      decimalsY,
-      pool.binStep
-    );
-    const priceRange = getStrategyPriceRangeMeteora(
-      priceLower,
-      priceUpper,
-      pool.activeId,
-      pool.binStep,
-      decimalsX,
-      decimalsY
-    );
+    let priceLower: Decimal = new Decimal(0);
+    let priceUpper: Decimal = new Decimal(0);
+    if (position && pool) {
+      const priceRange = getMeteoraPriceLowerUpper(
+        position.lowerBinId,
+        position.upperBinId,
+        pool.binStep,
+        decimalsX,
+        decimalsY
+      );
+      priceLower = priceRange.priceLower;
+      priceUpper = priceRange.priceUpper;
+    }
+
+    let priceRange = { priceLower, poolPrice: new Decimal(0), priceUpper, strategyOutOfRange: true };
+    if (pool && position) {
+      priceRange = getStrategyPriceRangeMeteora(
+        priceLower,
+        priceUpper,
+        pool.activeId,
+        pool.binStep,
+        decimalsX,
+        decimalsY
+      );
+    }
+
     if (priceRange.strategyOutOfRange) {
       return {
         ...priceRange,
@@ -190,8 +138,14 @@ export class MeteoraService {
     //TODO: fix this
     const pool = await this.getPool(poolKey);
     if (!pool) {
-      throw Error(`Could not get meteora pool data for ${poolKey}`);
+      // if the pool doesn't exist, return empty distribution
+      return {
+        currentPrice: new Decimal(0),
+        currentTickIndex: 0,
+        distribution: [],
+      };
     }
+
     let currentTickIndex = pool.activeId;
     let tokenXDecimals = await getMintDecimals(this._connection, pool.tokenXMint);
     let tokenYDecimals = await getMintDecimals(this._connection, pool.tokenYMint);
@@ -212,12 +166,22 @@ export class MeteoraService {
   async getMeteoraPositionAprApy(
     poolPubkey: PublicKey,
     priceLower: Decimal,
-    priceUpper: Decimal,
-    prices: KaminoPrices
+    priceUpper: Decimal
   ): Promise<WhirlpoolAprApy> {
     const pool = await this.getPool(poolPubkey);
     if (!pool) {
-      throw Error(`Could not get meteora pool data for ${poolPubkey}`);
+      return {
+        priceLower: ZERO,
+        priceUpper: ZERO,
+        poolPrice: ZERO,
+        strategyOutOfRange: true,
+        rewardsApy: [],
+        rewardsApr: [],
+        feeApy: ZERO,
+        feeApr: ZERO,
+        totalApy: ZERO,
+        totalApr: ZERO,
+      };
     }
     let tokenXDecimals = await getMintDecimals(this._connection, pool.tokenXMint);
     let tokenYDecimals = await getMintDecimals(this._connection, pool.tokenYMint);
@@ -254,10 +218,21 @@ export class MeteoraService {
     };
   }
 
-  async getGenericPoolInfo(poolPubkey: PublicKey) {
+  async getGenericPoolInfo(poolPubkey: PublicKey): Promise<GenericPoolInfo> {
     const pool = await this.getPool(poolPubkey);
     if (!pool) {
-      throw Error(`Could not get meteora pool data for ${poolPubkey}`);
+      return {
+        dex: 'METEORA',
+        address: new PublicKey(0),
+        tokenMintA: new PublicKey(0),
+        tokenMintB: new PublicKey(0),
+        price: new Decimal(0),
+        feeRate: new Decimal(0),
+        volumeOnLast7d: new Decimal(0),
+        tvl: new Decimal(0),
+        tickSpacing: new Decimal(0),
+        positions: new Decimal(0),
+      };
     }
     let tokenXDecimals = await getMintDecimals(this._connection, pool.tokenXMint);
     let tokenYDecimals = await getMintDecimals(this._connection, pool.tokenYMint);

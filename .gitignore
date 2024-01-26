@@ -200,4 +200,4 @@ packages/kamino-sdk/deps/scope.so
 packages/kamino-sdk/deps/whirlpool.so
 .DS_Store
 
-
+keypair.json
