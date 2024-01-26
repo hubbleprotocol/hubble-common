@@ -6606,6 +6606,23 @@ export class Kamino {
         if (!bin.amountY.eq(new BN(0))) {
           amountBDecimal = new Decimal(bin.amountY.toString());
         }
+      } else {
+        throw new Error(`bin ${poolState.activeId.toString()} is not found`);
+      }
+
+      if (amountADecimal.eq(ZERO) && amountBDecimal.eq(ZERO)) {
+        const decimalsA = await getMintDecimals(this._connection, strategyState.tokenAMint);
+        const decimalsB = await getMintDecimals(this._connection, strategyState.tokenBMint);
+        const poolPrice = getPriceOfBinByBinIdWithDecimals(poolState.activeId, poolState.binStep, decimalsA, decimalsB);
+        return [tokenAAmount || tokenBAmount!.div(poolPrice), tokenBAmount || tokenAAmount!.mul(poolPrice)];
+      }
+
+      if (amountBDecimal.eq(ZERO)) {
+        return [tokenAAmount!, ZERO];
+      }
+
+      if (amountADecimal.eq(ZERO)) {
+        return [ZERO, tokenBAmount!];
       }
 
       const ratio = amountADecimal.div(amountBDecimal);

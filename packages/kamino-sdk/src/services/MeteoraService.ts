@@ -246,8 +246,8 @@ export class MeteoraService {
       price,
       feeRate: computeMeteoraFee(pool),
       // TODO: add these
-      volumeOnLast7d: new Decimal(100),
-      tvl: new Decimal(100),
+      volumeOnLast7d: new Decimal(0),
+      tvl: new Decimal(0),
       tickSpacing: new Decimal(pool.binStep),
       // todo(Silviu): get real amount of positions
       positions: new Decimal(await this.getPositionsCountByPool(poolPubkey)),
