@@ -229,6 +229,7 @@ import {
   DefaultFeeTierOrca,
   DefaultMintTokenA,
   DefaultMintTokenB,
+  DefaultTickSpacing,
   DriftRebalanceMethod,
   ExpanderMethod,
   FullBPS,
@@ -338,13 +339,14 @@ import {
 import { KaminoPrices, OraclePricesAndCollateralInfos } from './models';
 import { getRemoveLiquidityQuote } from './whirpools-client/shim/remove-liquidity';
 import { METEORA_PROGRAM_ID, setMeteoraProgramId } from './meteora_client/programId';
-import { MeteoraPool, MeteoraService } from './services/MeteoraService';
+import { computeMeteoraFee, MeteoraPool, MeteoraService } from './services/MeteoraService';
 import {
   binIdToBinArrayIndex,
   deriveBinArray,
   getBinFromBinArray,
   getBinFromBinArrays,
   getBinIdFromPriceWithDecimals,
+  getPriceOfBinByBinId,
   getPriceOfBinByBinIdWithDecimals,
   MeteoraPosition,
 } from './utils/meteora';
@@ -491,7 +493,7 @@ export class Kamino {
     const tokenMintB = DefaultMintTokenB;
     const rebalanceMethod = this.getDefaultRebalanceMethod();
     const feeTier = DefaultFeeTierOrca;
-    const tickSpacing = 1;
+    const tickSpacing = DefaultTickSpacing;
     let rebalancingParameters = await this.getDefaultRebalanceFields(
       dex,
       tokenMintA,
@@ -1140,9 +1142,7 @@ export class Kamino {
             tokenMintA: pool.pool.tokenXMint,
             tokenMintB: pool.pool.tokenYMint,
             tvl: new Decimal(0),
-            feeRate: new Decimal(pool.pool.parameters.baseFactor)
-              .mul(new Decimal(pool.pool.binStep))
-              .div(new Decimal(1e8)),
+            feeRate: computeMeteoraFee(pool.pool).div(1e2), // Transform it to rate
             volumeOnLast7d: new Decimal(0),
             tickSpacing: new Decimal(pool.pool.binStep),
             positions: positionsCount,
@@ -4309,7 +4309,10 @@ export class Kamino {
       eventAuthority,
     };
 
-    return openLiquidityPosition(args, accounts);
+    let ixn = openLiquidityPosition(args, accounts);
+    const accountIndex = ixn.keys.findIndex((accs) => accs.pubkey.equals(positionMint));
+    ixn.keys[accountIndex].isSigner = true;
+    return ixn;
   };
 
   /**
@@ -4454,6 +4457,8 @@ export class Kamino {
         { pubkey: strategyReward2Vault, isSigner: false, isWritable: true },
       ]);
     }
+    const accountIndex = ix.keys.findIndex((accs) => accs.pubkey.equals(positionMint));
+    ix.keys[accountIndex].isSigner = true;
     return ix;
   };
 
@@ -4470,7 +4475,7 @@ export class Kamino {
     strategy: PublicKey,
     baseVaultAuthority: PublicKey,
     pool: PublicKey,
-    positionMint: PublicKey,
+    position: PublicKey,
     priceLower: Decimal,
     priceUpper: Decimal,
     tokenAVault: PublicKey,
@@ -4497,9 +4502,9 @@ export class Kamino {
     let tickLowerIndex = getBinIdFromPriceWithDecimals(priceLower, lbPair.binStep, true, decimalsA, decimalsB);
     let tickUpperIndex = getBinIdFromPriceWithDecimals(priceUpper, lbPair.binStep, true, decimalsA, decimalsB);
 
-    const { position, positionBump, positionMetadata } = this.getMetadataProgramAddressesOrca(positionMint);
+    const { position: positionMint, positionBump, positionMetadata } = this.getMetadataProgramAddressesOrca(position);
 
-    const positionTokenAccount = getAssociatedTokenAddress(positionMint, baseVaultAuthority);
+    const positionTokenAccount = getAssociatedTokenAddress(position, baseVaultAuthority);
 
     const args: OpenLiquidityPositionArgs = {
       tickLowerIndex: new BN(tickLowerIndex),
@@ -4552,7 +4557,10 @@ export class Kamino {
       eventAuthority,
     };
 
-    return openLiquidityPosition(args, accounts);
+    let ixn = openLiquidityPosition(args, accounts);
+    const accountIndex = ixn.keys.findIndex((accs) => accs.pubkey.equals(position));
+    ixn.keys[accountIndex].isSigner = true;
+    return ixn;
   };
 
   /**
@@ -6600,9 +6608,7 @@ export class Kamino {
           amountBDecimal = new Decimal(bin.amountY.toString());
         }
       }
-      // if (amountADecimal.eq(ZERO) || amountBDecimal.eq(ZERO)) {
-      //   return [tokenAAmount || new Decimal(0), tokenBAmount || new Decimal(0)];
-      // }
+
       const ratio = amountADecimal.div(amountBDecimal);
       if (tokenAAmount === undefined || tokenAAmount.eq(ZERO)) {
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion

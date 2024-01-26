@@ -1,7 +1,16 @@
 import { Connection, PublicKey } from '@solana/web3.js';
 import Decimal from 'decimal.js';
-import { PoolData } from '@orca-so/whirlpool-sdk';
-import { WhirlpoolStrategy } from '../kamino-client/accounts';
+import {
+  estimateAprsForPriceRange,
+  OrcaNetwork,
+  OrcaWhirlpoolClient,
+  getNearestValidTickIndexFromTickIndex,
+  priceToTickIndex,
+  PoolData,
+} from '@orca-so/whirlpool-sdk';
+import axios from 'axios';
+import { SolanaCluster } from '@hubbleprotocol/hubble-config';
+import { CollateralInfos, GlobalConfig, WhirlpoolStrategy } from '../kamino-client/accounts';
 import {
   aprToApy,
   GenericPoolInfo,
@@ -105,9 +114,9 @@ export class MeteoraService {
     }
 
     // TODO: fix this
-    let totalApr = new Decimal(100);
-    let feeApr = new Decimal(100);
-    let rewardsApr = [new Decimal(100)];
+    let totalApr = new Decimal(0);
+    let feeApr = new Decimal(0);
+    let rewardsApr = [new Decimal(0)];
     return {
       totalApr,
       totalApy: aprToApy(totalApr, 365),
@@ -195,9 +204,9 @@ export class MeteoraService {
         totalApr: ZERO,
       };
     }
-    let totalApr = new Decimal(100);
-    let feeApr = new Decimal(100);
-    let rewardsApr = [new Decimal(100)];
+    let totalApr = new Decimal(0);
+    let feeApr = new Decimal(0);
+    let rewardsApr = [new Decimal(0)];
     return {
       totalApr,
       totalApy: aprToApy(totalApr, 365),
@@ -254,4 +263,8 @@ export class MeteoraService {
 
     return rawPositions.length;
   }
+}
+
+export function computeMeteoraFee(pool: LbPair): Decimal {
+  return new Decimal(pool.parameters.baseFactor).mul(new Decimal(pool.binStep)).div(new Decimal(1e6));
 }
