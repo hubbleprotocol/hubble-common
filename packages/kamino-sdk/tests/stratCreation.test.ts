@@ -97,6 +97,74 @@ describe('Kamino strategy creation SDK Tests', () => {
     console.log('poolInfo', poolInfo);
   });
 
+  it('deposit WIF-SOL Meteora', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      STAGING_GLOBAL_CONFIG,
+      STAGING_KAMINO_PROGRAM_ID,
+      WHIRLPOOL_PROGRAM_ID,
+      RAYDIUM_PROGRAM_ID,
+      METEORA_PROGRAM_ID
+    );
+
+    const strategyPubkey = new PublicKey('97nwDqK1DAjDw2CKiou3bantTj8DwpPGVJBukpzEwVnk');
+    const strategyState = await kamino.getStrategyByAddress(strategyPubkey);
+    if (!strategyState) {
+      throw new Error('strategy not found');
+    }
+    const strategyWithAddress = { address: strategyPubkey, strategy: strategyState };
+
+    const solToDeposit = new Decimal(0.01);
+    const wifToDeposit = new Decimal(10.0);
+
+    let depositIx: TransactionInstruction;
+    if (strategyState.tokenAMint.equals(SOLMintMainnet)) {
+      depositIx = await kamino.deposit(strategyWithAddress, solToDeposit, wifToDeposit, signer.publicKey);
+    } else {
+      depositIx = await kamino.deposit(strategyWithAddress, wifToDeposit, solToDeposit, signer.publicKey);
+    }
+
+    const [sharesAta, sharesMintData] = await getAssociatedTokenAddressAndData(
+      connection,
+      strategyState.sharesMint,
+      signer.publicKey
+    );
+    const [tokenAAta, tokenAData] = await getAssociatedTokenAddressAndData(
+      connection,
+      strategyState.tokenAMint,
+      signer.publicKey
+    );
+    const [tokenBAta, tokenBData] = await getAssociatedTokenAddressAndData(
+      connection,
+      strategyState.tokenBMint,
+      signer.publicKey
+    );
+
+    const ataInstructions = await kamino.getCreateAssociatedTokenAccountInstructionsIfNotExist(
+      signer.publicKey,
+      strategyWithAddress,
+      tokenAData,
+      tokenAAta,
+      tokenBData,
+      tokenBAta,
+      sharesMintData,
+      sharesAta
+    );
+
+    const increaseBudgetIx = createAddExtraComputeUnitsIx(1_000_000);
+    const depositTx = await kamino.getTransactionV2Message(
+      signer.publicKey,
+      [increaseBudgetIx, ...ataInstructions, depositIx],
+      [strategyState.strategyLookupTable]
+    );
+    const depositTransactionV0 = new VersionedTransaction(depositTx);
+    depositTransactionV0.sign([signer]);
+    //@ts-ignore
+    let txHash = await sendAndConfirmTransaction(kamino._connection, depositTransactionV0, { skipPreflight: true });
+    console.log('deposit tx hash', txHash);
+  });
+
   it('read all pools for tokens Meteora', async () => {
     let kamino = new Kamino(
       cluster,
