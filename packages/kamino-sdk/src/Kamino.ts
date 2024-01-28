@@ -1583,7 +1583,7 @@ export class Kamino {
   private getMeteoraBalances = async (
     strategy: WhirlpoolStrategy,
     pool: LbPair,
-    position: PositionV2,
+    position: PositionV2 | undefined, // the undefined is for scenarios where the position is not initialised yet
     collateralInfos: CollateralInfo[],
     prices?: OraclePrices
   ): Promise<StrategyBalances> => {
@@ -1611,8 +1611,12 @@ export class Kamino {
         ? strategyPrices.aTwapPrice.div(strategyPrices.bTwapPrice)
         : null;
     const poolPrice = getPriceOfBinByBinIdWithDecimals(pool.activeId, pool.binStep, decimalsA, decimalsB);
-    const lowerPrice = getPriceOfBinByBinIdWithDecimals(position.lowerBinId, pool.binStep, decimalsA, decimalsB);
-    const upperPrice = getPriceOfBinByBinIdWithDecimals(position.upperBinId, pool.binStep, decimalsA, decimalsB);
+    const lowerPrice = position
+      ? getPriceOfBinByBinIdWithDecimals(position.lowerBinId, pool.binStep, decimalsA, decimalsB)
+      : ZERO;
+    const upperPrice = position
+      ? getPriceOfBinByBinIdWithDecimals(position.upperBinId, pool.binStep, decimalsA, decimalsB)
+      : ZERO;
     let lowerResetPrice: Decimal | null = null;
     let upperResetPrice: Decimal | null = null;
     let dex = numberToDex(strategy.strategyDex.toNumber());
@@ -1682,10 +1686,14 @@ export class Kamino {
   };
 
   private getMeteoraTokensBalances = async (strategy: WhirlpoolStrategy): Promise<TokenHoldings> => {
-    const userPosition = await this.readMeteoraPosition(strategy.pool, strategy.position);
+    let aInvested = ZERO;
+    let bInvested = ZERO;
+    try {
+      const userPosition = await this.readMeteoraPosition(strategy.pool, strategy.position);
 
-    const aInvested = userPosition.amountX;
-    const bInvested = userPosition.amountY;
+      aInvested = userPosition.amountX;
+      bInvested = userPosition.amountY;
+    } catch (e) {}
 
     const aAvailable = new Decimal(strategy.tokenAAmounts.toString());
     const bAvailable = new Decimal(strategy.tokenBAmounts.toString());
@@ -2003,12 +2011,18 @@ export class Kamino {
     if (!positionAcc) {
       throw Error(`Could not fetch Meteora position state with pubkey ${strategy.position.toString()}`);
     }
-    const [poolState, position] = await Promise.all([
-      LbPair.decode(poolStateAcc.data),
-      PositionV2.decode(positionAcc.data),
-    ]);
 
-    return this.getMeteoraBalances(strategy, poolState, position, collateralInfos, scopePrices);
+    try {
+      const [poolState, position] = await Promise.all([
+        LbPair.decode(poolStateAcc.data),
+        PositionV2.decode(positionAcc.data),
+      ]);
+
+      return this.getMeteoraBalances(strategy, poolState, position, collateralInfos, scopePrices);
+    } catch (e) {
+      const poolState = LbPair.decode(poolStateAcc.data);
+      return this.getMeteoraBalances(strategy, poolState, undefined, collateralInfos, scopePrices);
+    }
   };
 
   private getStrategyHoldingsUsd = (

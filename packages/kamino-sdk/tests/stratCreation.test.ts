@@ -99,6 +99,25 @@ describe('Kamino strategy creation SDK Tests', () => {
     console.log('poolInfo', poolInfo);
   });
 
+  it('read share data', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      GlobalConfigMainnet,
+      KaminoProgramIdMainnet,
+      WHIRLPOOL_PROGRAM_ID,
+      RAYDIUM_PROGRAM_ID,
+      METEORA_PROGRAM_ID
+    );
+
+    let data = await kamino.getStrategyShareData(new PublicKey('GrsqRMeKdwXxTLv4QKVeL1qMhHqKqjo3ZabuNwFQAzNi'));
+    console.log('data for GrsqRMeKdwXxTLv4QKVeL1qMhHqKqjo3ZabuNwFQAzNi', data);
+    data = await kamino.getStrategyShareData(new PublicKey('GrsqRMeKdwXxTLv4QKVeL1qMhHqKqjo3ZabuNwFQAzNi'));
+    console.log('data for GrsqRMeKdwXxTLv4QKVeL1qMhHqKqjo3ZabuNwFQAzNi', data);
+    data = await kamino.getStrategyShareData(new PublicKey('2scuULh4EZbMHCEUZde4VycQG6EvTWc2trGgRfSaTLvZ'));
+    console.log('data for 2scuULh4EZbMHCEUZde4VycQG6EvTWc2trGgRfSaTLvZ', data);
+  });
+
   it('read empty strat Meteora', async () => {
     let kamino = new Kamino(
       cluster,
