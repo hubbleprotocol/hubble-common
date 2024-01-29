@@ -2,7 +2,8 @@ export interface OwnerEntity {
   id: number;
   pubkey: string;
   cluster_id: number;
-  domain: string | null;
+  //TODO: uncomment when actually implemented
+  // domain: string | null;
 }
 
 export default OwnerEntity;

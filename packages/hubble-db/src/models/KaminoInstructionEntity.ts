@@ -1,14 +1,10 @@
 export interface KaminoInstructionEntity {
-  id: number;
-  transaction_signature: string;
-  ordinal: number;
-  created_on: Date;
+  id: bigint;
   enriched: string;
-  raw_json: string;
-  instruction_id: number;
+  latest_position: boolean;
   strategy_id: number;
   owner_id: number;
-  latest_position: boolean;
+  raw_instruction_id: bigint;
 }
 
 export default KaminoInstructionEntity;

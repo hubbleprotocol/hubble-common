@@ -98,7 +98,6 @@ export const KLEND_OBLIGATION_TABLE = 'klend_obligation';
 export const KLEND_MARKET_STATE_TABLE = 'klend_market_state';
 export const KLEND_RESERVE_STATE_TABLE = 'klend_reserve_state';
 export const KLEND_OBLIGATION_STATE_TABLE = 'klend_obligation_state';
-export const KAMINO_INSTRUCTION_TABLE = 'kamino_instruction';
 export const INSTRUCTION_TABLE = 'instruction';
 export const USER_METRICS_TABLE = 'user_metrics';
 export const PRICE_TYPE_TABLE = 'price_type';
@@ -117,6 +116,9 @@ export const POINTS_LEADERBOARD_TABLE = 'points_leaderboard';
 export const STAKED_SOL_TOKEN_TABLE = 'staked_sol_token';
 export const POINTS_LEADERBOARD_BLACKLIST_TABLE = 'points_leaderboard_blacklist';
 export const STABLECOIN_TOKEN_TABLE = 'stablecoin_token';
+export const RAW_INSTRUCTION_TABLE = 'raw_instruction';
+export const KAMINO_INSTRUCTION_TABLE = 'kamino_instruction';
+export const KLEND_INSTRUCTION_TABLE = 'klend_instruction';
 
 export type RESAMPLE_FREQUENCY = 'hour' | 'day';
 export const HOURLY_FREQUENCY = 'hour';
