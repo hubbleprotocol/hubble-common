@@ -56,6 +56,8 @@ export * from './KlendObligationTypeEntity';
 export * from './StakedSolTokenEntity';
 export * from './StablecoinTokenEntity';
 export * from './PointsLeaderboardBlacklistEntity';
+export * from './KlendInstructionEntity';
+export * from './RawInstructionEntity';
 
 export const CLUSTER_TABLE: string = 'cluster';
 export const COLLATERAL_TABLE: string = 'collateral';
