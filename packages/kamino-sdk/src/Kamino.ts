@@ -1611,9 +1611,10 @@ export class Kamino {
         ? strategyPrices.aTwapPrice.div(strategyPrices.bTwapPrice)
         : null;
     const poolPrice = getPriceOfBinByBinIdWithDecimals(pool.activeId, pool.binStep, decimalsA, decimalsB);
-    const lowerPrice = position
-      ? getPriceOfBinByBinIdWithDecimals(position.lowerBinId, pool.binStep, decimalsA, decimalsB)
-      : ZERO;
+    let lowerPrice = ZERO;
+    if (position && position.lowerBinId && position.upperBinId) {
+      lowerPrice = getPriceOfBinByBinIdWithDecimals(position.lowerBinId, pool.binStep, decimalsA, decimalsB);
+    }
     const upperPrice = position
       ? getPriceOfBinByBinIdWithDecimals(position.upperBinId, pool.binStep, decimalsA, decimalsB)
       : ZERO;
@@ -1688,12 +1689,10 @@ export class Kamino {
   private getMeteoraTokensBalances = async (strategy: WhirlpoolStrategy): Promise<TokenHoldings> => {
     let aInvested = ZERO;
     let bInvested = ZERO;
-    try {
-      const userPosition = await this.readMeteoraPosition(strategy.pool, strategy.position);
+    const userPosition = await this.readMeteoraPosition(strategy.pool, strategy.position);
 
-      aInvested = userPosition.amountX;
-      bInvested = userPosition.amountY;
-    } catch (e) {}
+    aInvested = userPosition.amountX;
+    bInvested = userPosition.amountY;
 
     const aAvailable = new Decimal(strategy.tokenAAmounts.toString());
     const bAvailable = new Decimal(strategy.tokenBAmounts.toString());
@@ -2011,18 +2010,12 @@ export class Kamino {
     if (!positionAcc) {
       throw Error(`Could not fetch Meteora position state with pubkey ${strategy.position.toString()}`);
     }
+    const [poolState, position] = await Promise.all([
+      LbPair.decode(poolStateAcc.data),
+      PositionV2.decode(positionAcc.data),
+    ]);
 
-    try {
-      const [poolState, position] = await Promise.all([
-        LbPair.decode(poolStateAcc.data),
-        PositionV2.decode(positionAcc.data),
-      ]);
-
-      return this.getMeteoraBalances(strategy, poolState, position, collateralInfos, scopePrices);
-    } catch (e) {
-      const poolState = LbPair.decode(poolStateAcc.data);
-      return this.getMeteoraBalances(strategy, poolState, undefined, collateralInfos, scopePrices);
-    }
+    return this.getMeteoraBalances(strategy, poolState, position, collateralInfos, scopePrices);
   };
 
   private getStrategyHoldingsUsd = (
@@ -4049,12 +4042,11 @@ export class Kamino {
   private readMeteoraPosition = async (poolPk: PublicKey, positionPk: PublicKey): Promise<MeteoraPosition> => {
     let pool = await LbPair.fetch(this._connection, poolPk);
     let position = await PositionV2.fetch(this._connection, positionPk);
-    if (!pool || !position) {
-      return {
-        publicKey: positionPk,
-        amountX: new Decimal(0),
-        amountY: new Decimal(0),
-      };
+    if (!pool) {
+      throw Error(`Could not fetch pool  with pubkey ${poolPk.toString()}`);
+    }
+    if (!position) {
+      throw Error(`Could not fetch position  with pubkey ${positionPk.toString()}`);
     }
 
     let { lowerTick: lowerTickPk, upperTick: upperTickPk } = this.getStartEndTicketIndexProgramAddressesMeteora(
@@ -4066,13 +4058,13 @@ export class Kamino {
     if (!lowerBinArray || !upperBinArray) {
       return {
         publicKey: positionPk,
-        amountX: new Decimal(0),
-        amountY: new Decimal(0),
+        amountX: ZERO,
+        amountY: ZERO,
       };
     }
     let binArrays = [lowerBinArray, upperBinArray];
-    let totalAmountX = new Decimal(0);
-    let totalAmountY = new Decimal(0);
+    let totalAmountX = ZERO;
+    let totalAmountY = ZERO;
     for (let idx = position.lowerBinId; idx <= position.upperBinId; idx++) {
       let bin = getBinFromBinArrays(idx, binArrays);
       if (bin) {
@@ -4081,8 +4073,10 @@ export class Kamino {
         const binLiq = new Decimal(bin.liquiditySupply.toString());
         const positionLiq = new Decimal(position.liquidityShares[idx - position.lowerBinId].toString());
 
-        totalAmountX = totalAmountX.add(binX.mul(positionLiq).div(binLiq));
-        totalAmountY = totalAmountY.add(binY.mul(positionLiq).div(binLiq));
+        if (binLiq && binLiq.gt(ZERO)) {
+          totalAmountX = totalAmountX.add(binX.mul(positionLiq).div(binLiq));
+          totalAmountY = totalAmountY.add(binY.mul(positionLiq).div(binLiq));
+        }
       }
     }
 
