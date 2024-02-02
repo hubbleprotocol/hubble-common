@@ -1692,7 +1692,7 @@ export class Kamino {
     try {
       const userPosition = await this.readMeteoraPosition(strategy.pool, strategy.position);
 
-      if (userPosition && userPosition.amountX && userPosition.amountY) {
+      if (!userPosition?.amountX.isNaN() && !userPosition?.amountY.isNaN()) {
         aInvested = userPosition.amountX;
         bInvested = userPosition.amountY;
       }
@@ -4082,15 +4082,12 @@ export class Kamino {
         const binX = new Decimal(bin.amountX.toString());
         const binY = new Decimal(bin.amountY.toString());
         const binLiq = new Decimal(bin.liquiditySupply.toString());
-        if (binX.isNaN() && !binY.isNaN() && binLiq && binLiq.gt(ZERO)) {
-          const positionLiqNumber = position.liquidityShares[idx - position.lowerBinId].toNumber();
-          if (position.liquidityShares[idx - position.lowerBinId] && positionLiqNumber > 0) {
-            const positionLiq = new Decimal(position.liquidityShares[idx - position.lowerBinId].toString());
-
-            if (binLiq && binLiq.gt(ZERO)) {
-              totalAmountX = totalAmountX.add(binX.mul(positionLiq).div(binLiq));
-              totalAmountY = totalAmountY.add(binY.mul(positionLiq).div(binLiq));
-            }
+        if (!binX.isNaN() && !binY.isNaN() && !binLiq.isNaN() && binLiq.gt(ZERO)) {
+          const positionLiqNumber = position.liquidityShares[idx - position.lowerBinId];
+          if (positionLiqNumber && !positionLiqNumber.isZero()) {
+            const positionLiq = new Decimal(positionLiqNumber.toString());
+            totalAmountX = totalAmountX.add(binX.mul(positionLiq).div(binLiq));
+            totalAmountY = totalAmountY.add(binY.mul(positionLiq).div(binLiq));
           }
         }
       }
