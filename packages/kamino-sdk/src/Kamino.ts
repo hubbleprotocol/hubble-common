@@ -1611,12 +1611,13 @@ export class Kamino {
         ? strategyPrices.aTwapPrice.div(strategyPrices.bTwapPrice)
         : null;
     const poolPrice = getPriceOfBinByBinIdWithDecimals(pool.activeId, pool.binStep, decimalsA, decimalsB);
-    const lowerPrice = position
-      ? getPriceOfBinByBinIdWithDecimals(position.lowerBinId, pool.binStep, decimalsA, decimalsB)
-      : ZERO;
-    const upperPrice = position
-      ? getPriceOfBinByBinIdWithDecimals(position.upperBinId, pool.binStep, decimalsA, decimalsB)
-      : ZERO;
+    let lowerPrice = ZERO;
+    let upperPrice = ZERO;
+    if (position && position.lowerBinId && position.upperBinId) {
+      lowerPrice = getPriceOfBinByBinIdWithDecimals(position.lowerBinId, pool.binStep, decimalsA, decimalsB);
+      upperPrice = getPriceOfBinByBinIdWithDecimals(position.upperBinId, pool.binStep, decimalsA, decimalsB);
+    }
+
     let lowerResetPrice: Decimal | null = null;
     let upperResetPrice: Decimal | null = null;
     let dex = numberToDex(strategy.strategyDex.toNumber());
@@ -1691,8 +1692,10 @@ export class Kamino {
     try {
       const userPosition = await this.readMeteoraPosition(strategy.pool, strategy.position);
 
-      aInvested = userPosition.amountX;
-      bInvested = userPosition.amountY;
+      if (userPosition && userPosition.amountX && userPosition.amountY) {
+        aInvested = userPosition.amountX;
+        bInvested = userPosition.amountY;
+      }
     } catch (e) {}
 
     const aAvailable = new Decimal(strategy.tokenAAmounts.toString());
