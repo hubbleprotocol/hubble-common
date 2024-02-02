@@ -1612,12 +1612,12 @@ export class Kamino {
         : null;
     const poolPrice = getPriceOfBinByBinIdWithDecimals(pool.activeId, pool.binStep, decimalsA, decimalsB);
     let lowerPrice = ZERO;
+    let upperPrice = ZERO;
     if (position && position.lowerBinId && position.upperBinId) {
       lowerPrice = getPriceOfBinByBinIdWithDecimals(position.lowerBinId, pool.binStep, decimalsA, decimalsB);
+      upperPrice = getPriceOfBinByBinIdWithDecimals(position.upperBinId, pool.binStep, decimalsA, decimalsB);
     }
-    const upperPrice = position
-      ? getPriceOfBinByBinIdWithDecimals(position.upperBinId, pool.binStep, decimalsA, decimalsB)
-      : ZERO;
+
     let lowerResetPrice: Decimal | null = null;
     let upperResetPrice: Decimal | null = null;
     let dex = numberToDex(strategy.strategyDex.toNumber());
@@ -1689,10 +1689,14 @@ export class Kamino {
   private getMeteoraTokensBalances = async (strategy: WhirlpoolStrategy): Promise<TokenHoldings> => {
     let aInvested = ZERO;
     let bInvested = ZERO;
-    const userPosition = await this.readMeteoraPosition(strategy.pool, strategy.position);
+    try {
+      const userPosition = await this.readMeteoraPosition(strategy.pool, strategy.position);
 
-    aInvested = userPosition.amountX;
-    bInvested = userPosition.amountY;
+      if (!userPosition?.amountX.isNaN() && !userPosition?.amountY.isNaN()) {
+        aInvested = userPosition.amountX;
+        bInvested = userPosition.amountY;
+      }
+    } catch (e) {}
 
     const aAvailable = new Decimal(strategy.tokenAAmounts.toString());
     const bAvailable = new Decimal(strategy.tokenBAmounts.toString());
@@ -2010,12 +2014,18 @@ export class Kamino {
     if (!positionAcc) {
       throw Error(`Could not fetch Meteora position state with pubkey ${strategy.position.toString()}`);
     }
-    const [poolState, position] = await Promise.all([
-      LbPair.decode(poolStateAcc.data),
-      PositionV2.decode(positionAcc.data),
-    ]);
 
-    return this.getMeteoraBalances(strategy, poolState, position, collateralInfos, scopePrices);
+    try {
+      const [poolState, position] = await Promise.all([
+        LbPair.decode(poolStateAcc.data),
+        PositionV2.decode(positionAcc.data),
+      ]);
+
+      return this.getMeteoraBalances(strategy, poolState, position, collateralInfos, scopePrices);
+    } catch (e) {
+      const poolState = LbPair.decode(poolStateAcc.data);
+      return this.getMeteoraBalances(strategy, poolState, undefined, collateralInfos, scopePrices);
+    }
   };
 
   private getStrategyHoldingsUsd = (
@@ -4042,11 +4052,12 @@ export class Kamino {
   private readMeteoraPosition = async (poolPk: PublicKey, positionPk: PublicKey): Promise<MeteoraPosition> => {
     let pool = await LbPair.fetch(this._connection, poolPk);
     let position = await PositionV2.fetch(this._connection, positionPk);
-    if (!pool) {
-      throw Error(`Could not fetch pool  with pubkey ${poolPk.toString()}`);
-    }
-    if (!position) {
-      throw Error(`Could not fetch position  with pubkey ${positionPk.toString()}`);
+    if (!pool || !position) {
+      return {
+        publicKey: positionPk,
+        amountX: new Decimal(0),
+        amountY: new Decimal(0),
+      };
     }
 
     let { lowerTick: lowerTickPk, upperTick: upperTickPk } = this.getStartEndTicketIndexProgramAddressesMeteora(
@@ -4058,24 +4069,26 @@ export class Kamino {
     if (!lowerBinArray || !upperBinArray) {
       return {
         publicKey: positionPk,
-        amountX: ZERO,
-        amountY: ZERO,
+        amountX: new Decimal(0),
+        amountY: new Decimal(0),
       };
     }
     let binArrays = [lowerBinArray, upperBinArray];
-    let totalAmountX = ZERO;
-    let totalAmountY = ZERO;
+    let totalAmountX = new Decimal(0);
+    let totalAmountY = new Decimal(0);
     for (let idx = position.lowerBinId; idx <= position.upperBinId; idx++) {
       let bin = getBinFromBinArrays(idx, binArrays);
       if (bin) {
         const binX = new Decimal(bin.amountX.toString());
         const binY = new Decimal(bin.amountY.toString());
         const binLiq = new Decimal(bin.liquiditySupply.toString());
-        const positionLiq = new Decimal(position.liquidityShares[idx - position.lowerBinId].toString());
-
-        if (binLiq && binLiq.gt(ZERO)) {
-          totalAmountX = totalAmountX.add(binX.mul(positionLiq).div(binLiq));
-          totalAmountY = totalAmountY.add(binY.mul(positionLiq).div(binLiq));
+        if (!binX.isNaN() && !binY.isNaN() && !binLiq.isNaN() && binLiq.gt(ZERO)) {
+          const positionLiqNumber = position.liquidityShares[idx - position.lowerBinId];
+          if (positionLiqNumber && !positionLiqNumber.isZero()) {
+            const positionLiq = new Decimal(positionLiqNumber.toString());
+            totalAmountX = totalAmountX.add(binX.mul(positionLiq).div(binLiq));
+            totalAmountY = totalAmountY.add(binY.mul(positionLiq).div(binLiq));
+          }
         }
       }
     }
