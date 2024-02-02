@@ -4082,10 +4082,17 @@ export class Kamino {
         const binX = new Decimal(bin.amountX.toString());
         const binY = new Decimal(bin.amountY.toString());
         const binLiq = new Decimal(bin.liquiditySupply.toString());
-        const positionLiq = new Decimal(position.liquidityShares[idx - position.lowerBinId].toString());
+        if (binX && binX.gt(ZERO) && binY && binY.gt(ZERO) && binLiq && binLiq.gt(ZERO)) {
+          const positionLiqNumber = position.liquidityShares[idx - position.lowerBinId].toNumber();
+          if (position.liquidityShares[idx - position.lowerBinId] && positionLiqNumber > 0) {
+            const positionLiq = new Decimal(position.liquidityShares[idx - position.lowerBinId].toString());
 
-        totalAmountX = totalAmountX.add(binX.mul(positionLiq).div(binLiq));
-        totalAmountY = totalAmountY.add(binY.mul(positionLiq).div(binLiq));
+            if (binLiq && binLiq.gt(ZERO)) {
+              totalAmountX = totalAmountX.add(binX.mul(positionLiq).div(binLiq));
+              totalAmountY = totalAmountY.add(binY.mul(positionLiq).div(binLiq));
+            }
+          }
+        }
       }
     }
 
