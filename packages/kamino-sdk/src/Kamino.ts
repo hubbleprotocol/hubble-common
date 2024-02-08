@@ -5964,13 +5964,14 @@ export class Kamino {
    */
   getUserPositionsByStrategiesMap = async (
     wallet: PublicKey,
-    strategiesWithShareMintsMap: Map<string, KaminoStrategyWithShareMint>
+    strategiesWithShareMintsMap: Map<string, KaminoStrategyWithShareMint>,
+    strategiesWithAddressMap: Map<string, WhirlpoolStrategy>
   ): Promise<KaminoPosition[]> => {
-    const accounts = await this._connection.getParsedTokenAccountsByOwner(wallet, {
+    const tokenAccounts = await this._connection.getParsedTokenAccountsByOwner(wallet, {
       programId: TOKEN_PROGRAM_ID,
     });
 
-    const mints = accounts.value.map((accountInfo) => {
+    const mints = tokenAccounts.value.map((accountInfo) => {
       return new PublicKey(accountInfo.account.data.parsed.info.mint);
     });
     const mintInfos = await batchFetch(mints, (chunk) => this.getConnection().getMultipleAccountsInfo(chunk));
@@ -5981,7 +5982,7 @@ export class Kamino {
     for (const index of mints.keys()) {
       const mint = mints[index];
       const mintInfo = mintInfos[index];
-      const accountInfo = accounts.value[index];
+      const accountInfo = tokenAccounts.value[index];
 
       if (!mint || !mintInfo || !accountInfo) continue;
 
@@ -5993,7 +5994,7 @@ export class Kamino {
       const mintData = this._deserializeMint(mintInfo.data);
 
       if (mintData.mintAuthority !== null && mintData.mintAuthority.equals(expectedMintAuthority)) {
-        const shareMintAddress = accounts.value[index].account.data.parsed.info.mint;
+        const shareMintAddress = tokenAccounts.value[index].account.data.parsed.info.mint;
         const address = strategiesWithShareMintsMap.get(shareMintAddress)?.address;
 
         if (!address) continue;
@@ -6003,7 +6004,10 @@ export class Kamino {
       }
     }
 
-    const strategies = await batchFetch(kaminoStrategyAdresses, (chunk) => this.getStrategies(chunk));
+    let strategies: (WhirlpoolStrategy | null)[] = Array.from(strategiesWithAddressMap.values());
+    let missingStrategies = kaminoStrategyAdresses.filter((x) => !strategiesWithAddressMap.has(x.toString()));
+    const missingStrategiesState = await batchFetch(missingStrategies, (chunk) => this.getStrategies(chunk));
+    strategies = strategies.concat(missingStrategiesState);
 
     const positions: KaminoPosition[] = [];
 
