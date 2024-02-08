@@ -438,7 +438,7 @@ export class Kamino {
 
   getDepositableTokens = async (): Promise<CollateralInfo[]> => {
     const collateralInfos = await this.getCollateralInfos();
-    return collateralInfos.filter((x) => x.mint.toString() != SystemProgram.programId.toString());
+    return collateralInfos.filter((x) => !x.mint.equals(SystemProgram.programId));
   };
 
   getCollateralInfos = async () => {
@@ -1159,13 +1159,13 @@ export class Kamino {
 
   getOrcaPoolsForTokens = async (poolTokenA: PublicKey, poolTokenB: PublicKey): Promise<OrcaPool[]> => {
     let pools: OrcaPool[] = [];
+    const poolTokenAString = poolTokenA.toString();
+    const poolTokenBString = poolTokenB.toString();
     let whirlpools = await this._orcaService.getOrcaWhirlpools();
     whirlpools.whirlpools.forEach((element) => {
       if (
-        (element.tokenA.mint.toString() == poolTokenA.toString() &&
-          element.tokenB.mint.toString() == poolTokenB.toString()) ||
-        (element.tokenA.mint.toString() == poolTokenB.toString() &&
-          element.tokenB.mint.toString() == poolTokenA.toString())
+        (element.tokenA.mint == poolTokenAString && element.tokenB.mint == poolTokenBString) ||
+        (element.tokenA.mint == poolTokenBString && element.tokenB.mint == poolTokenAString)
       )
         pools.push(element);
     });
@@ -1175,11 +1175,13 @@ export class Kamino {
 
   getRaydiumPoolsForTokens = async (poolTokenA: PublicKey, poolTokenB: PublicKey): Promise<Pool[]> => {
     let pools: Pool[] = [];
+    const poolTokenAString = poolTokenA.toString();
+    const poolTokenBString = poolTokenB.toString();
     let raydiumPools = await this._raydiumService.getRaydiumWhirlpools();
     raydiumPools.data.forEach((element) => {
       if (
-        (element.mintA.toString() == poolTokenA.toString() && element.mintB.toString() == poolTokenB.toString()) ||
-        (element.mintA.toString() == poolTokenB.toString() && element.mintB.toString() == poolTokenA.toString())
+        (element.mintA == poolTokenAString && element.mintB == poolTokenBString) ||
+        (element.mintA == poolTokenBString && element.mintB == poolTokenAString)
       ) {
         pools.push(element);
       }
@@ -1190,13 +1192,13 @@ export class Kamino {
 
   getMeteoraPoolsForTokens = async (poolTokenA: PublicKey, poolTokenB: PublicKey): Promise<MeteoraPool[]> => {
     let pools: MeteoraPool[] = [];
+    const poolTokenAString = poolTokenA.toString();
+    const poolTokenBString = poolTokenB.toString();
     let meteoraPools = await this._meteoraService.getMeteoraPools();
     meteoraPools.forEach((element) => {
       if (
-        (element.pool.tokenXMint.toString() == poolTokenA.toString() &&
-          element.pool.tokenYMint.toString() == poolTokenB.toString()) ||
-        (element.pool.tokenXMint.toString() == poolTokenB.toString() &&
-          element.pool.tokenYMint.toString() == poolTokenA.toString())
+        (element.pool.tokenXMint.equals(poolTokenA) && element.pool.tokenYMint.equals(poolTokenB)) ||
+        (element.pool.tokenXMint.equals(poolTokenB) && element.pool.tokenYMint.equals(poolTokenA))
       ) {
         pools.push(element);
       }
@@ -1479,6 +1481,7 @@ export class Kamino {
     return result;
   };
 
+  // todo: for pools use a Map<PublicKey, PoolT>
   private getBalance = <PoolT, PositionT>(
     strategies: StrategyWithAddress[],
     pools: Map<string, PoolT | null>,
@@ -1950,9 +1953,9 @@ export class Kamino {
       const aTotal = shareData.balance.computedHoldings.invested.a.plus(shareData.balance.computedHoldings.available.a);
       const bTotal = shareData.balance.computedHoldings.invested.b.plus(shareData.balance.computedHoldings.available.b);
       let amount = new Decimal(0);
-      if (strategy.tokenAMint.toString() === tokenMint.toString() && aTotal.greaterThan(0)) {
+      if (strategy.tokenAMint.equals(new PublicKey(tokenMint)) && aTotal.greaterThan(0)) {
         amount = aTotal;
-      } else if (strategy.tokenBMint.toString() === tokenMint.toString() && bTotal.greaterThan(0)) {
+      } else if (strategy.tokenBMint.equals(new PublicKey(tokenMint)) && bTotal.greaterThan(0)) {
         amount = bTotal;
       }
       if (amount.greaterThan(0)) {
@@ -2084,13 +2087,15 @@ export class Kamino {
    * @param collateralInfos (optional) Kamino Collateral Infos
    */
   getAllPrices = async (oraclePrices?: OraclePrices, collateralInfos?: CollateralInfo[]): Promise<KaminoPrices> => {
+    // todo: make MintToPriceMap have Pubkey as key
     const spotPrices: MintToPriceMap = {};
     const twaps: MintToPriceMap = {};
     ({ oraclePrices, collateralInfos } = await this.getOraclePricesAndCollateralInfos(oraclePrices, collateralInfos));
     for (const collateralInfo of collateralInfos) {
       if (collateralInfo.scopePriceChain && Scope.isScopeChainValid(collateralInfo.scopePriceChain)) {
+        const collInfoMintString = collateralInfo.mint.toString();
         const spotPrice = await this._scope.getPriceFromChain(collateralInfo.scopePriceChain, oraclePrices);
-        spotPrices[collateralInfo.mint.toString()] = {
+        spotPrices[collInfoMintString] = {
           price: spotPrice.price,
           name: getTokenNameFromCollateralInfo(collateralInfo),
         };
@@ -2098,7 +2103,7 @@ export class Kamino {
         const filteredTwapChain = collateralInfo?.scopeTwapPriceChain?.filter((x) => x > 0);
         if (filteredTwapChain && Scope.isScopeChainValid(filteredTwapChain)) {
           const twap = await this._scope.getPriceFromChain(filteredTwapChain, oraclePrices);
-          twaps[collateralInfo.mint.toString()] = {
+          twaps[collInfoMintString] = {
             price: twap.price,
             name: getTokenNameFromCollateralInfo(collateralInfo),
           };
@@ -2290,7 +2295,7 @@ export class Kamino {
     decimalsA: number,
     decimalsB: number
   ): Promise<PositionRange> => {
-    if (positionPk.toString() === PublicKey.default.toString()) {
+    if (positionPk.equals(PublicKey.default)) {
       return { lowerPrice: ZERO, upperPrice: ZERO };
     }
     let position = await Position.fetch(this._connection, positionPk);
@@ -2310,7 +2315,7 @@ export class Kamino {
     decimalsA: number,
     decimalsB: number
   ): Promise<PositionRange> => {
-    if (positionPk.toString() === PublicKey.default.toString()) {
+    if (positionPk.equals(PublicKey.default)) {
       return { lowerPrice: ZERO, upperPrice: ZERO };
     }
     let position = await PersonalPositionState.fetch(this._connection, positionPk);
@@ -2382,6 +2387,7 @@ export class Kamino {
    * @param whirlpools
    */
   getWhirlpools = async (whirlpools: PublicKey[]): Promise<Map<string, Whirlpool | null>> => {
+    // todo: make this map have Pubkey as key
     let whirlpoolMap = new Map<string, Whirlpool | null>();
 
     const whirlpoolStrings = whirlpools.map((whirlpool) => whirlpool.toBase58());
@@ -2451,6 +2457,7 @@ export class Kamino {
    * @param pools
    */
   getRaydiumPools = async (pools: PublicKey[]): Promise<Map<string, PoolState | null>> => {
+    // todo: make this map have Pubkey as key
     let poolsMap = new Map<string, PoolState | null>();
 
     const poolStrings = pools.map((pool) => pool.toBase58());
@@ -2468,6 +2475,7 @@ export class Kamino {
   };
 
   getMeteoraPools = async (pools: PublicKey[]): Promise<Map<string, LbPair | null>> => {
+    // todo: make this map have Pubkey as key
     let poolsMap = new Map<string, LbPair | null>();
 
     const poolStrings = pools.map((pool) => pool.toBase58());
@@ -3296,6 +3304,7 @@ export class Kamino {
           ),
           'B-swapIxsBuilder',
           [
+            // todo: not sure if we need to include these logs
             ['tokenAMint', strategyState.tokenAMint.toString()],
             ['tokenBMint', strategyState.tokenBMint.toString()],
           ]
@@ -3433,9 +3442,7 @@ export class Kamino {
       []
     );
 
-    let allJupIxs = [
-      ...removeBudgetAndAtaIxns(txMessage[0].instructions, [tokenAMint.toString(), tokenBMint.toString()]),
-    ];
+    let allJupIxs = [...removeBudgetAndAtaIxns(txMessage[0].instructions, [tokenAMint, tokenBMint])];
 
     let allJupAccounts = allJupIxs.flatMap((ix) => ix.keys?.map((key) => key.pubkey) || []);
     let allAccounts = new Set<PublicKey>([...existingAccounts, ...allJupAccounts]);
@@ -3595,11 +3602,11 @@ export class Kamino {
       throw Error(`Could not fetch globalConfig  with pubkey ${this.getGlobalConfig().toString()}`);
     }
     const collateralInfos = await this.getCollateralInfo(config.tokenInfos);
-    const tokenACollateralId = collateralInfos.findIndex((x) => x.mint.toString() === tokenAMint.toString());
+    const tokenACollateralId = collateralInfos.findIndex((x) => x.mint.equals(tokenAMint));
     if (tokenACollateralId === -1) {
       throw Error(`Could not find token A (mint ${tokenAMint}) in collateral infos`);
     }
-    const tokenBCollateralId = collateralInfos.findIndex((x) => x.mint.toString() === tokenBMint.toString());
+    const tokenBCollateralId = collateralInfos.findIndex((x) => x.mint.equals(tokenBMint));
     if (tokenBCollateralId === -1) {
       throw Error(`Could not find token A (mint ${tokenAMint}) in collateral infos`);
     }
@@ -5581,7 +5588,7 @@ export class Kamino {
   mintIsSupported = (collateralInfos: CollateralInfo[], tokenMint: PublicKey): boolean => {
     let found = false;
     collateralInfos.forEach((element) => {
-      if (element.mint.toString() === tokenMint.toString()) {
+      if (element.mint.equals(tokenMint)) {
         found = true;
       }
     });
@@ -5589,7 +5596,7 @@ export class Kamino {
   };
 
   getCollateralInfoFromMint = (mint: PublicKey, collateralInfos: CollateralInfo[]): CollateralInfo | undefined => {
-    let collInfosForMint = collateralInfos.filter((x) => x.mint.toString() != mint.toString());
+    let collInfosForMint = collateralInfos.filter((x) => x.mint.equals(mint));
     if (collInfosForMint.length == 0) {
       return undefined;
     }
@@ -5598,7 +5605,7 @@ export class Kamino {
 
   getCollateralIdFromMint = (mint: PublicKey, collateralInfos: CollateralInfo[]): number => {
     for (let i = 0; i < collateralInfos.length; i++) {
-      if (collateralInfos[i].mint.toString() === mint.toString()) {
+      if (collateralInfos[i].mint.equals(mint)) {
         return i;
       }
     }
@@ -5942,9 +5949,7 @@ export class Kamino {
     const positions: KaminoPosition[] = [];
     for (const tokenAccount of userTokenAccounts) {
       const accountData = tokenAccount.account.data as Data;
-      const strategy = liveStrategies.find(
-        (x) => x.strategy.sharesMint.toString() === accountData.parsed.info.mint.toString()
-      );
+      const strategy = liveStrategies.find((x) => x.strategy.sharesMint.toString() === accountData.parsed.info.mint);
       if (strategy) {
         positions.push({
           shareMint: strategy.strategy.sharesMint,
@@ -5964,8 +5969,8 @@ export class Kamino {
    */
   getUserPositionsByStrategiesMap = async (
     wallet: PublicKey,
-    strategiesWithShareMintsMap: Map<string, KaminoStrategyWithShareMint>,
-    strategiesWithAddressMap: Map<string, WhirlpoolStrategy>
+    strategiesWithShareMintsMap: Map<PublicKey, KaminoStrategyWithShareMint>,
+    strategiesWithAddressMap?: Map<PublicKey, WhirlpoolStrategy>
   ): Promise<KaminoPosition[]> => {
     const tokenAccounts = await this._connection.getParsedTokenAccountsByOwner(wallet, {
       programId: TOKEN_PROGRAM_ID,
@@ -6004,8 +6009,12 @@ export class Kamino {
       }
     }
 
-    let strategies: (WhirlpoolStrategy | null)[] = Array.from(strategiesWithAddressMap.values());
-    let missingStrategies = kaminoStrategyAdresses.filter((x) => !strategiesWithAddressMap.has(x.toString()));
+    let strategies: (WhirlpoolStrategy | null)[] = strategiesWithAddressMap
+      ? Array.from(strategiesWithAddressMap.values())
+      : [];
+    let missingStrategies = kaminoStrategyAdresses.filter(
+      (x) => !strategiesWithAddressMap || !strategiesWithAddressMap.has(x)
+    );
     const missingStrategiesState = await batchFetch(missingStrategies, (chunk) => this.getStrategies(chunk));
     strategies = strategies.concat(missingStrategiesState);
 
@@ -6047,7 +6056,7 @@ export class Kamino {
     const isOrca = dexToNumber('ORCA') === dex;
     const isRaydium = dexToNumber('RAYDIUM') === dex;
     const isMeteora = dexToNumber('METEORA') === dex;
-    if (strategyState.position.toString() === PublicKey.default.toString()) {
+    if (strategyState.position.equals(PublicKey.default)) {
       return {
         totalApr: ZERO,
         feeApr: ZERO,
@@ -7046,7 +7055,7 @@ export class Kamino {
         throw Error(`Could not fetch whirlpool state with pubkey ${strategyState.pool.toString()}`);
       }
       for (let i = 0; i < 3; i++) {
-        if (whirlpool.rewardInfos[i].mint.toString() != PublicKey.default.toString()) {
+        if (!whirlpool.rewardInfos[i].mint.equals(PublicKey.default)) {
           let collateralId = this.getCollateralIdFromMint(whirlpool.rewardInfos[i].mint, collateralInfos);
           if (collateralId == -1) {
             throw Error(`Could not find collateral id for mint ${whirlpool.rewardInfos[i].mint.toString()}`);
@@ -7083,7 +7092,7 @@ export class Kamino {
         throw new Error(`Could not fetch whirlpool state with pubkey ${strategyState.pool.toString()}`);
       }
       for (let i = 0; i < 3; i++) {
-        if (poolState.rewardInfos[i].tokenMint.toString() != PublicKey.default.toString()) {
+        if (!poolState.rewardInfos[i].tokenMint.equals(PublicKey.default)) {
           let collateralId = this.getCollateralIdFromMint(poolState.rewardInfos[i].tokenMint, collateralInfos);
           if (collateralId == -1) {
             throw Error(`Could not find collateral id for mint ${poolState.rewardInfos[i].tokenMint.toString()}`);
@@ -7120,7 +7129,7 @@ export class Kamino {
         throw new Error(`Could not fetch meteora state with pubkey ${strategyState.pool.toString()}`);
       }
       for (let i = 0; i < 2; i++) {
-        if (poolState.rewardInfos[i].mint.toString() != PublicKey.default.toString()) {
+        if (!poolState.rewardInfos[i].mint.equals(PublicKey.default)) {
           let collateralId = this.getCollateralIdFromMint(poolState.rewardInfos[i].mint, collateralInfos);
           if (collateralId == -1) {
             throw Error(`Could not find collateral id for mint ${poolState.rewardInfos[i].mint.toString()}`);
