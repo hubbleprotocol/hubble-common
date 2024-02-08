@@ -1354,12 +1354,16 @@ export class Kamino {
    * @param strategyFilters strategy filters or a list of strategy public keys
    */
   getStrategiesShareData = async (
-    strategyFilters: StrategiesFilters | PublicKey[]
+    strategyFilters: StrategiesFilters | PublicKey[],
+    stratsWithAddresses?: StrategyWithAddress[],
+    collateralInfos?: CollateralInfo[]
   ): Promise<Array<ShareDataWithAddress>> => {
     const result: Array<ShareDataWithAddress> = [];
-    const strategiesWithAddresses = Array.isArray(strategyFilters)
-      ? await this.getStrategiesWithAddresses(strategyFilters)
-      : await this.getAllStrategiesWithFilters(strategyFilters);
+    const strategiesWithAddresses = stratsWithAddresses
+      ? stratsWithAddresses
+      : Array.isArray(strategyFilters)
+        ? await this.getStrategiesWithAddresses(strategyFilters)
+        : await this.getAllStrategiesWithFilters(strategyFilters);
     const fetchBalances: Promise<StrategyBalanceWithAddress>[] = [];
     const allScopePrices = strategiesWithAddresses.map((x) => x.strategy.scopePrices);
     const scopePrices = await this._scope.getMultipleOraclePrices(allScopePrices);
@@ -1372,26 +1376,36 @@ export class Kamino {
       (x) =>
         x.strategy.strategyDex.toNumber() === dexToNumber('RAYDIUM') && !x.strategy.position.equals(PublicKey.default)
     );
-    const raydiumPools = await this.getRaydiumPools(raydiumStrategies.map((x) => x.strategy.pool));
-    const raydiumPositions = await this.getRaydiumPositions(raydiumStrategies.map((x) => x.strategy.position));
+    const raydiumPoolsPromise = this.getRaydiumPools(raydiumStrategies.map((x) => x.strategy.pool));
+    const raydiumPositionsPromise = this.getRaydiumPositions(raydiumStrategies.map((x) => x.strategy.position));
     const orcaStrategies = strategiesWithAddresses.filter(
       (x) => x.strategy.strategyDex.toNumber() === dexToNumber('ORCA') && !x.strategy.position.equals(PublicKey.default)
     );
-    const orcaPools = await this.getWhirlpools(orcaStrategies.map((x) => x.strategy.pool));
-    const orcaPositions = await this.getOrcaPositions(orcaStrategies.map((x) => x.strategy.position));
+    const orcaPoolsPromise = this.getWhirlpools(orcaStrategies.map((x) => x.strategy.pool));
+    const orcaPositionsPromise = this.getOrcaPositions(orcaStrategies.map((x) => x.strategy.position));
     const meteoraStrategies = strategiesWithAddresses.filter(
       (x) =>
         x.strategy.strategyDex.toNumber() === dexToNumber('METEORA') && !x.strategy.position.equals(PublicKey.default)
     );
-    const meteoraPools = await this.getMeteoraPools(meteoraStrategies.map((x) => x.strategy.pool));
-    const meteoraPositions = await this.getMeteoraPositions(meteoraStrategies.map((x) => x.strategy.position));
+    const meteoraPoolsPromise = this.getMeteoraPools(meteoraStrategies.map((x) => x.strategy.pool));
+    const meteoraPositionsPromise = this.getMeteoraPositions(meteoraStrategies.map((x) => x.strategy.position));
+
+    const [raydiumPools, raydiumPositions, orcaPools, orcaPositions, meteoraPools, meteoraPositions] =
+      await Promise.all([
+        raydiumPoolsPromise,
+        raydiumPositionsPromise,
+        orcaPoolsPromise,
+        orcaPositionsPromise,
+        meteoraPoolsPromise,
+        meteoraPositionsPromise,
+      ]);
 
     const inactiveStrategies = strategiesWithAddresses.filter((x) => x.strategy.position.equals(PublicKey.default));
-    const collateralInfos = await this.getCollateralInfos();
+    let collInfos = collateralInfos ? collateralInfos : await this.getCollateralInfos();
     for (const { strategy, address } of inactiveStrategies) {
       const strategyPrices = await this.getStrategyPrices(
         strategy,
-        collateralInfos,
+        collInfos,
         scopePricesMap[strategy.scopePrices.toBase58()]
       );
       result.push({
@@ -1415,7 +1429,7 @@ export class Kamino {
         raydiumPools,
         raydiumPositions,
         this.getRaydiumBalances,
-        collateralInfos,
+        collInfos,
         scopePricesMap
       )
     );
@@ -1426,7 +1440,7 @@ export class Kamino {
         orcaPools,
         orcaPositions,
         this.getOrcaBalances,
-        collateralInfos,
+        collInfos,
         scopePricesMap
       )
     );
@@ -1437,7 +1451,7 @@ export class Kamino {
         meteoraPools,
         meteoraPositions,
         this.getMeteoraBalances,
-        collateralInfos,
+        collInfos,
         scopePricesMap
       )
     );
