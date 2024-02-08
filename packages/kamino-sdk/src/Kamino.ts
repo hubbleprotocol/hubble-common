@@ -3641,13 +3641,15 @@ export class Kamino {
    * @param strategy public key of the strategy
    * @returns instruction to close the strategy
    */
-  withdrawAllAndCloseStrategy = async (strategy: PublicKey): Promise<WithdrawAllAndCloseIxns | null> => {
-    const { address: _strategyPubkey, strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
-    let withdrawIxns = await this.withdrawAllShares(strategy, strategyState.adminAuthority);
+  withdrawAllAndCloseStrategy = async (
+    strategy: PublicKey | StrategyWithAddress
+  ): Promise<WithdrawAllAndCloseIxns | null> => {
+    const strategyWithAddress = await this.getStrategyStateIfNotFetched(strategy);
+    let withdrawIxns = await this.withdrawAllShares(strategyWithAddress, strategyWithAddress.strategy.adminAuthority);
     if (withdrawIxns == null) {
       return null;
     }
-    let closeIxn = await this.closeStrategy(strategy);
+    let closeIxn = await this.closeStrategy(strategyWithAddress);
     return {
       withdrawIxns: [...withdrawIxns.prerequisiteIxs, withdrawIxns.withdrawIx],
       closeIxn,
@@ -3660,8 +3662,8 @@ export class Kamino {
    * @param strategy public key of the strategy
    * @returns instruction to close the strategy
    */
-  closeStrategy = async (strategy: PublicKey) => {
-    const { address: _strategyPubkey, strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
+  closeStrategy = async (strategy: PublicKey | StrategyWithAddress) => {
+    const { address: strategyPubkey, strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
     let collInfos = await this.getCollateralInfos();
 
     const eventAuthority = this.getEventAuthorityPDA(strategyState.strategyDex);
@@ -3737,7 +3739,7 @@ export class Kamino {
 
     const strategyAccounts: CloseStrategyAccounts = {
       adminAuthority: strategyState.adminAuthority,
-      strategy,
+      strategy: strategyPubkey,
       oldPositionOrBaseVaultAuthority,
       oldPositionMintOrBaseVaultAuthority,
       oldPositionTokenAccountOrBaseVaultAuthority,
@@ -3913,8 +3915,10 @@ export class Kamino {
       }
       poolRewardVault0 = poolState.rewardInfos[0].vault;
       poolRewardVault1 = poolState.rewardInfos[1].vault;
+      poolRewardVault2 = strategyPubkey;
       rewardMint0 = poolState.rewardInfos[0].mint;
       rewardMint1 = poolState.rewardInfos[1].mint;
+      rewardMint2 = this._kaminoProgramId;
     }
 
     const accounts: CollectFeesAndRewardsAccounts = {
@@ -4703,12 +4707,13 @@ export class Kamino {
    * @param strategy strategy pubkey or object
    * @param payer transaction payer
    */
-  invest = async (strategy: PublicKey, payer: PublicKey): Promise<TransactionInstruction> => {
-    const strategyState: WhirlpoolStrategy | null = await this.getStrategyByAddress(strategy);
-    if (!strategyState) {
+  invest = async (strategy: PublicKey | StrategyWithAddress, payer: PublicKey): Promise<TransactionInstruction> => {
+    const strategyWithAddress = await this.getStrategyStateIfNotFetched(strategy);
+    if (!strategyWithAddress || !strategyWithAddress.strategy) {
       throw Error(`Could not fetch strategy state with pubkey ${strategy.toString()}`);
     }
 
+    const strategyState = strategyWithAddress.strategy;
     const globalConfig = await GlobalConfig.fetch(this._connection, strategyState.globalConfig, this._kaminoProgramId);
     if (!globalConfig) {
       throw Error(`Could not fetch global config with pubkey ${strategyState.globalConfig.toString()}`);
@@ -4725,7 +4730,7 @@ export class Kamino {
       tokenBVault: strategyState.tokenBVault,
       baseVaultAuthority: strategyState.baseVaultAuthority,
       payer,
-      strategy: strategy,
+      strategy: strategyWithAddress.address,
       globalConfig: strategyState.globalConfig,
       tokenProgram: TOKEN_PROGRAM_ID,
       poolTokenVaultA: strategyState.poolTokenVaultA,
@@ -4750,7 +4755,7 @@ export class Kamino {
    * @param strategy strategy pubkey or object
    * @param payer transaction payer
    */
-  compound = async (strategy: PublicKey, payer: PublicKey): Promise<TransactionInstruction[]> => {
+  compound = async (strategy: PublicKey | StrategyWithAddress, payer: PublicKey): Promise<TransactionInstruction[]> => {
     // fetch here so the underluing instructions won't need to fetch
     const strategyWithAddress = await this.getStrategyStateIfNotFetched(strategy);
     if (!strategyWithAddress) {
@@ -4765,12 +4770,12 @@ export class Kamino {
 
   getUpdateRebalancingParamsFromRebalanceFieldsIx = async (
     strategyAdmin: PublicKey,
-    strategy: PublicKey,
+    strategy: PublicKey | StrategyWithAddress,
     rebalanceFieldInfos: RebalanceFieldInfo[]
   ): Promise<TransactionInstruction> => {
     let rebalanceType = getRebalanceTypeFromRebalanceFields(rebalanceFieldInfos);
-    const strategyState: WhirlpoolStrategy | null = await this.getStrategyByAddress(strategy);
-    if (!strategyState) {
+    const strategyWithAddress = await this.getStrategyStateIfNotFetched(strategy);
+    if (!strategyWithAddress || !strategyWithAddress.strategy) {
       throw Error(`Could not fetch strategy state with pubkey ${strategy.toString()}`);
     }
 
@@ -4779,11 +4784,11 @@ export class Kamino {
       .map((f) => new Decimal(f.value));
     return this.getUpdateRebalancingParmsIxns(
       strategyAdmin,
-      strategy,
+      strategyWithAddress.address,
       rebalanceParams,
       rebalanceType,
-      strategyState.tokenAMintDecimals.toNumber(),
-      strategyState.tokenBMintDecimals.toNumber()
+      strategyWithAddress.strategy.tokenAMintDecimals.toNumber(),
+      strategyWithAddress.strategy.tokenBMintDecimals.toNumber()
     );
   };
 
@@ -4809,13 +4814,13 @@ export class Kamino {
 
   getUpdateRebalancingParmsIxns = async (
     strategyAdmin: PublicKey,
-    strategy: PublicKey,
+    strategy: PublicKey | StrategyWithAddress,
     rebalanceParams: Decimal[],
     rebalanceType?: RebalanceTypeKind,
     tokenADecimals?: number,
     tokenBDecimals?: number
   ): Promise<TransactionInstruction> => {
-    const { strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
+    const { address: strategyAddress, strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
     if (!rebalanceType) {
       rebalanceType = numberToRebalanceType(strategyState.rebalanceType);
     }
@@ -4839,7 +4844,7 @@ export class Kamino {
       adminAuthority: strategyAdmin,
       newAccount: PublicKey.default, // not used
       globalConfig: this._globalConfig,
-      strategy,
+      strategy: strategyAddress,
       systemProgram: SystemProgram.programId,
     };
     return updateStrategyConfig(args, accounts);
@@ -5710,14 +5715,18 @@ export class Kamino {
     return lookupTableAccount;
   };
 
-  setupStrategyLookupTable = async (authority: Keypair, strategy: PublicKey, slot?: number): Promise<PublicKey> => {
+  setupStrategyLookupTable = async (
+    authority: Keypair,
+    strategy: PublicKey | StrategyWithAddress,
+    slot?: number
+  ): Promise<PublicKey> => {
     let [createLookupTableIx, lookupTable] = await this.getInitLookupTableIx(authority.publicKey, slot);
     let populateLookupTableIx = await this.getPopulateLookupTableIxs(authority.publicKey, lookupTable, strategy);
 
     let getUpdateStrategyLookupTableIx = await getUpdateStrategyConfigIx(
       authority.publicKey,
       this._globalConfig,
-      strategy,
+      strategy instanceof PublicKey ? strategy : strategy.address,
       new UpdateLookupTable(),
       new Decimal(0),
       lookupTable
@@ -7014,9 +7023,10 @@ export class Kamino {
 
   getUpdateRewardsIxs = async (
     strategyOwner: PublicKey,
-    strategy: PublicKey
+    strategy: PublicKey | StrategyWithAddress
   ): Promise<[TransactionInstruction, Keypair][]> => {
-    let strategyState = await WhirlpoolStrategy.fetch(this._connection, strategy, this._kaminoProgramId);
+    const strategyWithAddress = await this.getStrategyStateIfNotFetched(strategy);
+    let strategyState = strategyWithAddress.strategy;
     if (!strategyState) {
       throw Error(`Could not fetch strategy state with pubkey ${strategy.toString()}`);
     }
@@ -7047,7 +7057,7 @@ export class Kamino {
           let accounts: UpdateRewardMappingAccounts = {
             payer: strategyOwner,
             globalConfig: strategyState.globalConfig,
-            strategy: strategy,
+            strategy: strategyWithAddress.address,
             pool: strategyState.pool,
             rewardMint: whirlpool.rewardInfos[i].mint,
             rewardVault: rewardVault.publicKey,
@@ -7084,7 +7094,7 @@ export class Kamino {
           let accounts: UpdateRewardMappingAccounts = {
             payer: strategyOwner,
             globalConfig: strategyState.globalConfig,
-            strategy: strategy,
+            strategy: strategyWithAddress.address,
             pool: strategyState.pool,
             rewardMint: poolState.rewardInfos[i].tokenMint,
             rewardVault: rewardVault.publicKey,
@@ -7121,7 +7131,7 @@ export class Kamino {
           let accounts: UpdateRewardMappingAccounts = {
             payer: strategyOwner,
             globalConfig: strategyState.globalConfig,
-            strategy: strategy,
+            strategy: strategyWithAddress.address,
             pool: strategyState.pool,
             rewardMint: poolState.rewardInfos[i].mint,
             rewardVault: rewardVault.publicKey,
