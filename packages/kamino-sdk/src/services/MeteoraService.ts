@@ -1,33 +1,20 @@
 import { Connection, PublicKey } from '@solana/web3.js';
 import Decimal from 'decimal.js';
-import {
-  estimateAprsForPriceRange,
-  OrcaNetwork,
-  OrcaWhirlpoolClient,
-  getNearestValidTickIndexFromTickIndex,
-  priceToTickIndex,
-  PoolData,
-} from '@orca-so/whirlpool-sdk';
-import axios from 'axios';
-import { SolanaCluster } from '@hubbleprotocol/hubble-config';
-import { CollateralInfos, GlobalConfig, WhirlpoolStrategy } from '../kamino-client/accounts';
+import { WhirlpoolStrategy } from '../kamino-client/accounts';
 import {
   aprToApy,
   GenericPoolInfo,
   getMeteoraPriceLowerUpper,
-  getPriceLowerUpper,
   getStrategyPriceRangeMeteora,
   LiquidityDistribution,
-  LiquidityForPrice,
   ZERO,
 } from '../utils';
 import { getMintDecimals } from '@project-serum/serum/lib/market';
-import { CollateralInfo } from '../kamino-client/types';
 import { KaminoPrices } from '../models';
 import { LbPair, PositionV2 } from '../meteora_client/accounts';
 import { WhirlpoolAprApy } from './WhirlpoolAprApy';
 import { METEORA_PROGRAM_ID } from '../meteora_client/programId';
-import { getBinIdFromPriceWithDecimals, getPriceOfBinByBinIdWithDecimals } from '../utils/meteora';
+import { getPriceOfBinByBinIdWithDecimals } from '../utils/meteora';
 
 export interface MeteoraPool {
   key: PublicKey;
