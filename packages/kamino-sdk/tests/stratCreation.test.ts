@@ -110,11 +110,11 @@ describe('Kamino strategy creation SDK Tests', () => {
       METEORA_PROGRAM_ID
     );
 
-    let data = await kamino.getStrategyShareData(new PublicKey('GrsqRMeKdwXxTLv4QKVeL1qMhHqKqjo3ZabuNwFQAzNi'));
+    let data = await kamino.getStrategyShareData(new PublicKey('HBZRKiRX88gpoBgZxNtnWHk5bPcbCM3ociEPWNS131cK'));
     console.log('data for GrsqRMeKdwXxTLv4QKVeL1qMhHqKqjo3ZabuNwFQAzNi', data);
-    data = await kamino.getStrategyShareData(new PublicKey('GrsqRMeKdwXxTLv4QKVeL1qMhHqKqjo3ZabuNwFQAzNi'));
+    data = await kamino.getStrategyShareData(new PublicKey('HBZRKiRX88gpoBgZxNtnWHk5bPcbCM3ociEPWNS131cK'));
     console.log('data for GrsqRMeKdwXxTLv4QKVeL1qMhHqKqjo3ZabuNwFQAzNi', data);
-    data = await kamino.getStrategyShareData(new PublicKey('2scuULh4EZbMHCEUZde4VycQG6EvTWc2trGgRfSaTLvZ'));
+    data = await kamino.getStrategyShareData(new PublicKey('HBZRKiRX88gpoBgZxNtnWHk5bPcbCM3ociEPWNS131cK'));
     console.log('data for 2scuULh4EZbMHCEUZde4VycQG6EvTWc2trGgRfSaTLvZ', data);
   });
 

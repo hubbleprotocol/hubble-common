@@ -21,7 +21,6 @@ import {
   updateStrategyConfig,
 } from '../kamino-client/instructions';
 import { SqrtPriceMath } from '@raydium-io/raydium-sdk';
-import { token } from '@project-serum/anchor/dist/cjs/utils';
 import { RebalanceFieldInfo, RebalanceFieldsDict } from './types';
 import BN from 'bn.js';
 import { PoolPriceReferenceType, TwapPriceReferenceType } from './priceReferenceTypes';

@@ -353,6 +353,7 @@ import {
 import { BinArray, LbPair, PositionV2 } from './meteora_client/accounts';
 import LbPairWithAddress from './models/LbPairWithAddress';
 import { initializeBinArray, InitializeBinArrayAccounts, InitializeBinArrayArgs } from './meteora_client/instructions';
+import { PubkeyHashMap } from './utils/pubkey';
 export const KAMINO_IDL = KaminoIdl;
 
 export class Kamino {
@@ -1192,8 +1193,6 @@ export class Kamino {
 
   getMeteoraPoolsForTokens = async (poolTokenA: PublicKey, poolTokenB: PublicKey): Promise<MeteoraPool[]> => {
     let pools: MeteoraPool[] = [];
-    const poolTokenAString = poolTokenA.toString();
-    const poolTokenBString = poolTokenB.toString();
     let meteoraPools = await this._meteoraService.getMeteoraPools();
     meteoraPools.forEach((element) => {
       if (
@@ -1481,10 +1480,9 @@ export class Kamino {
     return result;
   };
 
-  // todo: for pools use a Map<PublicKey, PoolT>
   private getBalance = <PoolT, PositionT>(
     strategies: StrategyWithAddress[],
-    pools: Map<string, PoolT | null>,
+    pools: PubkeyHashMap<PublicKey, PoolT | null>,
     positions: (PositionT | null)[],
     fetchBalance: (
       strategy: WhirlpoolStrategy,
@@ -1501,7 +1499,7 @@ export class Kamino {
     for (let i = 0; i < strategies.length; i++) {
       const { strategy, address } = strategies[i];
 
-      const retrievedPool = { ...pools.get(strategy.pool.toString()) };
+      const retrievedPool = { ...pools.get(strategy.pool) };
       const pool = { ...retrievedPool };
       const position = positions[i];
       if (!pool) {
@@ -2386,20 +2384,20 @@ export class Kamino {
    * Get a list of Orca whirlpools from public keys
    * @param whirlpools
    */
-  getWhirlpools = async (whirlpools: PublicKey[]): Promise<Map<string, Whirlpool | null>> => {
+  getWhirlpools = async (whirlpools: PublicKey[]): Promise<PubkeyHashMap<PublicKey, Whirlpool | null>> => {
     // todo: make this map have Pubkey as key
-    let whirlpoolMap = new Map<string, Whirlpool | null>();
+    let whirlpoolMap = new PubkeyHashMap<PublicKey, Whirlpool | null>();
 
     const whirlpoolStrings = whirlpools.map((whirlpool) => whirlpool.toBase58());
     const uniqueWhirlpools = [...new Set(whirlpoolStrings)].map((value) => new PublicKey(value));
     if (uniqueWhirlpools.length === 1) {
       const whirlpool = await this.getWhirlpoolByAddress(whirlpools[0]);
-      whirlpoolMap.set(whirlpools[0].toString(), whirlpool);
+      whirlpoolMap.set(whirlpools[0], whirlpool);
       return whirlpoolMap;
     }
     const fetched = await batchFetch(uniqueWhirlpools, (chunk) => Whirlpool.fetchMultiple(this._connection, chunk));
     fetched.reduce((map, whirlpool, i) => {
-      whirlpoolMap.set(uniqueWhirlpools[i].toString(), whirlpool);
+      whirlpoolMap.set(uniqueWhirlpools[i], whirlpool);
       map[uniqueWhirlpools[i].toBase58()] = whirlpool;
       return map;
     }, {});
@@ -2456,37 +2454,37 @@ export class Kamino {
    * Get a list of Raydium pools from public keys
    * @param pools
    */
-  getRaydiumPools = async (pools: PublicKey[]): Promise<Map<string, PoolState | null>> => {
+  getRaydiumPools = async (pools: PublicKey[]): Promise<PubkeyHashMap<PublicKey, PoolState | null>> => {
     // todo: make this map have Pubkey as key
-    let poolsMap = new Map<string, PoolState | null>();
+    let poolsMap = new PubkeyHashMap<PublicKey, PoolState | null>();
 
     const poolStrings = pools.map((pool) => pool.toBase58());
     const uniquePools = [...new Set(poolStrings)].map((value) => new PublicKey(value));
     if (uniquePools.length === 1) {
       const pool = await this.getRaydiumPoolByAddress(pools[0]);
-      poolsMap.set(pools[0].toString(), pool);
+      poolsMap.set(pools[0], pool);
     }
     const fetched = await batchFetch(uniquePools, (chunk) => PoolState.fetchMultiple(this._connection, chunk));
     fetched.reduce((map, whirlpool, i) => {
-      poolsMap.set(uniquePools[i].toString(), whirlpool);
+      poolsMap.set(uniquePools[i], whirlpool);
       return map;
     }, {});
     return poolsMap;
   };
 
-  getMeteoraPools = async (pools: PublicKey[]): Promise<Map<string, LbPair | null>> => {
+  getMeteoraPools = async (pools: PublicKey[]): Promise<PubkeyHashMap<PublicKey, LbPair | null>> => {
     // todo: make this map have Pubkey as key
-    let poolsMap = new Map<string, LbPair | null>();
+    let poolsMap = new PubkeyHashMap<PublicKey, LbPair | null>();
 
     const poolStrings = pools.map((pool) => pool.toBase58());
     const uniquePools = [...new Set(poolStrings)].map((value) => new PublicKey(value));
     if (uniquePools.length === 1) {
       const pool = await this.getMeteoraPoolByAddress(pools[0]);
-      poolsMap.set(pools[0].toString(), pool);
+      poolsMap.set(pools[0], pool);
     }
     const fetched = await batchFetch(uniquePools, (chunk) => LbPair.fetchMultiple(this._connection, chunk));
     fetched.reduce((map, whirlpool, i) => {
-      poolsMap.set(uniquePools[i].toString(), whirlpool);
+      poolsMap.set(uniquePools[i], whirlpool);
       return map;
     }, {});
     return poolsMap;
@@ -5969,8 +5967,8 @@ export class Kamino {
    */
   getUserPositionsByStrategiesMap = async (
     wallet: PublicKey,
-    strategiesWithShareMintsMap: Map<PublicKey, KaminoStrategyWithShareMint>,
-    strategiesWithAddressMap?: Map<PublicKey, WhirlpoolStrategy>
+    strategiesWithShareMintsMap: PubkeyHashMap<PublicKey, KaminoStrategyWithShareMint>,
+    strategiesWithAddressMap?: PubkeyHashMap<PublicKey, WhirlpoolStrategy>
   ): Promise<KaminoPosition[]> => {
     const tokenAccounts = await this._connection.getParsedTokenAccountsByOwner(wallet, {
       programId: TOKEN_PROGRAM_ID,

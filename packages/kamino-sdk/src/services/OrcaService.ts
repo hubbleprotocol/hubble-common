@@ -141,7 +141,7 @@ export class OrcaService {
     });
     const position = await Position.fetch(this._connection, strategy.position);
     if (!position) {
-      throw new Error(`Position ${strategy.position} does not exist`);
+      throw new Error(`Position ${strategy.position.toString()} does not exist`);
     }
 
     const pool = await orca.getPool(strategy.pool);
@@ -152,7 +152,7 @@ export class OrcaService {
     const whirlpool = whirlpools?.find((x) => x.address === strategy.pool.toString());
 
     if (!pool || !whirlpool) {
-      throw Error(`Could not get orca pool data for ${strategy.pool}`);
+      throw Error(`Could not get orca pool data for ${strategy.pool.toString()}`);
     }
     const priceRange = getStrategyPriceRangeOrca(
       position.tickLowerIndex,
@@ -177,7 +177,7 @@ export class OrcaService {
     const fee24Usd = new Decimal(volume24hUsd).mul(lpFeeRate).toNumber();
     const config = await GlobalConfig.fetch(this._connection, this._globalConfig, this._kaminoProgramId);
     if (!config) {
-      throw Error(`Could not fetch globalConfig with pubkey ${this._globalConfig}`);
+      throw Error(`Could not fetch globalConfig with pubkey ${this._globalConfig.toString()}`);
     }
     const collateralInfos = await CollateralInfos.fetch(this._connection, config.tokenInfos, this._kaminoProgramId);
     if (!collateralInfos) {
@@ -347,15 +347,16 @@ export class OrcaService {
       network: this._orcaNetwork,
     });
 
+    const poolString = poolPubkey.toString();
     const pool = await orca.getPool(poolPubkey);
     if (!whirlpools) {
       ({ whirlpools } = await this.getOrcaWhirlpools());
     }
 
-    const whirlpool = whirlpools?.find((x) => x.address === poolPubkey.toString());
+    const whirlpool = whirlpools?.find((x) => x.address === poolString);
 
     if (!pool || !whirlpool) {
-      throw Error(`Could not get orca pool data for ${poolPubkey}`);
+      throw Error(`Could not get orca pool data for ${poolString}`);
     }
 
     let poolInfo: GenericPoolInfo = {
