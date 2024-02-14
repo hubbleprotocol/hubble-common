@@ -5998,7 +5998,7 @@ export class Kamino {
 
       if (mintData.mintAuthority !== null && mintData.mintAuthority.equals(expectedMintAuthority)) {
         const shareMintAddress = tokenAccounts.value[index].account.data.parsed.info.mint;
-        const address = strategiesWithShareMintsMap.get(shareMintAddress)?.address;
+        const address = strategiesWithShareMintsMap.get(new PublicKey(shareMintAddress))?.address;
 
         if (!address) continue;
 
