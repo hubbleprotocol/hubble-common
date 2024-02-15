@@ -123,7 +123,7 @@ import {
   stripTwapZeros,
   getTokenNameFromCollateralInfo,
 } from './utils';
-import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID, MintInfo, MintLayout, u64 } from '@solana/spl-token';
+import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID, MintInfo, MintLayout, u64, Token } from '@solana/spl-token';
 import {
   checkExpectedVaultsBalances,
   CheckExpectedVaultsBalancesAccounts,
@@ -2616,7 +2616,14 @@ export class Kamino {
       }
     }
 
-    return { prerequisiteIxs: collectFeesAndRewardsIxns, withdrawIx };
+    let res: WithdrawShares = { prerequisiteIxs: collectFeesAndRewardsIxns, withdrawIx };
+    // if we withdraw everything also close the shares ATA
+    const sharesAtaBalance = await this.getTokenAccountBalance(sharesAta);
+    if (sharesAtaBalance.lte(sharesAmount)) {
+      res.closeSharesAtaIx = Token.createCloseAccountInstruction(TOKEN_PROGRAM_ID, sharesAta, owner, owner, []);
+    }
+
+    return res;
   };
 
   /**
