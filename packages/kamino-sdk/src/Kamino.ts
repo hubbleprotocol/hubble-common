@@ -2522,7 +2522,8 @@ export class Kamino {
   withdrawShares = async (
     strategy: PublicKey | StrategyWithAddress,
     sharesAmount: Decimal,
-    owner: PublicKey
+    owner: PublicKey,
+    sharesAtaBalance?: Decimal
   ): Promise<WithdrawShares> => {
     if (sharesAmount.lessThanOrEqualTo(0)) {
       throw Error('Shares amount cant be lower than or equal to 0.');
@@ -2618,8 +2619,7 @@ export class Kamino {
 
     let res: WithdrawShares = { prerequisiteIxs: collectFeesAndRewardsIxns, withdrawIx };
     // if we withdraw everything also close the shares ATA
-    const sharesAtaBalance = await this.getTokenAccountBalance(sharesAta);
-    if (sharesAtaBalance.lte(sharesAmount)) {
+    if (sharesAtaBalance && sharesAtaBalance.lte(sharesAmount)) {
       res.closeSharesAtaIx = Token.createCloseAccountInstruction(TOKEN_PROGRAM_ID, sharesAta, owner, owner, []);
     }
 
