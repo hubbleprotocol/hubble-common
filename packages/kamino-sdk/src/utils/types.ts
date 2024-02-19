@@ -276,6 +276,7 @@ export interface InitStrategyIxs {
 export interface WithdrawShares {
   prerequisiteIxs: TransactionInstruction[];
   withdrawIx: TransactionInstruction;
+  closeSharesAtaIx?: TransactionInstruction;
 }
 
 export interface MetadataProgramAddressesOrca {
