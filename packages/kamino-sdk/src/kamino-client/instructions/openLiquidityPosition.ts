@@ -41,6 +41,7 @@ export interface OpenLiquidityPositionAccounts {
   scopePrices: PublicKey
   tokenInfos: PublicKey
   eventAuthority: PublicKey
+  consensusAccount: PublicKey
 }
 
 export const layout = borsh.struct([
@@ -117,6 +118,7 @@ export function openLiquidityPosition(
     { pubkey: accounts.scopePrices, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenInfos, isSigner: false, isWritable: false },
     { pubkey: accounts.eventAuthority, isSigner: false, isWritable: false },
+    { pubkey: accounts.consensusAccount, isSigner: false, isWritable: false },
   ]
   const identifier = Buffer.from([204, 234, 204, 219, 6, 91, 96, 241])
   const buffer = Buffer.alloc(1000)

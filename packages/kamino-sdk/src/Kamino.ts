@@ -217,6 +217,7 @@ import {
   DefaultWithdrawFeeBps,
 } from './constants/DefaultStrategyConfig';
 import {
+  CONSENSUS_ID,
   DEVNET_GLOBAL_LOOKUP_TABLE,
   MAINNET_GLOBAL_LOOKUP_TABLE,
   STAGING_GLOBAL_CONFIG,
@@ -4357,6 +4358,7 @@ export class Kamino {
       tokenAMint,
       tokenBMint,
       eventAuthority,
+      consensusAccount: CONSENSUS_ID,
     };
 
     let ixn = openLiquidityPosition(args, accounts);
@@ -4480,6 +4482,7 @@ export class Kamino {
       tokenAMint,
       tokenBMint,
       eventAuthority,
+      consensusAccount: CONSENSUS_ID,
     };
 
     let ix = openLiquidityPosition(args, accounts);
@@ -4605,6 +4608,7 @@ export class Kamino {
       tokenAMint,
       tokenBMint,
       eventAuthority,
+      consensusAccount: CONSENSUS_ID,
     };
 
     let ixn = openLiquidityPosition(args, accounts);
