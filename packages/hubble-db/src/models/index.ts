@@ -58,6 +58,7 @@ export * from './StablecoinTokenEntity';
 export * from './PointsLeaderboardBlacklistEntity';
 export * from './KlendInstructionEntity';
 export * from './RawInstructionEntity';
+export * from './YieldEntity';
 
 export const CLUSTER_TABLE: string = 'cluster';
 export const COLLATERAL_TABLE: string = 'collateral';
@@ -121,6 +122,7 @@ export const STABLECOIN_TOKEN_TABLE = 'stablecoin_token';
 export const RAW_INSTRUCTION_TABLE = 'raw_instruction';
 export const KAMINO_INSTRUCTION_TABLE = 'kamino_instruction';
 export const KLEND_INSTRUCTION_TABLE = 'klend_instruction';
+export const YIELD_TABLE = 'yield';
 
 export type RESAMPLE_FREQUENCY = 'hour' | 'day';
 export const HOURLY_FREQUENCY = 'hour';
