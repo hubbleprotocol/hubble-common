@@ -1,6 +1,6 @@
 import { PublicKey, Connection } from "@solana/web3.js"
 import BN from "bn.js" // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as borsh from "@coral-xyz/borsh" // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as borsh from "@project-serum/borsh" // eslint-disable-line @typescript-eslint/no-unused-vars
 import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
 import { PROGRAM_ID } from "../programId"
 
@@ -116,15 +116,14 @@ export class PersonalPositionState {
 
   static async fetch(
     c: Connection,
-    address: PublicKey,
-    programId: PublicKey = PROGRAM_ID
+    address: PublicKey
   ): Promise<PersonalPositionState | null> {
     const info = await c.getAccountInfo(address)
 
     if (info === null) {
       return null
     }
-    if (!info.owner.equals(programId)) {
+    if (!info.owner.equals(PROGRAM_ID)) {
       throw new Error("account doesn't belong to this program")
     }
 
@@ -133,8 +132,7 @@ export class PersonalPositionState {
 
   static async fetchMultiple(
     c: Connection,
-    addresses: PublicKey[],
-    programId: PublicKey = PROGRAM_ID
+    addresses: PublicKey[]
   ): Promise<Array<PersonalPositionState | null>> {
     const infos = await c.getMultipleAccountsInfo(addresses)
 
@@ -142,7 +140,7 @@ export class PersonalPositionState {
       if (info === null) {
         return null
       }
-      if (!info.owner.equals(programId)) {
+      if (!info.owner.equals(PROGRAM_ID)) {
         throw new Error("account doesn't belong to this program")
       }
 

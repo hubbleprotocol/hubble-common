@@ -1,6 +1,6 @@
 import { PublicKey, Connection } from "@solana/web3.js"
 import BN from "bn.js" // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as borsh from "@coral-xyz/borsh" // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as borsh from "@project-serum/borsh" // eslint-disable-line @typescript-eslint/no-unused-vars
 import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
 import { PROGRAM_ID } from "../programId"
 
@@ -14,7 +14,7 @@ export interface GlobalConfigFields {
   blockSwapRewards: BN
   blockSwapUnevenVaults: number
   blockEmergencySwap: number
-  feesBps: BN
+  minWithdrawalFeeBps: BN
   scopeProgramId: PublicKey
   scopePriceId: PublicKey
   swapRewardsDiscountBps: Array<BN>
@@ -40,7 +40,7 @@ export interface GlobalConfigJSON {
   blockSwapRewards: string
   blockSwapUnevenVaults: number
   blockEmergencySwap: number
-  feesBps: string
+  minWithdrawalFeeBps: string
   scopeProgramId: string
   scopePriceId: string
   swapRewardsDiscountBps: Array<string>
@@ -66,7 +66,7 @@ export class GlobalConfig {
   readonly blockSwapRewards: BN
   readonly blockSwapUnevenVaults: number
   readonly blockEmergencySwap: number
-  readonly feesBps: BN
+  readonly minWithdrawalFeeBps: BN
   readonly scopeProgramId: PublicKey
   readonly scopePriceId: PublicKey
   readonly swapRewardsDiscountBps: Array<BN>
@@ -95,7 +95,7 @@ export class GlobalConfig {
     borsh.u64("blockSwapRewards"),
     borsh.u32("blockSwapUnevenVaults"),
     borsh.u32("blockEmergencySwap"),
-    borsh.u64("feesBps"),
+    borsh.u64("minWithdrawalFeeBps"),
     borsh.publicKey("scopeProgramId"),
     borsh.publicKey("scopePriceId"),
     borsh.array(borsh.u64(), 256, "swapRewardsDiscountBps"),
@@ -121,7 +121,7 @@ export class GlobalConfig {
     this.blockSwapRewards = fields.blockSwapRewards
     this.blockSwapUnevenVaults = fields.blockSwapUnevenVaults
     this.blockEmergencySwap = fields.blockEmergencySwap
-    this.feesBps = fields.feesBps
+    this.minWithdrawalFeeBps = fields.minWithdrawalFeeBps
     this.scopeProgramId = fields.scopeProgramId
     this.scopePriceId = fields.scopePriceId
     this.swapRewardsDiscountBps = fields.swapRewardsDiscountBps
@@ -142,15 +142,14 @@ export class GlobalConfig {
 
   static async fetch(
     c: Connection,
-    address: PublicKey,
-    programId: PublicKey = PROGRAM_ID
+    address: PublicKey
   ): Promise<GlobalConfig | null> {
     const info = await c.getAccountInfo(address)
 
     if (info === null) {
       return null
     }
-    if (!info.owner.equals(programId)) {
+    if (!info.owner.equals(PROGRAM_ID)) {
       throw new Error("account doesn't belong to this program")
     }
 
@@ -159,8 +158,7 @@ export class GlobalConfig {
 
   static async fetchMultiple(
     c: Connection,
-    addresses: PublicKey[],
-    programId: PublicKey = PROGRAM_ID
+    addresses: PublicKey[]
   ): Promise<Array<GlobalConfig | null>> {
     const infos = await c.getMultipleAccountsInfo(addresses)
 
@@ -168,7 +166,7 @@ export class GlobalConfig {
       if (info === null) {
         return null
       }
-      if (!info.owner.equals(programId)) {
+      if (!info.owner.equals(PROGRAM_ID)) {
         throw new Error("account doesn't belong to this program")
       }
 
@@ -193,7 +191,7 @@ export class GlobalConfig {
       blockSwapRewards: dec.blockSwapRewards,
       blockSwapUnevenVaults: dec.blockSwapUnevenVaults,
       blockEmergencySwap: dec.blockEmergencySwap,
-      feesBps: dec.feesBps,
+      minWithdrawalFeeBps: dec.minWithdrawalFeeBps,
       scopeProgramId: dec.scopeProgramId,
       scopePriceId: dec.scopePriceId,
       swapRewardsDiscountBps: dec.swapRewardsDiscountBps,
@@ -222,7 +220,7 @@ export class GlobalConfig {
       blockSwapRewards: this.blockSwapRewards.toString(),
       blockSwapUnevenVaults: this.blockSwapUnevenVaults,
       blockEmergencySwap: this.blockEmergencySwap,
-      feesBps: this.feesBps.toString(),
+      minWithdrawalFeeBps: this.minWithdrawalFeeBps.toString(),
       scopeProgramId: this.scopeProgramId.toString(),
       scopePriceId: this.scopePriceId.toString(),
       swapRewardsDiscountBps: this.swapRewardsDiscountBps.map((item) =>
@@ -255,7 +253,7 @@ export class GlobalConfig {
       blockSwapRewards: new BN(obj.blockSwapRewards),
       blockSwapUnevenVaults: obj.blockSwapUnevenVaults,
       blockEmergencySwap: obj.blockEmergencySwap,
-      feesBps: new BN(obj.feesBps),
+      minWithdrawalFeeBps: new BN(obj.minWithdrawalFeeBps),
       scopeProgramId: new PublicKey(obj.scopeProgramId),
       scopePriceId: new PublicKey(obj.scopePriceId),
       swapRewardsDiscountBps: obj.swapRewardsDiscountBps.map(
