@@ -716,7 +716,7 @@
         {
           "name": "positionMint",
           "isMut": true,
-          "isSigner": true
+          "isSigner": false
         },
         {
           "name": "positionMetadataAccount",
@@ -789,6 +789,16 @@
           "isSigner": false
         },
         {
+          "name": "tokenAMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenBMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "poolTokenVaultA",
           "isMut": true,
           "isSigner": false
@@ -807,6 +817,12 @@
           "name": "tokenInfos",
           "isMut": false,
           "isSigner": false
+        },
+        {
+          "name": "eventAuthority",
+          "isMut": false,
+          "isSigner": false,
+          "isOptional": true
         }
       ],
       "args": [
@@ -850,6 +866,21 @@
         {
           "name": "oldPositionTokenAccountOrBaseVaultAuthority",
           "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "oldTickArrayLowerOrBaseVaultAuthority",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "oldTickArrayUpperOrBaseVaultAuthority",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "pool",
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -987,6 +1018,12 @@
           "name": "system",
           "isMut": false,
           "isSigner": false
+        },
+        {
+          "name": "eventAuthority",
+          "isMut": false,
+          "isSigner": false,
+          "isOptional": true
         }
       ],
       "args": []
@@ -1016,6 +1053,16 @@
         },
         {
           "name": "position",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tickArrayLower",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tickArrayUpper",
           "isMut": false,
           "isSigner": false
         },
@@ -1130,6 +1177,16 @@
           "isSigner": false
         },
         {
+          "name": "tokenAMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenBMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "baseVaultAuthority",
           "isMut": true,
           "isSigner": false
@@ -1198,6 +1255,12 @@
           "name": "instructionSysvarAccount",
           "isMut": false,
           "isSigner": false
+        },
+        {
+          "name": "eventAuthority",
+          "isMut": false,
+          "isSigner": false,
+          "isOptional": true
         }
       ],
       "args": []
@@ -1290,12 +1353,12 @@
         },
         {
           "name": "tokenAMint",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
           "name": "tokenBMint",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -1337,6 +1400,12 @@
           "name": "instructionSysvarAccount",
           "isMut": false,
           "isSigner": false
+        },
+        {
+          "name": "eventAuthority",
+          "isMut": false,
+          "isSigner": false,
+          "isOptional": true
         }
       ],
       "args": [
@@ -1429,6 +1498,16 @@
           "isSigner": false
         },
         {
+          "name": "tokenAMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenBMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "userSharesAta",
           "isMut": true,
           "isSigner": false
@@ -1467,6 +1546,12 @@
           "name": "instructionSysvarAccount",
           "isMut": false,
           "isSigner": false
+        },
+        {
+          "name": "eventAuthority",
+          "isMut": false,
+          "isSigner": false,
+          "isOptional": true
         }
       ],
       "args": [
@@ -1551,12 +1636,12 @@
         },
         {
           "name": "tokenAMint",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
           "name": "tokenBMint",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -1578,6 +1663,12 @@
           "name": "poolProgram",
           "isMut": false,
           "isSigner": false
+        },
+        {
+          "name": "eventAuthority",
+          "isMut": false,
+          "isSigner": false,
+          "isOptional": true
         }
       ],
       "args": [
@@ -1724,6 +1815,24 @@
           ]
         },
         {
+          "name": "reward0Mint",
+          "isMut": false,
+          "isSigner": false,
+          "isOptional": true
+        },
+        {
+          "name": "reward1Mint",
+          "isMut": false,
+          "isSigner": false,
+          "isOptional": true
+        },
+        {
+          "name": "reward2Mint",
+          "isMut": false,
+          "isSigner": false,
+          "isOptional": true
+        },
+        {
           "name": "tokenAMint",
           "isMut": false,
           "isSigner": false
@@ -1747,6 +1856,12 @@
           "name": "instructionSysvarAccount",
           "isMut": false,
           "isSigner": false
+        },
+        {
+          "name": "eventAuthority",
+          "isMut": false,
+          "isSigner": false,
+          "isOptional": true
         }
       ],
       "args": []
@@ -1912,6 +2027,16 @@
           "isSigner": false
         },
         {
+          "name": "tokenAMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenBMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "baseVaultAuthority",
           "isMut": true,
           "isSigner": false
@@ -1986,6 +2111,16 @@
           "isSigner": false
         },
         {
+          "name": "tickArrayLower",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tickArrayUpper",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "tokenProgram",
           "isMut": false,
           "isSigner": false
@@ -1999,6 +2134,12 @@
           "name": "consensusAccount",
           "isMut": false,
           "isSigner": false
+        },
+        {
+          "name": "eventAuthority",
+          "isMut": false,
+          "isSigner": false,
+          "isOptional": true
         }
       ],
       "args": [
@@ -2126,12 +2267,12 @@
         },
         {
           "name": "tokenAMint",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
           "name": "tokenBMint",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -2173,6 +2314,12 @@
           "name": "instructionSysvarAccount",
           "isMut": false,
           "isSigner": false
+        },
+        {
+          "name": "eventAuthority",
+          "isMut": false,
+          "isSigner": false,
+          "isOptional": true
         }
       ],
       "args": [
@@ -2211,6 +2358,16 @@
         },
         {
           "name": "position",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tickArrayLower",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tickArrayUpper",
           "isMut": false,
           "isSigner": false
         },
@@ -2371,6 +2528,16 @@
           "isSigner": false
         },
         {
+          "name": "tickArrayLower",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tickArrayUpper",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "tokenProgram",
           "isMut": false,
           "isSigner": false
@@ -2466,6 +2633,16 @@
         },
         {
           "name": "tokenInfos",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tickArrayLower",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tickArrayUpper",
           "isMut": false,
           "isSigner": false
         },
@@ -3546,20 +3723,22 @@
             "type": "publicKey"
           },
           {
-            "name": "tokenAVaultAuthority",
-            "type": "publicKey"
+            "name": "deprecated0",
+            "type": {
+              "array": [
+                "publicKey",
+                2
+              ]
+            }
           },
           {
-            "name": "tokenBVaultAuthority",
-            "type": "publicKey"
-          },
-          {
-            "name": "tokenAVaultAuthorityBump",
-            "type": "u64"
-          },
-          {
-            "name": "tokenBVaultAuthorityBump",
-            "type": "u64"
+            "name": "deprecated1",
+            "type": {
+              "array": [
+                "u64",
+                2
+              ]
+            }
           },
           {
             "name": "tokenAMint",
@@ -3598,7 +3777,7 @@
             "type": "publicKey"
           },
           {
-            "name": "scopeProgram",
+            "name": "deprecated2",
             "type": "publicKey"
           },
           {
@@ -3978,7 +4157,7 @@
             "type": "u32"
           },
           {
-            "name": "feesBps",
+            "name": "minWithdrawalFeeBps",
             "type": "u64"
           },
           {
@@ -4787,6 +4966,119 @@
       }
     },
     {
+      "name": "BinAddLiquidityStrategy",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Uniform",
+            "fields": [
+              {
+                "name": "currentBinIndex",
+                "type": "i32"
+              },
+              {
+                "name": "lowerBinIndex",
+                "type": "i32"
+              },
+              {
+                "name": "upperBinIndex",
+                "type": "i32"
+              },
+              {
+                "name": "amountXToDeposit",
+                "type": "u64"
+              },
+              {
+                "name": "amountYToDeposit",
+                "type": "u64"
+              },
+              {
+                "name": "xCurrentBin",
+                "type": "u64"
+              },
+              {
+                "name": "yCurrentBin",
+                "type": "u64"
+              }
+            ]
+          },
+          {
+            "name": "CurrentTick",
+            "fields": [
+              "i32"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "SimulationPrice",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "PoolPrice"
+          },
+          {
+            "name": "SqrtPrice",
+            "fields": [
+              "u128"
+            ]
+          },
+          {
+            "name": "TickIndex",
+            "fields": [
+              "i32"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "DexSpecificPrice",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "SqrtPrice",
+            "fields": [
+              "u128"
+            ]
+          },
+          {
+            "name": "Q64_64",
+            "fields": [
+              "u128"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "RemoveLiquidityMode",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Liquidity",
+            "fields": [
+              "u128"
+            ]
+          },
+          {
+            "name": "Bps",
+            "fields": [
+              "u16"
+            ]
+          },
+          {
+            "name": "All"
+          }
+        ]
+      }
+    },
+    {
       "name": "WithdrawalCapAccumulatorAction",
       "type": {
         "kind": "enum",
@@ -4833,21 +5125,21 @@
             "name": "Absolute",
             "fields": [
               {
-                "name": "src_amount_to_swap",
+                "name": "srcAmountToSwap",
                 "docs": [
                   "Amount of src token expected by the user to perform the swap"
                 ],
                 "type": "u64"
               },
               {
-                "name": "dst_amount_to_vault",
+                "name": "dstAmountToVault",
                 "docs": [
                   "Amount of dst token the user provides in exchange"
                 ],
                 "type": "u64"
               },
               {
-                "name": "a_to_b",
+                "name": "aToB",
                 "type": "bool"
               }
             ]
@@ -4899,7 +5191,7 @@
             "name": "BlockSwapUnevenVaults"
           },
           {
-            "name": "FeesBps"
+            "name": "WithdrawalFeeBps"
           },
           {
             "name": "SwapDiscountBps"
@@ -4908,7 +5200,7 @@
             "name": "ActionsAuthority"
           },
           {
-            "name": "TreasuryFeeVaults"
+            "name": "DeprecatedTreasuryFeeVaults"
           },
           {
             "name": "AdminAuthority"
@@ -5039,10 +5331,10 @@
             "name": "UpdateLocalAdminBlocked"
           },
           {
-            "name": "UpdateCollateralIdA"
+            "name": "DeprecatedUpdateCollateralIdA"
           },
           {
-            "name": "UpdateCollateralIdB"
+            "name": "DeprecatedUpdateCollateralIdB"
           },
           {
             "name": "UpdateFlashVaultSwap"
@@ -5383,10 +5675,14 @@
         "kind": "enum",
         "variants": [
           {
-            "name": "NewSqrtPriceRange",
+            "name": "NewPriceRange",
             "fields": [
-              "u128",
-              "u128"
+              {
+                "defined": "DexSpecificPrice"
+              },
+              {
+                "defined": "DexSpecificPrice"
+              }
             ]
           },
           {
@@ -5754,8 +6050,22 @@
           },
           {
             "name": "Raydium"
+          },
+          {
+            "name": "Meteora"
           }
         ]
+      }
+    },
+    {
+      "name": "ScopeConversionChain",
+      "type": {
+        "kind": "alias",
+        "value": {
+          "vec": {
+            "defined": "ScopePriceId"
+          }
+        }
       }
     }
   ],
@@ -6469,6 +6779,51 @@
       "code": 6141,
       "name": "SwapUnevenInvalidAuthority",
       "msg": "Cannot swap uneven because authority is set and the given signer does not correspond"
+    },
+    {
+      "code": 6142,
+      "name": "InvalidTick",
+      "msg": "Invalid tick requested"
+    },
+    {
+      "code": 6143,
+      "name": "MeteoraMathOverflow",
+      "msg": "Meteora math overflowed"
+    },
+    {
+      "code": 6144,
+      "name": "StrategyTickArrayNotValid",
+      "msg": "Expected strategy tick arrays to be initialized"
+    },
+    {
+      "code": 6145,
+      "name": "WrongEventAuthority",
+      "msg": "Wrong event authority"
+    },
+    {
+      "code": 6146,
+      "name": "StrategyFieldUpdateNotAllowed",
+      "msg": "Strategy field update is not allowed"
+    },
+    {
+      "code": 6147,
+      "name": "UnsupportedDex",
+      "msg": "DEX is not supported for this operation"
+    },
+    {
+      "code": 6148,
+      "name": "InvalidBPSValue",
+      "msg": "Invalid BPS value provided"
+    },
+    {
+      "code": 6149,
+      "name": "RewardVaultOverrideNotAllowed",
+      "msg": "Reward vault override not allowed"
+    },
+    {
+      "code": 6150,
+      "name": "ComputeFeesAndRewardsInvalidReward",
+      "msg": "Got invalid reward from the dex specific function while computing the fees/rewards update"
     }
   ]
 }

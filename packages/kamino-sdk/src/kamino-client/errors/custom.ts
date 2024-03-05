@@ -145,6 +145,11 @@ export type CustomError =
   | MeteoraMathOverflow
   | StrategyTickArrayNotValid
   | WrongEventAuthority
+  | StrategyFieldUpdateNotAllowed
+  | UnsupportedDex
+  | InvalidBPSValue
+  | RewardVaultOverrideNotAllowed
+  | ComputeFeesAndRewardsInvalidReward
 
 export class IntegerOverflow extends Error {
   static readonly code = 6000
@@ -1785,6 +1790,64 @@ export class WrongEventAuthority extends Error {
   }
 }
 
+export class StrategyFieldUpdateNotAllowed extends Error {
+  static readonly code = 6146
+  readonly code = 6146
+  readonly name = "StrategyFieldUpdateNotAllowed"
+  readonly msg = "Strategy field update is not allowed"
+
+  constructor(readonly logs?: string[]) {
+    super("6146: Strategy field update is not allowed")
+  }
+}
+
+export class UnsupportedDex extends Error {
+  static readonly code = 6147
+  readonly code = 6147
+  readonly name = "UnsupportedDex"
+  readonly msg = "DEX is not supported for this operation"
+
+  constructor(readonly logs?: string[]) {
+    super("6147: DEX is not supported for this operation")
+  }
+}
+
+export class InvalidBPSValue extends Error {
+  static readonly code = 6148
+  readonly code = 6148
+  readonly name = "InvalidBPSValue"
+  readonly msg = "Invalid BPS value provided"
+
+  constructor(readonly logs?: string[]) {
+    super("6148: Invalid BPS value provided")
+  }
+}
+
+export class RewardVaultOverrideNotAllowed extends Error {
+  static readonly code = 6149
+  readonly code = 6149
+  readonly name = "RewardVaultOverrideNotAllowed"
+  readonly msg = "Reward vault override not allowed"
+
+  constructor(readonly logs?: string[]) {
+    super("6149: Reward vault override not allowed")
+  }
+}
+
+export class ComputeFeesAndRewardsInvalidReward extends Error {
+  static readonly code = 6150
+  readonly code = 6150
+  readonly name = "ComputeFeesAndRewardsInvalidReward"
+  readonly msg =
+    "Got invalid reward from the dex specific function while computing the fees/rewards update"
+
+  constructor(readonly logs?: string[]) {
+    super(
+      "6150: Got invalid reward from the dex specific function while computing the fees/rewards update"
+    )
+  }
+}
+
 export function fromCode(code: number, logs?: string[]): CustomError | null {
   switch (code) {
     case 6000:
@@ -2079,6 +2142,16 @@ export function fromCode(code: number, logs?: string[]): CustomError | null {
       return new StrategyTickArrayNotValid(logs)
     case 6145:
       return new WrongEventAuthority(logs)
+    case 6146:
+      return new StrategyFieldUpdateNotAllowed(logs)
+    case 6147:
+      return new UnsupportedDex(logs)
+    case 6148:
+      return new InvalidBPSValue(logs)
+    case 6149:
+      return new RewardVaultOverrideNotAllowed(logs)
+    case 6150:
+      return new ComputeFeesAndRewardsInvalidReward(logs)
   }
 
   return null

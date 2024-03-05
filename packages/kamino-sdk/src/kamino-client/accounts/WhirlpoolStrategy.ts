@@ -1,6 +1,6 @@
 import { PublicKey, Connection } from "@solana/web3.js"
 import BN from "bn.js" // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as borsh from "@coral-xyz/borsh" // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as borsh from "@project-serum/borsh" // eslint-disable-line @typescript-eslint/no-unused-vars
 import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
 import { PROGRAM_ID } from "../programId"
 
@@ -20,10 +20,8 @@ export interface WhirlpoolStrategyFields {
   positionTokenAccount: PublicKey
   tokenAVault: PublicKey
   tokenBVault: PublicKey
-  tokenAVaultAuthority: PublicKey
-  tokenBVaultAuthority: PublicKey
-  tokenAVaultAuthorityBump: BN
-  tokenBVaultAuthorityBump: BN
+  deprecated0: Array<PublicKey>
+  deprecated1: Array<BN>
   tokenAMint: PublicKey
   tokenBMint: PublicKey
   tokenAMintDecimals: BN
@@ -33,7 +31,7 @@ export interface WhirlpoolStrategyFields {
   tokenACollateralId: BN
   tokenBCollateralId: BN
   scopePrices: PublicKey
-  scopeProgram: PublicKey
+  deprecated2: PublicKey
   sharesMint: PublicKey
   sharesMintDecimals: BN
   sharesMintAuthority: PublicKey
@@ -123,10 +121,8 @@ export interface WhirlpoolStrategyJSON {
   positionTokenAccount: string
   tokenAVault: string
   tokenBVault: string
-  tokenAVaultAuthority: string
-  tokenBVaultAuthority: string
-  tokenAVaultAuthorityBump: string
-  tokenBVaultAuthorityBump: string
+  deprecated0: Array<string>
+  deprecated1: Array<string>
   tokenAMint: string
   tokenBMint: string
   tokenAMintDecimals: string
@@ -136,7 +132,7 @@ export interface WhirlpoolStrategyJSON {
   tokenACollateralId: string
   tokenBCollateralId: string
   scopePrices: string
-  scopeProgram: string
+  deprecated2: string
   sharesMint: string
   sharesMintDecimals: string
   sharesMintAuthority: string
@@ -226,10 +222,8 @@ export class WhirlpoolStrategy {
   readonly positionTokenAccount: PublicKey
   readonly tokenAVault: PublicKey
   readonly tokenBVault: PublicKey
-  readonly tokenAVaultAuthority: PublicKey
-  readonly tokenBVaultAuthority: PublicKey
-  readonly tokenAVaultAuthorityBump: BN
-  readonly tokenBVaultAuthorityBump: BN
+  readonly deprecated0: Array<PublicKey>
+  readonly deprecated1: Array<BN>
   readonly tokenAMint: PublicKey
   readonly tokenBMint: PublicKey
   readonly tokenAMintDecimals: BN
@@ -239,7 +233,7 @@ export class WhirlpoolStrategy {
   readonly tokenACollateralId: BN
   readonly tokenBCollateralId: BN
   readonly scopePrices: PublicKey
-  readonly scopeProgram: PublicKey
+  readonly deprecated2: PublicKey
   readonly sharesMint: PublicKey
   readonly sharesMintDecimals: BN
   readonly sharesMintAuthority: PublicKey
@@ -332,10 +326,8 @@ export class WhirlpoolStrategy {
     borsh.publicKey("positionTokenAccount"),
     borsh.publicKey("tokenAVault"),
     borsh.publicKey("tokenBVault"),
-    borsh.publicKey("tokenAVaultAuthority"),
-    borsh.publicKey("tokenBVaultAuthority"),
-    borsh.u64("tokenAVaultAuthorityBump"),
-    borsh.u64("tokenBVaultAuthorityBump"),
+    borsh.array(borsh.publicKey(), 2, "deprecated0"),
+    borsh.array(borsh.u64(), 2, "deprecated1"),
     borsh.publicKey("tokenAMint"),
     borsh.publicKey("tokenBMint"),
     borsh.u64("tokenAMintDecimals"),
@@ -345,7 +337,7 @@ export class WhirlpoolStrategy {
     borsh.u64("tokenACollateralId"),
     borsh.u64("tokenBCollateralId"),
     borsh.publicKey("scopePrices"),
-    borsh.publicKey("scopeProgram"),
+    borsh.publicKey("deprecated2"),
     borsh.publicKey("sharesMint"),
     borsh.u64("sharesMintDecimals"),
     borsh.publicKey("sharesMintAuthority"),
@@ -434,10 +426,8 @@ export class WhirlpoolStrategy {
     this.positionTokenAccount = fields.positionTokenAccount
     this.tokenAVault = fields.tokenAVault
     this.tokenBVault = fields.tokenBVault
-    this.tokenAVaultAuthority = fields.tokenAVaultAuthority
-    this.tokenBVaultAuthority = fields.tokenBVaultAuthority
-    this.tokenAVaultAuthorityBump = fields.tokenAVaultAuthorityBump
-    this.tokenBVaultAuthorityBump = fields.tokenBVaultAuthorityBump
+    this.deprecated0 = fields.deprecated0
+    this.deprecated1 = fields.deprecated1
     this.tokenAMint = fields.tokenAMint
     this.tokenBMint = fields.tokenBMint
     this.tokenAMintDecimals = fields.tokenAMintDecimals
@@ -447,7 +437,7 @@ export class WhirlpoolStrategy {
     this.tokenACollateralId = fields.tokenACollateralId
     this.tokenBCollateralId = fields.tokenBCollateralId
     this.scopePrices = fields.scopePrices
-    this.scopeProgram = fields.scopeProgram
+    this.deprecated2 = fields.deprecated2
     this.sharesMint = fields.sharesMint
     this.sharesMintDecimals = fields.sharesMintDecimals
     this.sharesMintAuthority = fields.sharesMintAuthority
@@ -533,15 +523,14 @@ export class WhirlpoolStrategy {
 
   static async fetch(
     c: Connection,
-    address: PublicKey,
-    programId: PublicKey = PROGRAM_ID
+    address: PublicKey
   ): Promise<WhirlpoolStrategy | null> {
     const info = await c.getAccountInfo(address)
 
     if (info === null) {
       return null
     }
-    if (!info.owner.equals(programId)) {
+    if (!info.owner.equals(PROGRAM_ID)) {
       throw new Error("account doesn't belong to this program")
     }
 
@@ -550,8 +539,7 @@ export class WhirlpoolStrategy {
 
   static async fetchMultiple(
     c: Connection,
-    addresses: PublicKey[],
-    programId: PublicKey = PROGRAM_ID
+    addresses: PublicKey[]
   ): Promise<Array<WhirlpoolStrategy | null>> {
     const infos = await c.getMultipleAccountsInfo(addresses)
 
@@ -559,7 +547,7 @@ export class WhirlpoolStrategy {
       if (info === null) {
         return null
       }
-      if (!info.owner.equals(programId)) {
+      if (!info.owner.equals(PROGRAM_ID)) {
         throw new Error("account doesn't belong to this program")
       }
 
@@ -590,10 +578,8 @@ export class WhirlpoolStrategy {
       positionTokenAccount: dec.positionTokenAccount,
       tokenAVault: dec.tokenAVault,
       tokenBVault: dec.tokenBVault,
-      tokenAVaultAuthority: dec.tokenAVaultAuthority,
-      tokenBVaultAuthority: dec.tokenBVaultAuthority,
-      tokenAVaultAuthorityBump: dec.tokenAVaultAuthorityBump,
-      tokenBVaultAuthorityBump: dec.tokenBVaultAuthorityBump,
+      deprecated0: dec.deprecated0,
+      deprecated1: dec.deprecated1,
       tokenAMint: dec.tokenAMint,
       tokenBMint: dec.tokenBMint,
       tokenAMintDecimals: dec.tokenAMintDecimals,
@@ -603,7 +589,7 @@ export class WhirlpoolStrategy {
       tokenACollateralId: dec.tokenACollateralId,
       tokenBCollateralId: dec.tokenBCollateralId,
       scopePrices: dec.scopePrices,
-      scopeProgram: dec.scopeProgram,
+      deprecated2: dec.deprecated2,
       sharesMint: dec.sharesMint,
       sharesMintDecimals: dec.sharesMintDecimals,
       sharesMintAuthority: dec.sharesMintAuthority,
@@ -701,10 +687,8 @@ export class WhirlpoolStrategy {
       positionTokenAccount: this.positionTokenAccount.toString(),
       tokenAVault: this.tokenAVault.toString(),
       tokenBVault: this.tokenBVault.toString(),
-      tokenAVaultAuthority: this.tokenAVaultAuthority.toString(),
-      tokenBVaultAuthority: this.tokenBVaultAuthority.toString(),
-      tokenAVaultAuthorityBump: this.tokenAVaultAuthorityBump.toString(),
-      tokenBVaultAuthorityBump: this.tokenBVaultAuthorityBump.toString(),
+      deprecated0: this.deprecated0.map((item) => item.toString()),
+      deprecated1: this.deprecated1.map((item) => item.toString()),
       tokenAMint: this.tokenAMint.toString(),
       tokenBMint: this.tokenBMint.toString(),
       tokenAMintDecimals: this.tokenAMintDecimals.toString(),
@@ -714,7 +698,7 @@ export class WhirlpoolStrategy {
       tokenACollateralId: this.tokenACollateralId.toString(),
       tokenBCollateralId: this.tokenBCollateralId.toString(),
       scopePrices: this.scopePrices.toString(),
-      scopeProgram: this.scopeProgram.toString(),
+      deprecated2: this.deprecated2.toString(),
       sharesMint: this.sharesMint.toString(),
       sharesMintDecimals: this.sharesMintDecimals.toString(),
       sharesMintAuthority: this.sharesMintAuthority.toString(),
@@ -810,10 +794,8 @@ export class WhirlpoolStrategy {
       positionTokenAccount: new PublicKey(obj.positionTokenAccount),
       tokenAVault: new PublicKey(obj.tokenAVault),
       tokenBVault: new PublicKey(obj.tokenBVault),
-      tokenAVaultAuthority: new PublicKey(obj.tokenAVaultAuthority),
-      tokenBVaultAuthority: new PublicKey(obj.tokenBVaultAuthority),
-      tokenAVaultAuthorityBump: new BN(obj.tokenAVaultAuthorityBump),
-      tokenBVaultAuthorityBump: new BN(obj.tokenBVaultAuthorityBump),
+      deprecated0: obj.deprecated0.map((item) => new PublicKey(item)),
+      deprecated1: obj.deprecated1.map((item) => new BN(item)),
       tokenAMint: new PublicKey(obj.tokenAMint),
       tokenBMint: new PublicKey(obj.tokenBMint),
       tokenAMintDecimals: new BN(obj.tokenAMintDecimals),
@@ -823,7 +805,7 @@ export class WhirlpoolStrategy {
       tokenACollateralId: new BN(obj.tokenACollateralId),
       tokenBCollateralId: new BN(obj.tokenBCollateralId),
       scopePrices: new PublicKey(obj.scopePrices),
-      scopeProgram: new PublicKey(obj.scopeProgram),
+      deprecated2: new PublicKey(obj.deprecated2),
       sharesMint: new PublicKey(obj.sharesMint),
       sharesMintDecimals: new BN(obj.sharesMintDecimals),
       sharesMintAuthority: new PublicKey(obj.sharesMintAuthority),

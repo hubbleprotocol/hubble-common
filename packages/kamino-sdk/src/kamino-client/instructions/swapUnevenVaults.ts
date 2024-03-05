@@ -1,6 +1,6 @@
 import { TransactionInstruction, PublicKey, AccountMeta } from "@solana/web3.js" // eslint-disable-line @typescript-eslint/no-unused-vars
 import BN from "bn.js" // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as borsh from "@coral-xyz/borsh" // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as borsh from "@project-serum/borsh" // eslint-disable-line @typescript-eslint/no-unused-vars
 import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
 import { PROGRAM_ID } from "../programId"
 
@@ -32,6 +32,8 @@ export interface SwapUnevenVaultsAccounts {
   poolProgram: PublicKey
   scopePrices: PublicKey
   tokenInfos: PublicKey
+  tickArrayLower: PublicKey
+  tickArrayUpper: PublicKey
   tokenProgram: PublicKey
   instructionSysvarAccount: PublicKey
   consensusAccount: PublicKey
@@ -42,8 +44,7 @@ export const layout = borsh.struct([borsh.u64("targetLimitBps")])
 
 export function swapUnevenVaults(
   args: SwapUnevenVaultsArgs,
-  accounts: SwapUnevenVaultsAccounts,
-  programId: PublicKey = PROGRAM_ID
+  accounts: SwapUnevenVaultsAccounts
 ) {
   const keys: Array<AccountMeta> = [
     { pubkey: accounts.actionsAuthority, isSigner: true, isWritable: true },
@@ -70,6 +71,8 @@ export function swapUnevenVaults(
     { pubkey: accounts.poolProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.scopePrices, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenInfos, isSigner: false, isWritable: false },
+    { pubkey: accounts.tickArrayLower, isSigner: false, isWritable: false },
+    { pubkey: accounts.tickArrayUpper, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
     {
       pubkey: accounts.instructionSysvarAccount,
@@ -88,6 +91,6 @@ export function swapUnevenVaults(
     buffer
   )
   const data = Buffer.concat([identifier, buffer]).slice(0, 8 + len)
-  const ix = new TransactionInstruction({ keys, programId, data })
+  const ix = new TransactionInstruction({ keys, programId: PROGRAM_ID, data })
   return ix
 }

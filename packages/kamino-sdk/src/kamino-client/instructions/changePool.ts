@@ -1,6 +1,6 @@
 import { TransactionInstruction, PublicKey, AccountMeta } from "@solana/web3.js" // eslint-disable-line @typescript-eslint/no-unused-vars
 import BN from "bn.js" // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as borsh from "@coral-xyz/borsh" // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as borsh from "@project-serum/borsh" // eslint-disable-line @typescript-eslint/no-unused-vars
 import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
 import { PROGRAM_ID } from "../programId"
 
@@ -12,10 +12,7 @@ export interface ChangePoolAccounts {
   newPool: PublicKey
 }
 
-export function changePool(
-  accounts: ChangePoolAccounts,
-  programId: PublicKey = PROGRAM_ID
-) {
+export function changePool(accounts: ChangePoolAccounts) {
   const keys: Array<AccountMeta> = [
     { pubkey: accounts.adminAuthority, isSigner: true, isWritable: true },
     { pubkey: accounts.strategy, isSigner: false, isWritable: true },
@@ -25,6 +22,6 @@ export function changePool(
   ]
   const identifier = Buffer.from([141, 221, 123, 235, 35, 9, 145, 201])
   const data = identifier
-  const ix = new TransactionInstruction({ keys, programId, data })
+  const ix = new TransactionInstruction({ keys, programId: PROGRAM_ID, data })
   return ix
 }

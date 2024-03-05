@@ -1,7 +1,7 @@
 import { PublicKey } from "@solana/web3.js" // eslint-disable-line @typescript-eslint/no-unused-vars
 import BN from "bn.js" // eslint-disable-line @typescript-eslint/no-unused-vars
 import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as borsh from "@coral-xyz/borsh"
+import * as borsh from "@project-serum/borsh"
 
 export interface UpdateDepositCapJSON {
   kind: "UpdateDepositCap"
@@ -693,48 +693,48 @@ export class UpdateLocalAdminBlocked {
   }
 }
 
-export interface UpdateCollateralIdAJSON {
-  kind: "UpdateCollateralIdA"
+export interface DeprecatedUpdateCollateralIdAJSON {
+  kind: "DeprecatedUpdateCollateralIdA"
 }
 
-export class UpdateCollateralIdA {
+export class DeprecatedUpdateCollateralIdA {
   static readonly discriminator = 30
-  static readonly kind = "UpdateCollateralIdA"
+  static readonly kind = "DeprecatedUpdateCollateralIdA"
   readonly discriminator = 30
-  readonly kind = "UpdateCollateralIdA"
+  readonly kind = "DeprecatedUpdateCollateralIdA"
 
-  toJSON(): UpdateCollateralIdAJSON {
+  toJSON(): DeprecatedUpdateCollateralIdAJSON {
     return {
-      kind: "UpdateCollateralIdA",
+      kind: "DeprecatedUpdateCollateralIdA",
     }
   }
 
   toEncodable() {
     return {
-      UpdateCollateralIdA: {},
+      DeprecatedUpdateCollateralIdA: {},
     }
   }
 }
 
-export interface UpdateCollateralIdBJSON {
-  kind: "UpdateCollateralIdB"
+export interface DeprecatedUpdateCollateralIdBJSON {
+  kind: "DeprecatedUpdateCollateralIdB"
 }
 
-export class UpdateCollateralIdB {
+export class DeprecatedUpdateCollateralIdB {
   static readonly discriminator = 31
-  static readonly kind = "UpdateCollateralIdB"
+  static readonly kind = "DeprecatedUpdateCollateralIdB"
   readonly discriminator = 31
-  readonly kind = "UpdateCollateralIdB"
+  readonly kind = "DeprecatedUpdateCollateralIdB"
 
-  toJSON(): UpdateCollateralIdBJSON {
+  toJSON(): DeprecatedUpdateCollateralIdBJSON {
     return {
-      kind: "UpdateCollateralIdB",
+      kind: "DeprecatedUpdateCollateralIdB",
     }
   }
 
   toEncodable() {
     return {
-      UpdateCollateralIdB: {},
+      DeprecatedUpdateCollateralIdB: {},
     }
   }
 }
@@ -1272,11 +1272,11 @@ export function fromDecoded(obj: any): types.StrategyConfigOptionKind {
   if ("UpdateLocalAdminBlocked" in obj) {
     return new UpdateLocalAdminBlocked()
   }
-  if ("UpdateCollateralIdA" in obj) {
-    return new UpdateCollateralIdA()
+  if ("DeprecatedUpdateCollateralIdA" in obj) {
+    return new DeprecatedUpdateCollateralIdA()
   }
-  if ("UpdateCollateralIdB" in obj) {
-    return new UpdateCollateralIdB()
+  if ("DeprecatedUpdateCollateralIdB" in obj) {
+    return new DeprecatedUpdateCollateralIdB()
   }
   if ("UpdateFlashVaultSwap" in obj) {
     return new UpdateFlashVaultSwap()
@@ -1433,11 +1433,11 @@ export function fromJSON(
     case "UpdateLocalAdminBlocked": {
       return new UpdateLocalAdminBlocked()
     }
-    case "UpdateCollateralIdA": {
-      return new UpdateCollateralIdA()
+    case "DeprecatedUpdateCollateralIdA": {
+      return new DeprecatedUpdateCollateralIdA()
     }
-    case "UpdateCollateralIdB": {
-      return new UpdateCollateralIdB()
+    case "DeprecatedUpdateCollateralIdB": {
+      return new DeprecatedUpdateCollateralIdB()
     }
     case "UpdateFlashVaultSwap": {
       return new UpdateFlashVaultSwap()
@@ -1531,8 +1531,8 @@ export function layout(property?: string) {
     borsh.struct([], "UpdateInvestBlocked"),
     borsh.struct([], "UpdateWithdrawBlocked"),
     borsh.struct([], "UpdateLocalAdminBlocked"),
-    borsh.struct([], "UpdateCollateralIdA"),
-    borsh.struct([], "UpdateCollateralIdB"),
+    borsh.struct([], "DeprecatedUpdateCollateralIdA"),
+    borsh.struct([], "DeprecatedUpdateCollateralIdB"),
     borsh.struct([], "UpdateFlashVaultSwap"),
     borsh.struct([], "AllowDepositWithoutInvest"),
     borsh.struct([], "UpdateSwapVaultMaxSlippageFromRef"),
