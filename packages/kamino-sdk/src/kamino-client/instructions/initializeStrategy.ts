@@ -1,6 +1,6 @@
 import { TransactionInstruction, PublicKey, AccountMeta } from "@solana/web3.js" // eslint-disable-line @typescript-eslint/no-unused-vars
 import BN from "bn.js" // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as borsh from "@coral-xyz/borsh" // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as borsh from "@project-serum/borsh" // eslint-disable-line @typescript-eslint/no-unused-vars
 import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
 import { PROGRAM_ID } from "../programId"
 
@@ -39,8 +39,7 @@ export const layout = borsh.struct([
 
 export function initializeStrategy(
   args: InitializeStrategyArgs,
-  accounts: InitializeStrategyAccounts,
-  programId: PublicKey = PROGRAM_ID
+  accounts: InitializeStrategyAccounts
 ) {
   const keys: Array<AccountMeta> = [
     { pubkey: accounts.adminAuthority, isSigner: true, isWritable: true },
@@ -72,6 +71,6 @@ export function initializeStrategy(
     buffer
   )
   const data = Buffer.concat([identifier, buffer]).slice(0, 8 + len)
-  const ix = new TransactionInstruction({ keys, programId, data })
+  const ix = new TransactionInstruction({ keys, programId: PROGRAM_ID, data })
   return ix
 }

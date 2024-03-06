@@ -149,6 +149,7 @@ export type CustomError =
   | UnsupportedDex
   | InvalidBPSValue
   | RewardVaultOverrideNotAllowed
+  | ComputeFeesAndRewardsInvalidReward
 
 export class IntegerOverflow extends Error {
   static readonly code = 6000
@@ -1833,6 +1834,20 @@ export class RewardVaultOverrideNotAllowed extends Error {
   }
 }
 
+export class ComputeFeesAndRewardsInvalidReward extends Error {
+  static readonly code = 6150
+  readonly code = 6150
+  readonly name = "ComputeFeesAndRewardsInvalidReward"
+  readonly msg =
+    "Got invalid reward from the dex specific function while computing the fees/rewards update"
+
+  constructor(readonly logs?: string[]) {
+    super(
+      "6150: Got invalid reward from the dex specific function while computing the fees/rewards update"
+    )
+  }
+}
+
 export function fromCode(code: number, logs?: string[]): CustomError | null {
   switch (code) {
     case 6000:
@@ -2135,6 +2150,8 @@ export function fromCode(code: number, logs?: string[]): CustomError | null {
       return new InvalidBPSValue(logs)
     case 6149:
       return new RewardVaultOverrideNotAllowed(logs)
+    case 6150:
+      return new ComputeFeesAndRewardsInvalidReward(logs)
   }
 
   return null
