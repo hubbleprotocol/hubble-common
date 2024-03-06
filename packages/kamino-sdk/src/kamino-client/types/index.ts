@@ -1,6 +1,7 @@
 import * as BinAddLiquidityStrategy from "./BinAddLiquidityStrategy"
 import * as SimulationPrice from "./SimulationPrice"
 import * as DexSpecificPrice from "./DexSpecificPrice"
+import * as RemoveLiquidityMode from "./RemoveLiquidityMode"
 import * as WithdrawalCapAccumulatorAction from "./WithdrawalCapAccumulatorAction"
 import * as RebalanceEffects from "./RebalanceEffects"
 import * as SwapLimit from "./SwapLimit"
@@ -142,6 +143,17 @@ export type DexSpecificPriceJSON =
   | DexSpecificPrice.SqrtPriceJSON
   | DexSpecificPrice.Q64_64JSON
 
+export { RemoveLiquidityMode }
+
+export type RemoveLiquidityModeKind =
+  | RemoveLiquidityMode.Liquidity
+  | RemoveLiquidityMode.Bps
+  | RemoveLiquidityMode.All
+export type RemoveLiquidityModeJSON =
+  | RemoveLiquidityMode.LiquidityJSON
+  | RemoveLiquidityMode.BpsJSON
+  | RemoveLiquidityMode.AllJSON
+
 export { WithdrawalCapAccumulatorAction }
 
 export type WithdrawalCapAccumulatorActionKind =
@@ -185,10 +197,10 @@ export type GlobalConfigOptionKind =
   | GlobalConfigOption.BlockCollectRewards
   | GlobalConfigOption.BlockSwapRewards
   | GlobalConfigOption.BlockSwapUnevenVaults
-  | GlobalConfigOption.FeesBps
+  | GlobalConfigOption.WithdrawalFeeBps
   | GlobalConfigOption.SwapDiscountBps
   | GlobalConfigOption.ActionsAuthority
-  | GlobalConfigOption.TreasuryFeeVaults
+  | GlobalConfigOption.DeprecatedTreasuryFeeVaults
   | GlobalConfigOption.AdminAuthority
   | GlobalConfigOption.BlockEmergencySwap
   | GlobalConfigOption.BlockLocalAdmin
@@ -208,10 +220,10 @@ export type GlobalConfigOptionJSON =
   | GlobalConfigOption.BlockCollectRewardsJSON
   | GlobalConfigOption.BlockSwapRewardsJSON
   | GlobalConfigOption.BlockSwapUnevenVaultsJSON
-  | GlobalConfigOption.FeesBpsJSON
+  | GlobalConfigOption.WithdrawalFeeBpsJSON
   | GlobalConfigOption.SwapDiscountBpsJSON
   | GlobalConfigOption.ActionsAuthorityJSON
-  | GlobalConfigOption.TreasuryFeeVaultsJSON
+  | GlobalConfigOption.DeprecatedTreasuryFeeVaultsJSON
   | GlobalConfigOption.AdminAuthorityJSON
   | GlobalConfigOption.BlockEmergencySwapJSON
   | GlobalConfigOption.BlockLocalAdminJSON
@@ -256,8 +268,8 @@ export type StrategyConfigOptionKind =
   | StrategyConfigOption.UpdateInvestBlocked
   | StrategyConfigOption.UpdateWithdrawBlocked
   | StrategyConfigOption.UpdateLocalAdminBlocked
-  | StrategyConfigOption.UpdateCollateralIdA
-  | StrategyConfigOption.UpdateCollateralIdB
+  | StrategyConfigOption.DeprecatedUpdateCollateralIdA
+  | StrategyConfigOption.DeprecatedUpdateCollateralIdB
   | StrategyConfigOption.UpdateFlashVaultSwap
   | StrategyConfigOption.AllowDepositWithoutInvest
   | StrategyConfigOption.UpdateSwapVaultMaxSlippageFromRef
@@ -308,8 +320,8 @@ export type StrategyConfigOptionJSON =
   | StrategyConfigOption.UpdateInvestBlockedJSON
   | StrategyConfigOption.UpdateWithdrawBlockedJSON
   | StrategyConfigOption.UpdateLocalAdminBlockedJSON
-  | StrategyConfigOption.UpdateCollateralIdAJSON
-  | StrategyConfigOption.UpdateCollateralIdBJSON
+  | StrategyConfigOption.DeprecatedUpdateCollateralIdAJSON
+  | StrategyConfigOption.DeprecatedUpdateCollateralIdBJSON
   | StrategyConfigOption.UpdateFlashVaultSwapJSON
   | StrategyConfigOption.AllowDepositWithoutInvestJSON
   | StrategyConfigOption.UpdateSwapVaultMaxSlippageFromRefJSON

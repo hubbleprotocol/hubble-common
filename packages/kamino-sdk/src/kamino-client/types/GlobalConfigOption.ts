@@ -187,25 +187,25 @@ export class BlockSwapUnevenVaults {
   }
 }
 
-export interface FeesBpsJSON {
-  kind: "FeesBps"
+export interface WithdrawalFeeBpsJSON {
+  kind: "WithdrawalFeeBps"
 }
 
-export class FeesBps {
+export class WithdrawalFeeBps {
   static readonly discriminator = 8
-  static readonly kind = "FeesBps"
+  static readonly kind = "WithdrawalFeeBps"
   readonly discriminator = 8
-  readonly kind = "FeesBps"
+  readonly kind = "WithdrawalFeeBps"
 
-  toJSON(): FeesBpsJSON {
+  toJSON(): WithdrawalFeeBpsJSON {
     return {
-      kind: "FeesBps",
+      kind: "WithdrawalFeeBps",
     }
   }
 
   toEncodable() {
     return {
-      FeesBps: {},
+      WithdrawalFeeBps: {},
     }
   }
 }
@@ -256,25 +256,25 @@ export class ActionsAuthority {
   }
 }
 
-export interface TreasuryFeeVaultsJSON {
-  kind: "TreasuryFeeVaults"
+export interface DeprecatedTreasuryFeeVaultsJSON {
+  kind: "DeprecatedTreasuryFeeVaults"
 }
 
-export class TreasuryFeeVaults {
+export class DeprecatedTreasuryFeeVaults {
   static readonly discriminator = 11
-  static readonly kind = "TreasuryFeeVaults"
+  static readonly kind = "DeprecatedTreasuryFeeVaults"
   readonly discriminator = 11
-  readonly kind = "TreasuryFeeVaults"
+  readonly kind = "DeprecatedTreasuryFeeVaults"
 
-  toJSON(): TreasuryFeeVaultsJSON {
+  toJSON(): DeprecatedTreasuryFeeVaultsJSON {
     return {
-      kind: "TreasuryFeeVaults",
+      kind: "DeprecatedTreasuryFeeVaults",
     }
   }
 
   toEncodable() {
     return {
-      TreasuryFeeVaults: {},
+      DeprecatedTreasuryFeeVaults: {},
     }
   }
 }
@@ -539,8 +539,8 @@ export function fromDecoded(obj: any): types.GlobalConfigOptionKind {
   if ("BlockSwapUnevenVaults" in obj) {
     return new BlockSwapUnevenVaults()
   }
-  if ("FeesBps" in obj) {
-    return new FeesBps()
+  if ("WithdrawalFeeBps" in obj) {
+    return new WithdrawalFeeBps()
   }
   if ("SwapDiscountBps" in obj) {
     return new SwapDiscountBps()
@@ -548,8 +548,8 @@ export function fromDecoded(obj: any): types.GlobalConfigOptionKind {
   if ("ActionsAuthority" in obj) {
     return new ActionsAuthority()
   }
-  if ("TreasuryFeeVaults" in obj) {
-    return new TreasuryFeeVaults()
+  if ("DeprecatedTreasuryFeeVaults" in obj) {
+    return new DeprecatedTreasuryFeeVaults()
   }
   if ("AdminAuthority" in obj) {
     return new AdminAuthority()
@@ -613,8 +613,8 @@ export function fromJSON(
     case "BlockSwapUnevenVaults": {
       return new BlockSwapUnevenVaults()
     }
-    case "FeesBps": {
-      return new FeesBps()
+    case "WithdrawalFeeBps": {
+      return new WithdrawalFeeBps()
     }
     case "SwapDiscountBps": {
       return new SwapDiscountBps()
@@ -622,8 +622,8 @@ export function fromJSON(
     case "ActionsAuthority": {
       return new ActionsAuthority()
     }
-    case "TreasuryFeeVaults": {
-      return new TreasuryFeeVaults()
+    case "DeprecatedTreasuryFeeVaults": {
+      return new DeprecatedTreasuryFeeVaults()
     }
     case "AdminAuthority": {
       return new AdminAuthority()
@@ -668,10 +668,10 @@ export function layout(property?: string) {
     borsh.struct([], "BlockCollectRewards"),
     borsh.struct([], "BlockSwapRewards"),
     borsh.struct([], "BlockSwapUnevenVaults"),
-    borsh.struct([], "FeesBps"),
+    borsh.struct([], "WithdrawalFeeBps"),
     borsh.struct([], "SwapDiscountBps"),
     borsh.struct([], "ActionsAuthority"),
-    borsh.struct([], "TreasuryFeeVaults"),
+    borsh.struct([], "DeprecatedTreasuryFeeVaults"),
     borsh.struct([], "AdminAuthority"),
     borsh.struct([], "BlockEmergencySwap"),
     borsh.struct([], "BlockLocalAdmin"),
