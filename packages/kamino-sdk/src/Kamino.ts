@@ -217,11 +217,10 @@ import {
   DefaultWithdrawFeeBps,
 } from './constants/DefaultStrategyConfig';
 import {
+  ADDRESS_LUT_PROGRAM_ID,
   CONSENSUS_ID,
-  DEVNET_GLOBAL_LOOKUP_TABLE,
-  MAINNET_GLOBAL_LOOKUP_TABLE,
+  LUT_OWNER_KEY,
   STAGING_GLOBAL_CONFIG,
-  STAGING_GLOBAL_LOOKUP_TABLE,
   STAGING_KAMINO_PROGRAM_ID,
 } from './constants/pubkeys';
 import {
@@ -5622,31 +5621,37 @@ export class Kamino {
     return -1;
   };
 
-  getMainLookupTable = async (): Promise<AddressLookupTableAccount | undefined> => {
-    if (this._kaminoProgramId.equals(STAGING_KAMINO_PROGRAM_ID)) {
-      const lookupTableAccount = await this._connection
-        .getAddressLookupTable(STAGING_GLOBAL_LOOKUP_TABLE)
-        .then((res) => res.value);
-      if (!lookupTableAccount) {
-        throw new Error(`Could not get lookup table ${STAGING_GLOBAL_LOOKUP_TABLE}`);
-      }
-      return lookupTableAccount;
-    } else if (this._cluster == 'mainnet-beta') {
-      const lookupTableAccount = await this._connection
-        .getAddressLookupTable(MAINNET_GLOBAL_LOOKUP_TABLE)
-        .then((res) => res.value);
-      if (!lookupTableAccount) {
-        throw new Error(`Could not get lookup table ${MAINNET_GLOBAL_LOOKUP_TABLE}`);
-      }
-      return lookupTableAccount;
-    } else if (this._cluster == 'devnet') {
-      const lookupTableAccount = await this._connection
-        .getAddressLookupTable(DEVNET_GLOBAL_LOOKUP_TABLE)
-        .then((res) => res.value);
-      if (!lookupTableAccount) {
-        throw new Error(`Could not get lookup table ${DEVNET_GLOBAL_LOOKUP_TABLE}`);
-      }
-      return lookupTableAccount;
+  getMainLookupTablePks = async (): Promise<PublicKey[]> => {
+    if (
+      this._kaminoProgramId.equals(STAGING_KAMINO_PROGRAM_ID) ||
+      this._cluster == 'mainnet-beta' ||
+      this._cluster == 'devnet'
+    ) {
+      return await this._connection
+        .getProgramAccounts(ADDRESS_LUT_PROGRAM_ID, {
+          filters: [{ memcmp: { offset: 22, bytes: new PublicKey(LUT_OWNER_KEY).toString() } }],
+          dataSlice: { length: 0, offset: 0 },
+        })
+        .then((res) => res.map((raw) => raw.pubkey));
+    }
+    return [];
+  };
+
+  getMainLookupTable = async (): Promise<AddressLookupTableAccount[] | undefined> => {
+    let pks = await this.getMainLookupTablePks();
+    if (
+      this._kaminoProgramId.equals(STAGING_KAMINO_PROGRAM_ID) ||
+      this._cluster == 'mainnet-beta' ||
+      this._cluster == 'devnet'
+    ) {
+      return await this._connection.getMultipleAccountsInfo(pks).then((res) =>
+        res.map((raw, i) => {
+          return new AddressLookupTableAccount({
+            key: pks[i],
+            state: AddressLookupTableAccount.deserialize(raw!.data),
+          });
+        })
+      );
     } else {
       return undefined;
     }
@@ -5771,7 +5776,7 @@ export class Kamino {
 
     let allLookupTables: AddressLookupTableAccount[] = [];
     if (lookupTable) {
-      allLookupTables.push(lookupTable);
+      allLookupTables = allLookupTables.concat(lookupTable);
     }
     if (lookupTables) {
       for (let table of lookupTables) {
@@ -5797,7 +5802,7 @@ export class Kamino {
     }
 
     if (lookupTable) {
-      allLookupTables.push(lookupTable);
+      allLookupTables = allLookupTables.concat(lookupTable);
     }
 
     const v2Tx = new TransactionMessage({
