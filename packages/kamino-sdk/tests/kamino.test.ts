@@ -1133,16 +1133,21 @@ describe('Kamino SDK Tests', () => {
       console.log('executive withdraw and collect fees have been executed ');
     }
     {
+      const strategy = (await kamino.getStrategyByAddress(fixtures.newOrcaStrategy))!;
       const increaseBudgetIx = createAddExtraComputeUnitsIx(1_000_000);
-      let tx = new Transaction().add(increaseBudgetIx, openPositionIx);
-      let sig = await sendTransactionWithLogs(
-        connection,
-        tx,
+      const openPositionTx = await kamino.getTransactionV2Message(
         signer.publicKey,
-        [signer, newPosition],
-        'confirmed',
-        true
+        [increaseBudgetIx, openPositionIx],
+        [strategy.strategyLookupTable]
       );
+      let openPositionTxV0 = new VersionedTransaction(openPositionTx);
+      openPositionTxV0.sign([signer, newPosition]);
+
+      console.log('opening raydium position in rebalancing');
+      //@ts-ignore
+      let sig = await sendAndConfirmTransaction(kamino._connection, openPositionTxV0);
+      console.log('open position tx hash', sig);
+
       expect(sig).to.not.be.null;
     }
   });
