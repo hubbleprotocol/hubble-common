@@ -34,7 +34,6 @@ import {
 } from '../src/kamino-client/types/RebalanceType';
 import { getComputeBudgetAndPriorityFeeIxns } from '../src/utils/transactions';
 import { POOL, TWAP } from '../src/kamino-client/types/ReferencePriceType';
-import { MAINNET_GLOBAL_LOOKUP_TABLE } from '../src/constants/pubkeys';
 import {
   DriftRebalanceMethod,
   ExpanderMethod,
@@ -202,7 +201,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     const rebalanceMessage = await kamino.getTransactionV2Message(
       signer.publicKey,
       [...getComputeBudgetAndPriorityFeeIxns(1_400_000), ...rebalanceIxns],
-      [MAINNET_GLOBAL_LOOKUP_TABLE, strategyLookupTable]
+      [...(await kamino.getMainLookupTablePks()), strategyLookupTable]
     );
     const rebalanceTx = new VersionedTransaction(rebalanceMessage);
     rebalanceTx.sign([signer, newPosition]);
@@ -415,7 +414,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     const rebalanceMessage = await kamino.getTransactionV2Message(
       signer.publicKey,
       [...getComputeBudgetAndPriorityFeeIxns(1_400_000), ...rebalanceIxns],
-      [MAINNET_GLOBAL_LOOKUP_TABLE, strategyLookupTable]
+      [...(await kamino.getMainLookupTablePks()), strategyLookupTable]
     );
     const rebalanceTx = new VersionedTransaction(rebalanceMessage);
     rebalanceTx.sign([signer, newPosition]);
@@ -671,7 +670,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     const rebalanceMessage = await kamino.getTransactionV2Message(
       signer.publicKey,
       [...getComputeBudgetAndPriorityFeeIxns(1_400_000), ...rebalanceIxns],
-      [MAINNET_GLOBAL_LOOKUP_TABLE, strategyLookupTable]
+      [...(await kamino.getMainLookupTablePks()), strategyLookupTable]
     );
     const rebalanceTx = new VersionedTransaction(rebalanceMessage);
     rebalanceTx.sign([signer, newPosition]);
@@ -924,7 +923,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     const rebalanceMessage = await kamino.getTransactionV2Message(
       signer.publicKey,
       [...getComputeBudgetAndPriorityFeeIxns(1_400_000), ...rebalanceIxns],
-      [MAINNET_GLOBAL_LOOKUP_TABLE, strategyLookupTable]
+      [...(await kamino.getMainLookupTablePks()), strategyLookupTable]
     );
     const rebalanceTx = new VersionedTransaction(rebalanceMessage);
     rebalanceTx.sign([signer, newPosition]);
@@ -1111,7 +1110,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     const rebalanceMessage = await kamino.getTransactionV2Message(
       signer.publicKey,
       [...getComputeBudgetAndPriorityFeeIxns(1_400_000), ...rebalanceIxns],
-      [MAINNET_GLOBAL_LOOKUP_TABLE, strategyLookupTable]
+      [...(await kamino.getMainLookupTablePks()), strategyLookupTable]
     );
     const rebalanceTx = new VersionedTransaction(rebalanceMessage);
     rebalanceTx.sign([signer, newPosition]);
@@ -1396,7 +1395,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     const rebalanceMessage = await kamino.getTransactionV2Message(
       signer.publicKey,
       [...getComputeBudgetAndPriorityFeeIxns(1_400_000), ...rebalanceIxns],
-      [MAINNET_GLOBAL_LOOKUP_TABLE, strategyLookupTable]
+      [...(await kamino.getMainLookupTablePks()), strategyLookupTable]
     );
     const rebalanceTx = new VersionedTransaction(rebalanceMessage);
     rebalanceTx.sign([signer, newPosition]);
@@ -1712,7 +1711,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     const rebalanceMessage = await kamino.getTransactionV2Message(
       signer.publicKey,
       [...getComputeBudgetAndPriorityFeeIxns(1_400_000), ...rebalanceIxns],
-      [MAINNET_GLOBAL_LOOKUP_TABLE, strategyLookupTable]
+      [...(await kamino.getMainLookupTablePks()), strategyLookupTable]
     );
     const rebalanceTx = new VersionedTransaction(rebalanceMessage);
     rebalanceTx.sign([signer, newPosition]);
@@ -2064,7 +2063,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     let rebalanceMessage = await kamino.getTransactionV2Message(
       signer.publicKey,
       [...getComputeBudgetAndPriorityFeeIxns(1_400_000), ...rebalanceIxns],
-      [MAINNET_GLOBAL_LOOKUP_TABLE, strategyLookupTable]
+      [...(await kamino.getMainLookupTablePks()), strategyLookupTable]
     );
     let rebalanceTx = new VersionedTransaction(rebalanceMessage);
     rebalanceTx.sign([signer, newPosition]);
@@ -2132,7 +2131,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     const rebalanceMessagePricePercentageWithReset = await kamino.getTransactionV2Message(
       signer.publicKey,
       [...getComputeBudgetAndPriorityFeeIxns(1_400_000), ...rebalancePricePercentageWithResetIxns],
-      [MAINNET_GLOBAL_LOOKUP_TABLE, strategyLookupTable]
+      [...(await kamino.getMainLookupTablePks()), strategyLookupTable]
     );
     const rebalancePricePercentageWithResetTx = new VersionedTransaction(rebalanceMessagePricePercentageWithReset);
     rebalancePricePercentageWithResetTx.sign([signer, newPosition]);
@@ -2194,7 +2193,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     const rebalanceMessageDrift = await kamino.getTransactionV2Message(
       signer.publicKey,
       [...getComputeBudgetAndPriorityFeeIxns(1_400_000), ...driftIxns],
-      [MAINNET_GLOBAL_LOOKUP_TABLE, strategyLookupTable]
+      [...(await kamino.getMainLookupTablePks()), strategyLookupTable]
     );
     const rebalanceDriftTx = new VersionedTransaction(rebalanceMessageDrift);
     rebalanceDriftTx.sign([signer, newPosition]);
@@ -2260,7 +2259,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     const rebalanceMessageTakeProfit = await kamino.getTransactionV2Message(
       signer.publicKey,
       [...getComputeBudgetAndPriorityFeeIxns(1_400_000), ...takeProfitIxns],
-      [MAINNET_GLOBAL_LOOKUP_TABLE, strategyLookupTable]
+      [...(await kamino.getMainLookupTablePks()), strategyLookupTable]
     );
     const rebalanceTakeProfitTx = new VersionedTransaction(rebalanceMessageTakeProfit);
     rebalanceTakeProfitTx.sign([signer, newPosition]);
@@ -2332,7 +2331,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     const rebalanceMessagePeriodicRebalance = await kamino.getTransactionV2Message(
       signer.publicKey,
       [...getComputeBudgetAndPriorityFeeIxns(1_400_000), ...periodicRebalanceIxns],
-      [MAINNET_GLOBAL_LOOKUP_TABLE, strategyLookupTable]
+      [...(await kamino.getMainLookupTablePks()), strategyLookupTable]
     );
     const rebalancePeriodicRebalanceTx = new VersionedTransaction(rebalanceMessagePeriodicRebalance);
     rebalancePeriodicRebalanceTx.sign([signer, newPosition]);
@@ -2396,7 +2395,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     const rebalanceMessageExpander = await kamino.getTransactionV2Message(
       signer.publicKey,
       [...getComputeBudgetAndPriorityFeeIxns(1_400_000), ...expanderIxns],
-      [MAINNET_GLOBAL_LOOKUP_TABLE, strategyLookupTable]
+      [...(await kamino.getMainLookupTablePks()), strategyLookupTable]
     );
     const rebalanceExpanderTx = new VersionedTransaction(rebalanceMessageExpander);
     rebalanceExpanderTx.sign([signer, newPosition]);

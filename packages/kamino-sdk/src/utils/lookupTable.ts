@@ -6,29 +6,26 @@ import {
   TransactionInstruction,
   TransactionMessage,
 } from '@solana/web3.js';
-import { DEVNET_GLOBAL_LOOKUP_TABLE, MAINNET_GLOBAL_LOOKUP_TABLE } from '../constants/pubkeys';
+import { ADDRESS_LUT_PROGRAM_ID, LUT_OWNER_KEY } from '../constants/pubkeys';
 import { SolanaCluster } from '@hubbleprotocol/hubble-config';
 
 export async function getLookupTable(
   cluster: SolanaCluster,
   connection: Connection
-): Promise<AddressLookupTableAccount> {
-  if (cluster == 'mainnet-beta') {
-    const lookupTableAccount = await connection
-      .getAddressLookupTable(MAINNET_GLOBAL_LOOKUP_TABLE)
-      .then((res) => res.value);
-    if (!lookupTableAccount) {
-      throw new Error(`Could not get lookup table ${MAINNET_GLOBAL_LOOKUP_TABLE}`);
-    }
-    return lookupTableAccount;
-  } else if (cluster == 'devnet') {
-    const lookupTableAccount = await connection
-      .getAddressLookupTable(DEVNET_GLOBAL_LOOKUP_TABLE)
-      .then((res) => res.value);
-    if (!lookupTableAccount) {
-      throw new Error(`Could not get lookup table ${DEVNET_GLOBAL_LOOKUP_TABLE}`);
-    }
-    return lookupTableAccount;
+): Promise<AddressLookupTableAccount[]> {
+  if (cluster == 'mainnet-beta' || cluster == 'devnet') {
+    return await connection
+      .getProgramAccounts(ADDRESS_LUT_PROGRAM_ID, {
+        filters: [{ memcmp: { offset: 22, bytes: new PublicKey(LUT_OWNER_KEY).toString() } }],
+      })
+      .then((res) =>
+        res.map((raw) => {
+          return new AddressLookupTableAccount({
+            key: raw.pubkey,
+            state: AddressLookupTableAccount.deserialize(raw.account.data),
+          });
+        })
+      );
   } else {
     throw Error('There is no lookup table for localnet yet');
   }
@@ -47,7 +44,7 @@ export async function getTransactionV2Message(
       payerKey: payer,
       recentBlockhash: blockhash,
       instructions: instructions,
-    }).compileToV0Message([lookupTable]);
+    }).compileToV0Message(lookupTable);
     return v2Tx;
   } else {
     throw Error('No TransactionV2 on localnet as no lookup table was created');
