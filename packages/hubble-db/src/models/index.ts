@@ -60,6 +60,7 @@ export * from './KlendInstructionEntity';
 export * from './RawInstructionEntity';
 export * from './YieldEntity';
 export * from './StakingRateEntity';
+export * from './PointsTotalHistoryEntity';
 
 export const CLUSTER_TABLE: string = 'cluster';
 export const COLLATERAL_TABLE: string = 'collateral';
@@ -125,6 +126,7 @@ export const KAMINO_INSTRUCTION_TABLE = 'kamino_instruction';
 export const KLEND_INSTRUCTION_TABLE = 'klend_instruction';
 export const YIELD_TABLE = 'yield';
 export const STAKING_RATE_TABLE = 'staking_rate';
+export const POINTS_TOTAL_HISTORY_TABLE = 'points_total_history';
 
 export type RESAMPLE_FREQUENCY = 'hour' | 'day';
 export const HOURLY_FREQUENCY = 'hour';
