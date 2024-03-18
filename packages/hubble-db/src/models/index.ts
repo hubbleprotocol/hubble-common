@@ -61,6 +61,10 @@ export * from './RawInstructionEntity';
 export * from './YieldEntity';
 export * from './StakingRateEntity';
 export * from './PointsTotalHistoryEntity';
+export * from './AirdropMetricsEntity';
+export * from './AirdropSourceEntity';
+export * from './AirdropEntity';
+export * from './PointsSourceBoostEntity';
 
 export const CLUSTER_TABLE: string = 'cluster';
 export const COLLATERAL_TABLE: string = 'collateral';
@@ -127,6 +131,10 @@ export const KLEND_INSTRUCTION_TABLE = 'klend_instruction';
 export const YIELD_TABLE = 'yield';
 export const STAKING_RATE_TABLE = 'staking_rate';
 export const POINTS_TOTAL_HISTORY_TABLE = 'points_total_history';
+export const AIRDROP_TABLE = 'airdrop';
+export const AIRDROP_METRICS_TABLE = 'airdrop_metrics';
+export const AIRDROP_SOURCE_TABLE = 'airdrop_source';
+export const POINTS_SOURCE_BOOST_TABLE = 'points_source_boost';
 
 export type RESAMPLE_FREQUENCY = 'hour' | 'day';
 export const HOURLY_FREQUENCY = 'hour';
