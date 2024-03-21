@@ -65,6 +65,8 @@ export * from './AirdropMetricsEntity';
 export * from './AirdropSourceEntity';
 export * from './AirdropEntity';
 export * from './PointsSourceBoostEntity';
+export * from './PointsOwnerBoostEntity';
+export * from './PointsOwnerBoostSourceEntity';
 
 export const CLUSTER_TABLE: string = 'cluster';
 export const COLLATERAL_TABLE: string = 'collateral';
@@ -135,6 +137,8 @@ export const AIRDROP_TABLE = 'airdrop';
 export const AIRDROP_METRICS_TABLE = 'airdrop_metrics';
 export const AIRDROP_SOURCE_TABLE = 'airdrop_source';
 export const POINTS_SOURCE_BOOST_TABLE = 'points_source_boost';
+export const POINTS_OWNER_BOOST_SOURCE_TABLE = 'points_owner_boost_source';
+export const POINTS_OWNER_BOOST_TABLE = 'points_owner_boost';
 
 export type RESAMPLE_FREQUENCY = 'hour' | 'day';
 export const HOURLY_FREQUENCY = 'hour';
