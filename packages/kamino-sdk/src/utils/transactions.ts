@@ -84,7 +84,8 @@ export const createWsolAtaIfMissing = async (
     ASSOCIATED_TOKEN_PROGRAM_ID,
     TOKEN_PROGRAM_ID,
     NATIVE_MINT,
-    owner
+    owner,
+    true
   );
 
   const solDeposit = amount.toNumber();
