@@ -68,6 +68,7 @@ export * from './PointsSourceBoostEntity';
 export * from './PointsOwnerBoostEntity';
 export * from './PointsOwnerBoostSourceEntity';
 export * from './StakingBoostEntity';
+export * from './PointsStakingEntity';
 
 export const CLUSTER_TABLE: string = 'cluster';
 export const COLLATERAL_TABLE: string = 'collateral';
@@ -141,6 +142,7 @@ export const POINTS_SOURCE_BOOST_TABLE = 'points_source_boost';
 export const POINTS_OWNER_BOOST_SOURCE_TABLE = 'points_owner_boost_source';
 export const POINTS_OWNER_BOOST_TABLE = 'points_owner_boost';
 export const STAKING_BOOST_TABLE = 'staking_boost';
+export const POINTS_STAKING_TABLE = 'points_staking';
 
 export type RESAMPLE_FREQUENCY = 'hour' | 'day';
 export const HOURLY_FREQUENCY = 'hour';
