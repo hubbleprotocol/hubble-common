@@ -5,11 +5,11 @@ import * as types from "../types" // eslint-disable-line @typescript-eslint/no-u
 import { PROGRAM_ID } from "../programId"
 
 export interface InitializePermissionLbPairArgs {
-  activeId: number
-  binStep: number
+  ixData: types.InitPermissionPairIxFields
 }
 
 export interface InitializePermissionLbPairAccounts {
+  base: PublicKey
   lbPair: PublicKey
   binArrayBitmapExtension: PublicKey
   tokenMintX: PublicKey
@@ -17,8 +17,7 @@ export interface InitializePermissionLbPairAccounts {
   reserveX: PublicKey
   reserveY: PublicKey
   oracle: PublicKey
-  presetParameter: PublicKey
-  funder: PublicKey
+  admin: PublicKey
   tokenProgram: PublicKey
   systemProgram: PublicKey
   rent: PublicKey
@@ -27,8 +26,7 @@ export interface InitializePermissionLbPairAccounts {
 }
 
 export const layout = borsh.struct([
-  borsh.i32("activeId"),
-  borsh.u16("binStep"),
+  types.InitPermissionPairIx.layout("ixData"),
 ])
 
 export function initializePermissionLbPair(
@@ -36,6 +34,7 @@ export function initializePermissionLbPair(
   accounts: InitializePermissionLbPairAccounts
 ) {
   const keys: Array<AccountMeta> = [
+    { pubkey: accounts.base, isSigner: true, isWritable: false },
     { pubkey: accounts.lbPair, isSigner: false, isWritable: true },
     {
       pubkey: accounts.binArrayBitmapExtension,
@@ -47,8 +46,7 @@ export function initializePermissionLbPair(
     { pubkey: accounts.reserveX, isSigner: false, isWritable: true },
     { pubkey: accounts.reserveY, isSigner: false, isWritable: true },
     { pubkey: accounts.oracle, isSigner: false, isWritable: true },
-    { pubkey: accounts.presetParameter, isSigner: false, isWritable: false },
-    { pubkey: accounts.funder, isSigner: true, isWritable: true },
+    { pubkey: accounts.admin, isSigner: true, isWritable: true },
     { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.systemProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.rent, isSigner: false, isWritable: false },
@@ -59,8 +57,7 @@ export function initializePermissionLbPair(
   const buffer = Buffer.alloc(1000)
   const len = layout.encode(
     {
-      activeId: args.activeId,
-      binStep: args.binStep,
+      ixData: types.InitPermissionPairIx.toEncodable(args.ixData),
     },
     buffer
   )

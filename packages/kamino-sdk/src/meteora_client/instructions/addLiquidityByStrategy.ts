@@ -18,9 +18,7 @@ export interface AddLiquidityByStrategyAccounts {
   reserveY: PublicKey
   tokenXMint: PublicKey
   tokenYMint: PublicKey
-  binArrayLower: PublicKey
-  binArrayUpper: PublicKey
-  owner: PublicKey
+  sender: PublicKey
   tokenXProgram: PublicKey
   tokenYProgram: PublicKey
   eventAuthority: PublicKey
@@ -49,9 +47,7 @@ export function addLiquidityByStrategy(
     { pubkey: accounts.reserveY, isSigner: false, isWritable: true },
     { pubkey: accounts.tokenXMint, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenYMint, isSigner: false, isWritable: false },
-    { pubkey: accounts.binArrayLower, isSigner: false, isWritable: true },
-    { pubkey: accounts.binArrayUpper, isSigner: false, isWritable: true },
-    { pubkey: accounts.owner, isSigner: true, isWritable: false },
+    { pubkey: accounts.sender, isSigner: true, isWritable: false },
     { pubkey: accounts.tokenXProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenYProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.eventAuthority, isSigner: false, isWritable: false },

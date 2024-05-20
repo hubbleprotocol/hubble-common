@@ -4,32 +4,35 @@ import * as borsh from "@project-serum/borsh" // eslint-disable-line @typescript
 import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
 import { PROGRAM_ID } from "../programId"
 
-export interface UpdateWhitelistedWalletArgs {
-  idx: number
-  wallet: PublicKey
+export interface SetMaxSwappedAmountArgs {
+  swapCapDeactivateSlot: BN
+  maxSwappedAmount: BN
 }
 
-export interface UpdateWhitelistedWalletAccounts {
+export interface SetMaxSwappedAmountAccounts {
   lbPair: PublicKey
-  creator: PublicKey
+  admin: PublicKey
 }
 
-export const layout = borsh.struct([borsh.u8("idx"), borsh.publicKey("wallet")])
+export const layout = borsh.struct([
+  borsh.u64("swapCapDeactivateSlot"),
+  borsh.u64("maxSwappedAmount"),
+])
 
-export function updateWhitelistedWallet(
-  args: UpdateWhitelistedWalletArgs,
-  accounts: UpdateWhitelistedWalletAccounts
+export function setMaxSwappedAmount(
+  args: SetMaxSwappedAmountArgs,
+  accounts: SetMaxSwappedAmountAccounts
 ) {
   const keys: Array<AccountMeta> = [
     { pubkey: accounts.lbPair, isSigner: false, isWritable: true },
-    { pubkey: accounts.creator, isSigner: true, isWritable: false },
+    { pubkey: accounts.admin, isSigner: true, isWritable: true },
   ]
-  const identifier = Buffer.from([4, 105, 92, 167, 132, 28, 9, 90])
+  const identifier = Buffer.from([181, 76, 219, 75, 16, 232, 212, 213])
   const buffer = Buffer.alloc(1000)
   const len = layout.encode(
     {
-      idx: args.idx,
-      wallet: args.wallet,
+      swapCapDeactivateSlot: args.swapCapDeactivateSlot,
+      maxSwappedAmount: args.maxSwappedAmount,
     },
     buffer
   )

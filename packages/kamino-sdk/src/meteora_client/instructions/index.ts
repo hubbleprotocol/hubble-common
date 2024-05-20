@@ -52,6 +52,16 @@ export type {
   InitializePositionPdaArgs,
   InitializePositionPdaAccounts,
 } from "./initializePositionPda"
+export { initializePositionByOperator } from "./initializePositionByOperator"
+export type {
+  InitializePositionByOperatorArgs,
+  InitializePositionByOperatorAccounts,
+} from "./initializePositionByOperator"
+export { updatePositionOperator } from "./updatePositionOperator"
+export type {
+  UpdatePositionOperatorArgs,
+  UpdatePositionOperatorAccounts,
+} from "./updatePositionOperator"
 export { swap } from "./swap"
 export type { SwapArgs, SwapAccounts } from "./swap"
 export { withdrawProtocolFee } from "./withdrawProtocolFee"
@@ -81,7 +91,7 @@ export type {
 export { claimReward } from "./claimReward"
 export type { ClaimRewardArgs, ClaimRewardAccounts } from "./claimReward"
 export { claimFee } from "./claimFee"
-export type { ClaimFeeAccounts } from "./claimFee"
+export type { ClaimFeeArgs, ClaimFeeAccounts } from "./claimFee"
 export { closePosition } from "./closePosition"
 export type { ClosePositionAccounts } from "./closePosition"
 export { updateFeeParameters } from "./updateFeeParameters"
@@ -94,6 +104,16 @@ export type {
   IncreaseOracleLengthArgs,
   IncreaseOracleLengthAccounts,
 } from "./increaseOracleLength"
+export { increasePositionLength } from "./increasePositionLength"
+export type {
+  IncreasePositionLengthArgs,
+  IncreasePositionLengthAccounts,
+} from "./increasePositionLength"
+export { decreasePositionLength } from "./decreasePositionLength"
+export type {
+  DecreasePositionLengthArgs,
+  DecreasePositionLengthAccounts,
+} from "./decreasePositionLength"
 export { initializePresetParameter } from "./initializePresetParameter"
 export type {
   InitializePresetParameterArgs,
@@ -102,7 +122,10 @@ export type {
 export { closePresetParameter } from "./closePresetParameter"
 export type { ClosePresetParameterAccounts } from "./closePresetParameter"
 export { removeAllLiquidity } from "./removeAllLiquidity"
-export type { RemoveAllLiquidityAccounts } from "./removeAllLiquidity"
+export type {
+  RemoveAllLiquidityArgs,
+  RemoveAllLiquidityAccounts,
+} from "./removeAllLiquidity"
 export { togglePairStatus } from "./togglePairStatus"
 export type { TogglePairStatusAccounts } from "./togglePairStatus"
 export { updateWhitelistedWallet } from "./updateWhitelistedWallet"
@@ -110,9 +133,46 @@ export type {
   UpdateWhitelistedWalletArgs,
   UpdateWhitelistedWalletAccounts,
 } from "./updateWhitelistedWallet"
-export { migratePosition } from "./migratePosition"
-export type { MigratePositionAccounts } from "./migratePosition"
+export { migratePositionFromV1 } from "./migratePositionFromV1"
+export type { MigratePositionFromV1Accounts } from "./migratePositionFromV1"
+export { migratePositionFromV2 } from "./migratePositionFromV2"
+export type { MigratePositionFromV2Accounts } from "./migratePositionFromV2"
 export { migrateBinArray } from "./migrateBinArray"
 export type { MigrateBinArrayAccounts } from "./migrateBinArray"
 export { updateFeesAndRewards } from "./updateFeesAndRewards"
-export type { UpdateFeesAndRewardsAccounts } from "./updateFeesAndRewards"
+export type {
+  UpdateFeesAndRewardsArgs,
+  UpdateFeesAndRewardsAccounts,
+} from "./updateFeesAndRewards"
+export { withdrawIneligibleReward } from "./withdrawIneligibleReward"
+export type {
+  WithdrawIneligibleRewardArgs,
+  WithdrawIneligibleRewardAccounts,
+} from "./withdrawIneligibleReward"
+export { setActivationSlot } from "./setActivationSlot"
+export type {
+  SetActivationSlotArgs,
+  SetActivationSlotAccounts,
+} from "./setActivationSlot"
+export { setMaxSwappedAmount } from "./setMaxSwappedAmount"
+export type {
+  SetMaxSwappedAmountArgs,
+  SetMaxSwappedAmountAccounts,
+} from "./setMaxSwappedAmount"
+export { setLockReleaseSlot } from "./setLockReleaseSlot"
+export type {
+  SetLockReleaseSlotArgs,
+  SetLockReleaseSlotAccounts,
+} from "./setLockReleaseSlot"
+export { removeLiquidityByRange } from "./removeLiquidityByRange"
+export type {
+  RemoveLiquidityByRangeArgs,
+  RemoveLiquidityByRangeAccounts,
+} from "./removeLiquidityByRange"
+export { addLiquidityOneSidePrecise } from "./addLiquidityOneSidePrecise"
+export type {
+  AddLiquidityOneSidePreciseArgs,
+  AddLiquidityOneSidePreciseAccounts,
+} from "./addLiquidityOneSidePrecise"
+export { goToABin } from "./goToABin"
+export type { GoToABinArgs, GoToABinAccounts } from "./goToABin"

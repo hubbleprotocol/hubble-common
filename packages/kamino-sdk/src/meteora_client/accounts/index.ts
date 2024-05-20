@@ -5,6 +5,8 @@ export type {
 } from "./BinArrayBitmapExtension"
 export { BinArray } from "./BinArray"
 export type { BinArrayFields, BinArrayJSON } from "./BinArray"
+export { PositionV3 } from "./PositionV3"
+export type { PositionV3Fields, PositionV3JSON } from "./PositionV3"
 export { LbPair } from "./LbPair"
 export type { LbPairFields, LbPairJSON } from "./LbPair"
 export { Oracle } from "./Oracle"

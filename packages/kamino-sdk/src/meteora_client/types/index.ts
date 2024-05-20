@@ -1,6 +1,7 @@
 import * as StrategyType from "./StrategyType"
 import * as Rounding from "./Rounding"
 import * as LayoutVersion from "./LayoutVersion"
+import * as ResizeSide from "./ResizeSide"
 import * as PairType from "./PairType"
 import * as PairStatus from "./PairStatus"
 
@@ -19,11 +20,11 @@ export type {
   StrategyParametersFields,
   StrategyParametersJSON,
 } from "./StrategyParameters"
-export { ParabolicParameter } from "./ParabolicParameter"
+export { LiquidityOneSideParameter } from "./LiquidityOneSideParameter"
 export type {
-  ParabolicParameterFields,
-  ParabolicParameterJSON,
-} from "./ParabolicParameter"
+  LiquidityOneSideParameterFields,
+  LiquidityOneSideParameterJSON,
+} from "./LiquidityOneSideParameter"
 export { BinLiquidityDistributionByWeight } from "./BinLiquidityDistributionByWeight"
 export type {
   BinLiquidityDistributionByWeightFields,
@@ -34,11 +35,16 @@ export type {
   LiquidityParameterByWeightFields,
   LiquidityParameterByWeightJSON,
 } from "./LiquidityParameterByWeight"
-export { LiquidityOneSideParameter } from "./LiquidityOneSideParameter"
+export { AddLiquiditySingleSidePreciseParameter } from "./AddLiquiditySingleSidePreciseParameter"
 export type {
-  LiquidityOneSideParameterFields,
-  LiquidityOneSideParameterJSON,
-} from "./LiquidityOneSideParameter"
+  AddLiquiditySingleSidePreciseParameterFields,
+  AddLiquiditySingleSidePreciseParameterJSON,
+} from "./AddLiquiditySingleSidePreciseParameter"
+export { CompressedBinDepositAmount } from "./CompressedBinDepositAmount"
+export type {
+  CompressedBinDepositAmountFields,
+  CompressedBinDepositAmountJSON,
+} from "./CompressedBinDepositAmount"
 export { BinLiquidityDistribution } from "./BinLiquidityDistribution"
 export type {
   BinLiquidityDistributionFields,
@@ -49,6 +55,11 @@ export type {
   LiquidityParameterFields,
   LiquidityParameterJSON,
 } from "./LiquidityParameter"
+export { InitPermissionPairIx } from "./InitPermissionPairIx"
+export type {
+  InitPermissionPairIxFields,
+  InitPermissionPairIxJSON,
+} from "./InitPermissionPairIx"
 export { InitPresetParametersIx } from "./InitPresetParametersIx"
 export type {
   InitPresetParametersIxFields,
@@ -63,6 +74,11 @@ export { FeeParameter } from "./FeeParameter"
 export type { FeeParameterFields, FeeParameterJSON } from "./FeeParameter"
 export { Bin } from "./Bin"
 export type { BinFields, BinJSON } from "./Bin"
+export { PositionBinData } from "./PositionBinData"
+export type {
+  PositionBinDataFields,
+  PositionBinDataJSON,
+} from "./PositionBinData"
 export { ProtocolFee } from "./ProtocolFee"
 export type { ProtocolFeeFields, ProtocolFeeJSON } from "./ProtocolFee"
 export { RewardInfo } from "./RewardInfo"
@@ -86,13 +102,25 @@ export type { UserRewardInfoFields, UserRewardInfoJSON } from "./UserRewardInfo"
 export { StrategyType }
 
 export type StrategyTypeKind =
-  | StrategyType.Spot
-  | StrategyType.Curve
-  | StrategyType.BidAsk
+  | StrategyType.SpotOneSide
+  | StrategyType.CurveOneSide
+  | StrategyType.BidAskOneSide
+  | StrategyType.SpotBalanced
+  | StrategyType.CurveBalanced
+  | StrategyType.BidAskBalanced
+  | StrategyType.SpotImBalanced
+  | StrategyType.CurveImBalanced
+  | StrategyType.BidAskImBalanced
 export type StrategyTypeJSON =
-  | StrategyType.SpotJSON
-  | StrategyType.CurveJSON
-  | StrategyType.BidAskJSON
+  | StrategyType.SpotOneSideJSON
+  | StrategyType.CurveOneSideJSON
+  | StrategyType.BidAskOneSideJSON
+  | StrategyType.SpotBalancedJSON
+  | StrategyType.CurveBalancedJSON
+  | StrategyType.BidAskBalancedJSON
+  | StrategyType.SpotImBalancedJSON
+  | StrategyType.CurveImBalancedJSON
+  | StrategyType.BidAskImBalancedJSON
 
 export { Rounding }
 
@@ -104,6 +132,12 @@ export { LayoutVersion }
 /** Layout version */
 export type LayoutVersionKind = LayoutVersion.V0 | LayoutVersion.V1
 export type LayoutVersionJSON = LayoutVersion.V0JSON | LayoutVersion.V1JSON
+
+export { ResizeSide }
+
+/** Side of resize, 0 for lower and 1 for upper */
+export type ResizeSideKind = ResizeSide.Lower | ResizeSide.Upper
+export type ResizeSideJSON = ResizeSide.LowerJSON | ResizeSide.UpperJSON
 
 export { PairType }
 

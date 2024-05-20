@@ -18,8 +18,8 @@ export interface RewardInfoFields {
   rewardRate: BN
   /** The last time reward states were updated. */
   lastUpdateTime: BN
-  /** padding, ignored field */
-  padding: Array<number>
+  /** Accumulated seconds where when farm distribute rewards, but the bin is empty. The reward will be accumulated for next reward time window. */
+  cumulativeSecondsWithEmptyLiquidityReward: BN
 }
 
 export interface RewardInfoJSON {
@@ -37,8 +37,8 @@ export interface RewardInfoJSON {
   rewardRate: string
   /** The last time reward states were updated. */
   lastUpdateTime: string
-  /** padding, ignored field */
-  padding: Array<number>
+  /** Accumulated seconds where when farm distribute rewards, but the bin is empty. The reward will be accumulated for next reward time window. */
+  cumulativeSecondsWithEmptyLiquidityReward: string
 }
 
 /** Stores the state relevant for tracking liquidity mining rewards */
@@ -57,8 +57,8 @@ export class RewardInfo {
   readonly rewardRate: BN
   /** The last time reward states were updated. */
   readonly lastUpdateTime: BN
-  /** padding, ignored field */
-  readonly padding: Array<number>
+  /** Accumulated seconds where when farm distribute rewards, but the bin is empty. The reward will be accumulated for next reward time window. */
+  readonly cumulativeSecondsWithEmptyLiquidityReward: BN
 
   constructor(fields: RewardInfoFields) {
     this.mint = fields.mint
@@ -68,7 +68,8 @@ export class RewardInfo {
     this.rewardDurationEnd = fields.rewardDurationEnd
     this.rewardRate = fields.rewardRate
     this.lastUpdateTime = fields.lastUpdateTime
-    this.padding = fields.padding
+    this.cumulativeSecondsWithEmptyLiquidityReward =
+      fields.cumulativeSecondsWithEmptyLiquidityReward
   }
 
   static layout(property?: string) {
@@ -81,7 +82,7 @@ export class RewardInfo {
         borsh.u64("rewardDurationEnd"),
         borsh.u128("rewardRate"),
         borsh.u64("lastUpdateTime"),
-        borsh.array(borsh.u8(), 8, "padding"),
+        borsh.u64("cumulativeSecondsWithEmptyLiquidityReward"),
       ],
       property
     )
@@ -97,7 +98,8 @@ export class RewardInfo {
       rewardDurationEnd: obj.rewardDurationEnd,
       rewardRate: obj.rewardRate,
       lastUpdateTime: obj.lastUpdateTime,
-      padding: obj.padding,
+      cumulativeSecondsWithEmptyLiquidityReward:
+        obj.cumulativeSecondsWithEmptyLiquidityReward,
     })
   }
 
@@ -110,7 +112,8 @@ export class RewardInfo {
       rewardDurationEnd: fields.rewardDurationEnd,
       rewardRate: fields.rewardRate,
       lastUpdateTime: fields.lastUpdateTime,
-      padding: fields.padding,
+      cumulativeSecondsWithEmptyLiquidityReward:
+        fields.cumulativeSecondsWithEmptyLiquidityReward,
     }
   }
 
@@ -123,7 +126,8 @@ export class RewardInfo {
       rewardDurationEnd: this.rewardDurationEnd.toString(),
       rewardRate: this.rewardRate.toString(),
       lastUpdateTime: this.lastUpdateTime.toString(),
-      padding: this.padding,
+      cumulativeSecondsWithEmptyLiquidityReward:
+        this.cumulativeSecondsWithEmptyLiquidityReward.toString(),
     }
   }
 
@@ -136,7 +140,9 @@ export class RewardInfo {
       rewardDurationEnd: new BN(obj.rewardDurationEnd),
       rewardRate: new BN(obj.rewardRate),
       lastUpdateTime: new BN(obj.lastUpdateTime),
-      padding: obj.padding,
+      cumulativeSecondsWithEmptyLiquidityReward: new BN(
+        obj.cumulativeSecondsWithEmptyLiquidityReward
+      ),
     })
   }
 

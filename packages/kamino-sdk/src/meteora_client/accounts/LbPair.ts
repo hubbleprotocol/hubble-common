@@ -16,8 +16,10 @@ export interface LbPairFields {
   activeId: number
   /** Bin step. Represent the price increment / decrement. */
   binStep: number
-  /** Status of the pair */
+  /** Status of the pair. Check PairStatus enum. */
   status: number
+  requireBaseFactorSeed: number
+  baseFactorSeed: Array<number>
   padding1: Array<number>
   /** Token X mint */
   tokenXMint: PublicKey
@@ -41,6 +43,18 @@ export interface LbPairFields {
   lastUpdatedAt: BN
   /** Whitelisted wallet */
   whitelistedWallet: Array<PublicKey>
+  /** Base keypair. Only required for permission pair */
+  baseKey: PublicKey
+  /** Slot to enable the pair. Only applicable for permission pair. */
+  activationSlot: BN
+  /** Last slot until pool remove max_swapped_amount for buying */
+  swapCapDeactivateSlot: BN
+  /** Max X swapped amount user can swap from y to x between activation_slot and last_slot */
+  maxSwappedAmount: BN
+  /** Liquidity lock duration for positions which created before activate. Only applicable for permission pair. */
+  lockDurationsInSlot: BN
+  /** Pool creator */
+  creator: PublicKey
   /** Reserved space for future use */
   reserved: Array<number>
 }
@@ -57,8 +71,10 @@ export interface LbPairJSON {
   activeId: number
   /** Bin step. Represent the price increment / decrement. */
   binStep: number
-  /** Status of the pair */
+  /** Status of the pair. Check PairStatus enum. */
   status: number
+  requireBaseFactorSeed: number
+  baseFactorSeed: Array<number>
   padding1: Array<number>
   /** Token X mint */
   tokenXMint: string
@@ -82,6 +98,18 @@ export interface LbPairJSON {
   lastUpdatedAt: string
   /** Whitelisted wallet */
   whitelistedWallet: Array<string>
+  /** Base keypair. Only required for permission pair */
+  baseKey: string
+  /** Slot to enable the pair. Only applicable for permission pair. */
+  activationSlot: string
+  /** Last slot until pool remove max_swapped_amount for buying */
+  swapCapDeactivateSlot: string
+  /** Max X swapped amount user can swap from y to x between activation_slot and last_slot */
+  maxSwappedAmount: string
+  /** Liquidity lock duration for positions which created before activate. Only applicable for permission pair. */
+  lockDurationsInSlot: string
+  /** Pool creator */
+  creator: string
   /** Reserved space for future use */
   reserved: Array<number>
 }
@@ -98,8 +126,10 @@ export class LbPair {
   readonly activeId: number
   /** Bin step. Represent the price increment / decrement. */
   readonly binStep: number
-  /** Status of the pair */
+  /** Status of the pair. Check PairStatus enum. */
   readonly status: number
+  readonly requireBaseFactorSeed: number
+  readonly baseFactorSeed: Array<number>
   readonly padding1: Array<number>
   /** Token X mint */
   readonly tokenXMint: PublicKey
@@ -123,6 +153,18 @@ export class LbPair {
   readonly lastUpdatedAt: BN
   /** Whitelisted wallet */
   readonly whitelistedWallet: Array<PublicKey>
+  /** Base keypair. Only required for permission pair */
+  readonly baseKey: PublicKey
+  /** Slot to enable the pair. Only applicable for permission pair. */
+  readonly activationSlot: BN
+  /** Last slot until pool remove max_swapped_amount for buying */
+  readonly swapCapDeactivateSlot: BN
+  /** Max X swapped amount user can swap from y to x between activation_slot and last_slot */
+  readonly maxSwappedAmount: BN
+  /** Liquidity lock duration for positions which created before activate. Only applicable for permission pair. */
+  readonly lockDurationsInSlot: BN
+  /** Pool creator */
+  readonly creator: PublicKey
   /** Reserved space for future use */
   readonly reserved: Array<number>
 
@@ -139,7 +181,9 @@ export class LbPair {
     borsh.i32("activeId"),
     borsh.u16("binStep"),
     borsh.u8("status"),
-    borsh.array(borsh.u8(), 5, "padding1"),
+    borsh.u8("requireBaseFactorSeed"),
+    borsh.array(borsh.u8(), 2, "baseFactorSeed"),
+    borsh.array(borsh.u8(), 2, "padding1"),
     borsh.publicKey("tokenXMint"),
     borsh.publicKey("tokenYMint"),
     borsh.publicKey("reserveX"),
@@ -150,8 +194,14 @@ export class LbPair {
     borsh.publicKey("oracle"),
     borsh.array(borsh.u64(), 16, "binArrayBitmap"),
     borsh.i64("lastUpdatedAt"),
-    borsh.array(borsh.publicKey(), 3, "whitelistedWallet"),
-    borsh.array(borsh.u8(), 88, "reserved"),
+    borsh.array(borsh.publicKey(), 2, "whitelistedWallet"),
+    borsh.publicKey("baseKey"),
+    borsh.u64("activationSlot"),
+    borsh.u64("swapCapDeactivateSlot"),
+    borsh.u64("maxSwappedAmount"),
+    borsh.u64("lockDurationsInSlot"),
+    borsh.publicKey("creator"),
+    borsh.array(borsh.u8(), 24, "reserved"),
   ])
 
   constructor(fields: LbPairFields) {
@@ -163,6 +213,8 @@ export class LbPair {
     this.activeId = fields.activeId
     this.binStep = fields.binStep
     this.status = fields.status
+    this.requireBaseFactorSeed = fields.requireBaseFactorSeed
+    this.baseFactorSeed = fields.baseFactorSeed
     this.padding1 = fields.padding1
     this.tokenXMint = fields.tokenXMint
     this.tokenYMint = fields.tokenYMint
@@ -177,6 +229,12 @@ export class LbPair {
     this.binArrayBitmap = fields.binArrayBitmap
     this.lastUpdatedAt = fields.lastUpdatedAt
     this.whitelistedWallet = fields.whitelistedWallet
+    this.baseKey = fields.baseKey
+    this.activationSlot = fields.activationSlot
+    this.swapCapDeactivateSlot = fields.swapCapDeactivateSlot
+    this.maxSwappedAmount = fields.maxSwappedAmount
+    this.lockDurationsInSlot = fields.lockDurationsInSlot
+    this.creator = fields.creator
     this.reserved = fields.reserved
   }
 
@@ -230,6 +288,8 @@ export class LbPair {
       activeId: dec.activeId,
       binStep: dec.binStep,
       status: dec.status,
+      requireBaseFactorSeed: dec.requireBaseFactorSeed,
+      baseFactorSeed: dec.baseFactorSeed,
       padding1: dec.padding1,
       tokenXMint: dec.tokenXMint,
       tokenYMint: dec.tokenYMint,
@@ -246,6 +306,12 @@ export class LbPair {
       binArrayBitmap: dec.binArrayBitmap,
       lastUpdatedAt: dec.lastUpdatedAt,
       whitelistedWallet: dec.whitelistedWallet,
+      baseKey: dec.baseKey,
+      activationSlot: dec.activationSlot,
+      swapCapDeactivateSlot: dec.swapCapDeactivateSlot,
+      maxSwappedAmount: dec.maxSwappedAmount,
+      lockDurationsInSlot: dec.lockDurationsInSlot,
+      creator: dec.creator,
       reserved: dec.reserved,
     })
   }
@@ -260,6 +326,8 @@ export class LbPair {
       activeId: this.activeId,
       binStep: this.binStep,
       status: this.status,
+      requireBaseFactorSeed: this.requireBaseFactorSeed,
+      baseFactorSeed: this.baseFactorSeed,
       padding1: this.padding1,
       tokenXMint: this.tokenXMint.toString(),
       tokenYMint: this.tokenYMint.toString(),
@@ -272,6 +340,12 @@ export class LbPair {
       binArrayBitmap: this.binArrayBitmap.map((item) => item.toString()),
       lastUpdatedAt: this.lastUpdatedAt.toString(),
       whitelistedWallet: this.whitelistedWallet.map((item) => item.toString()),
+      baseKey: this.baseKey.toString(),
+      activationSlot: this.activationSlot.toString(),
+      swapCapDeactivateSlot: this.swapCapDeactivateSlot.toString(),
+      maxSwappedAmount: this.maxSwappedAmount.toString(),
+      lockDurationsInSlot: this.lockDurationsInSlot.toString(),
+      creator: this.creator.toString(),
       reserved: this.reserved,
     }
   }
@@ -286,6 +360,8 @@ export class LbPair {
       activeId: obj.activeId,
       binStep: obj.binStep,
       status: obj.status,
+      requireBaseFactorSeed: obj.requireBaseFactorSeed,
+      baseFactorSeed: obj.baseFactorSeed,
       padding1: obj.padding1,
       tokenXMint: new PublicKey(obj.tokenXMint),
       tokenYMint: new PublicKey(obj.tokenYMint),
@@ -302,6 +378,12 @@ export class LbPair {
       whitelistedWallet: obj.whitelistedWallet.map(
         (item) => new PublicKey(item)
       ),
+      baseKey: new PublicKey(obj.baseKey),
+      activationSlot: new BN(obj.activationSlot),
+      swapCapDeactivateSlot: new BN(obj.swapCapDeactivateSlot),
+      maxSwappedAmount: new BN(obj.maxSwappedAmount),
+      lockDurationsInSlot: new BN(obj.lockDurationsInSlot),
+      creator: new PublicKey(obj.creator),
       reserved: obj.reserved,
     })
   }

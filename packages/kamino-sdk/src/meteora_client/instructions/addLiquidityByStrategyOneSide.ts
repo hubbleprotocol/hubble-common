@@ -15,9 +15,7 @@ export interface AddLiquidityByStrategyOneSideAccounts {
   userToken: PublicKey
   reserve: PublicKey
   tokenMint: PublicKey
-  binArrayLower: PublicKey
-  binArrayUpper: PublicKey
-  owner: PublicKey
+  sender: PublicKey
   tokenProgram: PublicKey
   eventAuthority: PublicKey
   program: PublicKey
@@ -42,9 +40,7 @@ export function addLiquidityByStrategyOneSide(
     { pubkey: accounts.userToken, isSigner: false, isWritable: true },
     { pubkey: accounts.reserve, isSigner: false, isWritable: true },
     { pubkey: accounts.tokenMint, isSigner: false, isWritable: false },
-    { pubkey: accounts.binArrayLower, isSigner: false, isWritable: true },
-    { pubkey: accounts.binArrayUpper, isSigner: false, isWritable: true },
-    { pubkey: accounts.owner, isSigner: true, isWritable: false },
+    { pubkey: accounts.sender, isSigner: true, isWritable: false },
     { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.eventAuthority, isSigner: false, isWritable: false },
     { pubkey: accounts.program, isSigner: false, isWritable: false },

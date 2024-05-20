@@ -4,54 +4,39 @@ import * as borsh from "@project-serum/borsh" // eslint-disable-line @typescript
 import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
 import { PROGRAM_ID } from "../programId"
 
-export interface AddLiquidityOneSideArgs {
-  liquidityParameter: types.LiquidityOneSideParameterFields
+export interface GoToABinArgs {
+  binId: number
 }
 
-export interface AddLiquidityOneSideAccounts {
-  position: PublicKey
+export interface GoToABinAccounts {
   lbPair: PublicKey
   binArrayBitmapExtension: PublicKey
-  userToken: PublicKey
-  reserve: PublicKey
-  tokenMint: PublicKey
-  sender: PublicKey
-  tokenProgram: PublicKey
+  fromBinArray: PublicKey
+  toBinArray: PublicKey
   eventAuthority: PublicKey
   program: PublicKey
 }
 
-export const layout = borsh.struct([
-  types.LiquidityOneSideParameter.layout("liquidityParameter"),
-])
+export const layout = borsh.struct([borsh.i32("binId")])
 
-export function addLiquidityOneSide(
-  args: AddLiquidityOneSideArgs,
-  accounts: AddLiquidityOneSideAccounts
-) {
+export function goToABin(args: GoToABinArgs, accounts: GoToABinAccounts) {
   const keys: Array<AccountMeta> = [
-    { pubkey: accounts.position, isSigner: false, isWritable: true },
     { pubkey: accounts.lbPair, isSigner: false, isWritable: true },
     {
       pubkey: accounts.binArrayBitmapExtension,
       isSigner: false,
-      isWritable: true,
+      isWritable: false,
     },
-    { pubkey: accounts.userToken, isSigner: false, isWritable: true },
-    { pubkey: accounts.reserve, isSigner: false, isWritable: true },
-    { pubkey: accounts.tokenMint, isSigner: false, isWritable: false },
-    { pubkey: accounts.sender, isSigner: true, isWritable: false },
-    { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
+    { pubkey: accounts.fromBinArray, isSigner: false, isWritable: false },
+    { pubkey: accounts.toBinArray, isSigner: false, isWritable: false },
     { pubkey: accounts.eventAuthority, isSigner: false, isWritable: false },
     { pubkey: accounts.program, isSigner: false, isWritable: false },
   ]
-  const identifier = Buffer.from([94, 155, 103, 151, 70, 95, 220, 165])
+  const identifier = Buffer.from([146, 72, 174, 224, 40, 253, 84, 174])
   const buffer = Buffer.alloc(1000)
   const len = layout.encode(
     {
-      liquidityParameter: types.LiquidityOneSideParameter.toEncodable(
-        args.liquidityParameter
-      ),
+      binId: args.binId,
     },
     buffer
   )

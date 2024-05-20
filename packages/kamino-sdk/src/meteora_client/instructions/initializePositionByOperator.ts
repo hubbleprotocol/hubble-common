@@ -4,18 +4,20 @@ import * as borsh from "@project-serum/borsh" // eslint-disable-line @typescript
 import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
 import { PROGRAM_ID } from "../programId"
 
-export interface InitializePositionPdaArgs {
+export interface InitializePositionByOperatorArgs {
   lowerBinId: number
   width: number
+  owner: PublicKey
+  feeOwner: PublicKey
 }
 
-export interface InitializePositionPdaAccounts {
+export interface InitializePositionByOperatorAccounts {
   payer: PublicKey
   base: PublicKey
   position: PublicKey
   lbPair: PublicKey
-  /** owner */
-  owner: PublicKey
+  /** operator */
+  operator: PublicKey
   systemProgram: PublicKey
   rent: PublicKey
   eventAuthority: PublicKey
@@ -25,29 +27,33 @@ export interface InitializePositionPdaAccounts {
 export const layout = borsh.struct([
   borsh.i32("lowerBinId"),
   borsh.i32("width"),
+  borsh.publicKey("owner"),
+  borsh.publicKey("feeOwner"),
 ])
 
-export function initializePositionPda(
-  args: InitializePositionPdaArgs,
-  accounts: InitializePositionPdaAccounts
+export function initializePositionByOperator(
+  args: InitializePositionByOperatorArgs,
+  accounts: InitializePositionByOperatorAccounts
 ) {
   const keys: Array<AccountMeta> = [
     { pubkey: accounts.payer, isSigner: true, isWritable: true },
     { pubkey: accounts.base, isSigner: true, isWritable: false },
     { pubkey: accounts.position, isSigner: false, isWritable: true },
     { pubkey: accounts.lbPair, isSigner: false, isWritable: false },
-    { pubkey: accounts.owner, isSigner: true, isWritable: false },
+    { pubkey: accounts.operator, isSigner: true, isWritable: false },
     { pubkey: accounts.systemProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.rent, isSigner: false, isWritable: false },
     { pubkey: accounts.eventAuthority, isSigner: false, isWritable: false },
     { pubkey: accounts.program, isSigner: false, isWritable: false },
   ]
-  const identifier = Buffer.from([46, 82, 125, 146, 85, 141, 228, 153])
+  const identifier = Buffer.from([251, 189, 190, 244, 117, 254, 35, 148])
   const buffer = Buffer.alloc(1000)
   const len = layout.encode(
     {
       lowerBinId: args.lowerBinId,
       width: args.width,
+      owner: args.owner,
+      feeOwner: args.feeOwner,
     },
     buffer
   )

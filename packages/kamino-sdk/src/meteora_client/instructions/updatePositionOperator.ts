@@ -4,50 +4,34 @@ import * as borsh from "@project-serum/borsh" // eslint-disable-line @typescript
 import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
 import { PROGRAM_ID } from "../programId"
 
-export interface InitializePositionPdaArgs {
-  lowerBinId: number
-  width: number
+export interface UpdatePositionOperatorArgs {
+  operator: PublicKey
 }
 
-export interface InitializePositionPdaAccounts {
-  payer: PublicKey
-  base: PublicKey
+export interface UpdatePositionOperatorAccounts {
   position: PublicKey
-  lbPair: PublicKey
-  /** owner */
   owner: PublicKey
-  systemProgram: PublicKey
-  rent: PublicKey
   eventAuthority: PublicKey
   program: PublicKey
 }
 
-export const layout = borsh.struct([
-  borsh.i32("lowerBinId"),
-  borsh.i32("width"),
-])
+export const layout = borsh.struct([borsh.publicKey("operator")])
 
-export function initializePositionPda(
-  args: InitializePositionPdaArgs,
-  accounts: InitializePositionPdaAccounts
+export function updatePositionOperator(
+  args: UpdatePositionOperatorArgs,
+  accounts: UpdatePositionOperatorAccounts
 ) {
   const keys: Array<AccountMeta> = [
-    { pubkey: accounts.payer, isSigner: true, isWritable: true },
-    { pubkey: accounts.base, isSigner: true, isWritable: false },
     { pubkey: accounts.position, isSigner: false, isWritable: true },
-    { pubkey: accounts.lbPair, isSigner: false, isWritable: false },
     { pubkey: accounts.owner, isSigner: true, isWritable: false },
-    { pubkey: accounts.systemProgram, isSigner: false, isWritable: false },
-    { pubkey: accounts.rent, isSigner: false, isWritable: false },
     { pubkey: accounts.eventAuthority, isSigner: false, isWritable: false },
     { pubkey: accounts.program, isSigner: false, isWritable: false },
   ]
-  const identifier = Buffer.from([46, 82, 125, 146, 85, 141, 228, 153])
+  const identifier = Buffer.from([202, 184, 103, 143, 180, 191, 116, 217])
   const buffer = Buffer.alloc(1000)
   const len = layout.encode(
     {
-      lowerBinId: args.lowerBinId,
-      width: args.width,
+      operator: args.operator,
     },
     buffer
   )

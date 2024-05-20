@@ -7,6 +7,7 @@ import { PROGRAM_ID } from "../programId"
 export interface FundRewardArgs {
   rewardIndex: BN
   amount: BN
+  carryForward: boolean
 }
 
 export interface FundRewardAccounts {
@@ -24,6 +25,7 @@ export interface FundRewardAccounts {
 export const layout = borsh.struct([
   borsh.u64("rewardIndex"),
   borsh.u64("amount"),
+  borsh.bool("carryForward"),
 ])
 
 export function fundReward(args: FundRewardArgs, accounts: FundRewardAccounts) {
@@ -44,6 +46,7 @@ export function fundReward(args: FundRewardArgs, accounts: FundRewardAccounts) {
     {
       rewardIndex: args.rewardIndex,
       amount: args.amount,
+      carryForward: args.carryForward,
     },
     buffer
   )

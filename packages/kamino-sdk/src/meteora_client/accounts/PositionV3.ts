@@ -4,17 +4,11 @@ import * as borsh from "@project-serum/borsh" // eslint-disable-line @typescript
 import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
 import { PROGRAM_ID } from "../programId"
 
-export interface PositionV2Fields {
+export interface PositionV3Fields {
   /** The LB pair of this position */
   lbPair: PublicKey
   /** Owner of the position. Client rely on this to to fetch their positions. */
   owner: PublicKey
-  /** Liquidity shares of this position in bins (lower_bin_id <-> upper_bin_id). This is the same as LP concept. */
-  liquidityShares: Array<BN>
-  /** Farming reward information */
-  rewardInfos: Array<types.UserRewardInfoFields>
-  /** Swap fee to claim information */
-  feeInfos: Array<types.FeeInfoFields>
   /** Lower bin ID */
   lowerBinId: number
   /** Upper bin ID */
@@ -33,23 +27,21 @@ export interface PositionV2Fields {
   lockReleaseSlot: BN
   /** Is the position subjected to liquidity locking for the launch pool. */
   subjectedToBootstrapLiquidityLocking: number
+  /** Padding */
+  padding0: Array<number>
   /** Address is able to claim fee in this position, only valid for bootstrap_liquidity_position */
   feeOwner: PublicKey
+  /** Number of bins */
+  length: BN
   /** Reserved space for future use */
   reserved: Array<number>
 }
 
-export interface PositionV2JSON {
+export interface PositionV3JSON {
   /** The LB pair of this position */
   lbPair: string
   /** Owner of the position. Client rely on this to to fetch their positions. */
   owner: string
-  /** Liquidity shares of this position in bins (lower_bin_id <-> upper_bin_id). This is the same as LP concept. */
-  liquidityShares: Array<string>
-  /** Farming reward information */
-  rewardInfos: Array<types.UserRewardInfoJSON>
-  /** Swap fee to claim information */
-  feeInfos: Array<types.FeeInfoJSON>
   /** Lower bin ID */
   lowerBinId: number
   /** Upper bin ID */
@@ -68,23 +60,21 @@ export interface PositionV2JSON {
   lockReleaseSlot: string
   /** Is the position subjected to liquidity locking for the launch pool. */
   subjectedToBootstrapLiquidityLocking: number
+  /** Padding */
+  padding0: Array<number>
   /** Address is able to claim fee in this position, only valid for bootstrap_liquidity_position */
   feeOwner: string
+  /** Number of bins */
+  length: string
   /** Reserved space for future use */
   reserved: Array<number>
 }
 
-export class PositionV2 {
+export class PositionV3 {
   /** The LB pair of this position */
   readonly lbPair: PublicKey
   /** Owner of the position. Client rely on this to to fetch their positions. */
   readonly owner: PublicKey
-  /** Liquidity shares of this position in bins (lower_bin_id <-> upper_bin_id). This is the same as LP concept. */
-  readonly liquidityShares: Array<BN>
-  /** Farming reward information */
-  readonly rewardInfos: Array<types.UserRewardInfo>
-  /** Swap fee to claim information */
-  readonly feeInfos: Array<types.FeeInfo>
   /** Lower bin ID */
   readonly lowerBinId: number
   /** Upper bin ID */
@@ -103,21 +93,22 @@ export class PositionV2 {
   readonly lockReleaseSlot: BN
   /** Is the position subjected to liquidity locking for the launch pool. */
   readonly subjectedToBootstrapLiquidityLocking: number
+  /** Padding */
+  readonly padding0: Array<number>
   /** Address is able to claim fee in this position, only valid for bootstrap_liquidity_position */
   readonly feeOwner: PublicKey
+  /** Number of bins */
+  readonly length: BN
   /** Reserved space for future use */
   readonly reserved: Array<number>
 
   static readonly discriminator = Buffer.from([
-    117, 176, 212, 199, 245, 180, 133, 182,
+    194, 247, 171, 54, 106, 219, 96, 51,
   ])
 
   static readonly layout = borsh.struct([
     borsh.publicKey("lbPair"),
     borsh.publicKey("owner"),
-    borsh.array(borsh.u128(), 70, "liquidityShares"),
-    borsh.array(types.UserRewardInfo.layout(), 70, "rewardInfos"),
-    borsh.array(types.FeeInfo.layout(), 70, "feeInfos"),
     borsh.i32("lowerBinId"),
     borsh.i32("upperBinId"),
     borsh.i64("lastUpdatedAt"),
@@ -127,20 +118,15 @@ export class PositionV2 {
     borsh.publicKey("operator"),
     borsh.u64("lockReleaseSlot"),
     borsh.u8("subjectedToBootstrapLiquidityLocking"),
+    borsh.array(borsh.u8(), 7, "padding0"),
     borsh.publicKey("feeOwner"),
-    borsh.array(borsh.u8(), 87, "reserved"),
+    borsh.u64("length"),
+    borsh.array(borsh.u8(), 128, "reserved"),
   ])
 
-  constructor(fields: PositionV2Fields) {
+  constructor(fields: PositionV3Fields) {
     this.lbPair = fields.lbPair
     this.owner = fields.owner
-    this.liquidityShares = fields.liquidityShares
-    this.rewardInfos = fields.rewardInfos.map(
-      (item) => new types.UserRewardInfo({ ...item })
-    )
-    this.feeInfos = fields.feeInfos.map(
-      (item) => new types.FeeInfo({ ...item })
-    )
     this.lowerBinId = fields.lowerBinId
     this.upperBinId = fields.upperBinId
     this.lastUpdatedAt = fields.lastUpdatedAt
@@ -151,14 +137,16 @@ export class PositionV2 {
     this.lockReleaseSlot = fields.lockReleaseSlot
     this.subjectedToBootstrapLiquidityLocking =
       fields.subjectedToBootstrapLiquidityLocking
+    this.padding0 = fields.padding0
     this.feeOwner = fields.feeOwner
+    this.length = fields.length
     this.reserved = fields.reserved
   }
 
   static async fetch(
     c: Connection,
     address: PublicKey
-  ): Promise<PositionV2 | null> {
+  ): Promise<PositionV3 | null> {
     const info = await c.getAccountInfo(address)
 
     if (info === null) {
@@ -174,7 +162,7 @@ export class PositionV2 {
   static async fetchMultiple(
     c: Connection,
     addresses: PublicKey[]
-  ): Promise<Array<PositionV2 | null>> {
+  ): Promise<Array<PositionV3 | null>> {
     const infos = await c.getMultipleAccountsInfo(addresses)
 
     return infos.map((info) => {
@@ -189,27 +177,16 @@ export class PositionV2 {
     })
   }
 
-  static decode(data: Buffer): PositionV2 {
-    if (!data.slice(0, 8).equals(PositionV2.discriminator)) {
+  static decode(data: Buffer): PositionV3 {
+    if (!data.slice(0, 8).equals(PositionV3.discriminator)) {
       throw new Error("invalid account discriminator")
     }
 
-    const dec = PositionV2.layout.decode(data.slice(8))
+    const dec = PositionV3.layout.decode(data.slice(8))
 
-    return new PositionV2({
+    return new PositionV3({
       lbPair: dec.lbPair,
       owner: dec.owner,
-      liquidityShares: dec.liquidityShares,
-      rewardInfos: dec.rewardInfos.map(
-        (
-          item: any /* eslint-disable-line @typescript-eslint/no-explicit-any */
-        ) => types.UserRewardInfo.fromDecoded(item)
-      ),
-      feeInfos: dec.feeInfos.map(
-        (
-          item: any /* eslint-disable-line @typescript-eslint/no-explicit-any */
-        ) => types.FeeInfo.fromDecoded(item)
-      ),
       lowerBinId: dec.lowerBinId,
       upperBinId: dec.upperBinId,
       lastUpdatedAt: dec.lastUpdatedAt,
@@ -220,18 +197,17 @@ export class PositionV2 {
       lockReleaseSlot: dec.lockReleaseSlot,
       subjectedToBootstrapLiquidityLocking:
         dec.subjectedToBootstrapLiquidityLocking,
+      padding0: dec.padding0,
       feeOwner: dec.feeOwner,
+      length: dec.length,
       reserved: dec.reserved,
     })
   }
 
-  toJSON(): PositionV2JSON {
+  toJSON(): PositionV3JSON {
     return {
       lbPair: this.lbPair.toString(),
       owner: this.owner.toString(),
-      liquidityShares: this.liquidityShares.map((item) => item.toString()),
-      rewardInfos: this.rewardInfos.map((item) => item.toJSON()),
-      feeInfos: this.feeInfos.map((item) => item.toJSON()),
       lowerBinId: this.lowerBinId,
       upperBinId: this.upperBinId,
       lastUpdatedAt: this.lastUpdatedAt.toString(),
@@ -244,20 +220,17 @@ export class PositionV2 {
       lockReleaseSlot: this.lockReleaseSlot.toString(),
       subjectedToBootstrapLiquidityLocking:
         this.subjectedToBootstrapLiquidityLocking,
+      padding0: this.padding0,
       feeOwner: this.feeOwner.toString(),
+      length: this.length.toString(),
       reserved: this.reserved,
     }
   }
 
-  static fromJSON(obj: PositionV2JSON): PositionV2 {
-    return new PositionV2({
+  static fromJSON(obj: PositionV3JSON): PositionV3 {
+    return new PositionV3({
       lbPair: new PublicKey(obj.lbPair),
       owner: new PublicKey(obj.owner),
-      liquidityShares: obj.liquidityShares.map((item) => new BN(item)),
-      rewardInfos: obj.rewardInfos.map((item) =>
-        types.UserRewardInfo.fromJSON(item)
-      ),
-      feeInfos: obj.feeInfos.map((item) => types.FeeInfo.fromJSON(item)),
       lowerBinId: obj.lowerBinId,
       upperBinId: obj.upperBinId,
       lastUpdatedAt: new BN(obj.lastUpdatedAt),
@@ -268,7 +241,9 @@ export class PositionV2 {
       lockReleaseSlot: new BN(obj.lockReleaseSlot),
       subjectedToBootstrapLiquidityLocking:
         obj.subjectedToBootstrapLiquidityLocking,
+      padding0: obj.padding0,
       feeOwner: new PublicKey(obj.feeOwner),
+      length: new BN(obj.length),
       reserved: obj.reserved,
     })
   }

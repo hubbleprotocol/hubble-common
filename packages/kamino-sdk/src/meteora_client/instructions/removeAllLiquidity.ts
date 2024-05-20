@@ -4,6 +4,11 @@ import * as borsh from "@project-serum/borsh" // eslint-disable-line @typescript
 import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
 import { PROGRAM_ID } from "../programId"
 
+export interface RemoveAllLiquidityArgs {
+  minBinId: number
+  maxBinId: number
+}
+
 export interface RemoveAllLiquidityAccounts {
   position: PublicKey
   lbPair: PublicKey
@@ -14,16 +19,22 @@ export interface RemoveAllLiquidityAccounts {
   reserveY: PublicKey
   tokenXMint: PublicKey
   tokenYMint: PublicKey
-  binArrayLower: PublicKey
-  binArrayUpper: PublicKey
-  owner: PublicKey
+  sender: PublicKey
   tokenXProgram: PublicKey
   tokenYProgram: PublicKey
   eventAuthority: PublicKey
   program: PublicKey
 }
 
-export function removeAllLiquidity(accounts: RemoveAllLiquidityAccounts) {
+export const layout = borsh.struct([
+  borsh.i32("minBinId"),
+  borsh.i32("maxBinId"),
+])
+
+export function removeAllLiquidity(
+  args: RemoveAllLiquidityArgs,
+  accounts: RemoveAllLiquidityAccounts
+) {
   const keys: Array<AccountMeta> = [
     { pubkey: accounts.position, isSigner: false, isWritable: true },
     { pubkey: accounts.lbPair, isSigner: false, isWritable: true },
@@ -38,16 +49,22 @@ export function removeAllLiquidity(accounts: RemoveAllLiquidityAccounts) {
     { pubkey: accounts.reserveY, isSigner: false, isWritable: true },
     { pubkey: accounts.tokenXMint, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenYMint, isSigner: false, isWritable: false },
-    { pubkey: accounts.binArrayLower, isSigner: false, isWritable: true },
-    { pubkey: accounts.binArrayUpper, isSigner: false, isWritable: true },
-    { pubkey: accounts.owner, isSigner: true, isWritable: false },
+    { pubkey: accounts.sender, isSigner: true, isWritable: false },
     { pubkey: accounts.tokenXProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenYProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.eventAuthority, isSigner: false, isWritable: false },
     { pubkey: accounts.program, isSigner: false, isWritable: false },
   ]
   const identifier = Buffer.from([10, 51, 61, 35, 112, 105, 24, 85])
-  const data = identifier
+  const buffer = Buffer.alloc(1000)
+  const len = layout.encode(
+    {
+      minBinId: args.minBinId,
+      maxBinId: args.maxBinId,
+    },
+    buffer
+  )
+  const data = Buffer.concat([identifier, buffer]).slice(0, 8 + len)
   const ix = new TransactionInstruction({ keys, programId: PROGRAM_ID, data })
   return ix
 }

@@ -4,52 +4,44 @@ import * as borsh from "@project-serum/borsh" // eslint-disable-line @typescript
 import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
 import { PROGRAM_ID } from "../programId"
 
-export interface ClaimRewardArgs {
+export interface WithdrawIneligibleRewardArgs {
   rewardIndex: BN
-  minBinId: number
-  maxBinId: number
 }
 
-export interface ClaimRewardAccounts {
+export interface WithdrawIneligibleRewardAccounts {
   lbPair: PublicKey
-  position: PublicKey
-  sender: PublicKey
   rewardVault: PublicKey
   rewardMint: PublicKey
-  userTokenAccount: PublicKey
+  funderTokenAccount: PublicKey
+  funder: PublicKey
+  binArray: PublicKey
   tokenProgram: PublicKey
   eventAuthority: PublicKey
   program: PublicKey
 }
 
-export const layout = borsh.struct([
-  borsh.u64("rewardIndex"),
-  borsh.i32("minBinId"),
-  borsh.i32("maxBinId"),
-])
+export const layout = borsh.struct([borsh.u64("rewardIndex")])
 
-export function claimReward(
-  args: ClaimRewardArgs,
-  accounts: ClaimRewardAccounts
+export function withdrawIneligibleReward(
+  args: WithdrawIneligibleRewardArgs,
+  accounts: WithdrawIneligibleRewardAccounts
 ) {
   const keys: Array<AccountMeta> = [
     { pubkey: accounts.lbPair, isSigner: false, isWritable: true },
-    { pubkey: accounts.position, isSigner: false, isWritable: true },
-    { pubkey: accounts.sender, isSigner: true, isWritable: false },
     { pubkey: accounts.rewardVault, isSigner: false, isWritable: true },
     { pubkey: accounts.rewardMint, isSigner: false, isWritable: false },
-    { pubkey: accounts.userTokenAccount, isSigner: false, isWritable: true },
+    { pubkey: accounts.funderTokenAccount, isSigner: false, isWritable: true },
+    { pubkey: accounts.funder, isSigner: true, isWritable: false },
+    { pubkey: accounts.binArray, isSigner: false, isWritable: true },
     { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.eventAuthority, isSigner: false, isWritable: false },
     { pubkey: accounts.program, isSigner: false, isWritable: false },
   ]
-  const identifier = Buffer.from([149, 95, 181, 242, 94, 90, 158, 162])
+  const identifier = Buffer.from([148, 206, 42, 195, 247, 49, 103, 8])
   const buffer = Buffer.alloc(1000)
   const len = layout.encode(
     {
       rewardIndex: args.rewardIndex,
-      minBinId: args.minBinId,
-      maxBinId: args.maxBinId,
     },
     buffer
   )

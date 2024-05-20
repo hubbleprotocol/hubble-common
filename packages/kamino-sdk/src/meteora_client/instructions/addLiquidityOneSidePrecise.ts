@@ -4,11 +4,11 @@ import * as borsh from "@project-serum/borsh" // eslint-disable-line @typescript
 import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
 import { PROGRAM_ID } from "../programId"
 
-export interface AddLiquidityOneSideArgs {
-  liquidityParameter: types.LiquidityOneSideParameterFields
+export interface AddLiquidityOneSidePreciseArgs {
+  parameter: types.AddLiquiditySingleSidePreciseParameterFields
 }
 
-export interface AddLiquidityOneSideAccounts {
+export interface AddLiquidityOneSidePreciseAccounts {
   position: PublicKey
   lbPair: PublicKey
   binArrayBitmapExtension: PublicKey
@@ -22,12 +22,12 @@ export interface AddLiquidityOneSideAccounts {
 }
 
 export const layout = borsh.struct([
-  types.LiquidityOneSideParameter.layout("liquidityParameter"),
+  types.AddLiquiditySingleSidePreciseParameter.layout("parameter"),
 ])
 
-export function addLiquidityOneSide(
-  args: AddLiquidityOneSideArgs,
-  accounts: AddLiquidityOneSideAccounts
+export function addLiquidityOneSidePrecise(
+  args: AddLiquidityOneSidePreciseArgs,
+  accounts: AddLiquidityOneSidePreciseAccounts
 ) {
   const keys: Array<AccountMeta> = [
     { pubkey: accounts.position, isSigner: false, isWritable: true },
@@ -45,12 +45,12 @@ export function addLiquidityOneSide(
     { pubkey: accounts.eventAuthority, isSigner: false, isWritable: false },
     { pubkey: accounts.program, isSigner: false, isWritable: false },
   ]
-  const identifier = Buffer.from([94, 155, 103, 151, 70, 95, 220, 165])
+  const identifier = Buffer.from([161, 194, 103, 84, 171, 71, 250, 154])
   const buffer = Buffer.alloc(1000)
   const len = layout.encode(
     {
-      liquidityParameter: types.LiquidityOneSideParameter.toEncodable(
-        args.liquidityParameter
+      parameter: types.AddLiquiditySingleSidePreciseParameter.toEncodable(
+        args.parameter
       ),
     },
     buffer

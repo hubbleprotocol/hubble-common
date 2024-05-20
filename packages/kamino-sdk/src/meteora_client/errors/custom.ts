@@ -30,7 +30,7 @@ export type CustomError =
   | NonContinuousBinArrays
   | InvalidRewardVault
   | NonEmptyPosition
-  | UnauthorizedAlphaAccess
+  | UnauthorizedAccess
   | InvalidFeeParameter
   | MissingOracle
   | InsufficientSample
@@ -45,6 +45,21 @@ export type CustomError =
   | InvalidPoolType
   | ExceedMaxWhitelist
   | InvalidIndex
+  | RewardNotEnded
+  | MustWithdrawnIneligibleReward
+  | UnauthorizedAddress
+  | OperatorsAreTheSame
+  | WithdrawToWrongTokenAccount
+  | WrongRentReceiver
+  | AlreadyPassActivationSlot
+  | LastSlotCannotBeSmallerThanActivateSlot
+  | ExceedMaxSwappedAmount
+  | InvalidStrategyParameters
+  | LiquidityLocked
+  | InvalidLockReleaseSlot
+  | BinRangeIsNotEmpty
+  | InvalidSide
+  | InvalidResizeLength
 
 export class InvalidStartBinIndex extends Error {
   static readonly code = 6000
@@ -387,14 +402,14 @@ export class NonEmptyPosition extends Error {
   }
 }
 
-export class UnauthorizedAlphaAccess extends Error {
+export class UnauthorizedAccess extends Error {
   static readonly code = 6031
   readonly code = 6031
-  readonly name = "UnauthorizedAlphaAccess"
-  readonly msg = "Unauthorized alpha access"
+  readonly name = "UnauthorizedAccess"
+  readonly msg = "Unauthorized access"
 
   constructor(readonly logs?: string[]) {
-    super("6031: Unauthorized alpha access")
+    super("6031: Unauthorized access")
   }
 }
 
@@ -552,6 +567,171 @@ export class InvalidIndex extends Error {
   }
 }
 
+export class RewardNotEnded extends Error {
+  static readonly code = 6046
+  readonly code = 6046
+  readonly name = "RewardNotEnded"
+  readonly msg = "Reward not ended"
+
+  constructor(readonly logs?: string[]) {
+    super("6046: Reward not ended")
+  }
+}
+
+export class MustWithdrawnIneligibleReward extends Error {
+  static readonly code = 6047
+  readonly code = 6047
+  readonly name = "MustWithdrawnIneligibleReward"
+  readonly msg = "Must withdraw ineligible reward"
+
+  constructor(readonly logs?: string[]) {
+    super("6047: Must withdraw ineligible reward")
+  }
+}
+
+export class UnauthorizedAddress extends Error {
+  static readonly code = 6048
+  readonly code = 6048
+  readonly name = "UnauthorizedAddress"
+  readonly msg = "Unauthorized address"
+
+  constructor(readonly logs?: string[]) {
+    super("6048: Unauthorized address")
+  }
+}
+
+export class OperatorsAreTheSame extends Error {
+  static readonly code = 6049
+  readonly code = 6049
+  readonly name = "OperatorsAreTheSame"
+  readonly msg = "Cannot update because operators are the same"
+
+  constructor(readonly logs?: string[]) {
+    super("6049: Cannot update because operators are the same")
+  }
+}
+
+export class WithdrawToWrongTokenAccount extends Error {
+  static readonly code = 6050
+  readonly code = 6050
+  readonly name = "WithdrawToWrongTokenAccount"
+  readonly msg = "Withdraw to wrong token account"
+
+  constructor(readonly logs?: string[]) {
+    super("6050: Withdraw to wrong token account")
+  }
+}
+
+export class WrongRentReceiver extends Error {
+  static readonly code = 6051
+  readonly code = 6051
+  readonly name = "WrongRentReceiver"
+  readonly msg = "Wrong rent receiver"
+
+  constructor(readonly logs?: string[]) {
+    super("6051: Wrong rent receiver")
+  }
+}
+
+export class AlreadyPassActivationSlot extends Error {
+  static readonly code = 6052
+  readonly code = 6052
+  readonly name = "AlreadyPassActivationSlot"
+  readonly msg = "Already activated"
+
+  constructor(readonly logs?: string[]) {
+    super("6052: Already activated")
+  }
+}
+
+export class LastSlotCannotBeSmallerThanActivateSlot extends Error {
+  static readonly code = 6053
+  readonly code = 6053
+  readonly name = "LastSlotCannotBeSmallerThanActivateSlot"
+  readonly msg = "Last slot cannot be smaller than activate slot"
+
+  constructor(readonly logs?: string[]) {
+    super("6053: Last slot cannot be smaller than activate slot")
+  }
+}
+
+export class ExceedMaxSwappedAmount extends Error {
+  static readonly code = 6054
+  readonly code = 6054
+  readonly name = "ExceedMaxSwappedAmount"
+  readonly msg = "Swapped amount is exceeded max swapped amount"
+
+  constructor(readonly logs?: string[]) {
+    super("6054: Swapped amount is exceeded max swapped amount")
+  }
+}
+
+export class InvalidStrategyParameters extends Error {
+  static readonly code = 6055
+  readonly code = 6055
+  readonly name = "InvalidStrategyParameters"
+  readonly msg = "Invalid strategy parameters"
+
+  constructor(readonly logs?: string[]) {
+    super("6055: Invalid strategy parameters")
+  }
+}
+
+export class LiquidityLocked extends Error {
+  static readonly code = 6056
+  readonly code = 6056
+  readonly name = "LiquidityLocked"
+  readonly msg = "Liquidity locked"
+
+  constructor(readonly logs?: string[]) {
+    super("6056: Liquidity locked")
+  }
+}
+
+export class InvalidLockReleaseSlot extends Error {
+  static readonly code = 6057
+  readonly code = 6057
+  readonly name = "InvalidLockReleaseSlot"
+  readonly msg = "Invalid lock release slot"
+
+  constructor(readonly logs?: string[]) {
+    super("6057: Invalid lock release slot")
+  }
+}
+
+export class BinRangeIsNotEmpty extends Error {
+  static readonly code = 6058
+  readonly code = 6058
+  readonly name = "BinRangeIsNotEmpty"
+  readonly msg = "Bin range is not empty"
+
+  constructor(readonly logs?: string[]) {
+    super("6058: Bin range is not empty")
+  }
+}
+
+export class InvalidSide extends Error {
+  static readonly code = 6059
+  readonly code = 6059
+  readonly name = "InvalidSide"
+  readonly msg = "Invalid side"
+
+  constructor(readonly logs?: string[]) {
+    super("6059: Invalid side")
+  }
+}
+
+export class InvalidResizeLength extends Error {
+  static readonly code = 6060
+  readonly code = 6060
+  readonly name = "InvalidResizeLength"
+  readonly msg = "Invalid resize length"
+
+  constructor(readonly logs?: string[]) {
+    super("6060: Invalid resize length")
+  }
+}
+
 export function fromCode(code: number, logs?: string[]): CustomError | null {
   switch (code) {
     case 6000:
@@ -617,7 +797,7 @@ export function fromCode(code: number, logs?: string[]): CustomError | null {
     case 6030:
       return new NonEmptyPosition(logs)
     case 6031:
-      return new UnauthorizedAlphaAccess(logs)
+      return new UnauthorizedAccess(logs)
     case 6032:
       return new InvalidFeeParameter(logs)
     case 6033:
@@ -646,6 +826,36 @@ export function fromCode(code: number, logs?: string[]): CustomError | null {
       return new ExceedMaxWhitelist(logs)
     case 6045:
       return new InvalidIndex(logs)
+    case 6046:
+      return new RewardNotEnded(logs)
+    case 6047:
+      return new MustWithdrawnIneligibleReward(logs)
+    case 6048:
+      return new UnauthorizedAddress(logs)
+    case 6049:
+      return new OperatorsAreTheSame(logs)
+    case 6050:
+      return new WithdrawToWrongTokenAccount(logs)
+    case 6051:
+      return new WrongRentReceiver(logs)
+    case 6052:
+      return new AlreadyPassActivationSlot(logs)
+    case 6053:
+      return new LastSlotCannotBeSmallerThanActivateSlot(logs)
+    case 6054:
+      return new ExceedMaxSwappedAmount(logs)
+    case 6055:
+      return new InvalidStrategyParameters(logs)
+    case 6056:
+      return new LiquidityLocked(logs)
+    case 6057:
+      return new InvalidLockReleaseSlot(logs)
+    case 6058:
+      return new BinRangeIsNotEmpty(logs)
+    case 6059:
+      return new InvalidSide(logs)
+    case 6060:
+      return new InvalidResizeLength(logs)
   }
 
   return null
