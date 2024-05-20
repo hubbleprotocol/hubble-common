@@ -823,6 +823,11 @@
           "isMut": false,
           "isSigner": false,
           "isOptional": true
+        },
+        {
+          "name": "consensusAccount",
+          "isMut": false,
+          "isSigner": false
         }
       ],
       "args": [
@@ -2848,6 +2853,47 @@
       ]
     },
     {
+      "name": "permisionlessWithdrawFromTreasury",
+      "accounts": [
+        {
+          "name": "signer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "globalConfig",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "mint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "treasuryFeeVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "treasuryFeeVaultAuthority",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "withdrawFromTopup",
       "accounts": [
         {
@@ -2898,6 +2944,21 @@
         },
         {
           "name": "newPool",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "strategyRewardVault0OrBaseVaultAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "strategyRewardVault1OrBaseVaultAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "strategyRewardVault2OrBaseVaultAuthority",
           "isMut": false,
           "isSigner": false
         }
@@ -4219,11 +4280,15 @@
             "type": "u64"
           },
           {
+            "name": "treasuryFeeVaultReceiver",
+            "type": "publicKey"
+          },
+          {
             "name": "padding",
             "type": {
               "array": [
                 "u64",
-                2039
+                2035
               ]
             }
           }
@@ -4974,31 +5039,31 @@
             "name": "Uniform",
             "fields": [
               {
-                "name": "currentBinIndex",
+                "name": "current_bin_index",
                 "type": "i32"
               },
               {
-                "name": "lowerBinIndex",
+                "name": "lower_bin_index",
                 "type": "i32"
               },
               {
-                "name": "upperBinIndex",
+                "name": "upper_bin_index",
                 "type": "i32"
               },
               {
-                "name": "amountXToDeposit",
+                "name": "amount_x_to_deposit",
                 "type": "u64"
               },
               {
-                "name": "amountYToDeposit",
+                "name": "amount_y_to_deposit",
                 "type": "u64"
               },
               {
-                "name": "xCurrentBin",
+                "name": "x_current_bin",
                 "type": "u64"
               },
               {
-                "name": "yCurrentBin",
+                "name": "y_current_bin",
                 "type": "u64"
               }
             ]
@@ -5125,21 +5190,21 @@
             "name": "Absolute",
             "fields": [
               {
-                "name": "srcAmountToSwap",
+                "name": "src_amount_to_swap",
                 "docs": [
                   "Amount of src token expected by the user to perform the swap"
                 ],
                 "type": "u64"
               },
               {
-                "name": "dstAmountToVault",
+                "name": "dst_amount_to_vault",
                 "docs": [
                   "Amount of dst token the user provides in exchange"
                 ],
                 "type": "u64"
               },
               {
-                "name": "aToB",
+                "name": "a_to_b",
                 "type": "bool"
               }
             ]
@@ -5231,6 +5296,9 @@
           },
           {
             "name": "ActionsAfterRebalanceDelaySeconds"
+          },
+          {
+            "name": "TreasuryFeeVaultReceiver"
           }
         ]
       }
@@ -6056,17 +6124,6 @@
           }
         ]
       }
-    },
-    {
-      "name": "ScopeConversionChain",
-      "type": {
-        "kind": "alias",
-        "value": {
-          "vec": {
-            "defined": "ScopePriceId"
-          }
-        }
-      }
     }
   ],
   "errors": [
@@ -6824,6 +6881,21 @@
       "code": 6150,
       "name": "ComputeFeesAndRewardsInvalidReward",
       "msg": "Got invalid reward from the dex specific function while computing the fees/rewards update"
+    },
+    {
+      "code": 6151,
+      "name": "EmptyTreasury",
+      "msg": "No tokens to withdraw from treasury fee vault"
+    },
+    {
+      "code": 6152,
+      "name": "ChangingPoolRewardMintMismatch",
+      "msg": "New pool reward mint does not match the old pool reward mint"
+    },
+    {
+      "code": 6153,
+      "name": "ProvidedRewardVaultMismatch",
+      "msg": "The provided reward vault does not match the strategy state"
     }
   ]
 }
