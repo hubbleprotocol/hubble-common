@@ -93,9 +93,9 @@ export class Absolute {
   toEncodable() {
     return {
       Absolute: {
-        srcAmountToSwap: this.value.srcAmountToSwap,
-        dstAmountToVault: this.value.dstAmountToVault,
-        aToB: this.value.aToB,
+        src_amount_to_swap: this.value.srcAmountToSwap,
+        dst_amount_to_vault: this.value.dstAmountToVault,
+        a_to_b: this.value.aToB,
       },
     }
   }
@@ -114,9 +114,9 @@ export function fromDecoded(obj: any): types.SwapLimitKind {
   if ("Absolute" in obj) {
     const val = obj["Absolute"]
     return new Absolute({
-      srcAmountToSwap: val["srcAmountToSwap"],
-      dstAmountToVault: val["dstAmountToVault"],
-      aToB: val["aToB"],
+      srcAmountToSwap: val["src_amount_to_swap"],
+      dstAmountToVault: val["dst_amount_to_vault"],
+      aToB: val["a_to_b"],
     })
   }
 
@@ -143,9 +143,9 @@ export function layout(property?: string) {
     borsh.struct([borsh.u64("_0")], "Bps"),
     borsh.struct(
       [
-        borsh.u64("srcAmountToSwap"),
-        borsh.u64("dstAmountToVault"),
-        borsh.bool("aToB"),
+        borsh.u64("src_amount_to_swap"),
+        borsh.u64("dst_amount_to_vault"),
+        borsh.bool("a_to_b"),
       ],
       "Absolute"
     ),

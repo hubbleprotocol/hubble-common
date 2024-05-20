@@ -72,13 +72,13 @@ export class Uniform {
   toEncodable() {
     return {
       Uniform: {
-        currentBinIndex: this.value.currentBinIndex,
-        lowerBinIndex: this.value.lowerBinIndex,
-        upperBinIndex: this.value.upperBinIndex,
-        amountXToDeposit: this.value.amountXToDeposit,
-        amountYToDeposit: this.value.amountYToDeposit,
-        xCurrentBin: this.value.xCurrentBin,
-        yCurrentBin: this.value.yCurrentBin,
+        current_bin_index: this.value.currentBinIndex,
+        lower_bin_index: this.value.lowerBinIndex,
+        upper_bin_index: this.value.upperBinIndex,
+        amount_x_to_deposit: this.value.amountXToDeposit,
+        amount_y_to_deposit: this.value.amountYToDeposit,
+        x_current_bin: this.value.xCurrentBin,
+        y_current_bin: this.value.yCurrentBin,
       },
     }
   }
@@ -128,13 +128,13 @@ export function fromDecoded(obj: any): types.BinAddLiquidityStrategyKind {
   if ("Uniform" in obj) {
     const val = obj["Uniform"]
     return new Uniform({
-      currentBinIndex: val["currentBinIndex"],
-      lowerBinIndex: val["lowerBinIndex"],
-      upperBinIndex: val["upperBinIndex"],
-      amountXToDeposit: val["amountXToDeposit"],
-      amountYToDeposit: val["amountYToDeposit"],
-      xCurrentBin: val["xCurrentBin"],
-      yCurrentBin: val["yCurrentBin"],
+      currentBinIndex: val["current_bin_index"],
+      lowerBinIndex: val["lower_bin_index"],
+      upperBinIndex: val["upper_bin_index"],
+      amountXToDeposit: val["amount_x_to_deposit"],
+      amountYToDeposit: val["amount_y_to_deposit"],
+      xCurrentBin: val["x_current_bin"],
+      yCurrentBin: val["y_current_bin"],
     })
   }
   if ("CurrentTick" in obj) {
@@ -170,13 +170,13 @@ export function layout(property?: string) {
   const ret = borsh.rustEnum([
     borsh.struct(
       [
-        borsh.i32("currentBinIndex"),
-        borsh.i32("lowerBinIndex"),
-        borsh.i32("upperBinIndex"),
-        borsh.u64("amountXToDeposit"),
-        borsh.u64("amountYToDeposit"),
-        borsh.u64("xCurrentBin"),
-        borsh.u64("yCurrentBin"),
+        borsh.i32("current_bin_index"),
+        borsh.i32("lower_bin_index"),
+        borsh.i32("upper_bin_index"),
+        borsh.u64("amount_x_to_deposit"),
+        borsh.u64("amount_y_to_deposit"),
+        borsh.u64("x_current_bin"),
+        borsh.u64("y_current_bin"),
       ],
       "Uniform"
     ),

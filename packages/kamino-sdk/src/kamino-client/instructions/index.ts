@@ -121,6 +121,8 @@ export type {
   WithdrawFromTreasuryArgs,
   WithdrawFromTreasuryAccounts,
 } from "./withdrawFromTreasury"
+export { permisionlessWithdrawFromTreasury } from "./permisionlessWithdrawFromTreasury"
+export type { PermisionlessWithdrawFromTreasuryAccounts } from "./permisionlessWithdrawFromTreasury"
 export { withdrawFromTopup } from "./withdrawFromTopup"
 export type {
   WithdrawFromTopupArgs,
@@ -134,3 +136,5 @@ export { orcaSwap } from "./orcaSwap"
 export type { OrcaSwapArgs, OrcaSwapAccounts } from "./orcaSwap"
 export { signTerms } from "./signTerms"
 export type { SignTermsArgs, SignTermsAccounts } from "./signTerms"
+export { migrateMeteoraPosition } from "./migrateMeteoraPosition"
+export type { MigrateMeteoraPositionAccounts } from "./migrateMeteoraPosition"

@@ -150,6 +150,11 @@ export type CustomError =
   | InvalidBPSValue
   | RewardVaultOverrideNotAllowed
   | ComputeFeesAndRewardsInvalidReward
+  | EmptyTreasury
+  | ChangingPoolRewardMintMismatch
+  | ProvidedRewardVaultMismatch
+  | CannotMutateMeteoraPosition
+  | MigrateOnlyMeteoraStrategies
 
 export class IntegerOverflow extends Error {
   static readonly code = 6000
@@ -1848,6 +1853,64 @@ export class ComputeFeesAndRewardsInvalidReward extends Error {
   }
 }
 
+export class EmptyTreasury extends Error {
+  static readonly code = 6151
+  readonly code = 6151
+  readonly name = "EmptyTreasury"
+  readonly msg = "No tokens to withdraw from treasury fee vault"
+
+  constructor(readonly logs?: string[]) {
+    super("6151: No tokens to withdraw from treasury fee vault")
+  }
+}
+
+export class ChangingPoolRewardMintMismatch extends Error {
+  static readonly code = 6152
+  readonly code = 6152
+  readonly name = "ChangingPoolRewardMintMismatch"
+  readonly msg = "New pool reward mint does not match the old pool reward mint"
+
+  constructor(readonly logs?: string[]) {
+    super("6152: New pool reward mint does not match the old pool reward mint")
+  }
+}
+
+export class ProvidedRewardVaultMismatch extends Error {
+  static readonly code = 6153
+  readonly code = 6153
+  readonly name = "ProvidedRewardVaultMismatch"
+  readonly msg = "The provided reward vault does not match the strategy state"
+
+  constructor(readonly logs?: string[]) {
+    super("6153: The provided reward vault does not match the strategy state")
+  }
+}
+
+export class CannotMutateMeteoraPosition extends Error {
+  static readonly code = 6154
+  readonly code = 6154
+  readonly name = "CannotMutateMeteoraPosition"
+  readonly msg =
+    "Called a function where meteora position must be mutable but cannot do it"
+
+  constructor(readonly logs?: string[]) {
+    super(
+      "6154: Called a function where meteora position must be mutable but cannot do it"
+    )
+  }
+}
+
+export class MigrateOnlyMeteoraStrategies extends Error {
+  static readonly code = 6155
+  readonly code = 6155
+  readonly name = "MigrateOnlyMeteoraStrategies"
+  readonly msg = "Can only migrate meteora position"
+
+  constructor(readonly logs?: string[]) {
+    super("6155: Can only migrate meteora position")
+  }
+}
+
 export function fromCode(code: number, logs?: string[]): CustomError | null {
   switch (code) {
     case 6000:
@@ -2152,6 +2215,16 @@ export function fromCode(code: number, logs?: string[]): CustomError | null {
       return new RewardVaultOverrideNotAllowed(logs)
     case 6150:
       return new ComputeFeesAndRewardsInvalidReward(logs)
+    case 6151:
+      return new EmptyTreasury(logs)
+    case 6152:
+      return new ChangingPoolRewardMintMismatch(logs)
+    case 6153:
+      return new ProvidedRewardVaultMismatch(logs)
+    case 6154:
+      return new CannotMutateMeteoraPosition(logs)
+    case 6155:
+      return new MigrateOnlyMeteoraStrategies(logs)
   }
 
   return null
