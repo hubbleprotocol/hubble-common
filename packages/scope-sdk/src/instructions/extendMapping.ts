@@ -4,38 +4,33 @@ import * as borsh from "@project-serum/borsh" // eslint-disable-line @typescript
 import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
 import { PROGRAM_ID } from "../programId"
 
-export interface ResetTwapArgs {
-  token: BN
+export interface ExtendMappingArgs {
   feedName: string
 }
 
-export interface ResetTwapAccounts {
+export interface ExtendMappingAccounts {
   admin: PublicKey
-  oraclePrices: PublicKey
   configuration: PublicKey
-  oracleTwaps: PublicKey
-  instructionSysvarAccountInfo: PublicKey
+  oracleMappings: PublicKey
+  systemProgram: PublicKey
 }
 
-export const layout = borsh.struct([borsh.u64("token"), borsh.str("feedName")])
+export const layout = borsh.struct([borsh.str("feedName")])
 
-export function resetTwap(args: ResetTwapArgs, accounts: ResetTwapAccounts) {
+export function extendMapping(
+  args: ExtendMappingArgs,
+  accounts: ExtendMappingAccounts
+) {
   const keys: Array<AccountMeta> = [
-    { pubkey: accounts.admin, isSigner: true, isWritable: false },
-    { pubkey: accounts.oraclePrices, isSigner: false, isWritable: false },
+    { pubkey: accounts.admin, isSigner: true, isWritable: true },
     { pubkey: accounts.configuration, isSigner: false, isWritable: false },
-    { pubkey: accounts.oracleTwaps, isSigner: false, isWritable: true },
-    {
-      pubkey: accounts.instructionSysvarAccountInfo,
-      isSigner: false,
-      isWritable: false,
-    },
+    { pubkey: accounts.oracleMappings, isSigner: false, isWritable: true },
+    { pubkey: accounts.systemProgram, isSigner: false, isWritable: false },
   ]
-  const identifier = Buffer.from([101, 216, 28, 92, 154, 79, 49, 187])
+  const identifier = Buffer.from([49, 138, 121, 76, 150, 134, 170, 9])
   const buffer = Buffer.alloc(1000)
   const len = layout.encode(
     {
-      token: args.token,
       feedName: args.feedName,
     },
     buffer

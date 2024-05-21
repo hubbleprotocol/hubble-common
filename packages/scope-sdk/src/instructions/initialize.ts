@@ -1,6 +1,6 @@
 import { TransactionInstruction, PublicKey, AccountMeta } from "@solana/web3.js" // eslint-disable-line @typescript-eslint/no-unused-vars
 import BN from "bn.js" // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as borsh from "@coral-xyz/borsh" // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as borsh from "@project-serum/borsh" // eslint-disable-line @typescript-eslint/no-unused-vars
 import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
 import { PROGRAM_ID } from "../programId"
 
@@ -20,11 +20,7 @@ export interface InitializeAccounts {
 
 export const layout = borsh.struct([borsh.str("feedName")])
 
-export function initialize(
-  args: InitializeArgs,
-  accounts: InitializeAccounts,
-  programId: PublicKey = PROGRAM_ID
-) {
+export function initialize(args: InitializeArgs, accounts: InitializeAccounts, programId: PublicKey) {
   const keys: Array<AccountMeta> = [
     { pubkey: accounts.admin, isSigner: true, isWritable: true },
     { pubkey: accounts.systemProgram, isSigner: false, isWritable: false },

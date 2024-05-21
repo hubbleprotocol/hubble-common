@@ -1,6 +1,6 @@
 import { PublicKey, Connection } from "@solana/web3.js"
 import BN from "bn.js" // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as borsh from "@coral-xyz/borsh" // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as borsh from "@project-serum/borsh" // eslint-disable-line @typescript-eslint/no-unused-vars
 import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
 import { PROGRAM_ID } from "../programId"
 
@@ -9,8 +9,8 @@ export interface OracleMappingsFields {
   priceTypes: Array<number>
   twapSource: Array<number>
   twapEnabled: Array<number>
-  reserved1: Array<number>
-  reserved2: Array<number>
+  refPrice: Array<number>
+  generic: Array<Array<number>>
 }
 
 export interface OracleMappingsJSON {
@@ -18,8 +18,8 @@ export interface OracleMappingsJSON {
   priceTypes: Array<number>
   twapSource: Array<number>
   twapEnabled: Array<number>
-  reserved1: Array<number>
-  reserved2: Array<number>
+  refPrice: Array<number>
+  generic: Array<Array<number>>
 }
 
 export class OracleMappings {
@@ -27,8 +27,8 @@ export class OracleMappings {
   readonly priceTypes: Array<number>
   readonly twapSource: Array<number>
   readonly twapEnabled: Array<number>
-  readonly reserved1: Array<number>
-  readonly reserved2: Array<number>
+  readonly refPrice: Array<number>
+  readonly generic: Array<Array<number>>
 
   static readonly discriminator = Buffer.from([
     40, 244, 110, 80, 255, 214, 243, 188,
@@ -39,8 +39,8 @@ export class OracleMappings {
     borsh.array(borsh.u8(), 512, "priceTypes"),
     borsh.array(borsh.u16(), 512, "twapSource"),
     borsh.array(borsh.u8(), 512, "twapEnabled"),
-    borsh.array(borsh.u8(), 512, "reserved1"),
-    borsh.array(borsh.u32(), 512, "reserved2"),
+    borsh.array(borsh.u16(), 512, "refPrice"),
+    borsh.array(borsh.array(borsh.u8(), 20), 512, "generic"),
   ])
 
   constructor(fields: OracleMappingsFields) {
@@ -48,14 +48,14 @@ export class OracleMappings {
     this.priceTypes = fields.priceTypes
     this.twapSource = fields.twapSource
     this.twapEnabled = fields.twapEnabled
-    this.reserved1 = fields.reserved1
-    this.reserved2 = fields.reserved2
+    this.refPrice = fields.refPrice
+    this.generic = fields.generic
   }
 
   static async fetch(
     c: Connection,
     address: PublicKey,
-    programId: PublicKey = PROGRAM_ID
+    programId: PublicKey
   ): Promise<OracleMappings | null> {
     const info = await c.getAccountInfo(address)
 
@@ -71,8 +71,7 @@ export class OracleMappings {
 
   static async fetchMultiple(
     c: Connection,
-    addresses: PublicKey[],
-    programId: PublicKey = PROGRAM_ID
+    addresses: PublicKey[]
   ): Promise<Array<OracleMappings | null>> {
     const infos = await c.getMultipleAccountsInfo(addresses)
 
@@ -80,7 +79,7 @@ export class OracleMappings {
       if (info === null) {
         return null
       }
-      if (!info.owner.equals(programId)) {
+      if (!info.owner.equals(PROGRAM_ID)) {
         throw new Error("account doesn't belong to this program")
       }
 
@@ -100,8 +99,8 @@ export class OracleMappings {
       priceTypes: dec.priceTypes,
       twapSource: dec.twapSource,
       twapEnabled: dec.twapEnabled,
-      reserved1: dec.reserved1,
-      reserved2: dec.reserved2,
+      refPrice: dec.refPrice,
+      generic: dec.generic,
     })
   }
 
@@ -111,8 +110,8 @@ export class OracleMappings {
       priceTypes: this.priceTypes,
       twapSource: this.twapSource,
       twapEnabled: this.twapEnabled,
-      reserved1: this.reserved1,
-      reserved2: this.reserved2,
+      refPrice: this.refPrice,
+      generic: this.generic,
     }
   }
 
@@ -124,8 +123,8 @@ export class OracleMappings {
       priceTypes: obj.priceTypes,
       twapSource: obj.twapSource,
       twapEnabled: obj.twapEnabled,
-      reserved1: obj.reserved1,
-      reserved2: obj.reserved2,
+      refPrice: obj.refPrice,
+      generic: obj.generic,
     })
   }
 }

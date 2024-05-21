@@ -4,39 +4,45 @@ import * as borsh from "@project-serum/borsh" // eslint-disable-line @typescript
 import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
 import { PROGRAM_ID } from "../programId"
 
-export interface ResetTwapArgs {
-  token: BN
-  feedName: string
+export interface CreateMintMapArgs {
+  seedPk: PublicKey
+  seedId: BN
+  bump: number
+  scopeChains: Array<Array<number>>
 }
 
-export interface ResetTwapAccounts {
+export interface CreateMintMapAccounts {
   admin: PublicKey
-  oraclePrices: PublicKey
   configuration: PublicKey
-  oracleTwaps: PublicKey
-  instructionSysvarAccountInfo: PublicKey
+  mappings: PublicKey
+  systemProgram: PublicKey
 }
 
-export const layout = borsh.struct([borsh.u64("token"), borsh.str("feedName")])
+export const layout = borsh.struct([
+  borsh.publicKey("seedPk"),
+  borsh.u64("seedId"),
+  borsh.u8("bump"),
+  borsh.vec(borsh.array(borsh.u16(), 4), "scopeChains"),
+])
 
-export function resetTwap(args: ResetTwapArgs, accounts: ResetTwapAccounts) {
+export function createMintMap(
+  args: CreateMintMapArgs,
+  accounts: CreateMintMapAccounts
+) {
   const keys: Array<AccountMeta> = [
-    { pubkey: accounts.admin, isSigner: true, isWritable: false },
-    { pubkey: accounts.oraclePrices, isSigner: false, isWritable: false },
+    { pubkey: accounts.admin, isSigner: true, isWritable: true },
     { pubkey: accounts.configuration, isSigner: false, isWritable: false },
-    { pubkey: accounts.oracleTwaps, isSigner: false, isWritable: true },
-    {
-      pubkey: accounts.instructionSysvarAccountInfo,
-      isSigner: false,
-      isWritable: false,
-    },
+    { pubkey: accounts.mappings, isSigner: false, isWritable: true },
+    { pubkey: accounts.systemProgram, isSigner: false, isWritable: false },
   ]
-  const identifier = Buffer.from([101, 216, 28, 92, 154, 79, 49, 187])
+  const identifier = Buffer.from([216, 218, 224, 60, 23, 31, 193, 243])
   const buffer = Buffer.alloc(1000)
   const len = layout.encode(
     {
-      token: args.token,
-      feedName: args.feedName,
+      seedPk: args.seedPk,
+      seedId: args.seedId,
+      bump: args.bump,
+      scopeChains: args.scopeChains,
     },
     buffer
   )

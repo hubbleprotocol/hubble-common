@@ -1,14 +1,15 @@
 import { TransactionInstruction, PublicKey, AccountMeta } from "@solana/web3.js" // eslint-disable-line @typescript-eslint/no-unused-vars
 import BN from "bn.js" // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as borsh from "@coral-xyz/borsh" // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as borsh from "@project-serum/borsh" // eslint-disable-line @typescript-eslint/no-unused-vars
 import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
 import { PROGRAM_ID } from "../programId"
 
 export interface UpdateMappingArgs {
-  token: BN
+  token: number
   priceType: number
   twapEnabled: boolean
   twapSource: number
+  refPriceIndex: number
   feedName: string
 }
 
@@ -20,17 +21,18 @@ export interface UpdateMappingAccounts {
 }
 
 export const layout = borsh.struct([
-  borsh.u64("token"),
+  borsh.u16("token"),
   borsh.u8("priceType"),
   borsh.bool("twapEnabled"),
   borsh.u16("twapSource"),
+  borsh.u16("refPriceIndex"),
   borsh.str("feedName"),
 ])
 
 export function updateMapping(
   args: UpdateMappingArgs,
   accounts: UpdateMappingAccounts,
-  programId: PublicKey = PROGRAM_ID
+  programId: PublicKey
 ) {
   const keys: Array<AccountMeta> = [
     { pubkey: accounts.admin, isSigner: true, isWritable: false },
@@ -46,6 +48,7 @@ export function updateMapping(
       priceType: args.priceType,
       twapEnabled: args.twapEnabled,
       twapSource: args.twapSource,
+      refPriceIndex: args.refPriceIndex,
       feedName: args.feedName,
     },
     buffer

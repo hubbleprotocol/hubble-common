@@ -1,14 +1,9 @@
+import * as UpdateTokenMetadataMode from "./UpdateTokenMetadataMode"
 import * as TokenTypes from "./TokenTypes"
 import * as OracleType from "./OracleType"
+import * as EmaType from "./EmaType"
 import * as ScopeChainError from "./ScopeChainError"
-import * as UpdateTokenMetadataMode from "./UpdateTokenMetadataMode"
 
-export { Limit } from "./Limit"
-export type { LimitFields, LimitJSON } from "./Limit"
-export { Fees } from "./Fees"
-export type { FeesFields, FeesJSON } from "./Fees"
-export { PoolApr } from "./PoolApr"
-export type { PoolAprFields, PoolAprJSON } from "./PoolApr"
 export { Fee } from "./Fee"
 export type { FeeFields, FeeJSON } from "./Fee"
 export { LiqPool } from "./LiqPool"
@@ -49,6 +44,20 @@ export { EmaTwap } from "./EmaTwap"
 export type { EmaTwapFields, EmaTwapJSON } from "./EmaTwap"
 export { TokenMetadata } from "./TokenMetadata"
 export type { TokenMetadataFields, TokenMetadataJSON } from "./TokenMetadata"
+export { MintToScopeChain } from "./MintToScopeChain"
+export type {
+  MintToScopeChainFields,
+  MintToScopeChainJSON,
+} from "./MintToScopeChain"
+export { UpdateTokenMetadataMode }
+
+export type UpdateTokenMetadataModeKind =
+  | UpdateTokenMetadataMode.Name
+  | UpdateTokenMetadataMode.MaxPriceAgeSlots
+export type UpdateTokenMetadataModeJSON =
+  | UpdateTokenMetadataMode.NameJSON
+  | UpdateTokenMetadataMode.MaxPriceAgeSlotsJSON
+
 export { TokenTypes }
 
 export type TokenTypesKind = TokenTypes.TokenA | TokenTypes.TokenB
@@ -58,9 +67,9 @@ export { OracleType }
 
 export type OracleTypeKind =
   | OracleType.Pyth
-  | OracleType.SwitchboardV1
+  | OracleType.DeprecatedPlaceholder1
   | OracleType.SwitchboardV2
-  | OracleType.DeprecatedPlaceholder
+  | OracleType.DeprecatedPlaceholder2
   | OracleType.CToken
   | OracleType.SplStake
   | OracleType.KToken
@@ -68,13 +77,22 @@ export type OracleTypeKind =
   | OracleType.MsolStake
   | OracleType.KTokenToTokenA
   | OracleType.KTokenToTokenB
-  | OracleType.JupiterLP
+  | OracleType.JupiterLpFetch
   | OracleType.ScopeTwap
+  | OracleType.OrcaWhirlpoolAtoB
+  | OracleType.OrcaWhirlpoolBtoA
+  | OracleType.RaydiumAmmV3AtoB
+  | OracleType.RaydiumAmmV3BtoA
+  | OracleType.JupiterLpCompute
+  | OracleType.MeteoraDlmmAtoB
+  | OracleType.MeteoraDlmmBtoA
+  | OracleType.JupiterLpScope
+  | OracleType.PythPullBased
 export type OracleTypeJSON =
   | OracleType.PythJSON
-  | OracleType.SwitchboardV1JSON
+  | OracleType.DeprecatedPlaceholder1JSON
   | OracleType.SwitchboardV2JSON
-  | OracleType.DeprecatedPlaceholderJSON
+  | OracleType.DeprecatedPlaceholder2JSON
   | OracleType.CTokenJSON
   | OracleType.SplStakeJSON
   | OracleType.KTokenJSON
@@ -82,8 +100,22 @@ export type OracleTypeJSON =
   | OracleType.MsolStakeJSON
   | OracleType.KTokenToTokenAJSON
   | OracleType.KTokenToTokenBJSON
-  | OracleType.JupiterLPJSON
+  | OracleType.JupiterLpFetchJSON
   | OracleType.ScopeTwapJSON
+  | OracleType.OrcaWhirlpoolAtoBJSON
+  | OracleType.OrcaWhirlpoolBtoAJSON
+  | OracleType.RaydiumAmmV3AtoBJSON
+  | OracleType.RaydiumAmmV3BtoAJSON
+  | OracleType.JupiterLpComputeJSON
+  | OracleType.MeteoraDlmmAtoBJSON
+  | OracleType.MeteoraDlmmBtoAJSON
+  | OracleType.JupiterLpScopeJSON
+  | OracleType.PythPullBasedJSON
+
+export { EmaType }
+
+export type EmaTypeKind = EmaType.Ema1h
+export type EmaTypeJSON = EmaType.Ema1hJSON
 
 export { ScopeChainError }
 
@@ -102,12 +134,3 @@ export type ScopeChainErrorJSON =
   | ScopeChainError.InvalidPricesInChainJSON
   | ScopeChainError.MathOverflowJSON
   | ScopeChainError.IntegerConversionOverflowJSON
-
-export { UpdateTokenMetadataMode }
-
-export type UpdateTokenMetadataModeKind =
-  | UpdateTokenMetadataMode.Name
-  | UpdateTokenMetadataMode.MaxPriceAgeSeconds
-export type UpdateTokenMetadataModeJSON =
-  | UpdateTokenMetadataMode.NameJSON
-  | UpdateTokenMetadataMode.MaxPriceAgeSecondsJSON

@@ -4,38 +4,34 @@ import * as borsh from "@project-serum/borsh" // eslint-disable-line @typescript
 import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
 import { PROGRAM_ID } from "../programId"
 
-export interface ResetTwapArgs {
-  token: BN
+export interface SetAdminCachedArgs {
+  newAdmin: PublicKey
   feedName: string
 }
 
-export interface ResetTwapAccounts {
+export interface SetAdminCachedAccounts {
   admin: PublicKey
-  oraclePrices: PublicKey
   configuration: PublicKey
-  oracleTwaps: PublicKey
-  instructionSysvarAccountInfo: PublicKey
 }
 
-export const layout = borsh.struct([borsh.u64("token"), borsh.str("feedName")])
+export const layout = borsh.struct([
+  borsh.publicKey("newAdmin"),
+  borsh.str("feedName"),
+])
 
-export function resetTwap(args: ResetTwapArgs, accounts: ResetTwapAccounts) {
+export function setAdminCached(
+  args: SetAdminCachedArgs,
+  accounts: SetAdminCachedAccounts
+) {
   const keys: Array<AccountMeta> = [
     { pubkey: accounts.admin, isSigner: true, isWritable: false },
-    { pubkey: accounts.oraclePrices, isSigner: false, isWritable: false },
-    { pubkey: accounts.configuration, isSigner: false, isWritable: false },
-    { pubkey: accounts.oracleTwaps, isSigner: false, isWritable: true },
-    {
-      pubkey: accounts.instructionSysvarAccountInfo,
-      isSigner: false,
-      isWritable: false,
-    },
+    { pubkey: accounts.configuration, isSigner: false, isWritable: true },
   ]
-  const identifier = Buffer.from([101, 216, 28, 92, 154, 79, 49, 187])
+  const identifier = Buffer.from([114, 14, 105, 205, 216, 148, 30, 75])
   const buffer = Buffer.alloc(1000)
   const len = layout.encode(
     {
-      token: args.token,
+      newAdmin: args.newAdmin,
       feedName: args.feedName,
     },
     buffer

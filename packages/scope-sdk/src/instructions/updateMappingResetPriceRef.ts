@@ -4,38 +4,50 @@ import * as borsh from "@project-serum/borsh" // eslint-disable-line @typescript
 import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
 import { PROGRAM_ID } from "../programId"
 
-export interface ResetTwapArgs {
-  token: BN
+export interface UpdateMappingResetPriceRefArgs {
+  token: number
+  priceType: number
+  twapEnabled: boolean
+  twapSource: number
+  refPriceIndex: number
   feedName: string
 }
 
-export interface ResetTwapAccounts {
+export interface UpdateMappingResetPriceRefAccounts {
   admin: PublicKey
-  oraclePrices: PublicKey
   configuration: PublicKey
-  oracleTwaps: PublicKey
-  instructionSysvarAccountInfo: PublicKey
+  oracleMappings: PublicKey
+  priceInfo: PublicKey
 }
 
-export const layout = borsh.struct([borsh.u64("token"), borsh.str("feedName")])
+export const layout = borsh.struct([
+  borsh.u16("token"),
+  borsh.u8("priceType"),
+  borsh.bool("twapEnabled"),
+  borsh.u16("twapSource"),
+  borsh.u16("refPriceIndex"),
+  borsh.str("feedName"),
+])
 
-export function resetTwap(args: ResetTwapArgs, accounts: ResetTwapAccounts) {
+export function updateMappingResetPriceRef(
+  args: UpdateMappingResetPriceRefArgs,
+  accounts: UpdateMappingResetPriceRefAccounts
+) {
   const keys: Array<AccountMeta> = [
     { pubkey: accounts.admin, isSigner: true, isWritable: false },
-    { pubkey: accounts.oraclePrices, isSigner: false, isWritable: false },
     { pubkey: accounts.configuration, isSigner: false, isWritable: false },
-    { pubkey: accounts.oracleTwaps, isSigner: false, isWritable: true },
-    {
-      pubkey: accounts.instructionSysvarAccountInfo,
-      isSigner: false,
-      isWritable: false,
-    },
+    { pubkey: accounts.oracleMappings, isSigner: false, isWritable: true },
+    { pubkey: accounts.priceInfo, isSigner: false, isWritable: false },
   ]
-  const identifier = Buffer.from([101, 216, 28, 92, 154, 79, 49, 187])
+  const identifier = Buffer.from([161, 158, 88, 148, 227, 18, 163, 74])
   const buffer = Buffer.alloc(1000)
   const len = layout.encode(
     {
       token: args.token,
+      priceType: args.priceType,
+      twapEnabled: args.twapEnabled,
+      twapSource: args.twapSource,
+      refPriceIndex: args.refPriceIndex,
       feedName: args.feedName,
     },
     buffer
