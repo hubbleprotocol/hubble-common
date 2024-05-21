@@ -37,11 +37,7 @@ import { PROGRAM_ID as RAYDIUM_PROGRAM_ID } from '../src/raydium_client/programI
 import { Manual, PricePercentage, PricePercentageWithReset } from '../src/kamino-client/types/RebalanceType';
 import { createWsolAtaIfMissing, getComputeBudgetAndPriorityFeeIxns } from '../src/utils/transactions';
 import { JupService } from '../src/services/JupService';
-import {
-  MAINNET_GLOBAL_LOOKUP_TABLE,
-  STAGING_GLOBAL_CONFIG,
-  STAGING_KAMINO_PROGRAM_ID,
-} from '../src/constants/pubkeys';
+import { STAGING_GLOBAL_CONFIG, STAGING_KAMINO_PROGRAM_ID } from '../src/constants/pubkeys';
 import { METEORA_PROGRAM_ID } from '../src/meteora_client/programId';
 
 describe('Kamino strategy creation SDK Tests', () => {
@@ -626,7 +622,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     const setupStratTx = await kamino.getTransactionV2Message(
       signer.publicKey,
       [...buildNewStrategyIxs.updateStrategyParamsIxs, buildNewStrategyIxs.updateRebalanceParamsIx],
-      [strategyLookupTable, MAINNET_GLOBAL_LOOKUP_TABLE]
+      [strategyLookupTable, ...(await kamino.getMainLookupTablePks())]
     );
     const setupStratTransactionV0 = new VersionedTransaction(setupStratTx);
     setupStratTransactionV0.sign([signer]);
@@ -697,7 +693,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     const setupStratTx = await kamino.getTransactionV2Message(
       signer.publicKey,
       [...buildNewStrategyIxs.updateStrategyParamsIxs, buildNewStrategyIxs.updateRebalanceParamsIx],
-      [strategyLookupTable, MAINNET_GLOBAL_LOOKUP_TABLE]
+      [strategyLookupTable, ...(await kamino.getMainLookupTablePks())]
     );
     const setupStratTransactionV0 = new VersionedTransaction(setupStratTx);
     setupStratTransactionV0.sign([signer]);
@@ -764,7 +760,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     const setupStratTx = await kamino.getTransactionV2Message(
       signer.publicKey,
       [...buildNewStrategyIxs.updateStrategyParamsIxs, buildNewStrategyIxs.updateRebalanceParamsIx],
-      [strategyLookupTable, MAINNET_GLOBAL_LOOKUP_TABLE]
+      [strategyLookupTable, ...(await kamino.getMainLookupTablePks())]
     );
     const setupStratTransactionV0 = new VersionedTransaction(setupStratTx);
     setupStratTransactionV0.sign([signer]);
@@ -829,7 +825,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     const setupStratTx = await kamino.getTransactionV2Message(
       signer.publicKey,
       [...buildNewStrategyIxs.updateStrategyParamsIxs, buildNewStrategyIxs.updateRebalanceParamsIx],
-      [strategyLookupTable, MAINNET_GLOBAL_LOOKUP_TABLE]
+      [strategyLookupTable, ...(await kamino.getMainLookupTablePks())]
     );
     const setupStratTransactionV0 = new VersionedTransaction(setupStratTx);
     setupStratTransactionV0.sign([signer]);
@@ -894,7 +890,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     const setupStratTx = await kamino.getTransactionV2Message(
       signer.publicKey,
       [...buildNewStrategyIxs.updateStrategyParamsIxs, buildNewStrategyIxs.updateRebalanceParamsIx],
-      [strategyLookupTable, MAINNET_GLOBAL_LOOKUP_TABLE]
+      [strategyLookupTable, ...(await kamino.getMainLookupTablePks())]
     );
     const setupStratTransactionV0 = new VersionedTransaction(setupStratTx);
     setupStratTransactionV0.sign([signer]);
@@ -959,7 +955,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     const setupStratTx = await kamino.getTransactionV2Message(
       signer.publicKey,
       [...buildNewStrategyIxs.updateStrategyParamsIxs, buildNewStrategyIxs.updateRebalanceParamsIx],
-      [strategyLookupTable, MAINNET_GLOBAL_LOOKUP_TABLE]
+      [strategyLookupTable, ...(await kamino.getMainLookupTablePks())]
     );
     const setupStratTransactionV0 = new VersionedTransaction(setupStratTx);
     setupStratTransactionV0.sign([signer]);
@@ -1024,7 +1020,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     const setupStratTx = await kamino.getTransactionV2Message(
       signer.publicKey,
       [...buildNewStrategyIxs.updateStrategyParamsIxs, buildNewStrategyIxs.updateRebalanceParamsIx],
-      [strategyLookupTable, MAINNET_GLOBAL_LOOKUP_TABLE]
+      [strategyLookupTable, ...(await kamino.getMainLookupTablePks())]
     );
     const setupStratTransactionV0 = new VersionedTransaction(setupStratTx);
     setupStratTransactionV0.sign([signer]);
@@ -1184,7 +1180,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     const setupStratTx = await kamino.getTransactionV2Message(
       signer.publicKey,
       [...buildNewStrategyIxs.updateStrategyParamsIxs, buildNewStrategyIxs.updateRebalanceParamsIx],
-      [strategyLookupTable, MAINNET_GLOBAL_LOOKUP_TABLE]
+      [strategyLookupTable, ...(await kamino.getMainLookupTablePks())]
     );
     const setupStratTransactionV0 = new VersionedTransaction(setupStratTx);
     setupStratTransactionV0.sign([signer]);
@@ -1268,7 +1264,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     const setupStratTx = await kamino.getTransactionV2Message(
       signer.publicKey,
       [...buildNewStrategyIxs.updateStrategyParamsIxs, buildNewStrategyIxs.updateRebalanceParamsIx],
-      [strategyLookupTable, MAINNET_GLOBAL_LOOKUP_TABLE]
+      [strategyLookupTable, ...(await kamino.getMainLookupTablePks())]
     );
     const setupStratTransactionV0 = new VersionedTransaction(setupStratTx);
     setupStratTransactionV0.sign([signer]);
@@ -1288,7 +1284,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     const openPositionIxns = buildNewStrategyIxs.openPositionIxs;
     const openPositionMessage = await kamino.getTransactionV2Message(signer.publicKey, openPositionIxns, [
       strategyLookupTable,
-      MAINNET_GLOBAL_LOOKUP_TABLE,
+      ...(await kamino.getMainLookupTablePks()),
     ]);
     const openPositionTx = new VersionedTransaction(openPositionMessage);
     openPositionTx.sign([signer, newPosition]);
@@ -1363,7 +1359,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     const setupStratTx = await kamino.getTransactionV2Message(
       signer.publicKey,
       [...buildNewStrategyIxs.updateStrategyParamsIxs, buildNewStrategyIxs.updateRebalanceParamsIx],
-      [strategyLookupTable, MAINNET_GLOBAL_LOOKUP_TABLE]
+      [strategyLookupTable, ...(await kamino.getMainLookupTablePks())]
     );
     const setupStratTransactionV0 = new VersionedTransaction(setupStratTx);
     setupStratTransactionV0.sign([signer]);
@@ -1377,7 +1373,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     const openPositionMessage = await kamino.getTransactionV2Message(
       signer.publicKey,
       buildNewStrategyIxs.openPositionIxs,
-      [strategyLookupTable, MAINNET_GLOBAL_LOOKUP_TABLE]
+      [strategyLookupTable, ...(await kamino.getMainLookupTablePks())]
     );
     const openPositionTx = new VersionedTransaction(openPositionMessage);
     openPositionTx.sign([signer, newPosition]);
@@ -1433,7 +1429,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     const setupStratTx = await kamino.getTransactionV2Message(
       signer.publicKey,
       [...buildNewStrategyIxs.updateStrategyParamsIxs, buildNewStrategyIxs.updateRebalanceParamsIx],
-      [strategyLookupTable, MAINNET_GLOBAL_LOOKUP_TABLE]
+      [strategyLookupTable, ...(await kamino.getMainLookupTablePks())]
     );
     const setupStratTransactionV0 = new VersionedTransaction(setupStratTx);
     setupStratTransactionV0.sign([signer]);
@@ -1529,7 +1525,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     const singleSidedDepositMessage = await kamino.getTransactionV2Message(
       signer.publicKey,
       [...getComputeBudgetAndPriorityFeeIxns(1_400_000), ...singleSidedDepositIxs],
-      [...lookupTables, MAINNET_GLOBAL_LOOKUP_TABLE]
+      [...lookupTables, ...(await kamino.getMainLookupTablePks())]
     );
     const singleSidedDepositTx = new VersionedTransaction(singleSidedDepositMessage);
     singleSidedDepositTx.sign([signer]);
@@ -1595,7 +1591,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     const singleSidedDepositMessage = await kamino.getTransactionV2Message(
       signer.publicKey,
       [...getComputeBudgetAndPriorityFeeIxns(1_400_000), ...singleSidedDepositIxs],
-      [...lookupTables, MAINNET_GLOBAL_LOOKUP_TABLE]
+      [...lookupTables, ...(await kamino.getMainLookupTablePks())]
     );
     const singleSidedDepositTx = new VersionedTransaction(singleSidedDepositMessage);
     singleSidedDepositTx.sign([signer]);
@@ -1655,7 +1651,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     const singleSidedDepositMessage = await kamino.getTransactionV2Message(
       signer.publicKey,
       [...getComputeBudgetAndPriorityFeeIxns(1_400_000), ...singleSidedDepositIxs],
-      [...lookupTables, MAINNET_GLOBAL_LOOKUP_TABLE]
+      [...lookupTables, ...(await kamino.getMainLookupTablePks())]
     );
     const singleSidedDepositTx = new VersionedTransaction(singleSidedDepositMessage);
     singleSidedDepositTx.sign([signer]);
@@ -1711,7 +1707,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     const singleSidedDepositMessage = await kamino.getTransactionV2Message(
       signer.publicKey,
       [...getComputeBudgetAndPriorityFeeIxns(1_400_000), ...singleSidedDepositIxs],
-      [...lookupTables, MAINNET_GLOBAL_LOOKUP_TABLE]
+      [...lookupTables, ...(await kamino.getMainLookupTablePks())]
     );
     const singleSidedDepositTx = new VersionedTransaction(singleSidedDepositMessage);
     singleSidedDepositTx.sign([signer]);
@@ -1782,7 +1778,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     const singleSidedDepositMessage = await kamino.getTransactionV2Message(
       signer.publicKey,
       [...getComputeBudgetAndPriorityFeeIxns(1_400_000), ...singleSidedDepositIxs],
-      [...lookupTables, MAINNET_GLOBAL_LOOKUP_TABLE]
+      [...lookupTables, ...(await kamino.getMainLookupTablePks())]
     );
     const singleSidedDepositTx = new VersionedTransaction(singleSidedDepositMessage);
     singleSidedDepositTx.sign([signer]);
@@ -1853,7 +1849,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     const singleSidedDepositMessage = await kamino.getTransactionV2Message(
       signer.publicKey,
       [...getComputeBudgetAndPriorityFeeIxns(1_400_000), ...singleSidedDepositIxs],
-      [...lookupTables, MAINNET_GLOBAL_LOOKUP_TABLE]
+      [...lookupTables, ...(await kamino.getMainLookupTablePks())]
     );
     const singleSidedDepositTx = new VersionedTransaction(singleSidedDepositMessage);
     singleSidedDepositTx.sign([signer]);
@@ -1924,7 +1920,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     const singleSidedDepositMessage = await kamino.getTransactionV2Message(
       signer.publicKey,
       [...getComputeBudgetAndPriorityFeeIxns(1_400_000), ...singleSidedDepositIxs],
-      [...lookupTables, MAINNET_GLOBAL_LOOKUP_TABLE]
+      [...lookupTables, ...(await kamino.getMainLookupTablePks())]
     );
     const singleSidedDepositTx = new VersionedTransaction(singleSidedDepositMessage);
     singleSidedDepositTx.sign([signer]);
@@ -1978,7 +1974,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     const slippageBps = new Decimal(100);
 
     let singleSidedDepositIxs: TransactionInstruction[] = [];
-    let lookupTables: PublicKey[] = [MAINNET_GLOBAL_LOOKUP_TABLE];
+    let lookupTables: PublicKey[] = [...(await kamino.getMainLookupTablePks())];
     if (strategyState.strategyLookupTable != PublicKey.default) {
       lookupTables.push(strategyState.strategyLookupTable);
     }
