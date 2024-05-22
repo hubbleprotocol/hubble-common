@@ -20,6 +20,14 @@ export type CustomError =
   | BadSlot
   | PriceAccountNotExpected
   | TwapSourceIndexOutOfRange
+  | TwapSampleTooFrequent
+  | UnexpectedJlpConfiguration
+  | TwapNotEnoughSamplesInPeriod
+  | EmptyTokenList
+  | StakeFeeTooHigh
+  | KTokenUnderlyingPriceNotValid
+  | KTokenHoldingsCalculationError
+  | CannotResizeAccount
 
 export class IntegerOverflow extends Error {
   static readonly code = 6000
@@ -255,6 +263,94 @@ export class TwapSourceIndexOutOfRange extends Error {
   }
 }
 
+export class TwapSampleTooFrequent extends Error {
+  static readonly code = 6021
+  readonly code = 6021
+  readonly name = "TwapSampleTooFrequent"
+  readonly msg = "TWAP sample is too close to the previous one"
+
+  constructor(readonly logs?: string[]) {
+    super("6021: TWAP sample is too close to the previous one")
+  }
+}
+
+export class UnexpectedJlpConfiguration extends Error {
+  static readonly code = 6022
+  readonly code = 6022
+  readonly name = "UnexpectedJlpConfiguration"
+  readonly msg = "Unexpected JLP configuration"
+
+  constructor(readonly logs?: string[]) {
+    super("6022: Unexpected JLP configuration")
+  }
+}
+
+export class TwapNotEnoughSamplesInPeriod extends Error {
+  static readonly code = 6023
+  readonly code = 6023
+  readonly name = "TwapNotEnoughSamplesInPeriod"
+  readonly msg = "Not enough price samples in period to compute TWAP"
+
+  constructor(readonly logs?: string[]) {
+    super("6023: Not enough price samples in period to compute TWAP")
+  }
+}
+
+export class EmptyTokenList extends Error {
+  static readonly code = 6024
+  readonly code = 6024
+  readonly name = "EmptyTokenList"
+  readonly msg = "The provided token list to refresh is empty"
+
+  constructor(readonly logs?: string[]) {
+    super("6024: The provided token list to refresh is empty")
+  }
+}
+
+export class StakeFeeTooHigh extends Error {
+  static readonly code = 6025
+  readonly code = 6025
+  readonly name = "StakeFeeTooHigh"
+  readonly msg = "The stake pool fee is higher than the maximum allowed"
+
+  constructor(readonly logs?: string[]) {
+    super("6025: The stake pool fee is higher than the maximum allowed")
+  }
+}
+
+export class KTokenUnderlyingPriceNotValid extends Error {
+  static readonly code = 6026
+  readonly code = 6026
+  readonly name = "KTokenUnderlyingPriceNotValid"
+  readonly msg = "Cannot get a valid price for the tokens composing the Ktoken"
+
+  constructor(readonly logs?: string[]) {
+    super("6026: Cannot get a valid price for the tokens composing the Ktoken")
+  }
+}
+
+export class KTokenHoldingsCalculationError extends Error {
+  static readonly code = 6027
+  readonly code = 6027
+  readonly name = "KTokenHoldingsCalculationError"
+  readonly msg = "Error while computing the Ktoken pool holdings"
+
+  constructor(readonly logs?: string[]) {
+    super("6027: Error while computing the Ktoken pool holdings")
+  }
+}
+
+export class CannotResizeAccount extends Error {
+  static readonly code = 6028
+  readonly code = 6028
+  readonly name = "CannotResizeAccount"
+  readonly msg = "Cannot resize the account we only allow it to grow in size"
+
+  constructor(readonly logs?: string[]) {
+    super("6028: Cannot resize the account we only allow it to grow in size")
+  }
+}
+
 export function fromCode(code: number, logs?: string[]): CustomError | null {
   switch (code) {
     case 6000:
@@ -299,6 +395,22 @@ export function fromCode(code: number, logs?: string[]): CustomError | null {
       return new PriceAccountNotExpected(logs)
     case 6020:
       return new TwapSourceIndexOutOfRange(logs)
+    case 6021:
+      return new TwapSampleTooFrequent(logs)
+    case 6022:
+      return new UnexpectedJlpConfiguration(logs)
+    case 6023:
+      return new TwapNotEnoughSamplesInPeriod(logs)
+    case 6024:
+      return new EmptyTokenList(logs)
+    case 6025:
+      return new StakeFeeTooHigh(logs)
+    case 6026:
+      return new KTokenUnderlyingPriceNotValid(logs)
+    case 6027:
+      return new KTokenHoldingsCalculationError(logs)
+    case 6028:
+      return new CannotResizeAccount(logs)
   }
 
   return null

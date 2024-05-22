@@ -26,25 +26,25 @@ export class Pyth {
   }
 }
 
-export interface SwitchboardV1JSON {
-  kind: "SwitchboardV1"
+export interface DeprecatedPlaceholder1JSON {
+  kind: "DeprecatedPlaceholder1"
 }
 
-export class SwitchboardV1 {
+export class DeprecatedPlaceholder1 {
   static readonly discriminator = 1
-  static readonly kind = "SwitchboardV1"
+  static readonly kind = "DeprecatedPlaceholder1"
   readonly discriminator = 1
-  readonly kind = "SwitchboardV1"
+  readonly kind = "DeprecatedPlaceholder1"
 
-  toJSON(): SwitchboardV1JSON {
+  toJSON(): DeprecatedPlaceholder1JSON {
     return {
-      kind: "SwitchboardV1",
+      kind: "DeprecatedPlaceholder1",
     }
   }
 
   toEncodable() {
     return {
-      SwitchboardV1: {},
+      DeprecatedPlaceholder1: {},
     }
   }
 }
@@ -72,25 +72,25 @@ export class SwitchboardV2 {
   }
 }
 
-export interface DeprecatedPlaceholderJSON {
-  kind: "DeprecatedPlaceholder"
+export interface DeprecatedPlaceholder2JSON {
+  kind: "DeprecatedPlaceholder2"
 }
 
-export class DeprecatedPlaceholder {
+export class DeprecatedPlaceholder2 {
   static readonly discriminator = 3
-  static readonly kind = "DeprecatedPlaceholder"
+  static readonly kind = "DeprecatedPlaceholder2"
   readonly discriminator = 3
-  readonly kind = "DeprecatedPlaceholder"
+  readonly kind = "DeprecatedPlaceholder2"
 
-  toJSON(): DeprecatedPlaceholderJSON {
+  toJSON(): DeprecatedPlaceholder2JSON {
     return {
-      kind: "DeprecatedPlaceholder",
+      kind: "DeprecatedPlaceholder2",
     }
   }
 
   toEncodable() {
     return {
-      DeprecatedPlaceholder: {},
+      DeprecatedPlaceholder2: {},
     }
   }
 }
@@ -256,25 +256,25 @@ export class KTokenToTokenB {
   }
 }
 
-export interface JupiterLPJSON {
-  kind: "JupiterLP"
+export interface JupiterLpFetchJSON {
+  kind: "JupiterLpFetch"
 }
 
-export class JupiterLP {
+export class JupiterLpFetch {
   static readonly discriminator = 11
-  static readonly kind = "JupiterLP"
+  static readonly kind = "JupiterLpFetch"
   readonly discriminator = 11
-  readonly kind = "JupiterLP"
+  readonly kind = "JupiterLpFetch"
 
-  toJSON(): JupiterLPJSON {
+  toJSON(): JupiterLpFetchJSON {
     return {
-      kind: "JupiterLP",
+      kind: "JupiterLpFetch",
     }
   }
 
   toEncodable() {
     return {
-      JupiterLP: {},
+      JupiterLpFetch: {},
     }
   }
 }
@@ -302,6 +302,213 @@ export class ScopeTwap {
   }
 }
 
+export interface OrcaWhirlpoolAtoBJSON {
+  kind: "OrcaWhirlpoolAtoB"
+}
+
+export class OrcaWhirlpoolAtoB {
+  static readonly discriminator = 13
+  static readonly kind = "OrcaWhirlpoolAtoB"
+  readonly discriminator = 13
+  readonly kind = "OrcaWhirlpoolAtoB"
+
+  toJSON(): OrcaWhirlpoolAtoBJSON {
+    return {
+      kind: "OrcaWhirlpoolAtoB",
+    }
+  }
+
+  toEncodable() {
+    return {
+      OrcaWhirlpoolAtoB: {},
+    }
+  }
+}
+
+export interface OrcaWhirlpoolBtoAJSON {
+  kind: "OrcaWhirlpoolBtoA"
+}
+
+export class OrcaWhirlpoolBtoA {
+  static readonly discriminator = 14
+  static readonly kind = "OrcaWhirlpoolBtoA"
+  readonly discriminator = 14
+  readonly kind = "OrcaWhirlpoolBtoA"
+
+  toJSON(): OrcaWhirlpoolBtoAJSON {
+    return {
+      kind: "OrcaWhirlpoolBtoA",
+    }
+  }
+
+  toEncodable() {
+    return {
+      OrcaWhirlpoolBtoA: {},
+    }
+  }
+}
+
+export interface RaydiumAmmV3AtoBJSON {
+  kind: "RaydiumAmmV3AtoB"
+}
+
+export class RaydiumAmmV3AtoB {
+  static readonly discriminator = 15
+  static readonly kind = "RaydiumAmmV3AtoB"
+  readonly discriminator = 15
+  readonly kind = "RaydiumAmmV3AtoB"
+
+  toJSON(): RaydiumAmmV3AtoBJSON {
+    return {
+      kind: "RaydiumAmmV3AtoB",
+    }
+  }
+
+  toEncodable() {
+    return {
+      RaydiumAmmV3AtoB: {},
+    }
+  }
+}
+
+export interface RaydiumAmmV3BtoAJSON {
+  kind: "RaydiumAmmV3BtoA"
+}
+
+export class RaydiumAmmV3BtoA {
+  static readonly discriminator = 16
+  static readonly kind = "RaydiumAmmV3BtoA"
+  readonly discriminator = 16
+  readonly kind = "RaydiumAmmV3BtoA"
+
+  toJSON(): RaydiumAmmV3BtoAJSON {
+    return {
+      kind: "RaydiumAmmV3BtoA",
+    }
+  }
+
+  toEncodable() {
+    return {
+      RaydiumAmmV3BtoA: {},
+    }
+  }
+}
+
+export interface JupiterLpComputeJSON {
+  kind: "JupiterLpCompute"
+}
+
+export class JupiterLpCompute {
+  static readonly discriminator = 17
+  static readonly kind = "JupiterLpCompute"
+  readonly discriminator = 17
+  readonly kind = "JupiterLpCompute"
+
+  toJSON(): JupiterLpComputeJSON {
+    return {
+      kind: "JupiterLpCompute",
+    }
+  }
+
+  toEncodable() {
+    return {
+      JupiterLpCompute: {},
+    }
+  }
+}
+
+export interface MeteoraDlmmAtoBJSON {
+  kind: "MeteoraDlmmAtoB"
+}
+
+export class MeteoraDlmmAtoB {
+  static readonly discriminator = 18
+  static readonly kind = "MeteoraDlmmAtoB"
+  readonly discriminator = 18
+  readonly kind = "MeteoraDlmmAtoB"
+
+  toJSON(): MeteoraDlmmAtoBJSON {
+    return {
+      kind: "MeteoraDlmmAtoB",
+    }
+  }
+
+  toEncodable() {
+    return {
+      MeteoraDlmmAtoB: {},
+    }
+  }
+}
+
+export interface MeteoraDlmmBtoAJSON {
+  kind: "MeteoraDlmmBtoA"
+}
+
+export class MeteoraDlmmBtoA {
+  static readonly discriminator = 19
+  static readonly kind = "MeteoraDlmmBtoA"
+  readonly discriminator = 19
+  readonly kind = "MeteoraDlmmBtoA"
+
+  toJSON(): MeteoraDlmmBtoAJSON {
+    return {
+      kind: "MeteoraDlmmBtoA",
+    }
+  }
+
+  toEncodable() {
+    return {
+      MeteoraDlmmBtoA: {},
+    }
+  }
+}
+
+export interface JupiterLpScopeJSON {
+  kind: "JupiterLpScope"
+}
+
+export class JupiterLpScope {
+  static readonly discriminator = 20
+  static readonly kind = "JupiterLpScope"
+  readonly discriminator = 20
+  readonly kind = "JupiterLpScope"
+
+  toJSON(): JupiterLpScopeJSON {
+    return {
+      kind: "JupiterLpScope",
+    }
+  }
+
+  toEncodable() {
+    return {
+      JupiterLpScope: {},
+    }
+  }
+}
+
+export interface PythPullBasedJSON {
+  kind: "PythPullBased"
+}
+
+export class PythPullBased {
+  static readonly discriminator = 21
+  static readonly kind = "PythPullBased"
+  readonly discriminator = 21
+  readonly kind = "PythPullBased"
+
+  toJSON(): PythPullBasedJSON {
+    return {
+      kind: "PythPullBased",
+    }
+  }
+
+  toEncodable() {
+    return {
+      PythPullBased: {},
+    }
+  }
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function fromDecoded(obj: any): types.OracleTypeKind {
   if (typeof obj !== "object") {
@@ -311,14 +518,14 @@ export function fromDecoded(obj: any): types.OracleTypeKind {
   if ("Pyth" in obj) {
     return new Pyth()
   }
-  if ("SwitchboardV1" in obj) {
-    return new SwitchboardV1()
+  if ("DeprecatedPlaceholder1" in obj) {
+    return new DeprecatedPlaceholder1()
   }
   if ("SwitchboardV2" in obj) {
     return new SwitchboardV2()
   }
-  if ("DeprecatedPlaceholder" in obj) {
-    return new DeprecatedPlaceholder()
+  if ("DeprecatedPlaceholder2" in obj) {
+    return new DeprecatedPlaceholder2()
   }
   if ("CToken" in obj) {
     return new CToken()
@@ -341,11 +548,38 @@ export function fromDecoded(obj: any): types.OracleTypeKind {
   if ("KTokenToTokenB" in obj) {
     return new KTokenToTokenB()
   }
-  if ("JupiterLP" in obj) {
-    return new JupiterLP()
+  if ("JupiterLpFetch" in obj) {
+    return new JupiterLpFetch()
   }
   if ("ScopeTwap" in obj) {
     return new ScopeTwap()
+  }
+  if ("OrcaWhirlpoolAtoB" in obj) {
+    return new OrcaWhirlpoolAtoB()
+  }
+  if ("OrcaWhirlpoolBtoA" in obj) {
+    return new OrcaWhirlpoolBtoA()
+  }
+  if ("RaydiumAmmV3AtoB" in obj) {
+    return new RaydiumAmmV3AtoB()
+  }
+  if ("RaydiumAmmV3BtoA" in obj) {
+    return new RaydiumAmmV3BtoA()
+  }
+  if ("JupiterLpCompute" in obj) {
+    return new JupiterLpCompute()
+  }
+  if ("MeteoraDlmmAtoB" in obj) {
+    return new MeteoraDlmmAtoB()
+  }
+  if ("MeteoraDlmmBtoA" in obj) {
+    return new MeteoraDlmmBtoA()
+  }
+  if ("JupiterLpScope" in obj) {
+    return new JupiterLpScope()
+  }
+  if ("PythPullBased" in obj) {
+    return new PythPullBased()
   }
 
   throw new Error("Invalid enum object")
@@ -356,14 +590,14 @@ export function fromJSON(obj: types.OracleTypeJSON): types.OracleTypeKind {
     case "Pyth": {
       return new Pyth()
     }
-    case "SwitchboardV1": {
-      return new SwitchboardV1()
+    case "DeprecatedPlaceholder1": {
+      return new DeprecatedPlaceholder1()
     }
     case "SwitchboardV2": {
       return new SwitchboardV2()
     }
-    case "DeprecatedPlaceholder": {
-      return new DeprecatedPlaceholder()
+    case "DeprecatedPlaceholder2": {
+      return new DeprecatedPlaceholder2()
     }
     case "CToken": {
       return new CToken()
@@ -386,11 +620,38 @@ export function fromJSON(obj: types.OracleTypeJSON): types.OracleTypeKind {
     case "KTokenToTokenB": {
       return new KTokenToTokenB()
     }
-    case "JupiterLP": {
-      return new JupiterLP()
+    case "JupiterLpFetch": {
+      return new JupiterLpFetch()
     }
     case "ScopeTwap": {
       return new ScopeTwap()
+    }
+    case "OrcaWhirlpoolAtoB": {
+      return new OrcaWhirlpoolAtoB()
+    }
+    case "OrcaWhirlpoolBtoA": {
+      return new OrcaWhirlpoolBtoA()
+    }
+    case "RaydiumAmmV3AtoB": {
+      return new RaydiumAmmV3AtoB()
+    }
+    case "RaydiumAmmV3BtoA": {
+      return new RaydiumAmmV3BtoA()
+    }
+    case "JupiterLpCompute": {
+      return new JupiterLpCompute()
+    }
+    case "MeteoraDlmmAtoB": {
+      return new MeteoraDlmmAtoB()
+    }
+    case "MeteoraDlmmBtoA": {
+      return new MeteoraDlmmBtoA()
+    }
+    case "JupiterLpScope": {
+      return new JupiterLpScope()
+    }
+    case "PythPullBased": {
+      return new PythPullBased()
     }
   }
 }
@@ -398,9 +659,9 @@ export function fromJSON(obj: types.OracleTypeJSON): types.OracleTypeKind {
 export function layout(property?: string) {
   const ret = borsh.rustEnum([
     borsh.struct([], "Pyth"),
-    borsh.struct([], "SwitchboardV1"),
+    borsh.struct([], "DeprecatedPlaceholder1"),
     borsh.struct([], "SwitchboardV2"),
-    borsh.struct([], "DeprecatedPlaceholder"),
+    borsh.struct([], "DeprecatedPlaceholder2"),
     borsh.struct([], "CToken"),
     borsh.struct([], "SplStake"),
     borsh.struct([], "KToken"),
@@ -408,8 +669,17 @@ export function layout(property?: string) {
     borsh.struct([], "MsolStake"),
     borsh.struct([], "KTokenToTokenA"),
     borsh.struct([], "KTokenToTokenB"),
-    borsh.struct([], "JupiterLP"),
+    borsh.struct([], "JupiterLpFetch"),
     borsh.struct([], "ScopeTwap"),
+    borsh.struct([], "OrcaWhirlpoolAtoB"),
+    borsh.struct([], "OrcaWhirlpoolBtoA"),
+    borsh.struct([], "RaydiumAmmV3AtoB"),
+    borsh.struct([], "RaydiumAmmV3BtoA"),
+    borsh.struct([], "JupiterLpCompute"),
+    borsh.struct([], "MeteoraDlmmAtoB"),
+    borsh.struct([], "MeteoraDlmmBtoA"),
+    borsh.struct([], "JupiterLpScope"),
+    borsh.struct([], "PythPullBased"),
   ])
   if (property !== undefined) {
     return ret.replicate(property)

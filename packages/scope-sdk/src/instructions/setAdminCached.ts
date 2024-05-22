@@ -4,51 +4,35 @@ import * as borsh from "@coral-xyz/borsh" // eslint-disable-line @typescript-esl
 import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
 import { PROGRAM_ID } from "../programId"
 
-export interface UpdateMappingArgs {
-  token: number
-  priceType: number
-  twapEnabled: boolean
-  twapSource: number
-  refPriceIndex: number
+export interface SetAdminCachedArgs {
+  newAdmin: PublicKey
   feedName: string
 }
 
-export interface UpdateMappingAccounts {
+export interface SetAdminCachedAccounts {
   admin: PublicKey
   configuration: PublicKey
-  oracleMappings: PublicKey
-  priceInfo: PublicKey
 }
 
 export const layout = borsh.struct([
-  borsh.u16("token"),
-  borsh.u8("priceType"),
-  borsh.bool("twapEnabled"),
-  borsh.u16("twapSource"),
-  borsh.u16("refPriceIndex"),
+  borsh.publicKey("newAdmin"),
   borsh.str("feedName"),
 ])
 
-export function updateMapping(
-  args: UpdateMappingArgs,
-  accounts: UpdateMappingAccounts,
+export function setAdminCached(
+  args: SetAdminCachedArgs,
+  accounts: SetAdminCachedAccounts,
   programId: PublicKey = PROGRAM_ID
 ) {
   const keys: Array<AccountMeta> = [
     { pubkey: accounts.admin, isSigner: true, isWritable: false },
-    { pubkey: accounts.configuration, isSigner: false, isWritable: false },
-    { pubkey: accounts.oracleMappings, isSigner: false, isWritable: true },
-    { pubkey: accounts.priceInfo, isSigner: false, isWritable: false },
+    { pubkey: accounts.configuration, isSigner: false, isWritable: true },
   ]
-  const identifier = Buffer.from([56, 102, 90, 236, 243, 21, 185, 105])
+  const identifier = Buffer.from([114, 14, 105, 205, 216, 148, 30, 75])
   const buffer = Buffer.alloc(1000)
   const len = layout.encode(
     {
-      token: args.token,
-      priceType: args.priceType,
-      twapEnabled: args.twapEnabled,
-      twapSource: args.twapSource,
-      refPriceIndex: args.refPriceIndex,
+      newAdmin: args.newAdmin,
       feedName: args.feedName,
     },
     buffer

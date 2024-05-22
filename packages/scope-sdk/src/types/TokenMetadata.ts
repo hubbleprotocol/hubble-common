@@ -5,24 +5,24 @@ import * as borsh from "@coral-xyz/borsh"
 
 export interface TokenMetadataFields {
   name: Array<number>
-  maxAgePriceSeconds: BN
+  maxAgePriceSlots: BN
   reserved: Array<BN>
 }
 
 export interface TokenMetadataJSON {
   name: Array<number>
-  maxAgePriceSeconds: string
+  maxAgePriceSlots: string
   reserved: Array<string>
 }
 
 export class TokenMetadata {
   readonly name: Array<number>
-  readonly maxAgePriceSeconds: BN
+  readonly maxAgePriceSlots: BN
   readonly reserved: Array<BN>
 
   constructor(fields: TokenMetadataFields) {
     this.name = fields.name
-    this.maxAgePriceSeconds = fields.maxAgePriceSeconds
+    this.maxAgePriceSlots = fields.maxAgePriceSlots
     this.reserved = fields.reserved
   }
 
@@ -30,7 +30,7 @@ export class TokenMetadata {
     return borsh.struct(
       [
         borsh.array(borsh.u8(), 32, "name"),
-        borsh.u64("maxAgePriceSeconds"),
+        borsh.u64("maxAgePriceSlots"),
         borsh.array(borsh.u64(), 16, "reserved"),
       ],
       property
@@ -41,7 +41,7 @@ export class TokenMetadata {
   static fromDecoded(obj: any) {
     return new TokenMetadata({
       name: obj.name,
-      maxAgePriceSeconds: obj.maxAgePriceSeconds,
+      maxAgePriceSlots: obj.maxAgePriceSlots,
       reserved: obj.reserved,
     })
   }
@@ -49,7 +49,7 @@ export class TokenMetadata {
   static toEncodable(fields: TokenMetadataFields) {
     return {
       name: fields.name,
-      maxAgePriceSeconds: fields.maxAgePriceSeconds,
+      maxAgePriceSlots: fields.maxAgePriceSlots,
       reserved: fields.reserved,
     }
   }
@@ -57,7 +57,7 @@ export class TokenMetadata {
   toJSON(): TokenMetadataJSON {
     return {
       name: this.name,
-      maxAgePriceSeconds: this.maxAgePriceSeconds.toString(),
+      maxAgePriceSlots: this.maxAgePriceSlots.toString(),
       reserved: this.reserved.map((item) => item.toString()),
     }
   }
@@ -65,7 +65,7 @@ export class TokenMetadata {
   static fromJSON(obj: TokenMetadataJSON): TokenMetadata {
     return new TokenMetadata({
       name: obj.name,
-      maxAgePriceSeconds: new BN(obj.maxAgePriceSeconds),
+      maxAgePriceSlots: new BN(obj.maxAgePriceSlots),
       reserved: obj.reserved.map((item) => new BN(item)),
     })
   }
