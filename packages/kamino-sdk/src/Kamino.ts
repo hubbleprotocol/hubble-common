@@ -6952,57 +6952,23 @@ export class Kamino {
   };
 
   getCollateralInfo = async (address: PublicKey): Promise<CollateralInfo[]> => {
-    const info = await this._connection.getAccountInfo(address);
-
-    if (info === null) {
+    const collateralInfos = await CollateralInfos.fetch(this._connection, address, this._kaminoProgramId);
+    if (collateralInfos === null) {
       throw new Error('Could not fetch CollateralInfos');
     }
-    if (!info.owner.equals(this._kaminoProgramId)) {
-      throw new Error("CollateralInfos doesn't belong to this program");
-    }
-
-    return CollateralInfos.decode(info.data).infos;
+    return collateralInfos.infos;
   };
 
-  getGlobalConfigState = async (address: PublicKey): Promise<GlobalConfig> => {
-    const info = await this._connection.getAccountInfo(address);
-
-    if (info === null) {
-      throw new Error('Could not fetch GlobalConfig');
-    }
-    if (!info.owner.equals(this._kaminoProgramId)) {
-      throw new Error("GlobalConfig doesn't belong to this program");
-    }
-
-    return GlobalConfig.decode(info.data);
+  getGlobalConfigState = async (address: PublicKey): Promise<GlobalConfig | null> => {
+    return await GlobalConfig.fetch(this._connection, address, this._kaminoProgramId);
   };
 
-  getWhirlpoolStrategy = async (address: PublicKey): Promise<WhirlpoolStrategy> => {
-    const info = await this._connection.getAccountInfo(address);
-
-    if (info === null) {
-      throw new Error('Could not fetch WhirlpoolStrategy');
-    }
-    if (!info.owner.equals(this._kaminoProgramId)) {
-      throw new Error("WhirlpoolStrategy doesn't belong to this program");
-    }
-
-    return WhirlpoolStrategy.decode(info.data);
+  getWhirlpoolStrategy = async (address: PublicKey): Promise<WhirlpoolStrategy | null> => {
+    return await WhirlpoolStrategy.fetch(this._connection, address, this._kaminoProgramId);
   };
 
   getWhirlpoolStrategies = async (addresses: PublicKey[]): Promise<Array<WhirlpoolStrategy | null>> => {
-    const infos = await this._connection.getMultipleAccountsInfo(addresses);
-
-    return infos.map((info) => {
-      if (info === null) {
-        return null;
-      }
-      if (!info.owner.equals(this._kaminoProgramId)) {
-        throw new Error("WhirlpoolStrategy doesn't belong to this program");
-      }
-
-      return WhirlpoolStrategy.decode(info.data);
-    });
+    return await WhirlpoolStrategy.fetchMultiple(this._connection, addresses, this._kaminoProgramId);
   };
 
   getStrategyVaultBalances = async (strategy: PublicKey | StrategyWithAddress) => {

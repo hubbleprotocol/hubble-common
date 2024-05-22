@@ -1,7 +1,7 @@
 import { PublicKey } from "@solana/web3.js" // eslint-disable-line @typescript-eslint/no-unused-vars
 import BN from "bn.js" // eslint-disable-line @typescript-eslint/no-unused-vars
 import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as borsh from "@project-serum/borsh"
+import * as borsh from "@coral-xyz/borsh"
 
 export interface EmergencyModeJSON {
   kind: "EmergencyMode"
@@ -509,6 +509,29 @@ export class ActionsAfterRebalanceDelaySeconds {
   }
 }
 
+export interface TreasuryFeeVaultReceiverJSON {
+  kind: "TreasuryFeeVaultReceiver"
+}
+
+export class TreasuryFeeVaultReceiver {
+  static readonly discriminator = 22
+  static readonly kind = "TreasuryFeeVaultReceiver"
+  readonly discriminator = 22
+  readonly kind = "TreasuryFeeVaultReceiver"
+
+  toJSON(): TreasuryFeeVaultReceiverJSON {
+    return {
+      kind: "TreasuryFeeVaultReceiver",
+    }
+  }
+
+  toEncodable() {
+    return {
+      TreasuryFeeVaultReceiver: {},
+    }
+  }
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function fromDecoded(obj: any): types.GlobalConfigOptionKind {
   if (typeof obj !== "object") {
@@ -580,6 +603,9 @@ export function fromDecoded(obj: any): types.GlobalConfigOptionKind {
   }
   if ("ActionsAfterRebalanceDelaySeconds" in obj) {
     return new ActionsAfterRebalanceDelaySeconds()
+  }
+  if ("TreasuryFeeVaultReceiver" in obj) {
+    return new TreasuryFeeVaultReceiver()
   }
 
   throw new Error("Invalid enum object")
@@ -655,6 +681,9 @@ export function fromJSON(
     case "ActionsAfterRebalanceDelaySeconds": {
       return new ActionsAfterRebalanceDelaySeconds()
     }
+    case "TreasuryFeeVaultReceiver": {
+      return new TreasuryFeeVaultReceiver()
+    }
   }
 }
 
@@ -682,6 +711,7 @@ export function layout(property?: string) {
     borsh.struct([], "MinSwapUnevenSlippageToleranceBps"),
     borsh.struct([], "MinReferencePriceSlippageToleranceBps"),
     borsh.struct([], "ActionsAfterRebalanceDelaySeconds"),
+    borsh.struct([], "TreasuryFeeVaultReceiver"),
   ])
   if (property !== undefined) {
     return ret.replicate(property)

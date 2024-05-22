@@ -1,6 +1,6 @@
 import { TransactionInstruction, PublicKey, AccountMeta } from "@solana/web3.js" // eslint-disable-line @typescript-eslint/no-unused-vars
 import BN from "bn.js" // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as borsh from "@project-serum/borsh" // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as borsh from "@coral-xyz/borsh" // eslint-disable-line @typescript-eslint/no-unused-vars
 import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
 import { PROGRAM_ID } from "../programId"
 
@@ -11,7 +11,8 @@ export interface InitializeGlobalConfigAccounts {
 }
 
 export function initializeGlobalConfig(
-  accounts: InitializeGlobalConfigAccounts
+  accounts: InitializeGlobalConfigAccounts,
+  programId: PublicKey = PROGRAM_ID
 ) {
   const keys: Array<AccountMeta> = [
     { pubkey: accounts.adminAuthority, isSigner: true, isWritable: true },
@@ -20,6 +21,6 @@ export function initializeGlobalConfig(
   ]
   const identifier = Buffer.from([113, 216, 122, 131, 225, 209, 22, 55])
   const data = identifier
-  const ix = new TransactionInstruction({ keys, programId: PROGRAM_ID, data })
+  const ix = new TransactionInstruction({ keys, programId, data })
   return ix
 }
