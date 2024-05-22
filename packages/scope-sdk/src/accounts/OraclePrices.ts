@@ -1,6 +1,6 @@
 import { PublicKey, Connection } from "@solana/web3.js"
 import BN from "bn.js" // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as borsh from "@project-serum/borsh" // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as borsh from "@coral-xyz/borsh" // eslint-disable-line @typescript-eslint/no-unused-vars
 import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
 import { PROGRAM_ID } from "../programId"
 
@@ -35,7 +35,7 @@ export class OraclePrices {
   static async fetch(
     c: Connection,
     address: PublicKey,
-    programId: PublicKey
+    programId: PublicKey = PROGRAM_ID
   ): Promise<OraclePrices | null> {
     const info = await c.getAccountInfo(address)
 
@@ -52,7 +52,7 @@ export class OraclePrices {
   static async fetchMultiple(
     c: Connection,
     addresses: PublicKey[],
-    programId: PublicKey
+    programId: PublicKey = PROGRAM_ID
   ): Promise<Array<OraclePrices | null>> {
     const infos = await c.getMultipleAccountsInfo(addresses)
 

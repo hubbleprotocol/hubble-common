@@ -1,6 +1,6 @@
 import { PublicKey, Connection } from "@solana/web3.js"
 import BN from "bn.js" // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as borsh from "@project-serum/borsh" // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as borsh from "@coral-xyz/borsh" // eslint-disable-line @typescript-eslint/no-unused-vars
 import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
 import { PROGRAM_ID } from "../programId"
 
@@ -55,7 +55,7 @@ export class OracleMappings {
   static async fetch(
     c: Connection,
     address: PublicKey,
-    programId: PublicKey
+    programId: PublicKey = PROGRAM_ID
   ): Promise<OracleMappings | null> {
     const info = await c.getAccountInfo(address)
 
@@ -71,7 +71,8 @@ export class OracleMappings {
 
   static async fetchMultiple(
     c: Connection,
-    addresses: PublicKey[]
+    addresses: PublicKey[],
+    programId: PublicKey = PROGRAM_ID
   ): Promise<Array<OracleMappings | null>> {
     const infos = await c.getMultipleAccountsInfo(addresses)
 
@@ -79,7 +80,7 @@ export class OracleMappings {
       if (info === null) {
         return null
       }
-      if (!info.owner.equals(PROGRAM_ID)) {
+      if (!info.owner.equals(programId)) {
         throw new Error("account doesn't belong to this program")
       }
 

@@ -1,6 +1,6 @@
 import { PublicKey, Connection } from "@solana/web3.js"
 import BN from "bn.js" // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as borsh from "@project-serum/borsh" // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as borsh from "@coral-xyz/borsh" // eslint-disable-line @typescript-eslint/no-unused-vars
 import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
 import { PROGRAM_ID } from "../programId"
 
@@ -60,7 +60,7 @@ export class Configuration {
   static async fetch(
     c: Connection,
     address: PublicKey,
-    programId: PublicKey
+    programId: PublicKey = PROGRAM_ID
   ): Promise<Configuration | null> {
     const info = await c.getAccountInfo(address)
 
@@ -77,7 +77,7 @@ export class Configuration {
   static async fetchMultiple(
     c: Connection,
     addresses: PublicKey[],
-    programId: PublicKey
+    programId: PublicKey = PROGRAM_ID
   ): Promise<Array<Configuration | null>> {
     const infos = await c.getMultipleAccountsInfo(addresses)
 
