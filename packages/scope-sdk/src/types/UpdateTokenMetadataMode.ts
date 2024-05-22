@@ -26,25 +26,25 @@ export class Name {
   }
 }
 
-export interface MaxPriceAgeSecondsJSON {
-  kind: "MaxPriceAgeSeconds"
+export interface MaxPriceAgeSlotsJSON {
+  kind: "MaxPriceAgeSlots"
 }
 
-export class MaxPriceAgeSeconds {
+export class MaxPriceAgeSlots {
   static readonly discriminator = 1
-  static readonly kind = "MaxPriceAgeSeconds"
+  static readonly kind = "MaxPriceAgeSlots"
   readonly discriminator = 1
-  readonly kind = "MaxPriceAgeSeconds"
+  readonly kind = "MaxPriceAgeSlots"
 
-  toJSON(): MaxPriceAgeSecondsJSON {
+  toJSON(): MaxPriceAgeSlotsJSON {
     return {
-      kind: "MaxPriceAgeSeconds",
+      kind: "MaxPriceAgeSlots",
     }
   }
 
   toEncodable() {
     return {
-      MaxPriceAgeSeconds: {},
+      MaxPriceAgeSlots: {},
     }
   }
 }
@@ -58,8 +58,8 @@ export function fromDecoded(obj: any): types.UpdateTokenMetadataModeKind {
   if ("Name" in obj) {
     return new Name()
   }
-  if ("MaxPriceAgeSeconds" in obj) {
-    return new MaxPriceAgeSeconds()
+  if ("MaxPriceAgeSlots" in obj) {
+    return new MaxPriceAgeSlots()
   }
 
   throw new Error("Invalid enum object")
@@ -72,8 +72,8 @@ export function fromJSON(
     case "Name": {
       return new Name()
     }
-    case "MaxPriceAgeSeconds": {
-      return new MaxPriceAgeSeconds()
+    case "MaxPriceAgeSlots": {
+      return new MaxPriceAgeSlots()
     }
   }
 }
@@ -81,7 +81,7 @@ export function fromJSON(
 export function layout(property?: string) {
   const ret = borsh.rustEnum([
     borsh.struct([], "Name"),
-    borsh.struct([], "MaxPriceAgeSeconds"),
+    borsh.struct([], "MaxPriceAgeSlots"),
   ])
   if (property !== undefined) {
     return ret.replicate(property)

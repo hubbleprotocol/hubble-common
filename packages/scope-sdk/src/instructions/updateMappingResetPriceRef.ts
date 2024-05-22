@@ -4,7 +4,7 @@ import * as borsh from "@coral-xyz/borsh" // eslint-disable-line @typescript-esl
 import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
 import { PROGRAM_ID } from "../programId"
 
-export interface UpdateMappingArgs {
+export interface UpdateMappingResetPriceRefArgs {
   token: number
   priceType: number
   twapEnabled: boolean
@@ -13,7 +13,7 @@ export interface UpdateMappingArgs {
   feedName: string
 }
 
-export interface UpdateMappingAccounts {
+export interface UpdateMappingResetPriceRefAccounts {
   admin: PublicKey
   configuration: PublicKey
   oracleMappings: PublicKey
@@ -29,9 +29,9 @@ export const layout = borsh.struct([
   borsh.str("feedName"),
 ])
 
-export function updateMapping(
-  args: UpdateMappingArgs,
-  accounts: UpdateMappingAccounts,
+export function updateMappingResetPriceRef(
+  args: UpdateMappingResetPriceRefArgs,
+  accounts: UpdateMappingResetPriceRefAccounts,
   programId: PublicKey = PROGRAM_ID
 ) {
   const keys: Array<AccountMeta> = [
@@ -40,7 +40,7 @@ export function updateMapping(
     { pubkey: accounts.oracleMappings, isSigner: false, isWritable: true },
     { pubkey: accounts.priceInfo, isSigner: false, isWritable: false },
   ]
-  const identifier = Buffer.from([56, 102, 90, 236, 243, 21, 185, 105])
+  const identifier = Buffer.from([161, 158, 88, 148, 227, 18, 163, 74])
   const buffer = Buffer.alloc(1000)
   const len = layout.encode(
     {

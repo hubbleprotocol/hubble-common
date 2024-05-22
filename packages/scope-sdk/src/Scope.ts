@@ -21,7 +21,6 @@ import {
   ORACLE_PRICES_LEN,
   ORACLE_TWAPS_LEN,
 } from './utils';
-import BN from 'bn.js';
 import { FeedParam, PricesParam, validateFeedParam, validatePricesParam } from './model';
 import { GlobalConfig, WhirlpoolStrategy } from './@codegen/kamino/accounts';
 
@@ -317,16 +316,18 @@ export class Scope {
     oracleType: OracleTypeKind,
     mapping: PublicKey,
     twapEnabled: boolean = false,
-    twapSource: number = 0
+    twapSource: number = 0,
+    refPriceIndex: number = 65_535
   ): Promise<string> {
     const [config, configAccount] = await this.getFeedConfiguration({ feed });
     const updateIx = ScopeIx.updateMapping(
       {
         feedName: feed,
-        token: new BN(index),
+        token: index,
         priceType: oracleType.discriminator,
         twapEnabled,
         twapSource,
+        refPriceIndex,
       },
       {
         admin: admin.publicKey,

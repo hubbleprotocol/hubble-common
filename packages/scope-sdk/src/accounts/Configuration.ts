@@ -10,6 +10,7 @@ export interface ConfigurationFields {
   oraclePrices: PublicKey
   tokensMetadata: PublicKey
   oracleTwaps: PublicKey
+  adminCached: PublicKey
   padding: Array<BN>
 }
 
@@ -19,6 +20,7 @@ export interface ConfigurationJSON {
   oraclePrices: string
   tokensMetadata: string
   oracleTwaps: string
+  adminCached: string
   padding: Array<string>
 }
 
@@ -28,6 +30,7 @@ export class Configuration {
   readonly oraclePrices: PublicKey
   readonly tokensMetadata: PublicKey
   readonly oracleTwaps: PublicKey
+  readonly adminCached: PublicKey
   readonly padding: Array<BN>
 
   static readonly discriminator = Buffer.from([
@@ -40,7 +43,8 @@ export class Configuration {
     borsh.publicKey("oraclePrices"),
     borsh.publicKey("tokensMetadata"),
     borsh.publicKey("oracleTwaps"),
-    borsh.array(borsh.u64(), 1259, "padding"),
+    borsh.publicKey("adminCached"),
+    borsh.array(borsh.u64(), 1255, "padding"),
   ])
 
   constructor(fields: ConfigurationFields) {
@@ -49,6 +53,7 @@ export class Configuration {
     this.oraclePrices = fields.oraclePrices
     this.tokensMetadata = fields.tokensMetadata
     this.oracleTwaps = fields.oracleTwaps
+    this.adminCached = fields.adminCached
     this.padding = fields.padding
   }
 
@@ -101,6 +106,7 @@ export class Configuration {
       oraclePrices: dec.oraclePrices,
       tokensMetadata: dec.tokensMetadata,
       oracleTwaps: dec.oracleTwaps,
+      adminCached: dec.adminCached,
       padding: dec.padding,
     })
   }
@@ -112,6 +118,7 @@ export class Configuration {
       oraclePrices: this.oraclePrices.toString(),
       tokensMetadata: this.tokensMetadata.toString(),
       oracleTwaps: this.oracleTwaps.toString(),
+      adminCached: this.adminCached.toString(),
       padding: this.padding.map((item) => item.toString()),
     }
   }
@@ -123,6 +130,7 @@ export class Configuration {
       oraclePrices: new PublicKey(obj.oraclePrices),
       tokensMetadata: new PublicKey(obj.tokensMetadata),
       oracleTwaps: new PublicKey(obj.oracleTwaps),
+      adminCached: new PublicKey(obj.adminCached),
       padding: obj.padding.map((item) => new BN(item)),
     })
   }
