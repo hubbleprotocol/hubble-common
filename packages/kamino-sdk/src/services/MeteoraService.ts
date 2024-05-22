@@ -11,10 +11,78 @@ import {
 } from '../utils';
 import { getMintDecimals } from '@project-serum/serum/lib/market';
 import { KaminoPrices } from '../models';
-import { LbPair, PositionV2 } from '../meteora_client/accounts';
+import { LbPair, PositionV3 } from '../meteora_client/accounts';
 import { WhirlpoolAprApy } from './WhirlpoolAprApy';
 import { METEORA_PROGRAM_ID } from '../meteora_client/programId';
 import { getPriceOfBinByBinIdWithDecimals } from '../utils/meteora';
+import { PositionBinData } from '../meteora_client/types';
+
+export const POSITION_V3_INIT_SPACE = 328;
+export const POSITION_BIN_INIT_SPACE = 112;
+
+export class DynamicPosition {
+  readonly position: PositionV3;
+  readonly bins: PositionBinData[];
+
+  constructor(position: PositionV3, bins: PositionBinData[]) {
+    this.position = position;
+    this.bins = bins;
+  }
+  static decodeBins(data: Buffer): PositionBinData[] {
+    let bins: PositionBinData[] = [];
+    let offset = 0;
+    while (data.length - offset >= POSITION_BIN_INIT_SPACE) {
+      let bin = DynamicPosition.decodePositionBinData(data.slice(offset, offset + POSITION_BIN_INIT_SPACE));
+      bins.push(bin);
+      offset += POSITION_BIN_INIT_SPACE;
+    }
+    return bins;
+  }
+
+  static decodePositionBinData(data: Buffer): PositionBinData {
+    const dec = PositionBinData.layout().decode(data);
+
+    return new PositionBinData({
+      feeInfo: dec.feeInfo,
+      liquidityShare: dec.liquidityShare,
+      rewardInfo: dec.rewardInfo,
+    });
+  }
+
+  static decode(data: Buffer): DynamicPosition {
+    const position = PositionV3.decode(data.slice(0, 8 + POSITION_V3_INIT_SPACE));
+    const bins = DynamicPosition.decodeBins(data.slice(8 + POSITION_V3_INIT_SPACE));
+    return { position, bins };
+  }
+
+  static async fetch(c: Connection, address: PublicKey): Promise<DynamicPosition | null> {
+    const info = await c.getAccountInfo(address);
+
+    if (info === null) {
+      return null;
+    }
+    if (!info.owner.equals(METEORA_PROGRAM_ID)) {
+      throw new Error("account doesn't belong to this program");
+    }
+
+    return this.decode(info.data);
+  }
+
+  static async fetchMultiple(c: Connection, addresses: PublicKey[]): Promise<Array<DynamicPosition | null>> {
+    const infos = await c.getMultipleAccountsInfo(addresses);
+
+    return infos.map((info) => {
+      if (info === null) {
+        return null;
+      }
+      if (!info.owner.equals(METEORA_PROGRAM_ID)) {
+        throw new Error("account doesn't belong to this program");
+      }
+
+      return this.decode(info.data);
+    });
+  }
+}
 
 export interface MeteoraPool {
   key: PublicKey;
@@ -34,8 +102,8 @@ export class MeteoraService {
     return await LbPair.fetch(this._connection, poolAddress);
   }
 
-  async getPosition(position: PublicKey): Promise<PositionV2 | null> {
-    return await PositionV2.fetch(this._connection, position);
+  async getPosition(address: PublicKey): Promise<DynamicPosition | null> {
+    return DynamicPosition.fetch(this._connection, address);
   }
 
   async getMeteoraPools(): Promise<MeteoraPool[]> {
@@ -66,8 +134,8 @@ export class MeteoraService {
     let priceUpper: Decimal = new Decimal(0);
     if (position && pool) {
       const priceRange = getMeteoraPriceLowerUpper(
-        position.lowerBinId,
-        position.upperBinId,
+        position.position.lowerBinId,
+        position.position.upperBinId,
         pool.binStep,
         decimalsX,
         decimalsY

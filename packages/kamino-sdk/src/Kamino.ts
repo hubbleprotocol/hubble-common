@@ -339,7 +339,7 @@ import {
 import { KaminoPrices, OraclePricesAndCollateralInfos } from './models';
 import { getRemoveLiquidityQuote } from './whirpools-client/shim/remove-liquidity';
 import { METEORA_PROGRAM_ID, setMeteoraProgramId } from './meteora_client/programId';
-import { computeMeteoraFee, MeteoraPool, MeteoraService } from './services/MeteoraService';
+import { computeMeteoraFee, DynamicPosition, MeteoraPool, MeteoraService } from './services/MeteoraService';
 import {
   binIdToBinArrayIndex,
   deriveBinArray,
@@ -350,7 +350,7 @@ import {
   getPriceOfBinByBinIdWithDecimals,
   MeteoraPosition,
 } from './utils/meteora';
-import { BinArray, LbPair, PositionV2 } from './meteora_client/accounts';
+import { BinArray, LbPair } from './meteora_client/accounts';
 import LbPairWithAddress from './models/LbPairWithAddress';
 import { initializeBinArray, InitializeBinArrayAccounts, InitializeBinArrayArgs } from './meteora_client/instructions';
 import { PubkeyHashMap } from './utils/pubkey';
@@ -1442,7 +1442,7 @@ export class Kamino {
     );
 
     fetchBalances.push(
-      ...this.getBalance<LbPair, PositionV2>(
+      ...this.getBalance<LbPair, DynamicPosition>(
         meteoraStrategies,
         meteoraPools,
         meteoraPositions,
@@ -1593,7 +1593,7 @@ export class Kamino {
   private getMeteoraBalances = async (
     strategy: WhirlpoolStrategy,
     pool: LbPair,
-    position: PositionV2 | undefined, // the undefined is for scenarios where the position is not initialised yet
+    position: DynamicPosition | undefined, // the undefined is for scenarios where the position is not initialised yet
     collateralInfos: CollateralInfo[],
     prices?: OraclePrices
   ): Promise<StrategyBalances> => {
@@ -1623,9 +1623,9 @@ export class Kamino {
     const poolPrice = getPriceOfBinByBinIdWithDecimals(pool.activeId, pool.binStep, decimalsA, decimalsB);
     let lowerPrice = ZERO;
     let upperPrice = ZERO;
-    if (position && position.lowerBinId && position.upperBinId) {
-      lowerPrice = getPriceOfBinByBinIdWithDecimals(position.lowerBinId, pool.binStep, decimalsA, decimalsB);
-      upperPrice = getPriceOfBinByBinIdWithDecimals(position.upperBinId, pool.binStep, decimalsA, decimalsB);
+    if (position && position.position.lowerBinId && position.position.upperBinId) {
+      lowerPrice = getPriceOfBinByBinIdWithDecimals(position.position.lowerBinId, pool.binStep, decimalsA, decimalsB);
+      upperPrice = getPriceOfBinByBinIdWithDecimals(position.position.upperBinId, pool.binStep, decimalsA, decimalsB);
     }
 
     let lowerResetPrice: Decimal | null = null;
@@ -2028,7 +2028,7 @@ export class Kamino {
     try {
       const [poolState, position] = await Promise.all([
         LbPair.decode(poolStateAcc.data),
-        PositionV2.decode(positionAcc.data),
+        DynamicPosition.decode(positionAcc.data),
       ]);
 
       return this.getMeteoraBalances(strategy, poolState, position, collateralInfos, scopePrices);
@@ -2340,17 +2340,17 @@ export class Kamino {
     if (positionPk.equals(PublicKey.default)) {
       return { lowerPrice: ZERO, upperPrice: ZERO };
     }
-    let position = await PositionV2.fetch(this._connection, positionPk);
+    let position = await DynamicPosition.fetch(this._connection, positionPk);
     if (!position) {
       return { lowerPrice: ZERO, upperPrice: ZERO };
     }
-    let pool = await LbPair.fetch(this._connection, position.lbPair);
+    let pool = await LbPair.fetch(this._connection, position.position.lbPair);
     if (!pool) {
       return { lowerPrice: ZERO, upperPrice: ZERO };
     }
-    let lowerPrice = getPriceOfBinByBinIdWithDecimals(position.lowerBinId, pool.binStep, decimalsA, decimalsB);
+    let lowerPrice = getPriceOfBinByBinIdWithDecimals(position.position.lowerBinId, pool.binStep, decimalsA, decimalsB);
 
-    let upperPrice = getPriceOfBinByBinIdWithDecimals(position.upperBinId, pool.binStep, decimalsA, decimalsB);
+    let upperPrice = getPriceOfBinByBinIdWithDecimals(position.position.upperBinId, pool.binStep, decimalsA, decimalsB);
 
     let positionRange: PositionRange = { lowerPrice, upperPrice };
 
@@ -2429,10 +2429,10 @@ export class Kamino {
     return positions.map((position) => fetchedMap[position.toBase58()] || null);
   };
 
-  getMeteoraPositions = async (positions: PublicKey[]): Promise<(PositionV2 | null)[]> => {
+  getMeteoraPositions = async (positions: PublicKey[]): Promise<(DynamicPosition | null)[]> => {
     const nonDefaults = positions.filter((value) => !value.equals(PublicKey.default));
-    const fetched = await batchFetch(nonDefaults, (chunk) => PositionV2.fetchMultiple(this._connection, chunk));
-    const fetchedMap: Record<string, PositionV2 | null> = fetched.reduce((map, position, i) => {
+    const fetched = await batchFetch(nonDefaults, (chunk) => DynamicPosition.fetchMultiple(this._connection, chunk));
+    const fetchedMap: Record<string, DynamicPosition | null> = fetched.reduce((map, position, i) => {
       map[nonDefaults[i].toBase58()] = position;
       return map;
     }, {});
@@ -4068,7 +4068,7 @@ export class Kamino {
 
   private readMeteoraPosition = async (poolPk: PublicKey, positionPk: PublicKey): Promise<MeteoraPosition> => {
     let pool = await LbPair.fetch(this._connection, poolPk);
-    let position = await PositionV2.fetch(this._connection, positionPk);
+    let position = await DynamicPosition.fetch(this._connection, positionPk);
     if (!pool || !position) {
       return {
         publicKey: positionPk,
@@ -4079,7 +4079,7 @@ export class Kamino {
 
     let { lowerTick: lowerTickPk, upperTick: upperTickPk } = this.getStartEndTicketIndexProgramAddressesMeteora(
       poolPk,
-      position.lowerBinId
+      position.position.lowerBinId
     );
     let lowerBinArray = await BinArray.fetch(this._connection, lowerTickPk);
     let upperBinArray = await BinArray.fetch(this._connection, upperTickPk);
@@ -4093,14 +4093,14 @@ export class Kamino {
     let binArrays = [lowerBinArray, upperBinArray];
     let totalAmountX = new Decimal(0);
     let totalAmountY = new Decimal(0);
-    for (let idx = position.lowerBinId; idx <= position.upperBinId; idx++) {
+    for (let idx = position.position.lowerBinId; idx <= position.position.upperBinId; idx++) {
       let bin = getBinFromBinArrays(idx, binArrays);
       if (bin) {
         const binX = new Decimal(bin.amountX.toString());
         const binY = new Decimal(bin.amountY.toString());
         const binLiq = new Decimal(bin.liquiditySupply.toString());
         if (!binX.isNaN() && !binY.isNaN() && !binLiq.isNaN() && binLiq.gt(ZERO)) {
-          const positionLiqNumber = position.liquidityShares[idx - position.lowerBinId];
+          const positionLiqNumber = position.bins[idx - position.position.lowerBinId].liquidityShare;
           if (positionLiqNumber && !positionLiqNumber.isZero()) {
             const positionLiq = new Decimal(positionLiqNumber.toString());
             totalAmountX = totalAmountX.add(binX.mul(positionLiq).div(binLiq));
@@ -6815,7 +6815,7 @@ export class Kamino {
     const { strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
 
     const poolStatePromise = LbPair.fetch(this._connection, strategyState.pool);
-    const positionPromise = PositionV2.fetch(this._connection, strategyState.position);
+    const positionPromise = DynamicPosition.fetch(this._connection, strategyState.position);
 
     let [poolState, _position] = await Promise.all([poolStatePromise, positionPromise]);
     if (!poolState) {
@@ -6832,7 +6832,7 @@ export class Kamino {
     const { strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
 
     const poolStatePromise = await LbPair.fetch(this._connection, strategyState.pool);
-    const positionPromise = await PositionV2.fetch(this._connection, strategyState.position);
+    const positionPromise = await DynamicPosition.fetch(this._connection, strategyState.position);
     let [poolState, _position] = await Promise.all([poolStatePromise, positionPromise]);
 
     if (!poolState) {
