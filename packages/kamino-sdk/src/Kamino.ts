@@ -4758,7 +4758,7 @@ export class Kamino {
    * @param payer transaction payer
    */
   compound = async (strategy: PublicKey | StrategyWithAddress, payer: PublicKey): Promise<TransactionInstruction[]> => {
-    // fetch here so the underluing instructions won't need to fetch
+    // fetch here so the underlying instructions won't need to fetch
     const strategyWithAddress = await this.getStrategyStateIfNotFetched(strategy);
     if (!strategyWithAddress) {
       throw Error(`Could not fetch strategy state with pubkey ${strategy.toString()}`);
@@ -4768,6 +4768,49 @@ export class Kamino {
     let investIx = this.invest(strategy, payer);
 
     return Promise.all([collectFeesAndRewardsIx, investIx]);
+  };
+
+  /**
+   * Get a the pending fees in lamports of a strategy.
+   * @param strategy strategy pubkey or object
+   */
+  getPendingFees = async (strategy: PublicKey | StrategyWithAddress) => {
+    let pendingFees: TokenAmounts = { a: ZERO, b: ZERO };
+    let strategyState = (await this.getStrategyStateIfNotFetched(strategy)).strategy;
+    if (!strategyState) {
+      throw Error(`Could not fetch strategy state with pubkey ${strategy.toString()}`);
+    }
+
+    const strategyDex = strategyState.strategyDex.toNumber();
+    if (strategyDex === dexToNumber('ORCA')) {
+      let position = await Position.fetch(this._connection, strategyState.position);
+      if (!position) {
+        throw Error(`Could not fetch Orca position state with pubkey ${strategyState.position.toString()}`);
+      }
+      pendingFees.a = new Decimal(position.feeOwedA.toString());
+      pendingFees.b = new Decimal(position.feeOwedB.toString());
+    } else if (strategyDex === dexToNumber('RAYDIUM')) {
+      let position = await PersonalPositionState.fetch(this._connection, strategyState.position);
+      if (!position) {
+        throw Error(`Could not fetch Raydium position state with pubkey ${strategyState.position.toString()}`);
+      }
+      pendingFees.a = new Decimal(position.tokenFeesOwed0.toString());
+      pendingFees.b = new Decimal(position.tokenFeesOwed1.toString());
+    } else if (strategyDex === dexToNumber('METEORA')) {
+      let position = await PositionV2.fetch(this._connection, strategyState.position);
+      if (!position) {
+        throw Error(`Could not fetch Meteora position state with pubkey ${strategyState.position.toString()}`);
+      }
+      console.log('position', position);
+      for (let feeInfo of position.feeInfos) {
+        pendingFees.a = pendingFees.a.add(new Decimal(position.feeInfos[0].feeXPending.toString()));
+        pendingFees.b = pendingFees.b.add(new Decimal(position.feeInfos[1].feeXPending.toString()));
+      }
+    } else {
+      throw new Error(`Invalid dex ${strategyDex}`);
+    }
+
+    return pendingFees;
   };
 
   getUpdateRebalancingParamsFromRebalanceFieldsIx = async (
