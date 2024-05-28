@@ -16,3 +16,4 @@ export * from './StrategyVaultTokens';
 export * from './ShareData';
 export * from './EnrichedScopePrice';
 export * from './KaminoStrategyWithShareMint';
+export * from './StrategyWithPendingFees';

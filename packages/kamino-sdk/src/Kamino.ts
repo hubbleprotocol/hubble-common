@@ -63,6 +63,7 @@ import {
   StrategyHolder,
   StrategyProgramAddress,
   StrategyVaultTokens,
+  StrategyWithPendingFees,
   TokenAmounts,
   TokenHoldings,
   TotalStrategyVaultTokens,
@@ -4758,7 +4759,7 @@ export class Kamino {
    * @param payer transaction payer
    */
   compound = async (strategy: PublicKey | StrategyWithAddress, payer: PublicKey): Promise<TransactionInstruction[]> => {
-    // fetch here so the underluing instructions won't need to fetch
+    // fetch here so the underlying instructions won't need to fetch
     const strategyWithAddress = await this.getStrategyStateIfNotFetched(strategy);
     if (!strategyWithAddress) {
       throw Error(`Could not fetch strategy state with pubkey ${strategy.toString()}`);
@@ -4768,6 +4769,91 @@ export class Kamino {
     let investIx = this.invest(strategy, payer);
 
     return Promise.all([collectFeesAndRewardsIx, investIx]);
+  };
+
+  /**
+   * Get a the pending fees in lamports of a strategy.
+   * @param strategy strategy pubkey or object
+   */
+  getPendingFees = async (strategies: PublicKey[]): Promise<StrategyWithPendingFees[]> => {
+    const strategiesWithAddresses = await this.getStrategiesWithAddresses(strategies);
+    const raydiumStrategies = strategiesWithAddresses.filter(
+      (x) =>
+        x.strategy.strategyDex.toNumber() === dexToNumber('RAYDIUM') && !x.strategy.position.equals(PublicKey.default)
+    );
+    const raydiumPositionsPromise = this.getRaydiumPositions(raydiumStrategies.map((x) => x.strategy.position));
+    const orcaStrategies = strategiesWithAddresses.filter(
+      (x) => x.strategy.strategyDex.toNumber() === dexToNumber('ORCA') && !x.strategy.position.equals(PublicKey.default)
+    );
+    const orcaPositionsPromise = this.getOrcaPositions(orcaStrategies.map((x) => x.strategy.position));
+    const meteoraStrategies = strategiesWithAddresses.filter(
+      (x) =>
+        x.strategy.strategyDex.toNumber() === dexToNumber('METEORA') && !x.strategy.position.equals(PublicKey.default)
+    );
+    const meteoraPositionsPromise = this.getMeteoraPositions(meteoraStrategies.map((x) => x.strategy.position));
+    const [raydiumPositions, orcaPositions, meteoraPositions] = await Promise.all([
+      raydiumPositionsPromise,
+      orcaPositionsPromise,
+      meteoraPositionsPromise,
+    ]);
+
+    let result: StrategyWithPendingFees[] = [];
+    for (let index = 0; index < orcaStrategies.length; index++) {
+      const orcaPosition = orcaPositions[index];
+      if (!orcaPosition) {
+        throw Error(
+          `Could not fetch Orca position state with pubkey ${orcaStrategies[index].strategy.position.toString()}`
+        );
+      }
+      let pendingFees = {
+        a: new Decimal(orcaPosition.feeOwedA.toString()),
+        b: new Decimal(orcaPosition.feeOwedB.toString()),
+      };
+      result.push({
+        strategy: orcaStrategies[index],
+        pendingFees,
+      });
+    }
+
+    for (let index = 0; index < raydiumStrategies.length; index++) {
+      const raydiumPosition = raydiumPositions[index];
+      if (!raydiumPosition) {
+        throw Error(
+          `Could not fetch Raydium position state with pubkey ${raydiumStrategies[index].strategy.position.toString()}`
+        );
+      }
+      let pendingFees = {
+        a: new Decimal(raydiumPosition.tokenFeesOwed0.toString()),
+        b: new Decimal(raydiumPosition.tokenFeesOwed1.toString()),
+      };
+      result.push({
+        strategy: raydiumStrategies[index],
+        pendingFees,
+      });
+    }
+
+    for (let index = 0; index < meteoraStrategies.length; index++) {
+      const meteoraPosition = meteoraPositions[index];
+      if (!meteoraPosition) {
+        throw Error(
+          `Could not fetch Meteora position state with pubkey ${meteoraStrategies[index].strategy.position.toString()}`
+        );
+      }
+      let pendingFees: TokenAmounts = {
+        a: ZERO,
+        b: ZERO,
+      };
+      for (let feeInfo of meteoraPosition.feeInfos) {
+        pendingFees.a = pendingFees.a.add(new Decimal(meteoraPosition.feeInfos[0].feeXPending.toString()));
+        pendingFees.b = pendingFees.b.add(new Decimal(meteoraPosition.feeInfos[1].feeXPending.toString()));
+      }
+      result.push({
+        strategy: meteoraStrategies[index],
+        pendingFees,
+      });
+    }
+
+    return result;
   };
 
   getUpdateRebalancingParamsFromRebalanceFieldsIx = async (

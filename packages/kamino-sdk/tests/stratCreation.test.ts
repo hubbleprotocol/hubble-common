@@ -8,7 +8,6 @@ import {
 } from '@solana/web3.js';
 import {
   createAddExtraComputeUnitsIx,
-  createAddExtraComputeUnitsTransaction,
   getAssociatedTokenAddressAndData,
   Kamino,
   OrcaService,
@@ -93,6 +92,54 @@ describe('Kamino strategy creation SDK Tests', () => {
       new PublicKey('FoSDw2L5DmTuQTFe55gWPDXf88euaxAEKFre74CnvQbX')
     );
     console.log('poolInfo', poolInfo);
+  });
+
+  it('read pending fees for Orca strategy', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      GlobalConfigMainnet,
+      KaminoProgramIdMainnet,
+      WHIRLPOOL_PROGRAM_ID,
+      RAYDIUM_PROGRAM_ID,
+      METEORA_PROGRAM_ID
+    );
+
+    let strategy = new PublicKey('8DRToyNBUTR4MxqkKAP49s9z1JhotQWy3rMQKEw1HHdu');
+    let pendingFees = await kamino.getPendingFees([strategy]);
+    console.log('pending fees', pendingFees);
+  });
+
+  it('read pending fees for Raydium strategy', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      GlobalConfigMainnet,
+      KaminoProgramIdMainnet,
+      WHIRLPOOL_PROGRAM_ID,
+      RAYDIUM_PROGRAM_ID,
+      METEORA_PROGRAM_ID
+    );
+
+    let strategy = new PublicKey('5QgwaBQzzMAHdxpaVUgb4KrpXELgNTaEYXycUvNvRxr6');
+    let pendingFees = await kamino.getPendingFees([strategy]);
+    console.log('pending fees', pendingFees);
+  });
+
+  it('read pending fees for Meteora strategy', async () => {
+    let kamino = new Kamino(
+      cluster,
+      connection,
+      GlobalConfigMainnet,
+      KaminoProgramIdMainnet,
+      WHIRLPOOL_PROGRAM_ID,
+      RAYDIUM_PROGRAM_ID,
+      METEORA_PROGRAM_ID
+    );
+
+    let strategy = new PublicKey('HBuYwvq67VKnLyKxPzDjzskyRMk7ps39gwHdvaPGwdmQ');
+    let pendingFees = await kamino.getPendingFees([strategy]);
+    console.log('pending fees', pendingFees);
   });
 
   it('read share data', async () => {
