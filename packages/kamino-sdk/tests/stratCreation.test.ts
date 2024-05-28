@@ -8,7 +8,6 @@ import {
 } from '@solana/web3.js';
 import {
   createAddExtraComputeUnitsIx,
-  createAddExtraComputeUnitsTransaction,
   getAssociatedTokenAddressAndData,
   Kamino,
   OrcaService,
@@ -107,7 +106,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     );
 
     let strategy = new PublicKey('8DRToyNBUTR4MxqkKAP49s9z1JhotQWy3rMQKEw1HHdu');
-    let pendingFees = await kamino.getPendingFees(strategy);
+    let pendingFees = await kamino.getPendingFees([strategy]);
     console.log('pending fees', pendingFees);
   });
 
@@ -123,7 +122,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     );
 
     let strategy = new PublicKey('5QgwaBQzzMAHdxpaVUgb4KrpXELgNTaEYXycUvNvRxr6');
-    let pendingFees = await kamino.getPendingFees(strategy);
+    let pendingFees = await kamino.getPendingFees([strategy]);
     console.log('pending fees', pendingFees);
   });
 
@@ -139,7 +138,7 @@ describe('Kamino strategy creation SDK Tests', () => {
     );
 
     let strategy = new PublicKey('HBuYwvq67VKnLyKxPzDjzskyRMk7ps39gwHdvaPGwdmQ');
-    let pendingFees = await kamino.getPendingFees(strategy);
+    let pendingFees = await kamino.getPendingFees([strategy]);
     console.log('pending fees', pendingFees);
   });
 

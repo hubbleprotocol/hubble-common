@@ -63,6 +63,7 @@ import {
   StrategyHolder,
   StrategyProgramAddress,
   StrategyVaultTokens,
+  StrategyWithPendingFees,
   TokenAmounts,
   TokenHoldings,
   TotalStrategyVaultTokens,
@@ -4774,43 +4775,85 @@ export class Kamino {
    * Get a the pending fees in lamports of a strategy.
    * @param strategy strategy pubkey or object
    */
-  getPendingFees = async (strategy: PublicKey | StrategyWithAddress) => {
-    let pendingFees: TokenAmounts = { a: ZERO, b: ZERO };
-    let strategyState = (await this.getStrategyStateIfNotFetched(strategy)).strategy;
-    if (!strategyState) {
-      throw Error(`Could not fetch strategy state with pubkey ${strategy.toString()}`);
+  getPendingFees = async (strategies: PublicKey[]): Promise<StrategyWithPendingFees[]> => {
+    const strategiesWithAddresses = await this.getStrategiesWithAddresses(strategies);
+    const raydiumStrategies = strategiesWithAddresses.filter(
+      (x) =>
+        x.strategy.strategyDex.toNumber() === dexToNumber('RAYDIUM') && !x.strategy.position.equals(PublicKey.default)
+    );
+    const raydiumPositionsPromise = this.getRaydiumPositions(raydiumStrategies.map((x) => x.strategy.position));
+    const orcaStrategies = strategiesWithAddresses.filter(
+      (x) => x.strategy.strategyDex.toNumber() === dexToNumber('ORCA') && !x.strategy.position.equals(PublicKey.default)
+    );
+    const orcaPositionsPromise = this.getOrcaPositions(orcaStrategies.map((x) => x.strategy.position));
+    const meteoraStrategies = strategiesWithAddresses.filter(
+      (x) =>
+        x.strategy.strategyDex.toNumber() === dexToNumber('METEORA') && !x.strategy.position.equals(PublicKey.default)
+    );
+    const meteoraPositionsPromise = this.getMeteoraPositions(meteoraStrategies.map((x) => x.strategy.position));
+    const [raydiumPositions, orcaPositions, meteoraPositions] = await Promise.all([
+      raydiumPositionsPromise,
+      orcaPositionsPromise,
+      meteoraPositionsPromise,
+    ]);
+
+    let result: StrategyWithPendingFees[] = [];
+    for (let index = 0; index < orcaStrategies.length; index++) {
+      const orcaPosition = orcaPositions[index];
+      if (!orcaPosition) {
+        throw Error(
+          `Could not fetch Orca position state with pubkey ${orcaStrategies[index].strategy.position.toString()}`
+        );
+      }
+      let pendingFees = {
+        a: new Decimal(orcaPosition.feeOwedA.toString()),
+        b: new Decimal(orcaPosition.feeOwedB.toString()),
+      };
+      result.push({
+        strategy: orcaStrategies[index],
+        pendingFees,
+      });
     }
 
-    const strategyDex = strategyState.strategyDex.toNumber();
-    if (strategyDex === dexToNumber('ORCA')) {
-      let position = await Position.fetch(this._connection, strategyState.position);
-      if (!position) {
-        throw Error(`Could not fetch Orca position state with pubkey ${strategyState.position.toString()}`);
+    for (let index = 0; index < raydiumStrategies.length; index++) {
+      const raydiumPosition = raydiumPositions[index];
+      if (!raydiumPosition) {
+        throw Error(
+          `Could not fetch Raydium position state with pubkey ${raydiumStrategies[index].strategy.position.toString()}`
+        );
       }
-      pendingFees.a = new Decimal(position.feeOwedA.toString());
-      pendingFees.b = new Decimal(position.feeOwedB.toString());
-    } else if (strategyDex === dexToNumber('RAYDIUM')) {
-      let position = await PersonalPositionState.fetch(this._connection, strategyState.position);
-      if (!position) {
-        throw Error(`Could not fetch Raydium position state with pubkey ${strategyState.position.toString()}`);
-      }
-      pendingFees.a = new Decimal(position.tokenFeesOwed0.toString());
-      pendingFees.b = new Decimal(position.tokenFeesOwed1.toString());
-    } else if (strategyDex === dexToNumber('METEORA')) {
-      let position = await PositionV2.fetch(this._connection, strategyState.position);
-      if (!position) {
-        throw Error(`Could not fetch Meteora position state with pubkey ${strategyState.position.toString()}`);
-      }
-      console.log('position', position);
-      for (let feeInfo of position.feeInfos) {
-        pendingFees.a = pendingFees.a.add(new Decimal(position.feeInfos[0].feeXPending.toString()));
-        pendingFees.b = pendingFees.b.add(new Decimal(position.feeInfos[1].feeXPending.toString()));
-      }
-    } else {
-      throw new Error(`Invalid dex ${strategyDex}`);
+      let pendingFees = {
+        a: new Decimal(raydiumPosition.tokenFeesOwed0.toString()),
+        b: new Decimal(raydiumPosition.tokenFeesOwed1.toString()),
+      };
+      result.push({
+        strategy: raydiumStrategies[index],
+        pendingFees,
+      });
     }
 
-    return pendingFees;
+    for (let index = 0; index < meteoraStrategies.length; index++) {
+      const meteoraPosition = meteoraPositions[index];
+      if (!meteoraPosition) {
+        throw Error(
+          `Could not fetch Meteora position state with pubkey ${meteoraStrategies[index].strategy.position.toString()}`
+        );
+      }
+      let pendingFees: TokenAmounts = {
+        a: ZERO,
+        b: ZERO,
+      };
+      for (let feeInfo of meteoraPosition.feeInfos) {
+        pendingFees.a = pendingFees.a.add(new Decimal(meteoraPosition.feeInfos[0].feeXPending.toString()));
+        pendingFees.b = pendingFees.b.add(new Decimal(meteoraPosition.feeInfos[1].feeXPending.toString()));
+      }
+      result.push({
+        strategy: meteoraStrategies[index],
+        pendingFees,
+      });
+    }
+
+    return result;
   };
 
   getUpdateRebalancingParamsFromRebalanceFieldsIx = async (
