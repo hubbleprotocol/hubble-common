@@ -70,6 +70,7 @@ export * from './PointsOwnerBoostSourceEntity';
 export * from './StakingBoostEntity';
 export * from './PointsStakingEntity';
 export * from './OwnerScreeningEntity';
+export * from './accounting';
 
 export const CLUSTER_TABLE: string = 'cluster';
 export const COLLATERAL_TABLE: string = 'collateral';
@@ -145,6 +146,9 @@ export const POINTS_OWNER_BOOST_TABLE = 'points_owner_boost';
 export const STAKING_BOOST_TABLE = 'staking_boost';
 export const POINTS_STAKING_TABLE = 'points_staking';
 export const OWNER_SCREENING_TABLE = 'owner_screening';
+export const ACCOUNTING_CONFIG_TABLE = 'accounting_config';
+export const ACCOUNTING_TRANSACTION_TABLE = 'accounting_transaction';
+export const ACCOUNTING_BALANCE_TABLE = 'accounting_balance';
 
 export type RESAMPLE_FREQUENCY = 'hour' | 'day';
 export const HOURLY_FREQUENCY = 'hour';
