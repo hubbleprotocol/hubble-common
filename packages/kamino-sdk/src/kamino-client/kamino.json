@@ -1820,24 +1820,6 @@
           ]
         },
         {
-          "name": "reward0Mint",
-          "isMut": false,
-          "isSigner": false,
-          "isOptional": true
-        },
-        {
-          "name": "reward1Mint",
-          "isMut": false,
-          "isSigner": false,
-          "isOptional": true
-        },
-        {
-          "name": "reward2Mint",
-          "isMut": false,
-          "isSigner": false,
-          "isOptional": true
-        },
-        {
           "name": "tokenAMint",
           "isMut": false,
           "isSigner": false
@@ -5039,31 +5021,31 @@
             "name": "Uniform",
             "fields": [
               {
-                "name": "current_bin_index",
+                "name": "currentBinIndex",
                 "type": "i32"
               },
               {
-                "name": "lower_bin_index",
+                "name": "lowerBinIndex",
                 "type": "i32"
               },
               {
-                "name": "upper_bin_index",
+                "name": "upperBinIndex",
                 "type": "i32"
               },
               {
-                "name": "amount_x_to_deposit",
+                "name": "amountXToDeposit",
                 "type": "u64"
               },
               {
-                "name": "amount_y_to_deposit",
+                "name": "amountYToDeposit",
                 "type": "u64"
               },
               {
-                "name": "x_current_bin",
+                "name": "xCurrentBin",
                 "type": "u64"
               },
               {
-                "name": "y_current_bin",
+                "name": "yCurrentBin",
                 "type": "u64"
               }
             ]
@@ -5190,21 +5172,21 @@
             "name": "Absolute",
             "fields": [
               {
-                "name": "src_amount_to_swap",
+                "name": "srcAmountToSwap",
                 "docs": [
                   "Amount of src token expected by the user to perform the swap"
                 ],
                 "type": "u64"
               },
               {
-                "name": "dst_amount_to_vault",
+                "name": "dstAmountToVault",
                 "docs": [
                   "Amount of dst token the user provides in exchange"
                 ],
                 "type": "u64"
               },
               {
-                "name": "a_to_b",
+                "name": "aToB",
                 "type": "bool"
               }
             ]
@@ -6124,6 +6106,17 @@
           }
         ]
       }
+    },
+    {
+      "name": "ScopeConversionChain",
+      "type": {
+        "kind": "alias",
+        "value": {
+          "vec": {
+            "defined": "ScopePriceId"
+          }
+        }
+      }
     }
   ],
   "errors": [
@@ -6895,6 +6888,11 @@
     {
       "code": 6153,
       "name": "ProvidedRewardVaultMismatch",
+      "msg": "The provided reward vault does not match the strategy state"
+    },
+    {
+      "code": 6154,
+      "name": "RepeatedMint",
       "msg": "The provided reward vault does not match the strategy state"
     }
   ]
