@@ -27,6 +27,7 @@ export interface GlobalConfigFields {
   minSwapUnevenSlippageToleranceBps: BN
   minReferencePriceSlippageToleranceBps: BN
   actionsAfterRebalanceDelaySeconds: BN
+  treasuryFeeVaultReceiver: PublicKey
   padding: Array<BN>
 }
 
@@ -53,6 +54,7 @@ export interface GlobalConfigJSON {
   minSwapUnevenSlippageToleranceBps: string
   minReferencePriceSlippageToleranceBps: string
   actionsAfterRebalanceDelaySeconds: string
+  treasuryFeeVaultReceiver: string
   padding: Array<string>
 }
 
@@ -79,6 +81,7 @@ export class GlobalConfig {
   readonly minSwapUnevenSlippageToleranceBps: BN
   readonly minReferencePriceSlippageToleranceBps: BN
   readonly actionsAfterRebalanceDelaySeconds: BN
+  readonly treasuryFeeVaultReceiver: PublicKey
   readonly padding: Array<BN>
 
   static readonly discriminator = Buffer.from([
@@ -108,7 +111,8 @@ export class GlobalConfig {
     borsh.u64("minSwapUnevenSlippageToleranceBps"),
     borsh.u64("minReferencePriceSlippageToleranceBps"),
     borsh.u64("actionsAfterRebalanceDelaySeconds"),
-    borsh.array(borsh.u64(), 2039, "padding"),
+    borsh.publicKey("treasuryFeeVaultReceiver"),
+    borsh.array(borsh.u64(), 2035, "padding"),
   ])
 
   constructor(fields: GlobalConfigFields) {
@@ -137,6 +141,7 @@ export class GlobalConfig {
       fields.minReferencePriceSlippageToleranceBps
     this.actionsAfterRebalanceDelaySeconds =
       fields.actionsAfterRebalanceDelaySeconds
+    this.treasuryFeeVaultReceiver = fields.treasuryFeeVaultReceiver
     this.padding = fields.padding
   }
 
@@ -205,6 +210,7 @@ export class GlobalConfig {
       minReferencePriceSlippageToleranceBps:
         dec.minReferencePriceSlippageToleranceBps,
       actionsAfterRebalanceDelaySeconds: dec.actionsAfterRebalanceDelaySeconds,
+      treasuryFeeVaultReceiver: dec.treasuryFeeVaultReceiver,
       padding: dec.padding,
     })
   }
@@ -238,6 +244,7 @@ export class GlobalConfig {
         this.minReferencePriceSlippageToleranceBps.toString(),
       actionsAfterRebalanceDelaySeconds:
         this.actionsAfterRebalanceDelaySeconds.toString(),
+      treasuryFeeVaultReceiver: this.treasuryFeeVaultReceiver.toString(),
       padding: this.padding.map((item) => item.toString()),
     }
   }
@@ -276,6 +283,7 @@ export class GlobalConfig {
       actionsAfterRebalanceDelaySeconds: new BN(
         obj.actionsAfterRebalanceDelaySeconds
       ),
+      treasuryFeeVaultReceiver: new PublicKey(obj.treasuryFeeVaultReceiver),
       padding: obj.padding.map((item) => new BN(item)),
     })
   }

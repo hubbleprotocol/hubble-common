@@ -355,6 +355,7 @@ import { BinArray, LbPair, PositionV2 } from './meteora_client/accounts';
 import LbPairWithAddress from './models/LbPairWithAddress';
 import { initializeBinArray, InitializeBinArrayAccounts, InitializeBinArrayArgs } from './meteora_client/instructions';
 import { PubkeyHashMap } from './utils/pubkey';
+import { findProgramAddressSync } from '@project-serum/anchor/dist/cjs/utils/pubkey';
 export const KAMINO_IDL = KaminoIdl;
 
 export class Kamino {
@@ -3952,13 +3953,21 @@ export class Kamino {
       tokenProgram: TOKEN_PROGRAM_ID,
       poolProgram: programId,
       instructionSysvarAccount: SYSVAR_INSTRUCTIONS_PUBKEY,
-      reward0Mint: strategyState.reward0Decimals.toNumber() > 0 ? rewardMint0 : this._kaminoProgramId,
-      reward1Mint: strategyState.reward1Decimals.toNumber() > 0 ? rewardMint1 : this._kaminoProgramId,
-      reward2Mint: this._kaminoProgramId,
       eventAuthority,
     };
 
-    return collectFeesAndRewards(accounts);
+    let ixn = collectFeesAndRewards(accounts);
+    const pairs: [number, PublicKey][] = [
+      [strategyState.reward0Decimals.toNumber(), rewardMint0],
+      [strategyState.reward1Decimals.toNumber(), rewardMint1],
+      [strategyState.reward2Decimals.toNumber(), rewardMint2],
+    ];
+    for (const [decimals, mint] of pairs) {
+      if (decimals > 0) {
+        ixn.keys.push({ pubkey: mint, isSigner: false, isWritable: false });
+      }
+    }
+    return ixn;
   };
 
   /**
@@ -4471,6 +4480,10 @@ export class Kamino {
       eventAuthority,
       consensusAccount: CONSENSUS_ID,
     };
+    const [poolTickArrayBitmap, _poolTickArrayBitmapBump] = findProgramAddressSync(
+      [Buffer.from('pool_tick_array_bitmap_extension'), pool.toBuffer()],
+      RAYDIUM_PROGRAM_ID
+    );
 
     let ix = openLiquidityPosition(args, accounts);
 
@@ -4478,6 +4491,7 @@ export class Kamino {
       { pubkey: protocolPosition, isSigner: false, isWritable: true },
       { pubkey: oldProtocolPositionOrBaseVaultAuthority, isSigner: false, isWritable: true },
       { pubkey: METADATA_PROGRAM_ID, isSigner: false, isWritable: false },
+      { pubkey: poolTickArrayBitmap, isSigner: false, isWritable: true },
     ]);
     if (strategyRewardOVault) {
       ix.keys = ix.keys.concat([

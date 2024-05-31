@@ -121,6 +121,8 @@ export type {
   WithdrawFromTreasuryArgs,
   WithdrawFromTreasuryAccounts,
 } from "./withdrawFromTreasury"
+export { permisionlessWithdrawFromTreasury } from "./permisionlessWithdrawFromTreasury"
+export type { PermisionlessWithdrawFromTreasuryAccounts } from "./permisionlessWithdrawFromTreasury"
 export { withdrawFromTopup } from "./withdrawFromTopup"
 export type {
   WithdrawFromTopupArgs,

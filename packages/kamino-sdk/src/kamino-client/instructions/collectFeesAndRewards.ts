@@ -34,9 +34,6 @@ export interface CollectFeesAndRewardsAccounts {
   poolRewardVault1: PublicKey
   /** If rewards are uninitialized, pass this as strategy. */
   poolRewardVault2: PublicKey
-  reward0Mint: PublicKey
-  reward1Mint: PublicKey
-  reward2Mint: PublicKey
   tokenAMint: PublicKey
   tokenBMint: PublicKey
   tokenProgram: PublicKey
@@ -90,9 +87,6 @@ export function collectFeesAndRewards(accounts: CollectFeesAndRewardsAccounts) {
     { pubkey: accounts.poolRewardVault0, isSigner: false, isWritable: true },
     { pubkey: accounts.poolRewardVault1, isSigner: false, isWritable: true },
     { pubkey: accounts.poolRewardVault2, isSigner: false, isWritable: true },
-    { pubkey: accounts.reward0Mint, isSigner: false, isWritable: false },
-    { pubkey: accounts.reward1Mint, isSigner: false, isWritable: false },
-    { pubkey: accounts.reward2Mint, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenAMint, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenBMint, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
