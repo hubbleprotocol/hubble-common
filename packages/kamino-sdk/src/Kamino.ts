@@ -2769,7 +2769,7 @@ export class Kamino {
     return this.withdrawShares(strategyState, balance, owner);
   };
 
-    /**
+  /**
    * Get all the accounts needed by the deposit tx, without the swap.
    * @param strategy Kamino strategy public key or on-chain object
    * @param owner Owner (wallet, shareholder) public key
