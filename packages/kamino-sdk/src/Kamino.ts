@@ -2769,6 +2769,51 @@ export class Kamino {
     return this.withdrawShares(strategyState, balance, owner);
   };
 
+    /**
+   * Get all the accounts needed by the deposit tx, without the swap.
+   * @param strategy Kamino strategy public key or on-chain object
+   * @param owner Owner (wallet, shareholder) public key
+   * @returns list of pubkeys needed for the deposit transaction
+   */
+  getAllDepositAccounts = async (strategy: PublicKey | StrategyWithAddress, owner: PublicKey): Promise<PublicKey[]> => {
+    let strategyState = await this.getStrategyStateIfNotFetched(strategy);
+
+    const globalConfig = await GlobalConfig.fetch(this._connection, strategyState.strategy.globalConfig);
+    if (!globalConfig) {
+      throw Error(`Could not fetch global config with pubkey ${strategyState.strategy.globalConfig.toString()}`);
+    }
+
+    const sharesAta = getAssociatedTokenAddress(strategyState.strategy.sharesMint, owner);
+    const tokenAAta = getAssociatedTokenAddress(strategyState.strategy.tokenAMint, owner);
+    const tokenBAta = getAssociatedTokenAddress(strategyState.strategy.tokenBMint, owner);
+
+    let accounts = [
+      owner,
+      strategyState.address,
+      strategyState.strategy.globalConfig,
+      strategyState.strategy.pool,
+      strategyState.strategy.position,
+      strategyState.strategy.tokenAVault,
+      strategyState.strategy.tokenBVault,
+      strategyState.strategy.baseVaultAuthority,
+      strategyState.strategy.tokenAMint,
+      strategyState.strategy.tokenBMint,
+      sharesAta,
+      tokenAAta,
+      tokenBAta,
+      strategyState.strategy.sharesMint,
+      strategyState.strategy.sharesMintAuthority,
+      strategyState.strategy.scopePrices,
+      globalConfig.tokenInfos,
+      TOKEN_PROGRAM_ID,
+      SYSVAR_INSTRUCTIONS_PUBKEY,
+      strategyState.strategy.tickArrayLower,
+      strategyState.strategy.tickArrayUpper,
+    ];
+
+    return accounts;
+  };
+
   /**
    * Get transaction instruction to deposit token A and B into a strategy.
    * @param strategy Kamino strategy public key or on-chain object
