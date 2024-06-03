@@ -4844,8 +4844,8 @@ export class Kamino {
         b: ZERO,
       };
       for (let feeInfo of meteoraPosition.feeInfos) {
-        pendingFees.a = pendingFees.a.add(new Decimal(meteoraPosition.feeInfos[0].feeXPending.toString()));
-        pendingFees.b = pendingFees.b.add(new Decimal(meteoraPosition.feeInfos[1].feeXPending.toString()));
+        pendingFees.a = pendingFees.a.add(feeInfo.feeXPending.toString());
+        pendingFees.b = pendingFees.b.add(feeInfo.feeYPending.toString());
       }
       result.push({
         strategy: meteoraStrategies[index],
