@@ -317,7 +317,8 @@ export class Scope {
     mapping: PublicKey,
     twapEnabled: boolean = false,
     twapSource: number = 0,
-    refPriceIndex: number = 65_535
+    refPriceIndex: number = 65_535,
+    genericData: Array<number> = []
   ): Promise<string> {
     const [config, configAccount] = await this.getFeedConfiguration({ feed });
     const updateIx = ScopeIx.updateMapping(
@@ -328,6 +329,7 @@ export class Scope {
         twapEnabled,
         twapSource,
         refPriceIndex,
+        genericData
       },
       {
         admin: admin.publicKey,
