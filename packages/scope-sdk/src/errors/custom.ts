@@ -28,6 +28,7 @@ export type CustomError =
   | KTokenUnderlyingPriceNotValid
   | KTokenHoldingsCalculationError
   | CannotResizeAccount
+  | FixedPriceInvalid
 
 export class IntegerOverflow extends Error {
   static readonly code = 6000
@@ -351,6 +352,17 @@ export class CannotResizeAccount extends Error {
   }
 }
 
+export class FixedPriceInvalid extends Error {
+  static readonly code = 6029
+  readonly code = 6029
+  readonly name = "FixedPriceInvalid"
+  readonly msg = "The provided fixed price is invalid"
+
+  constructor(readonly logs?: string[]) {
+    super("6029: The provided fixed price is invalid")
+  }
+}
+
 export function fromCode(code: number, logs?: string[]): CustomError | null {
   switch (code) {
     case 6000:
@@ -411,6 +423,8 @@ export function fromCode(code: number, logs?: string[]): CustomError | null {
       return new KTokenHoldingsCalculationError(logs)
     case 6028:
       return new CannotResizeAccount(logs)
+    case 6029:
+      return new FixedPriceInvalid(logs)
   }
 
   return null

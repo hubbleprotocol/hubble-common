@@ -11,6 +11,7 @@ export interface UpdateMappingArgs {
   twapSource: number
   refPriceIndex: number
   feedName: string
+  genericData: Array<number>
 }
 
 export interface UpdateMappingAccounts {
@@ -27,6 +28,7 @@ export const layout = borsh.struct([
   borsh.u16("twapSource"),
   borsh.u16("refPriceIndex"),
   borsh.str("feedName"),
+  borsh.array(borsh.u8(), 20, "genericData"),
 ])
 
 export function updateMapping(
@@ -50,6 +52,7 @@ export function updateMapping(
       twapSource: args.twapSource,
       refPriceIndex: args.refPriceIndex,
       feedName: args.feedName,
+      genericData: args.genericData,
     },
     buffer
   )

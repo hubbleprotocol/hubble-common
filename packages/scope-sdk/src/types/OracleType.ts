@@ -509,6 +509,52 @@ export class PythPullBased {
   }
 }
 
+export interface PythPullBasedEMAJSON {
+  kind: "PythPullBasedEMA"
+}
+
+export class PythPullBasedEMA {
+  static readonly discriminator = 22
+  static readonly kind = "PythPullBasedEMA"
+  readonly discriminator = 22
+  readonly kind = "PythPullBasedEMA"
+
+  toJSON(): PythPullBasedEMAJSON {
+    return {
+      kind: "PythPullBasedEMA",
+    }
+  }
+
+  toEncodable() {
+    return {
+      PythPullBasedEMA: {},
+    }
+  }
+}
+
+export interface FixedPriceJSON {
+  kind: "FixedPrice"
+}
+
+export class FixedPrice {
+  static readonly discriminator = 23
+  static readonly kind = "FixedPrice"
+  readonly discriminator = 23
+  readonly kind = "FixedPrice"
+
+  toJSON(): FixedPriceJSON {
+    return {
+      kind: "FixedPrice",
+    }
+  }
+
+  toEncodable() {
+    return {
+      FixedPrice: {},
+    }
+  }
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function fromDecoded(obj: any): types.OracleTypeKind {
   if (typeof obj !== "object") {
@@ -580,6 +626,12 @@ export function fromDecoded(obj: any): types.OracleTypeKind {
   }
   if ("PythPullBased" in obj) {
     return new PythPullBased()
+  }
+  if ("PythPullBasedEMA" in obj) {
+    return new PythPullBasedEMA()
+  }
+  if ("FixedPrice" in obj) {
+    return new FixedPrice()
   }
 
   throw new Error("Invalid enum object")
@@ -653,6 +705,12 @@ export function fromJSON(obj: types.OracleTypeJSON): types.OracleTypeKind {
     case "PythPullBased": {
       return new PythPullBased()
     }
+    case "PythPullBasedEMA": {
+      return new PythPullBasedEMA()
+    }
+    case "FixedPrice": {
+      return new FixedPrice()
+    }
   }
 }
 
@@ -680,6 +738,8 @@ export function layout(property?: string) {
     borsh.struct([], "MeteoraDlmmBtoA"),
     borsh.struct([], "JupiterLpScope"),
     borsh.struct([], "PythPullBased"),
+    borsh.struct([], "PythPullBasedEMA"),
+    borsh.struct([], "FixedPrice"),
   ])
   if (property !== undefined) {
     return ret.replicate(property)
