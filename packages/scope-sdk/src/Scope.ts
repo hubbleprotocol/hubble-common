@@ -329,7 +329,7 @@ export class Scope {
         twapEnabled,
         twapSource,
         refPriceIndex,
-        genericData
+        genericData,
       },
       {
         admin: admin.publicKey,
