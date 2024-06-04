@@ -49,42 +49,6 @@
       ]
     },
     {
-      "name": "refreshOnePrice",
-      "accounts": [
-        {
-          "name": "oraclePrices",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "oracleMappings",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "oracleTwaps",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "priceInfo",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "instructionSysvarAccountInfo",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "token",
-          "type": "u64"
-        }
-      ]
-    },
-    {
       "name": "refreshPriceList",
       "accounts": [
         {
@@ -145,7 +109,7 @@
       "args": [
         {
           "name": "token",
-          "type": "u64"
+          "type": "u16"
         },
         {
           "name": "priceType",
@@ -160,8 +124,21 @@
           "type": "u16"
         },
         {
+          "name": "refPriceIndex",
+          "type": "u16"
+        },
+        {
           "name": "feedName",
           "type": "string"
+        },
+        {
+          "name": "genericData",
+          "type": {
+            "array": [
+              "u8",
+              20
+            ]
+          }
         }
       ]
     },
@@ -242,68 +219,131 @@
           "type": "bytes"
         }
       ]
+    },
+    {
+      "name": "setAdminCached",
+      "accounts": [
+        {
+          "name": "admin",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "configuration",
+          "isMut": true,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "newAdmin",
+          "type": "publicKey"
+        },
+        {
+          "name": "feedName",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "approveAdminCached",
+      "accounts": [
+        {
+          "name": "adminCached",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "configuration",
+          "isMut": true,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "feedName",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "createMintMap",
+      "accounts": [
+        {
+          "name": "admin",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "configuration",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "mappings",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "seedPk",
+          "type": "publicKey"
+        },
+        {
+          "name": "seedId",
+          "type": "u64"
+        },
+        {
+          "name": "bump",
+          "type": "u8"
+        },
+        {
+          "name": "scopeChains",
+          "type": {
+            "vec": {
+              "array": [
+                "u16",
+                4
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "closeMintMap",
+      "accounts": [
+        {
+          "name": "admin",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "configuration",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "mappings",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
     }
   ],
   "accounts": [
-    {
-      "name": "Pool",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "name",
-            "type": "string"
-          },
-          {
-            "name": "custodies",
-            "type": {
-              "vec": "publicKey"
-            }
-          },
-          {
-            "name": "aumUsd",
-            "docs": [
-              "Pool value in usd scaled by 6 decimals"
-            ],
-            "type": "u128"
-          },
-          {
-            "name": "limit",
-            "type": {
-              "defined": "Limit"
-            }
-          },
-          {
-            "name": "fees",
-            "type": {
-              "defined": "Fees"
-            }
-          },
-          {
-            "name": "poolApr",
-            "type": {
-              "defined": "PoolApr"
-            }
-          },
-          {
-            "name": "maxRequestExecutionSec",
-            "type": "i64"
-          },
-          {
-            "name": "bump",
-            "type": "u8"
-          },
-          {
-            "name": "lpTokenBump",
-            "type": "u8"
-          },
-          {
-            "name": "inceptionTime",
-            "type": "i64"
-          }
-        ]
-      }
-    },
     {
       "name": "OracleTwaps",
       "type": {
@@ -396,19 +436,24 @@
             }
           },
           {
-            "name": "reserved1",
+            "name": "refPrice",
             "type": {
               "array": [
-                "u8",
+                "u16",
                 512
               ]
             }
           },
           {
-            "name": "reserved2",
+            "name": "generic",
             "type": {
               "array": [
-                "u32",
+                {
+                  "array": [
+                    "u8",
+                    20
+                  ]
+                },
                 512
               ]
             }
@@ -461,12 +506,51 @@
             "type": "publicKey"
           },
           {
+            "name": "adminCached",
+            "type": "publicKey"
+          },
+          {
             "name": "padding",
             "type": {
               "array": [
                 "u64",
-                1259
+                1255
               ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "MintsToScopeChains",
+      "docs": [
+        "Map of mints to scope chain only valid for a given price feed"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "oraclePrices",
+            "type": "publicKey"
+          },
+          {
+            "name": "seedPk",
+            "type": "publicKey"
+          },
+          {
+            "name": "seedId",
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "mapping",
+            "type": {
+              "vec": {
+                "defined": "MintToScopeChain"
+              }
             }
           }
         ]
@@ -474,90 +558,6 @@
     }
   ],
   "types": [
-    {
-      "name": "Limit",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "maxAumUsd",
-            "type": "u128"
-          },
-          {
-            "name": "maxIndividualLpToken",
-            "type": "u128"
-          },
-          {
-            "name": "maxPositionUsd",
-            "type": "u64"
-          }
-        ]
-      }
-    },
-    {
-      "name": "Fees",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "increasePositionBps",
-            "type": "u64"
-          },
-          {
-            "name": "decreasePositionBps",
-            "type": "u64"
-          },
-          {
-            "name": "addRemoveLiquidityBps",
-            "type": "u64"
-          },
-          {
-            "name": "swapBps",
-            "type": "u64"
-          },
-          {
-            "name": "taxBps",
-            "type": "u64"
-          },
-          {
-            "name": "stableSwapBps",
-            "type": "u64"
-          },
-          {
-            "name": "stableSwapTaxBps",
-            "type": "u64"
-          },
-          {
-            "name": "liquidationRewardBps",
-            "type": "u64"
-          },
-          {
-            "name": "protocolShareBps",
-            "type": "u64"
-          }
-        ]
-      }
-    },
-    {
-      "name": "PoolApr",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "lastUpdated",
-            "type": "i64"
-          },
-          {
-            "name": "feeAprBps",
-            "type": "u64"
-          },
-          {
-            "name": "realizedFeeUsd",
-            "type": "u64"
-          }
-        ]
-      }
-    },
     {
       "name": "Fee",
       "type": {
@@ -1225,11 +1225,22 @@
             "type": "u128"
           },
           {
-            "name": "padding",
+            "name": "updatesTracker1h",
+            "docs": [
+              "The sample tracker is a 64 bit number where each bit represents a point in time."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "padding0",
+            "type": "u64"
+          },
+          {
+            "name": "padding1",
             "type": {
               "array": [
                 "u128",
-                40
+                39
               ]
             }
           }
@@ -1251,7 +1262,7 @@
             }
           },
           {
-            "name": "maxAgePriceSeconds",
+            "name": "maxAgePriceSlots",
             "type": "u64"
           },
           {
@@ -1262,6 +1273,41 @@
                 16
               ]
             }
+          }
+        ]
+      }
+    },
+    {
+      "name": "MintToScopeChain",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "mint",
+            "type": "publicKey"
+          },
+          {
+            "name": "scopeChain",
+            "type": {
+              "array": [
+                "u16",
+                4
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "UpdateTokenMetadataMode",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Name"
+          },
+          {
+            "name": "MaxPriceAgeSlots"
           }
         ]
       }
@@ -1289,13 +1335,13 @@
             "name": "Pyth"
           },
           {
-            "name": "SwitchboardV1"
+            "name": "DeprecatedPlaceholder1"
           },
           {
             "name": "SwitchboardV2"
           },
           {
-            "name": "DeprecatedPlaceholder"
+            "name": "DeprecatedPlaceholder2"
           },
           {
             "name": "CToken"
@@ -1319,10 +1365,54 @@
             "name": "KTokenToTokenB"
           },
           {
-            "name": "JupiterLP"
+            "name": "JupiterLpFetch"
           },
           {
             "name": "ScopeTwap"
+          },
+          {
+            "name": "OrcaWhirlpoolAtoB"
+          },
+          {
+            "name": "OrcaWhirlpoolBtoA"
+          },
+          {
+            "name": "RaydiumAmmV3AtoB"
+          },
+          {
+            "name": "RaydiumAmmV3BtoA"
+          },
+          {
+            "name": "JupiterLpCompute"
+          },
+          {
+            "name": "MeteoraDlmmAtoB"
+          },
+          {
+            "name": "MeteoraDlmmBtoA"
+          },
+          {
+            "name": "JupiterLpScope"
+          },
+          {
+            "name": "PythPullBased"
+          },
+          {
+            "name": "PythPullBasedEMA"
+          },
+          {
+            "name": "FixedPrice"
+          }
+        ]
+      }
+    },
+    {
+      "name": "EmaType",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Ema1h"
           }
         ]
       }
@@ -1352,20 +1442,6 @@
           },
           {
             "name": "IntegerConversionOverflow"
-          }
-        ]
-      }
-    },
-    {
-      "name": "UpdateTokenMetadataMode",
-      "type": {
-        "kind": "enum",
-        "variants": [
-          {
-            "name": "Name"
-          },
-          {
-            "name": "MaxPriceAgeSeconds"
           }
         ]
       }
@@ -1476,6 +1552,51 @@
       "code": 6020,
       "name": "TwapSourceIndexOutOfRange",
       "msg": "TWAP source index out of range"
+    },
+    {
+      "code": 6021,
+      "name": "TwapSampleTooFrequent",
+      "msg": "TWAP sample is too close to the previous one"
+    },
+    {
+      "code": 6022,
+      "name": "UnexpectedJlpConfiguration",
+      "msg": "Unexpected JLP configuration"
+    },
+    {
+      "code": 6023,
+      "name": "TwapNotEnoughSamplesInPeriod",
+      "msg": "Not enough price samples in period to compute TWAP"
+    },
+    {
+      "code": 6024,
+      "name": "EmptyTokenList",
+      "msg": "The provided token list to refresh is empty"
+    },
+    {
+      "code": 6025,
+      "name": "StakeFeeTooHigh",
+      "msg": "The stake pool fee is higher than the maximum allowed"
+    },
+    {
+      "code": 6026,
+      "name": "KTokenUnderlyingPriceNotValid",
+      "msg": "Cannot get a valid price for the tokens composing the Ktoken"
+    },
+    {
+      "code": 6027,
+      "name": "KTokenHoldingsCalculationError",
+      "msg": "Error while computing the Ktoken pool holdings"
+    },
+    {
+      "code": 6028,
+      "name": "CannotResizeAccount",
+      "msg": "Cannot resize the account we only allow it to grow in size"
+    },
+    {
+      "code": 6029,
+      "name": "FixedPriceInvalid",
+      "msg": "The provided fixed price is invalid"
     }
   ]
 }
