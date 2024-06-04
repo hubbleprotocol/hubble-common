@@ -88,6 +88,8 @@ export type OracleTypeKind =
   | OracleType.MeteoraDlmmBtoA
   | OracleType.JupiterLpScope
   | OracleType.PythPullBased
+  | OracleType.PythPullBasedEMA
+  | OracleType.FixedPrice
 export type OracleTypeJSON =
   | OracleType.PythJSON
   | OracleType.DeprecatedPlaceholder1JSON
@@ -111,6 +113,8 @@ export type OracleTypeJSON =
   | OracleType.MeteoraDlmmBtoAJSON
   | OracleType.JupiterLpScopeJSON
   | OracleType.PythPullBasedJSON
+  | OracleType.PythPullBasedEMAJSON
+  | OracleType.FixedPriceJSON
 
 export { EmaType }
 
