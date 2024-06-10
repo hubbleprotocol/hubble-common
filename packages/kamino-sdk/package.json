@@ -3,7 +3,7 @@
   "description": "Kamino SDK",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "version": "5.0.15",
+  "version": "5.0.16",
   "scripts": {
     "build": "tsc",
     "build:watch": "tsc -w"
@@ -35,8 +35,8 @@
   },
   "dependencies": {
     "@hubbleprotocol/hubble-config": "^5.0.0",
-    "@hubbleprotocol/hubble-idl": "^5.0.12",
-    "@hubbleprotocol/scope-sdk": "^5.0.13",
+    "@hubbleprotocol/hubble-idl": "^5.0.16",
+    "@hubbleprotocol/scope-sdk": "^5.0.16",
     "@jup-ag/api": "^6.0.1",
     "@jup-ag/core": "=3.0.0-beta.18",
     "@orca-so/sdk": "^1.2.26",
