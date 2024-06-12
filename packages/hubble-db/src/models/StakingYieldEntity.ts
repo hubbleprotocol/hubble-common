@@ -1,6 +1,6 @@
 export interface StakingYieldEntity {
   id: bigint;
-  created_on: Date;
+  epoch_id: string;
   apy: string;
   token_mint_id: number;
 }
