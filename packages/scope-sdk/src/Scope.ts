@@ -20,9 +20,13 @@ import {
   TOKEN_METADATAS_LEN,
   ORACLE_PRICES_LEN,
   ORACLE_TWAPS_LEN,
+  getJlpMintPda,
+  JLP_PROGRAM_ID,
+  getMintsToScopeChainPda,
 } from './utils';
 import { FeedParam, PricesParam, validateFeedParam, validatePricesParam } from './model';
 import { GlobalConfig, WhirlpoolStrategy } from './@codegen/kamino/accounts';
+import { Custody, Pool } from './@codegen/jupiter-perps/accounts';
 
 export type ScopeDatedPrice = {
   price: Decimal;
@@ -231,6 +235,7 @@ export class Scope {
         configuration: PublicKey;
         oracleMappings: PublicKey;
         oraclePrices: PublicKey;
+        oracleTwaps: PublicKey;
       },
     ]
   > {
@@ -295,6 +300,7 @@ export class Scope {
         configuration: config,
         oracleMappings: oracleMappings.publicKey,
         oraclePrices: oraclePrices.publicKey,
+        oracleTwaps: oracleTwaps.publicKey,
       },
     ];
   }
@@ -318,7 +324,7 @@ export class Scope {
     twapEnabled: boolean = false,
     twapSource: number = 0,
     refPriceIndex: number = 65_535,
-    genericData: Array<number> = []
+    genericData: Array<number> = Array(20).fill(0)
   ): Promise<string> {
     const [config, configAccount] = await this.getFeedConfiguration({ feed });
     const updateIx = ScopeIx.updateMapping(
@@ -365,14 +371,51 @@ export class Scope {
     const mappings = await this.getOracleMappings(feed);
     for (const token of tokens) {
       refreshIx.keys.push(
-        ...(await Scope.getRefreshAccounts(this._connection, this._config.kamino.programId, mappings, token))
+        ...(await Scope.getRefreshAccounts(
+          this._connection,
+          configAccount,
+          this._config.kamino.programId,
+          mappings,
+          token
+        ))
       );
     }
     return provider.send(new Transaction().add(refreshIx), [payer]);
   }
 
+  async refreshPriceListIx(feed: FeedParam, tokens: number[]) {
+    const [, configAccount] = await this.getFeedConfiguration(feed);
+
+    const refreshIx = ScopeIx.refreshPriceList(
+      {
+        tokens,
+      },
+      {
+        oracleMappings: configAccount.oracleMappings,
+        oraclePrices: configAccount.oraclePrices,
+        oracleTwaps: configAccount.oracleTwaps,
+        instructionSysvarAccountInfo: SYSVAR_INSTRUCTIONS_PUBKEY,
+      },
+      this._config.scope.programId
+    );
+    const mappings = await this.getOracleMappings(feed);
+    for (const token of tokens) {
+      refreshIx.keys.push(
+        ...(await Scope.getRefreshAccounts(
+          this._connection,
+          configAccount,
+          this._config.kamino.programId,
+          mappings,
+          token
+        ))
+      );
+    }
+    return refreshIx;
+  }
+
   static async getRefreshAccounts(
     connection: Connection,
+    configAccount: Configuration,
     kaminoProgramId: PublicKey,
     mappings: OracleMappings,
     token: number
@@ -384,11 +427,120 @@ export class Scope {
       pubkey: mappings.priceInfoAccounts[token],
     });
     switch (mappings.priceTypes[token]) {
-      case new OracleType.KToken().discriminator:
+      case new OracleType.KToken().discriminator: {
         keys.push(...(await Scope.getKTokenRefreshAccounts(connection, kaminoProgramId, mappings, token)));
-        break;
+        return keys;
+      }
+      case new OracleType.JupiterLpFetch().discriminator: {
+        const lpMint = getJlpMintPda(mappings.priceInfoAccounts[token]);
+        keys.push({
+          isSigner: false,
+          isWritable: false,
+          pubkey: lpMint,
+        });
+        return keys;
+      }
+      case new OracleType.JupiterLpCompute().discriminator: {
+        const lpMint = getJlpMintPda(mappings.priceInfoAccounts[token]);
+
+        const jlpRefreshAccounts = await this.getJlpRefreshAccounts(
+          connection,
+          configAccount,
+          mappings,
+          token,
+          'compute'
+        );
+
+        jlpRefreshAccounts.unshift({
+          isSigner: false,
+          isWritable: false,
+          pubkey: lpMint,
+        });
+
+        return keys;
+      }
+      case new OracleType.JupiterLpScope().discriminator: {
+        const lpMint = getJlpMintPda(mappings.priceInfoAccounts[token]);
+
+        const jlpRefreshAccounts = await this.getJlpRefreshAccounts(
+          connection,
+          configAccount,
+          mappings,
+          token,
+          'compute'
+        );
+
+        jlpRefreshAccounts.unshift({
+          isSigner: false,
+          isWritable: false,
+          pubkey: lpMint,
+        });
+
+        return keys;
+      }
+      default: {
+        return keys;
+      }
     }
-    return keys;
+  }
+
+  static async getJlpRefreshAccounts(
+    connection: Connection,
+    configAccount: Configuration,
+    mappings: OracleMappings,
+    token: number,
+    fetchingMechanism: 'compute' | 'scope'
+  ): Promise<AccountMeta[]> {
+    const pool = await Pool.fetch(connection, mappings.priceInfoAccounts[token], JLP_PROGRAM_ID);
+    if (!pool) {
+      throw Error(
+        `Could not get Jupiter pool ${mappings.priceInfoAccounts[token].toBase58()} to refresh token index ${token}`
+      );
+    }
+
+    const extraAccounts: AccountMeta[] = [];
+
+    if (fetchingMechanism === 'scope') {
+      const mintsToScopeChain = getMintsToScopeChainPda(
+        configAccount.oraclePrices,
+        configAccount.oracleMappings,
+        token
+      );
+
+      extraAccounts.push({
+        isSigner: false,
+        isWritable: false,
+        pubkey: mintsToScopeChain,
+      });
+    }
+
+    extraAccounts.concat(
+      pool.custodies.map((custody) => {
+        return {
+          isSigner: false,
+          isWritable: false,
+          pubkey: custody,
+        };
+      })
+    );
+
+    if (fetchingMechanism === 'compute') {
+      for (let custodyPk of pool.custodies) {
+        const custody = await Custody.fetch(connection, custodyPk, JLP_PROGRAM_ID);
+
+        if (!custody) {
+          throw Error(`Could not get Jupiter custody ${custodyPk.toBase58()} to refresh token index ${token}`);
+        }
+
+        extraAccounts.push({
+          isSigner: false,
+          isWritable: false,
+          pubkey: custody.oracle.oracleAccount,
+        });
+      }
+    }
+
+    return extraAccounts;
   }
 
   static async getKTokenRefreshAccounts(

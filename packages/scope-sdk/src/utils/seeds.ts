@@ -10,3 +10,11 @@ export function getConfigurationPda(feedName: String): PublicKey {
   );
   return config;
 }
+
+export function getMintsToScopeChainPda(prices: PublicKey, seed: PublicKey, seedId: number): PublicKey {
+  const [mintsToScopeChain] = PublicKey.findProgramAddressSync(
+    [Buffer.from('mints_to_scope_chains'), prices.toBuffer(), seed.toBuffer(), Buffer.from(seedId.toString())],
+    PROGRAM_ID
+  );
+  return mintsToScopeChain;
+}
