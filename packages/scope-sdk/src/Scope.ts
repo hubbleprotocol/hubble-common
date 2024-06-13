@@ -457,6 +457,8 @@ export class Scope {
           pubkey: lpMint,
         });
 
+        keys.push(...jlpRefreshAccounts);
+
         return keys;
       }
       case new OracleType.JupiterLpScope().discriminator: {
@@ -467,7 +469,7 @@ export class Scope {
           configAccount,
           mappings,
           token,
-          'compute'
+          'scope'
         );
 
         jlpRefreshAccounts.unshift({
@@ -475,6 +477,8 @@ export class Scope {
           isWritable: false,
           pubkey: lpMint,
         });
+
+        keys.push(...jlpRefreshAccounts);
 
         return keys;
       }
@@ -503,7 +507,7 @@ export class Scope {
     if (fetchingMechanism === 'scope') {
       const mintsToScopeChain = getMintsToScopeChainPda(
         configAccount.oraclePrices,
-        configAccount.oracleMappings,
+        mappings.priceInfoAccounts[token],
         token
       );
 
@@ -514,8 +518,8 @@ export class Scope {
       });
     }
 
-    extraAccounts.concat(
-      pool.custodies.map((custody) => {
+    extraAccounts.push(
+      ...pool.custodies.map((custody) => {
         return {
           isSigner: false,
           isWritable: false,
