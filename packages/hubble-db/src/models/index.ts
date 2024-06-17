@@ -71,6 +71,9 @@ export * from './StakingBoostEntity';
 export * from './PointsStakingEntity';
 export * from './OwnerScreeningEntity';
 export * from './accounting';
+export * from './RecentSlotEntity';
+export * from './EpochEntity';
+export * from './StakingYieldEntity';
 
 export const CLUSTER_TABLE: string = 'cluster';
 export const COLLATERAL_TABLE: string = 'collateral';
@@ -149,6 +152,9 @@ export const OWNER_SCREENING_TABLE = 'owner_screening';
 export const ACCOUNTING_CONFIG_TABLE = 'accounting_config';
 export const ACCOUNTING_TRANSACTION_TABLE = 'accounting_transaction';
 export const ACCOUNTING_BALANCE_TABLE = 'accounting_balance';
+export const RECENT_SLOT_TABLE = 'recent_slot';
+export const STAKING_YIELD_TABLE = 'staking_yield';
+export const EPOCH_TABLE = 'epoch';
 
 export type RESAMPLE_FREQUENCY = 'hour' | 'day';
 export const HOURLY_FREQUENCY = 'hour';

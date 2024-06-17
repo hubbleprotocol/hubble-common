@@ -1,6 +1,6 @@
 import { TransactionInstruction, PublicKey, AccountMeta } from "@solana/web3.js" // eslint-disable-line @typescript-eslint/no-unused-vars
 import BN from "bn.js" // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as borsh from "@project-serum/borsh" // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as borsh from "@coral-xyz/borsh" // eslint-disable-line @typescript-eslint/no-unused-vars
 import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
 import { PROGRAM_ID } from "../programId"
 
@@ -15,7 +15,8 @@ export interface PermisionlessWithdrawFromTreasuryAccounts {
 }
 
 export function permisionlessWithdrawFromTreasury(
-  accounts: PermisionlessWithdrawFromTreasuryAccounts
+  accounts: PermisionlessWithdrawFromTreasuryAccounts,
+  programId: PublicKey = PROGRAM_ID
 ) {
   const keys: Array<AccountMeta> = [
     { pubkey: accounts.signer, isSigner: true, isWritable: true },
@@ -32,6 +33,6 @@ export function permisionlessWithdrawFromTreasury(
   ]
   const identifier = Buffer.from([167, 36, 32, 79, 97, 170, 183, 108])
   const data = identifier
-  const ix = new TransactionInstruction({ keys, programId: PROGRAM_ID, data })
+  const ix = new TransactionInstruction({ keys, programId, data })
   return ix
 }

@@ -80,6 +80,7 @@ describe('Scope SDK Tests', async () => {
     const newOraclePrices = await scope.getOraclePrices({ feed: env.priceFeed });
     const newPrice = newOraclePrices.prices[ethTokenIndex];
     expect(newPrice.lastUpdatedSlot.toNumber()).gt(originalPrice.lastUpdatedSlot.toNumber());
+    expect(newPrice.price.value).not.to.equal(originalPrice.price.value);
   });
 
   it('should get prices by chain', async () => {

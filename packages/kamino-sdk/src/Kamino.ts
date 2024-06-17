@@ -422,7 +422,7 @@ export class Kamino {
       setMeteoraProgramId(meteoraProgramId);
     }
 
-    this._orcaService = new OrcaService(connection, cluster, this._globalConfig);
+    this._orcaService = new OrcaService(connection, cluster, this._globalConfig, this._kaminoProgramId);
     this._raydiumService = new RaydiumService(connection, cluster);
     this._meteoraService = new MeteoraService(connection, this._globalConfig);
   }
@@ -445,7 +445,7 @@ export class Kamino {
   };
 
   getCollateralInfos = async () => {
-    const config = await GlobalConfig.fetch(this._connection, this._globalConfig);
+    const config = await this.getGlobalConfigState(this._globalConfig);
     if (!config) {
       throw Error(`Could not fetch globalConfig with pubkey ${this.getGlobalConfig().toString()}`);
     }
@@ -1216,7 +1216,7 @@ export class Kamino {
     if (!strategies) {
       strategies = (await this.getAllStrategiesWithFilters({})).map((x) => x.address);
     }
-    return await batchFetch(strategies, (chunk) => WhirlpoolStrategy.fetchMultiple(this._connection, chunk));
+    return await batchFetch(strategies, (chunk) => this.getWhirlpoolStrategies(chunk));
   };
 
   /**
@@ -1228,7 +1228,7 @@ export class Kamino {
       return this.getAllStrategiesWithFilters({});
     }
     const result: StrategyWithAddress[] = [];
-    const states = await batchFetch(strategies, (chunk) => WhirlpoolStrategy.fetchMultiple(this._connection, chunk));
+    const states = await batchFetch(strategies, (chunk) => this.getWhirlpoolStrategies(chunk));
     for (let i = 0; i < strategies.length; i++) {
       if (states[i]) {
         result.push({ address: strategies[i], strategy: states[i]! });
@@ -1294,7 +1294,7 @@ export class Kamino {
    * Get a Kamino whirlpool strategy by its public key address
    * @param address
    */
-  getStrategyByAddress = (address: PublicKey) => WhirlpoolStrategy.fetch(this._connection, address);
+  getStrategyByAddress = (address: PublicKey) => this.getWhirlpoolStrategy(address);
 
   /**
    * Get a Kamino whirlpool strategy by its kToken mint address
@@ -2771,6 +2771,51 @@ export class Kamino {
   };
 
   /**
+   * Get all the accounts needed by the deposit tx, without the swap.
+   * @param strategy Kamino strategy public key or on-chain object
+   * @param owner Owner (wallet, shareholder) public key
+   * @returns list of pubkeys needed for the deposit transaction
+   */
+  getAllDepositAccounts = async (strategy: PublicKey | StrategyWithAddress, owner: PublicKey): Promise<PublicKey[]> => {
+    let strategyState = await this.getStrategyStateIfNotFetched(strategy);
+
+    const globalConfig = await GlobalConfig.fetch(this._connection, strategyState.strategy.globalConfig);
+    if (!globalConfig) {
+      throw Error(`Could not fetch global config with pubkey ${strategyState.strategy.globalConfig.toString()}`);
+    }
+
+    const sharesAta = getAssociatedTokenAddress(strategyState.strategy.sharesMint, owner);
+    const tokenAAta = getAssociatedTokenAddress(strategyState.strategy.tokenAMint, owner);
+    const tokenBAta = getAssociatedTokenAddress(strategyState.strategy.tokenBMint, owner);
+
+    let accounts = [
+      owner,
+      strategyState.address,
+      strategyState.strategy.globalConfig,
+      strategyState.strategy.pool,
+      strategyState.strategy.position,
+      strategyState.strategy.tokenAVault,
+      strategyState.strategy.tokenBVault,
+      strategyState.strategy.baseVaultAuthority,
+      strategyState.strategy.tokenAMint,
+      strategyState.strategy.tokenBMint,
+      sharesAta,
+      tokenAAta,
+      tokenBAta,
+      strategyState.strategy.sharesMint,
+      strategyState.strategy.sharesMintAuthority,
+      strategyState.strategy.scopePrices,
+      globalConfig.tokenInfos,
+      TOKEN_PROGRAM_ID,
+      SYSVAR_INSTRUCTIONS_PUBKEY,
+      strategyState.strategy.tickArrayLower,
+      strategyState.strategy.tickArrayUpper,
+    ];
+
+    return accounts;
+  };
+
+  /**
    * Get transaction instruction to deposit token A and B into a strategy.
    * @param strategy Kamino strategy public key or on-chain object
    * @param amountA Amount of token A to deposit into strategy
@@ -2789,7 +2834,7 @@ export class Kamino {
     }
     const strategyState = await this.getStrategyStateIfNotFetched(strategy);
 
-    const globalConfig = await GlobalConfig.fetch(this._connection, strategyState.strategy.globalConfig);
+    const globalConfig = await this.getGlobalConfigState(strategyState.strategy.globalConfig);
     if (!globalConfig) {
       throw Error(`Could not fetch global config with pubkey ${strategyState.strategy.globalConfig.toString()}`);
     }
@@ -3212,7 +3257,7 @@ export class Kamino {
       owner
     );
 
-    const getGlobalConfigPromise = GlobalConfig.fetch(this._connection, strategyState.globalConfig);
+    const getGlobalConfigPromise = this.getGlobalConfigState(strategyState.globalConfig);
     const [createAtasIxns, amountsToDepositWithSwap, globalConfig] = await Promise.all([
       createAtasIxnsPromise,
       amountsToDepositWithSwapPromise,
@@ -3591,7 +3636,7 @@ export class Kamino {
       tokenBMint = meteoraPoolState.tokenYMint;
     }
 
-    let config = await GlobalConfig.fetch(this._connection, this._globalConfig);
+    let config = await this.getGlobalConfigState(this._globalConfig);
     if (!config) {
       throw Error(`Could not fetch globalConfig  with pubkey ${this.getGlobalConfig().toString()}`);
     }
@@ -4316,7 +4361,7 @@ export class Kamino {
       tickUpperIndex
     );
 
-    const globalConfig = await GlobalConfig.fetch(this._connection, this._globalConfig);
+    const globalConfig = await this.getGlobalConfigState(this._globalConfig);
     if (!globalConfig) {
       throw Error(`Could not fetch global config with pubkey ${this._globalConfig.toString()}`);
     }
@@ -4441,7 +4486,7 @@ export class Kamino {
       tickUpperIndex
     );
 
-    const globalConfig = await GlobalConfig.fetch(this._connection, this._globalConfig);
+    const globalConfig = await this.getGlobalConfigState(this._globalConfig);
     if (!globalConfig) {
       throw Error(`Could not fetch global config with pubkey ${this._globalConfig.toString()}`);
     }
@@ -4571,7 +4616,7 @@ export class Kamino {
       tickLowerIndex
     );
 
-    const globalConfig = await GlobalConfig.fetch(this._connection, this._globalConfig);
+    const globalConfig = await this.getGlobalConfigState(this._globalConfig);
     if (!globalConfig) {
       throw Error(`Could not fetch global config with pubkey ${this._globalConfig.toString()}`);
     }
@@ -4631,7 +4676,7 @@ export class Kamino {
     const { address: strategyPubkey, strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
     const eventAuthority = this.getEventAuthorityPDA(strategyState.strategyDex);
 
-    let globalConfig = await GlobalConfig.fetch(this._connection, strategyState.globalConfig);
+    let globalConfig = await this.getGlobalConfigState(strategyState.globalConfig);
     if (globalConfig == null) {
       throw new Error(`Unable to fetch GlobalConfig with Pubkey ${strategyState.globalConfig}`);
     }
@@ -4731,7 +4776,7 @@ export class Kamino {
     }
 
     const strategyState = strategyWithAddress.strategy;
-    const globalConfig = await GlobalConfig.fetch(this._connection, strategyState.globalConfig);
+    const globalConfig = await this.getGlobalConfigState(strategyState.globalConfig);
     if (!globalConfig) {
       throw Error(`Could not fetch global config with pubkey ${strategyState.globalConfig.toString()}`);
     }
@@ -4858,8 +4903,8 @@ export class Kamino {
         b: ZERO,
       };
       for (let feeInfo of meteoraPosition.feeInfos) {
-        pendingFees.a = pendingFees.a.add(new Decimal(meteoraPosition.feeInfos[0].feeXPending.toString()));
-        pendingFees.b = pendingFees.b.add(new Decimal(meteoraPosition.feeInfos[1].feeXPending.toString()));
+        pendingFees.a = pendingFees.a.add(feeInfo.feeXPending.toString());
+        pendingFees.b = pendingFees.b.add(feeInfo.feeYPending.toString());
       }
       result.push({
         strategy: meteoraStrategies[index],
@@ -5010,7 +5055,7 @@ export class Kamino {
   ): Promise<InitStrategyIxs> => {
     let feeTier: Decimal = feeTierBps.div(FullBPS);
     // check both tokens exist in collateralInfo
-    let config = await GlobalConfig.fetch(this._connection, this._globalConfig);
+    let config = await this.getGlobalConfigState(this._globalConfig);
     if (!config) {
       throw Error(`Could not fetch globalConfig  with pubkey ${this.getGlobalConfig().toString()}`);
     }
@@ -6173,7 +6218,8 @@ export class Kamino {
     }
     if (isOrca) {
       const prices = await this.getAllPrices();
-      return this._orcaService.getStrategyWhirlpoolPoolAprApy(strategyState, prices, orcaPools);
+      const collateralInfos = await this.getCollateralInfos();
+      return this._orcaService.getStrategyWhirlpoolPoolAprApy(strategyState, collateralInfos, prices, orcaPools);
     }
     if (isRaydium) {
       return this._raydiumService.getStrategyWhirlpoolPoolAprApy(strategyState, raydiumPools);
@@ -6191,7 +6237,7 @@ export class Kamino {
   ): Promise<PerformanceFees> => {
     const { strategy: strategyState } = await this.getStrategyStateIfNotFetched(strategy);
 
-    const globalConfigState = globalConfig || (await GlobalConfig.fetch(this._connection, strategyState.globalConfig));
+    const globalConfigState = globalConfig || (await this.getGlobalConfigState(strategyState.globalConfig));
 
     if (globalConfigState == null) {
       throw new Error(`Unable to fetch GlobalConfig with Pubkey ${strategyState.globalConfig}`);
@@ -7050,12 +7096,24 @@ export class Kamino {
     return amountsSlippage;
   };
 
-  getCollateralInfo = async (collateralInfo: PublicKey): Promise<CollateralInfo[]> => {
-    const collateralInfos = await CollateralInfos.fetch(this._connection, collateralInfo);
-    if (!collateralInfos) {
-      throw Error('Could not fetch collateral infos');
+  getCollateralInfo = async (address: PublicKey): Promise<CollateralInfo[]> => {
+    const collateralInfos = await CollateralInfos.fetch(this._connection, address, this._kaminoProgramId);
+    if (collateralInfos === null) {
+      throw new Error('Could not fetch CollateralInfos');
     }
     return collateralInfos.infos;
+  };
+
+  getGlobalConfigState = async (address: PublicKey): Promise<GlobalConfig | null> => {
+    return await GlobalConfig.fetch(this._connection, address, this._kaminoProgramId);
+  };
+
+  getWhirlpoolStrategy = async (address: PublicKey): Promise<WhirlpoolStrategy | null> => {
+    return await WhirlpoolStrategy.fetch(this._connection, address, this._kaminoProgramId);
+  };
+
+  getWhirlpoolStrategies = async (addresses: PublicKey[]): Promise<Array<WhirlpoolStrategy | null>> => {
+    return await WhirlpoolStrategy.fetchMultiple(this._connection, addresses, this._kaminoProgramId);
   };
 
   getStrategyVaultBalances = async (strategy: PublicKey | StrategyWithAddress) => {
@@ -7143,7 +7201,7 @@ export class Kamino {
     if (!strategyState) {
       throw Error(`Could not fetch strategy state with pubkey ${strategy.toString()}`);
     }
-    let globalConfig = await GlobalConfig.fetch(this._connection, strategyState.globalConfig);
+    let globalConfig = await this.getGlobalConfigState(strategyState.globalConfig);
     if (!globalConfig) {
       throw Error(`Could not fetch global config with pubkey ${strategyState.globalConfig.toString()}`);
     }

@@ -153,7 +153,6 @@ export type CustomError =
   | EmptyTreasury
   | ChangingPoolRewardMintMismatch
   | ProvidedRewardVaultMismatch
-  | RepeatedMint
 
 export class IntegerOverflow extends Error {
   static readonly code = 6000
@@ -1885,17 +1884,6 @@ export class ProvidedRewardVaultMismatch extends Error {
   }
 }
 
-export class RepeatedMint extends Error {
-  static readonly code = 6154
-  readonly code = 6154
-  readonly name = "RepeatedMint"
-  readonly msg = "The provided reward vault does not match the strategy state"
-
-  constructor(readonly logs?: string[]) {
-    super("6154: The provided reward vault does not match the strategy state")
-  }
-}
-
 export function fromCode(code: number, logs?: string[]): CustomError | null {
   switch (code) {
     case 6000:
@@ -2206,8 +2194,6 @@ export function fromCode(code: number, logs?: string[]): CustomError | null {
       return new ChangingPoolRewardMintMismatch(logs)
     case 6153:
       return new ProvidedRewardVaultMismatch(logs)
-    case 6154:
-      return new RepeatedMint(logs)
   }
 
   return null
