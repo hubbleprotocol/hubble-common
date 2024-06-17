@@ -132,6 +132,7 @@ export class OrcaService {
 
   async getStrategyWhirlpoolPoolAprApy(
     strategy: WhirlpoolStrategy,
+    collateralInfos: CollateralInfo[],
     prices: KaminoPrices,
     whirlpools?: Whirlpool[]
   ): Promise<WhirlpoolAprApy> {
@@ -175,15 +176,7 @@ export class OrcaService {
     const lpFeeRate = pool.feePercentage;
     const volume24hUsd = whirlpool?.volume?.day ?? new Decimal(0);
     const fee24Usd = new Decimal(volume24hUsd).mul(lpFeeRate).toNumber();
-    const config = await GlobalConfig.fetch(this._connection, this._globalConfig);
-    if (!config) {
-      throw Error(`Could not fetch globalConfig with pubkey ${this._globalConfig.toString()}`);
-    }
-    const collateralInfos = await CollateralInfos.fetch(this._connection, config.tokenInfos);
-    if (!collateralInfos) {
-      throw Error('Could not fetch collateral infos');
-    }
-    const tokensPrices = this.getTokenPrices(strategy, prices, collateralInfos.infos);
+    const tokensPrices = this.getTokenPrices(strategy, prices, collateralInfos);
 
     const apr = estimateAprsForPriceRange(
       pool,

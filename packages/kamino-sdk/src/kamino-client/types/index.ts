@@ -211,6 +211,7 @@ export type GlobalConfigOptionKind =
   | GlobalConfigOption.MinSwapUnevenSlippageToleranceBps
   | GlobalConfigOption.MinReferencePriceSlippageToleranceBps
   | GlobalConfigOption.ActionsAfterRebalanceDelaySeconds
+  | GlobalConfigOption.TreasuryFeeVaultReceiver
 export type GlobalConfigOptionJSON =
   | GlobalConfigOption.EmergencyModeJSON
   | GlobalConfigOption.BlockDepositJSON
@@ -234,6 +235,7 @@ export type GlobalConfigOptionJSON =
   | GlobalConfigOption.MinSwapUnevenSlippageToleranceBpsJSON
   | GlobalConfigOption.MinReferencePriceSlippageToleranceBpsJSON
   | GlobalConfigOption.ActionsAfterRebalanceDelaySecondsJSON
+  | GlobalConfigOption.TreasuryFeeVaultReceiverJSON
 
 export { StrategyConfigOption }
 

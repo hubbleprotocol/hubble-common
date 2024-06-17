@@ -4,31 +4,22 @@ import * as borsh from "@coral-xyz/borsh" // eslint-disable-line @typescript-esl
 import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
 import { PROGRAM_ID } from "../programId"
 
-export interface WithdrawFromTreasuryArgs {
-  amount: BN
-}
-
-export interface WithdrawFromTreasuryAccounts {
-  adminAuthority: PublicKey
+export interface PermisionlessWithdrawFromTreasuryAccounts {
+  signer: PublicKey
   globalConfig: PublicKey
   mint: PublicKey
   treasuryFeeVault: PublicKey
   treasuryFeeVaultAuthority: PublicKey
   tokenAccount: PublicKey
-  systemProgram: PublicKey
-  rent: PublicKey
   tokenProgram: PublicKey
 }
 
-export const layout = borsh.struct([borsh.u64("amount")])
-
-export function withdrawFromTreasury(
-  args: WithdrawFromTreasuryArgs,
-  accounts: WithdrawFromTreasuryAccounts,
+export function permisionlessWithdrawFromTreasury(
+  accounts: PermisionlessWithdrawFromTreasuryAccounts,
   programId: PublicKey = PROGRAM_ID
 ) {
   const keys: Array<AccountMeta> = [
-    { pubkey: accounts.adminAuthority, isSigner: true, isWritable: true },
+    { pubkey: accounts.signer, isSigner: true, isWritable: true },
     { pubkey: accounts.globalConfig, isSigner: false, isWritable: false },
     { pubkey: accounts.mint, isSigner: false, isWritable: false },
     { pubkey: accounts.treasuryFeeVault, isSigner: false, isWritable: true },
@@ -38,19 +29,10 @@ export function withdrawFromTreasury(
       isWritable: true,
     },
     { pubkey: accounts.tokenAccount, isSigner: false, isWritable: true },
-    { pubkey: accounts.systemProgram, isSigner: false, isWritable: false },
-    { pubkey: accounts.rent, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
   ]
-  const identifier = Buffer.from([0, 164, 86, 76, 56, 72, 12, 170])
-  const buffer = Buffer.alloc(1000)
-  const len = layout.encode(
-    {
-      amount: args.amount,
-    },
-    buffer
-  )
-  const data = Buffer.concat([identifier, buffer]).slice(0, 8 + len)
+  const identifier = Buffer.from([167, 36, 32, 79, 97, 170, 183, 108])
+  const data = identifier
   const ix = new TransactionInstruction({ keys, programId, data })
   return ix
 }

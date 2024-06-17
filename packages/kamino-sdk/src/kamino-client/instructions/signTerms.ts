@@ -1,6 +1,6 @@
 import { TransactionInstruction, PublicKey, AccountMeta } from "@solana/web3.js" // eslint-disable-line @typescript-eslint/no-unused-vars
 import BN from "bn.js" // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as borsh from "@project-serum/borsh" // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as borsh from "@coral-xyz/borsh" // eslint-disable-line @typescript-eslint/no-unused-vars
 import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
 import { PROGRAM_ID } from "../programId"
 
@@ -17,7 +17,11 @@ export interface SignTermsAccounts {
 
 export const layout = borsh.struct([borsh.array(borsh.u8(), 64, "signature")])
 
-export function signTerms(args: SignTermsArgs, accounts: SignTermsAccounts) {
+export function signTerms(
+  args: SignTermsArgs,
+  accounts: SignTermsAccounts,
+  programId: PublicKey = PROGRAM_ID
+) {
   const keys: Array<AccountMeta> = [
     { pubkey: accounts.owner, isSigner: true, isWritable: true },
     { pubkey: accounts.ownerSignatureState, isSigner: false, isWritable: true },
@@ -33,6 +37,6 @@ export function signTerms(args: SignTermsArgs, accounts: SignTermsAccounts) {
     buffer
   )
   const data = Buffer.concat([identifier, buffer]).slice(0, 8 + len)
-  const ix = new TransactionInstruction({ keys, programId: PROGRAM_ID, data })
+  const ix = new TransactionInstruction({ keys, programId, data })
   return ix
 }
