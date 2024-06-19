@@ -45,21 +45,24 @@ export const getComputeBudgetAndPriorityFeeIxns = (
 export const createAtaIfMissingIx = async (
   connection: Connection,
   mint: PublicKey,
-  owner: PublicKey
+  owner: PublicKey,
+  programId: PublicKey
 ): Promise<TransactionInstruction | undefined> => {
   const ata = getAssociatedTokenAddress(mint, owner);
   const doesAtaExist = Boolean(await checkIfAccountExists(connection, ata));
-  const createIxn = !doesAtaExist ? createAssociatedTokenAccountInstruction(owner, ata, owner, mint) : undefined;
+  const createIxn = !doesAtaExist
+    ? createAssociatedTokenAccountInstruction(owner, ata, owner, mint, programId)
+    : undefined;
   return createIxn;
 };
 
 export const getAtasWithCreateIxnsIfMissing = async (
   connection: Connection,
-  mints: PublicKey[],
+  mints: [PublicKey, PublicKey][],
   owner: PublicKey
 ): Promise<TransactionInstruction[]> => {
-  const requests = mints.map(async (mint) => {
-    let createAtaIx = await createAtaIfMissingIx(connection, mint, owner);
+  const requests = mints.map(async ([mint, tokenProgram]) => {
+    let createAtaIx = await createAtaIfMissingIx(connection, mint, owner, tokenProgram);
     if (createAtaIx) {
       return createAtaIx;
     }

@@ -17,6 +17,8 @@ export interface CloseStrategyAccounts {
   tokenBVault: PublicKey
   userTokenAAta: PublicKey
   userTokenBAta: PublicKey
+  tokenAMint: PublicKey
+  tokenBMint: PublicKey
   /** If rewards are uninitialized, pass this as strategy. */
   reward0Vault: PublicKey
   /** If rewards are uninitialized, pass this as strategy. */
@@ -44,6 +46,8 @@ export interface CloseStrategyAccounts {
   baseVaultAuthority: PublicKey
   poolProgram: PublicKey
   tokenProgram: PublicKey
+  tokenATokenProgram: PublicKey
+  tokenBTokenProgram: PublicKey
   system: PublicKey
   eventAuthority: PublicKey
 }
@@ -85,6 +89,8 @@ export function closeStrategy(
     { pubkey: accounts.tokenBVault, isSigner: false, isWritable: true },
     { pubkey: accounts.userTokenAAta, isSigner: false, isWritable: true },
     { pubkey: accounts.userTokenBAta, isSigner: false, isWritable: true },
+    { pubkey: accounts.tokenAMint, isSigner: false, isWritable: true },
+    { pubkey: accounts.tokenBMint, isSigner: false, isWritable: true },
     { pubkey: accounts.reward0Vault, isSigner: false, isWritable: true },
     { pubkey: accounts.reward1Vault, isSigner: false, isWritable: true },
     { pubkey: accounts.reward2Vault, isSigner: false, isWritable: true },
@@ -112,6 +118,8 @@ export function closeStrategy(
     { pubkey: accounts.baseVaultAuthority, isSigner: false, isWritable: true },
     { pubkey: accounts.poolProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
+    { pubkey: accounts.tokenATokenProgram, isSigner: false, isWritable: false },
+    { pubkey: accounts.tokenBTokenProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.system, isSigner: false, isWritable: false },
     { pubkey: accounts.eventAuthority, isSigner: false, isWritable: false },
   ]

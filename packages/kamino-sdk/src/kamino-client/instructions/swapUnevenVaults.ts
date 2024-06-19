@@ -34,7 +34,9 @@ export interface SwapUnevenVaultsAccounts {
   tokenInfos: PublicKey
   tickArrayLower: PublicKey
   tickArrayUpper: PublicKey
-  tokenProgram: PublicKey
+  tokenATokenProgram: PublicKey
+  tokenBTokenProgram: PublicKey
+  memoProgram: PublicKey
   instructionSysvarAccount: PublicKey
   consensusAccount: PublicKey
   eventAuthority: PublicKey
@@ -74,7 +76,9 @@ export function swapUnevenVaults(
     { pubkey: accounts.tokenInfos, isSigner: false, isWritable: false },
     { pubkey: accounts.tickArrayLower, isSigner: false, isWritable: false },
     { pubkey: accounts.tickArrayUpper, isSigner: false, isWritable: false },
-    { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
+    { pubkey: accounts.tokenATokenProgram, isSigner: false, isWritable: false },
+    { pubkey: accounts.tokenBTokenProgram, isSigner: false, isWritable: false },
+    { pubkey: accounts.memoProgram, isSigner: false, isWritable: false },
     {
       pubkey: accounts.instructionSysvarAccount,
       isSigner: false,

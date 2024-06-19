@@ -30,7 +30,9 @@ export interface EmergencySwapAccounts {
   poolProgram: PublicKey
   scopePrices: PublicKey
   tokenInfos: PublicKey
-  tokenProgram: PublicKey
+  tokenATokenProgram: PublicKey
+  tokenBTokenProgram: PublicKey
+  memoProgram: PublicKey
 }
 
 export const layout = borsh.struct([
@@ -61,7 +63,9 @@ export function emergencySwap(
     { pubkey: accounts.poolProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.scopePrices, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenInfos, isSigner: false, isWritable: false },
-    { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
+    { pubkey: accounts.tokenATokenProgram, isSigner: false, isWritable: false },
+    { pubkey: accounts.tokenBTokenProgram, isSigner: false, isWritable: false },
+    { pubkey: accounts.memoProgram, isSigner: false, isWritable: false },
   ]
   const identifier = Buffer.from([73, 226, 248, 215, 5, 197, 211, 229])
   const buffer = Buffer.alloc(1000)

@@ -14,7 +14,9 @@ export interface OrcaSwapArgs {
 
 export interface OrcaSwapAccounts {
   funder: PublicKey
-  tokenProgram: PublicKey
+  tokenATokenProgram: PublicKey
+  tokenBTokenProgram: PublicKey
+  memoProgram: PublicKey
   tokenAuthority: PublicKey
   whirlpool: PublicKey
   tokenOwnerAccountA: PublicKey
@@ -43,7 +45,9 @@ export function orcaSwap(
 ) {
   const keys: Array<AccountMeta> = [
     { pubkey: accounts.funder, isSigner: true, isWritable: true },
-    { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
+    { pubkey: accounts.tokenATokenProgram, isSigner: false, isWritable: false },
+    { pubkey: accounts.tokenBTokenProgram, isSigner: false, isWritable: false },
+    { pubkey: accounts.memoProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenAuthority, isSigner: false, isWritable: false },
     { pubkey: accounts.whirlpool, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenOwnerAccountA, isSigner: false, isWritable: false },
