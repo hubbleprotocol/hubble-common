@@ -31,9 +31,10 @@ export const DECIMALS_SOL = 9;
 export async function getAssociatedTokenAddressAndData(
   connection: Connection,
   mint: PublicKey,
-  owner: PublicKey
+  owner: PublicKey,
+  programId = TOKEN_PROGRAM_ID
 ): Promise<[PublicKey, AccountInfo<Buffer> | null]> {
-  const ata = getAssociatedTokenAddress(mint, owner);
+  const ata = getAssociatedTokenAddress(mint, owner, true, programId);
   const data = await connection.getAccountInfo(ata);
   return [ata, data];
 }

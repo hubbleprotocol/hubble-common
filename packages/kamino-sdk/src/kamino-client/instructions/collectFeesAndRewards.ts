@@ -36,7 +36,9 @@ export interface CollectFeesAndRewardsAccounts {
   poolRewardVault2: PublicKey
   tokenAMint: PublicKey
   tokenBMint: PublicKey
-  tokenProgram: PublicKey
+  tokenATokenProgram: PublicKey
+  tokenBTokenProgram: PublicKey
+  memoProgram: PublicKey
   poolProgram: PublicKey
   instructionSysvarAccount: PublicKey
   eventAuthority: PublicKey
@@ -92,7 +94,9 @@ export function collectFeesAndRewards(
     { pubkey: accounts.poolRewardVault2, isSigner: false, isWritable: true },
     { pubkey: accounts.tokenAMint, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenBMint, isSigner: false, isWritable: false },
-    { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
+    { pubkey: accounts.tokenATokenProgram, isSigner: false, isWritable: false },
+    { pubkey: accounts.tokenBTokenProgram, isSigner: false, isWritable: false },
+    { pubkey: accounts.memoProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.poolProgram, isSigner: false, isWritable: false },
     {
       pubkey: accounts.instructionSysvarAccount,

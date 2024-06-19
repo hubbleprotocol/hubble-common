@@ -30,6 +30,8 @@ export interface DepositAccounts {
   scopePrices: PublicKey
   tokenInfos: PublicKey
   tokenProgram: PublicKey
+  tokenATokenProgram: PublicKey
+  tokenBTokenProgram: PublicKey
   instructionSysvarAccount: PublicKey
 }
 
@@ -68,6 +70,8 @@ export function deposit(
     { pubkey: accounts.scopePrices, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenInfos, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
+    { pubkey: accounts.tokenATokenProgram, isSigner: false, isWritable: false },
+    { pubkey: accounts.tokenBTokenProgram, isSigner: false, isWritable: false },
     {
       pubkey: accounts.instructionSysvarAccount,
       isSigner: false,

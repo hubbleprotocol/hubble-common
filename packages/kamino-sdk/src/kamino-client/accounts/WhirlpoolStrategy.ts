@@ -98,6 +98,8 @@ export interface WhirlpoolStrategyFields {
   farm: PublicKey
   rebalancesCap: types.WithdrawalCapsFields
   swapUnevenAuthority: PublicKey
+  tokenATokenProgram: PublicKey
+  tokenBTokenProgram: PublicKey
   padding3: BN
   padding4: Array<BN>
   padding5: Array<BN>
@@ -199,6 +201,8 @@ export interface WhirlpoolStrategyJSON {
   farm: string
   rebalancesCap: types.WithdrawalCapsJSON
   swapUnevenAuthority: string
+  tokenATokenProgram: string
+  tokenBTokenProgram: string
   padding3: string
   padding4: Array<string>
   padding5: Array<string>
@@ -300,6 +304,8 @@ export class WhirlpoolStrategy {
   readonly farm: PublicKey
   readonly rebalancesCap: types.WithdrawalCaps
   readonly swapUnevenAuthority: PublicKey
+  readonly tokenATokenProgram: PublicKey
+  readonly tokenBTokenProgram: PublicKey
   readonly padding3: BN
   readonly padding4: Array<BN>
   readonly padding5: Array<BN>
@@ -403,8 +409,10 @@ export class WhirlpoolStrategy {
     borsh.publicKey("farm"),
     types.WithdrawalCaps.layout("rebalancesCap"),
     borsh.publicKey("swapUnevenAuthority"),
+    borsh.publicKey("tokenATokenProgram"),
+    borsh.publicKey("tokenBTokenProgram"),
     borsh.u64("padding3"),
-    borsh.array(borsh.u128(), 19, "padding4"),
+    borsh.array(borsh.u128(), 15, "padding4"),
     borsh.array(borsh.u128(), 32, "padding5"),
     borsh.array(borsh.u128(), 32, "padding6"),
     borsh.array(borsh.u128(), 32, "padding7"),
@@ -514,6 +522,8 @@ export class WhirlpoolStrategy {
     this.farm = fields.farm
     this.rebalancesCap = new types.WithdrawalCaps({ ...fields.rebalancesCap })
     this.swapUnevenAuthority = fields.swapUnevenAuthority
+    this.tokenATokenProgram = fields.tokenATokenProgram
+    this.tokenBTokenProgram = fields.tokenBTokenProgram
     this.padding3 = fields.padding3
     this.padding4 = fields.padding4
     this.padding5 = fields.padding5
@@ -664,6 +674,8 @@ export class WhirlpoolStrategy {
       farm: dec.farm,
       rebalancesCap: types.WithdrawalCaps.fromDecoded(dec.rebalancesCap),
       swapUnevenAuthority: dec.swapUnevenAuthority,
+      tokenATokenProgram: dec.tokenATokenProgram,
+      tokenBTokenProgram: dec.tokenBTokenProgram,
       padding3: dec.padding3,
       padding4: dec.padding4,
       padding5: dec.padding5,
@@ -771,6 +783,8 @@ export class WhirlpoolStrategy {
       farm: this.farm.toString(),
       rebalancesCap: this.rebalancesCap.toJSON(),
       swapUnevenAuthority: this.swapUnevenAuthority.toString(),
+      tokenATokenProgram: this.tokenATokenProgram.toString(),
+      tokenBTokenProgram: this.tokenBTokenProgram.toString(),
       padding3: this.padding3.toString(),
       padding4: this.padding4.map((item) => item.toString()),
       padding5: this.padding5.map((item) => item.toString()),
@@ -884,6 +898,8 @@ export class WhirlpoolStrategy {
       farm: new PublicKey(obj.farm),
       rebalancesCap: types.WithdrawalCaps.fromJSON(obj.rebalancesCap),
       swapUnevenAuthority: new PublicKey(obj.swapUnevenAuthority),
+      tokenATokenProgram: new PublicKey(obj.tokenATokenProgram),
+      tokenBTokenProgram: new PublicKey(obj.tokenBTokenProgram),
       padding3: new BN(obj.padding3),
       padding4: obj.padding4.map((item) => new BN(item)),
       padding5: obj.padding5.map((item) => new BN(item)),

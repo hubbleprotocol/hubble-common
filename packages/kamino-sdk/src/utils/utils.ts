@@ -311,3 +311,10 @@ export function createAddExtraComputeUnitsTransaction(units: number, microLampor
   const ixns = [ix1, ix2];
   return ixns;
 }
+
+export function keyOrDefault(key: PublicKey, defaultKey: PublicKey): PublicKey {
+  if (key.equals(PublicKey.default)) {
+    return defaultKey;
+  }
+  return key;
+}

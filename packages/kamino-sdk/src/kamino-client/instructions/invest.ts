@@ -14,7 +14,9 @@ export interface InvestAccounts {
   tokenBMint: PublicKey
   baseVaultAuthority: PublicKey
   pool: PublicKey
-  tokenProgram: PublicKey
+  tokenATokenProgram: PublicKey
+  tokenBTokenProgram: PublicKey
+  memoProgram: PublicKey
   position: PublicKey
   raydiumProtocolPositionOrBaseVaultAuthority: PublicKey
   positionTokenAccount: PublicKey
@@ -43,7 +45,9 @@ export function invest(
     { pubkey: accounts.tokenBMint, isSigner: false, isWritable: false },
     { pubkey: accounts.baseVaultAuthority, isSigner: false, isWritable: true },
     { pubkey: accounts.pool, isSigner: false, isWritable: true },
-    { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
+    { pubkey: accounts.tokenATokenProgram, isSigner: false, isWritable: false },
+    { pubkey: accounts.tokenBTokenProgram, isSigner: false, isWritable: false },
+    { pubkey: accounts.memoProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.position, isSigner: false, isWritable: true },
     {
       pubkey: accounts.raydiumProtocolPositionOrBaseVaultAuthority,
