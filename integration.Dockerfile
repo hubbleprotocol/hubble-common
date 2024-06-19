@@ -1,4 +1,4 @@
-FROM hubbleprotocol/anchor-build:0.25.0
+FROM hubbleprotocol/anchor-build:0.29.0
 
 COPY / /hubble-common/
 WORKDIR /hubble-common
