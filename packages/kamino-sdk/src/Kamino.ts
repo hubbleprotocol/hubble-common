@@ -184,7 +184,6 @@ import {
   getPdaProtocolPositionAddress,
   i32ToBytes,
   LiquidityMath,
-  MEMO_PROGRAM_ID,
   SqrtPriceMath,
   TickMath,
   TickUtils,
@@ -223,6 +222,7 @@ import {
   ADDRESS_LUT_PROGRAM_ID,
   CONSENSUS_ID,
   LUT_OWNER_KEY,
+  MEMO_PROGRAM_ID,
   STAGING_GLOBAL_CONFIG,
   STAGING_KAMINO_PROGRAM_ID,
 } from './constants/pubkeys';
