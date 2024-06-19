@@ -27,7 +27,9 @@ export interface ExecutiveWithdrawAccounts {
   tokenBMint: PublicKey
   scopePrices: PublicKey
   tokenInfos: PublicKey
-  tokenProgram: PublicKey
+  tokenATokenProgram: PublicKey
+  tokenBTokenProgram: PublicKey
+  memoProgram: PublicKey
   poolProgram: PublicKey
   eventAuthority: PublicKey
 }
@@ -66,7 +68,9 @@ export function executiveWithdraw(
     { pubkey: accounts.tokenBMint, isSigner: false, isWritable: false },
     { pubkey: accounts.scopePrices, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenInfos, isSigner: false, isWritable: false },
-    { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
+    { pubkey: accounts.tokenATokenProgram, isSigner: false, isWritable: false },
+    { pubkey: accounts.tokenBTokenProgram, isSigner: false, isWritable: false },
+    { pubkey: accounts.memoProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.poolProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.eventAuthority, isSigner: false, isWritable: false },
   ]

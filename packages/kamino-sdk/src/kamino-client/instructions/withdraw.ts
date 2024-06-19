@@ -14,7 +14,6 @@ export interface WithdrawAccounts {
   globalConfig: PublicKey
   pool: PublicKey
   position: PublicKey
-  raydiumProtocolPositionOrBaseVaultAuthority: PublicKey
   tickArrayLower: PublicKey
   tickArrayUpper: PublicKey
   tokenAVault: PublicKey
@@ -31,6 +30,9 @@ export interface WithdrawAccounts {
   treasuryFeeTokenAVault: PublicKey
   treasuryFeeTokenBVault: PublicKey
   tokenProgram: PublicKey
+  tokenATokenProgram: PublicKey
+  tokenBTokenProgram: PublicKey
+  memoProgram: PublicKey
   positionTokenAccount: PublicKey
   poolProgram: PublicKey
   instructionSysvarAccount: PublicKey
@@ -50,11 +52,6 @@ export function withdraw(
     { pubkey: accounts.globalConfig, isSigner: false, isWritable: false },
     { pubkey: accounts.pool, isSigner: false, isWritable: true },
     { pubkey: accounts.position, isSigner: false, isWritable: true },
-    {
-      pubkey: accounts.raydiumProtocolPositionOrBaseVaultAuthority,
-      isSigner: false,
-      isWritable: true,
-    },
     { pubkey: accounts.tickArrayLower, isSigner: false, isWritable: true },
     { pubkey: accounts.tickArrayUpper, isSigner: false, isWritable: true },
     { pubkey: accounts.tokenAVault, isSigner: false, isWritable: true },
@@ -79,6 +76,9 @@ export function withdraw(
       isWritable: true,
     },
     { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
+    { pubkey: accounts.tokenATokenProgram, isSigner: false, isWritable: false },
+    { pubkey: accounts.tokenBTokenProgram, isSigner: false, isWritable: false },
+    { pubkey: accounts.memoProgram, isSigner: false, isWritable: false },
     {
       pubkey: accounts.positionTokenAccount,
       isSigner: false,

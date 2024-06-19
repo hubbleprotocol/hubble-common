@@ -12,7 +12,6 @@ export interface InitializeStrategyArgs {
 
 export interface InitializeStrategyAccounts {
   adminAuthority: PublicKey
-  strategy: PublicKey
   globalConfig: PublicKey
   /** Program owner also checked. */
   pool: PublicKey
@@ -29,6 +28,9 @@ export interface InitializeStrategyAccounts {
   systemProgram: PublicKey
   rent: PublicKey
   tokenProgram: PublicKey
+  tokenATokenProgram: PublicKey
+  tokenBTokenProgram: PublicKey
+  strategy: PublicKey
 }
 
 export const layout = borsh.struct([
@@ -44,7 +46,6 @@ export function initializeStrategy(
 ) {
   const keys: Array<AccountMeta> = [
     { pubkey: accounts.adminAuthority, isSigner: true, isWritable: true },
-    { pubkey: accounts.strategy, isSigner: false, isWritable: true },
     { pubkey: accounts.globalConfig, isSigner: false, isWritable: false },
     { pubkey: accounts.pool, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenAMint, isSigner: false, isWritable: false },
@@ -60,6 +61,9 @@ export function initializeStrategy(
     { pubkey: accounts.systemProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.rent, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
+    { pubkey: accounts.tokenATokenProgram, isSigner: false, isWritable: false },
+    { pubkey: accounts.tokenBTokenProgram, isSigner: false, isWritable: false },
+    { pubkey: accounts.strategy, isSigner: false, isWritable: true },
   ]
   const identifier = Buffer.from([208, 119, 144, 145, 178, 57, 105, 252])
   const buffer = Buffer.alloc(1000)

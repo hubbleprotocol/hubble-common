@@ -153,6 +153,9 @@ export type CustomError =
   | EmptyTreasury
   | ChangingPoolRewardMintMismatch
   | ProvidedRewardVaultMismatch
+  | RepeatedMint
+  | UnsupportedTokenExtension
+  | UnsupportedDexForToken22
 
 export class IntegerOverflow extends Error {
   static readonly code = 6000
@@ -1884,6 +1887,42 @@ export class ProvidedRewardVaultMismatch extends Error {
   }
 }
 
+export class RepeatedMint extends Error {
+  static readonly code = 6154
+  readonly code = 6154
+  readonly name = "RepeatedMint"
+  readonly msg = "The provided reward vault does not match the strategy state"
+
+  constructor(readonly logs?: string[]) {
+    super("6154: The provided reward vault does not match the strategy state")
+  }
+}
+
+export class UnsupportedTokenExtension extends Error {
+  static readonly code = 6155
+  readonly code = 6155
+  readonly name = "UnsupportedTokenExtension"
+  readonly msg = "The token extension is not supported by the program"
+
+  constructor(readonly logs?: string[]) {
+    super("6155: The token extension is not supported by the program")
+  }
+}
+
+export class UnsupportedDexForToken22 extends Error {
+  static readonly code = 6156
+  readonly code = 6156
+  readonly name = "UnsupportedDexForToken22"
+  readonly msg =
+    "Cannot initialize strategy with this dex while having a mint with token22"
+
+  constructor(readonly logs?: string[]) {
+    super(
+      "6156: Cannot initialize strategy with this dex while having a mint with token22"
+    )
+  }
+}
+
 export function fromCode(code: number, logs?: string[]): CustomError | null {
   switch (code) {
     case 6000:
@@ -2194,6 +2233,12 @@ export function fromCode(code: number, logs?: string[]): CustomError | null {
       return new ChangingPoolRewardMintMismatch(logs)
     case 6153:
       return new ProvidedRewardVaultMismatch(logs)
+    case 6154:
+      return new RepeatedMint(logs)
+    case 6155:
+      return new UnsupportedTokenExtension(logs)
+    case 6156:
+      return new UnsupportedDexForToken22(logs)
   }
 
   return null
