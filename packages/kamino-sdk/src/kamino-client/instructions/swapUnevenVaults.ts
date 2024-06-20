@@ -70,7 +70,7 @@ export function swapUnevenVaults(
     { pubkey: accounts.tickArray0, isSigner: false, isWritable: true },
     { pubkey: accounts.tickArray1, isSigner: false, isWritable: true },
     { pubkey: accounts.tickArray2, isSigner: false, isWritable: true },
-    { pubkey: accounts.oracle, isSigner: false, isWritable: false },
+    { pubkey: accounts.oracle, isSigner: false, isWritable: true },
     { pubkey: accounts.poolProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.scopePrices, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenInfos, isSigner: false, isWritable: false },
