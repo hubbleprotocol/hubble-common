@@ -11,11 +11,6 @@
           "isSigner": true
         },
         {
-          "name": "strategy",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
           "name": "globalConfig",
           "isMut": false,
           "isSigner": false
@@ -64,16 +59,6 @@
           "isSigner": false
         },
         {
-          "name": "scopePriceId",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "scopeProgramId",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "tokenInfos",
           "isMut": false,
           "isSigner": false
@@ -91,6 +76,21 @@
         {
           "name": "tokenProgram",
           "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenATokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenBTokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "strategy",
+          "isMut": true,
           "isSigner": false
         }
       ],
@@ -744,6 +744,21 @@
           "isSigner": false
         },
         {
+          "name": "tokenATokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenBTokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "memoProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "associatedTokenProgram",
           "isMut": false,
           "isSigner": false
@@ -909,6 +924,16 @@
           "isSigner": false
         },
         {
+          "name": "tokenAMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenBMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
           "name": "reward0Vault",
           "isMut": true,
           "isSigner": false,
@@ -1016,6 +1041,16 @@
         },
         {
           "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenATokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenBTokenProgram",
           "isMut": false,
           "isSigner": false
         },
@@ -1137,6 +1172,16 @@
           "isSigner": false
         },
         {
+          "name": "tokenATokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenBTokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "instructionSysvarAccount",
           "isMut": false,
           "isSigner": false
@@ -1202,7 +1247,17 @@
           "isSigner": false
         },
         {
-          "name": "tokenProgram",
+          "name": "tokenATokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenBTokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "memoProgram",
           "isMut": false,
           "isSigner": false
         },
@@ -1397,6 +1452,21 @@
           "isSigner": false
         },
         {
+          "name": "tokenATokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenBTokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "memoProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "poolProgram",
           "isMut": false,
           "isSigner": false
@@ -1449,11 +1519,6 @@
         },
         {
           "name": "position",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "raydiumProtocolPositionOrBaseVaultAuthority",
           "isMut": true,
           "isSigner": false
         },
@@ -1534,6 +1599,21 @@
         },
         {
           "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenATokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenBTokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "memoProgram",
           "isMut": false,
           "isSigner": false
         },
@@ -1660,7 +1740,17 @@
           "isSigner": false
         },
         {
-          "name": "tokenProgram",
+          "name": "tokenATokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenBTokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "memoProgram",
           "isMut": false,
           "isSigner": false
         },
@@ -1830,7 +1920,17 @@
           "isSigner": false
         },
         {
-          "name": "tokenProgram",
+          "name": "tokenATokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenBTokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "memoProgram",
           "isMut": false,
           "isSigner": false
         },
@@ -1922,6 +2022,11 @@
           "isSigner": false
         },
         {
+          "name": "rewardMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "userTokenAAta",
           "isMut": true,
           "isSigner": false
@@ -1952,7 +2057,17 @@
           "isSigner": false
         },
         {
-          "name": "tokenProgram",
+          "name": "tokenATokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenBTokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rewardTokenProgram",
           "isMut": false,
           "isSigner": false
         },
@@ -2079,7 +2194,7 @@
         },
         {
           "name": "oracle",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -2108,7 +2223,17 @@
           "isSigner": false
         },
         {
-          "name": "tokenProgram",
+          "name": "tokenATokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenBTokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "memoProgram",
           "isMut": false,
           "isSigner": false
         },
@@ -2293,6 +2418,21 @@
           "isSigner": false
         },
         {
+          "name": "tokenATokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenBTokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "memoProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "poolProgram",
           "isMut": false,
           "isSigner": false
@@ -2424,6 +2564,16 @@
           "isSigner": false
         },
         {
+          "name": "tokenATokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenBTokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "instructionSysvarAccount",
           "isMut": false,
           "isSigner": false
@@ -2525,7 +2675,22 @@
           "isSigner": false
         },
         {
-          "name": "tokenProgram",
+          "name": "tokenAMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenBMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenATokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenBTokenProgram",
           "isMut": false,
           "isSigner": false
         },
@@ -2634,7 +2799,22 @@
           "isSigner": false
         },
         {
-          "name": "tokenProgram",
+          "name": "tokenAMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenBMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenATokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenBTokenProgram",
           "isMut": false,
           "isSigner": false
         },
@@ -2679,6 +2859,16 @@
         },
         {
           "name": "globalConfig",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenAMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenBMint",
           "isMut": false,
           "isSigner": false
         },
@@ -2743,7 +2933,7 @@
         },
         {
           "name": "oracle",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -2762,7 +2952,17 @@
           "isSigner": false
         },
         {
-          "name": "tokenProgram",
+          "name": "tokenATokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenBTokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "memoProgram",
           "isMut": false,
           "isSigner": false
         }
@@ -2987,7 +3187,17 @@
           "isSigner": true
         },
         {
-          "name": "tokenProgram",
+          "name": "tokenATokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenBTokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "memoProgram",
           "isMut": false,
           "isSigner": false
         },
@@ -3018,6 +3228,16 @@
         },
         {
           "name": "tokenVaultB",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenMintA",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenMintB",
           "isMut": false,
           "isSigner": false
         },
@@ -4116,6 +4336,14 @@
             "type": "publicKey"
           },
           {
+            "name": "tokenATokenProgram",
+            "type": "publicKey"
+          },
+          {
+            "name": "tokenBTokenProgram",
+            "type": "publicKey"
+          },
+          {
             "name": "padding3",
             "type": "u64"
           },
@@ -4124,7 +4352,7 @@
             "type": {
               "array": [
                 "u128",
-                19
+                15
               ]
             }
           },
@@ -6894,6 +7122,16 @@
       "code": 6154,
       "name": "RepeatedMint",
       "msg": "The provided reward vault does not match the strategy state"
+    },
+    {
+      "code": 6155,
+      "name": "UnsupportedTokenExtension",
+      "msg": "The token extension is not supported by the program"
+    },
+    {
+      "code": 6156,
+      "name": "UnsupportedDexForToken22",
+      "msg": "Cannot initialize strategy with this dex while having a mint with token22"
     }
   ]
 }
