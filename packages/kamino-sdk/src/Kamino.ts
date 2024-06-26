@@ -3751,8 +3751,6 @@ export class Kamino {
       baseVaultAuthority: programAddresses.baseVaultAuthority,
       sharesMint: programAddresses.sharesMint,
       sharesMintAuthority: programAddresses.sharesMintAuthority,
-      scopePriceId: config.scopePriceId,
-      scopeProgramId: config.scopeProgramId,
       tokenInfos: config.tokenInfos,
       systemProgram: SystemProgram.programId,
       rent: SYSVAR_RENT_PUBKEY,
@@ -3761,7 +3759,10 @@ export class Kamino {
       tokenBTokenProgram,
     };
 
-    return initializeStrategy(strategyArgs, strategyAccounts);
+    let ix = initializeStrategy(strategyArgs, strategyAccounts);
+    ix.keys.push({ pubkey: config.scopePriceId, isSigner: false, isWritable: false });
+    ix.keys.push({ pubkey: config.scopeProgramId, isSigner: false, isWritable: false });
+    return ix;
   };
 
   /**

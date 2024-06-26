@@ -22,8 +22,6 @@ export interface InitializeStrategyAccounts {
   baseVaultAuthority: PublicKey
   sharesMint: PublicKey
   sharesMintAuthority: PublicKey
-  scopePriceId: PublicKey
-  scopeProgramId: PublicKey
   tokenInfos: PublicKey
   systemProgram: PublicKey
   rent: PublicKey
@@ -55,8 +53,6 @@ export function initializeStrategy(
     { pubkey: accounts.baseVaultAuthority, isSigner: false, isWritable: true },
     { pubkey: accounts.sharesMint, isSigner: false, isWritable: true },
     { pubkey: accounts.sharesMintAuthority, isSigner: false, isWritable: true },
-    { pubkey: accounts.scopePriceId, isSigner: false, isWritable: false },
-    { pubkey: accounts.scopeProgramId, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenInfos, isSigner: false, isWritable: false },
     { pubkey: accounts.systemProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.rent, isSigner: false, isWritable: false },
