@@ -25,7 +25,10 @@ export interface FlashSwapUnevenVaultsEndAccounts {
   tokenInfos: PublicKey
   tickArrayLower: PublicKey
   tickArrayUpper: PublicKey
-  tokenProgram: PublicKey
+  tokenAMint: PublicKey
+  tokenBMint: PublicKey
+  tokenATokenProgram: PublicKey
+  tokenBTokenProgram: PublicKey
   instructionSysvarAccount: PublicKey
   consensusAccount: PublicKey
 }
@@ -65,7 +68,10 @@ export function flashSwapUnevenVaultsEnd(
     { pubkey: accounts.tokenInfos, isSigner: false, isWritable: false },
     { pubkey: accounts.tickArrayLower, isSigner: false, isWritable: false },
     { pubkey: accounts.tickArrayUpper, isSigner: false, isWritable: false },
-    { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
+    { pubkey: accounts.tokenAMint, isSigner: false, isWritable: false },
+    { pubkey: accounts.tokenBMint, isSigner: false, isWritable: false },
+    { pubkey: accounts.tokenATokenProgram, isSigner: false, isWritable: false },
+    { pubkey: accounts.tokenBTokenProgram, isSigner: false, isWritable: false },
     {
       pubkey: accounts.instructionSysvarAccount,
       isSigner: false,

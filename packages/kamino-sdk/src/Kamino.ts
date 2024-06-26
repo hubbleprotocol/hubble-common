@@ -123,6 +123,7 @@ import {
   numberToReferencePriceType,
   stripTwapZeros,
   getTokenNameFromCollateralInfo,
+  keyOrDefault,
 } from './utils';
 import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID, MintInfo, MintLayout, u64, Token } from '@solana/spl-token';
 import {
@@ -183,6 +184,7 @@ import {
   getPdaProtocolPositionAddress,
   i32ToBytes,
   LiquidityMath,
+  MEMO_PROGRAM_ID,
   SqrtPriceMath,
   TickMath,
   TickUtils,
@@ -355,6 +357,7 @@ import { BinArray, LbPair, PositionV2 } from './meteora_client/accounts';
 import LbPairWithAddress from './models/LbPairWithAddress';
 import { initializeBinArray, InitializeBinArrayAccounts, InitializeBinArrayArgs } from './meteora_client/instructions';
 import { PubkeyHashMap } from './utils/pubkey';
+import { findProgramAddressSync } from '@project-serum/anchor/dist/cjs/utils/pubkey';
 export const KAMINO_IDL = KaminoIdl;
 
 export class Kamino {
@@ -1964,6 +1967,14 @@ export class Kamino {
     return { totalTokenAmount, vaults, timestamp: new Date() };
   };
 
+  getAccountOwner = async (pk: PublicKey): Promise<PublicKey> => {
+    const acc = await this.getConnection().getAccountInfo(pk);
+    if (acc == null) {
+      throw Error(`Could not fetch mint ${pk.toString()}`);
+    }
+    return acc.owner;
+  };
+
   private getStrategyBalancesOrca = async (
     strategy: WhirlpoolStrategy,
     collateralInfos: CollateralInfo[],
@@ -2533,8 +2544,18 @@ export class Kamino {
     );
 
     const sharesAta = getAssociatedTokenAddress(strategyState.strategy.sharesMint, owner);
-    const tokenAAta = getAssociatedTokenAddress(strategyState.strategy.tokenAMint, owner);
-    const tokenBAta = getAssociatedTokenAddress(strategyState.strategy.tokenBMint, owner);
+    const tokenAAta = getAssociatedTokenAddress(
+      strategyState.strategy.tokenAMint,
+      owner,
+      true,
+      keyOrDefault(strategyState.strategy.tokenATokenProgram, TOKEN_PROGRAM_ID)
+    );
+    const tokenBAta = getAssociatedTokenAddress(
+      strategyState.strategy.tokenBMint,
+      owner,
+      true,
+      keyOrDefault(strategyState.strategy.tokenBTokenProgram, TOKEN_PROGRAM_ID)
+    );
 
     const sharesAmountInLamports = sharesAmount.mul(
       new Decimal(10).pow(strategyState.strategy.sharesMintDecimals.toString())
@@ -2564,12 +2585,14 @@ export class Kamino {
       treasuryFeeTokenBVault,
       tokenProgram: TOKEN_PROGRAM_ID,
       positionTokenAccount: strategyState.strategy.positionTokenAccount,
-      raydiumProtocolPositionOrBaseVaultAuthority: strategyState.strategy.raydiumProtocolPositionOrBaseVaultAuthority,
       poolProgram: programId,
       instructionSysvarAccount: SYSVAR_INSTRUCTIONS_PUBKEY,
       tokenAMint: strategyState.strategy.tokenAMint,
       tokenBMint: strategyState.strategy.tokenBMint,
       eventAuthority,
+      tokenATokenProgram: keyOrDefault(strategyState.strategy.tokenATokenProgram, TOKEN_PROGRAM_ID),
+      tokenBTokenProgram: keyOrDefault(strategyState.strategy.tokenBTokenProgram, TOKEN_PROGRAM_ID),
+      memoProgram: MEMO_PROGRAM_ID,
     };
 
     const withdrawIx = withdraw(args, accounts);
@@ -2593,6 +2616,11 @@ export class Kamino {
         throw new Error('Pool is not found');
       }
 
+      withdrawIx.keys.push({
+        pubkey: strategyState.strategy.raydiumProtocolPositionOrBaseVaultAuthority,
+        isSigner: false,
+        isWritable: true,
+      });
       if (strategyState.strategy.reward0Decimals.toNumber() > 0) {
         withdrawIx.keys = withdrawIx.keys.concat([
           { pubkey: poolState.rewardInfos[0].tokenVault, isSigner: false, isWritable: true },
@@ -2647,12 +2675,24 @@ export class Kamino {
     const instructions: TransactionInstruction[] = [];
     if (!tokenAData) {
       instructions.push(
-        createAssociatedTokenAccountInstruction(owner, tokenAAta, owner, strategyState.strategy.tokenAMint)
+        createAssociatedTokenAccountInstruction(
+          owner,
+          tokenAAta,
+          owner,
+          strategyState.strategy.tokenAMint,
+          tokenAData!.owner
+        )
       );
     }
     if (!tokenBData) {
       instructions.push(
-        createAssociatedTokenAccountInstruction(owner, tokenBAta, owner, strategyState.strategy.tokenBMint)
+        createAssociatedTokenAccountInstruction(
+          owner,
+          tokenBAta,
+          owner,
+          strategyState.strategy.tokenBMint,
+          tokenBData!.owner
+        )
       );
     }
     if (!sharesMintData) {
@@ -2784,8 +2824,18 @@ export class Kamino {
     }
 
     const sharesAta = getAssociatedTokenAddress(strategyState.strategy.sharesMint, owner);
-    const tokenAAta = getAssociatedTokenAddress(strategyState.strategy.tokenAMint, owner);
-    const tokenBAta = getAssociatedTokenAddress(strategyState.strategy.tokenBMint, owner);
+    const tokenAAta = getAssociatedTokenAddress(
+      strategyState.strategy.tokenAMint,
+      owner,
+      true,
+      keyOrDefault(strategyState.strategy.tokenATokenProgram, TOKEN_PROGRAM_ID)
+    );
+    const tokenBAta = getAssociatedTokenAddress(
+      strategyState.strategy.tokenBMint,
+      owner,
+      true,
+      keyOrDefault(strategyState.strategy.tokenBTokenProgram, TOKEN_PROGRAM_ID)
+    );
 
     let accounts = [
       owner,
@@ -2806,6 +2856,8 @@ export class Kamino {
       strategyState.strategy.scopePrices,
       globalConfig.tokenInfos,
       TOKEN_PROGRAM_ID,
+      keyOrDefault(strategyState.strategy.tokenATokenProgram, TOKEN_PROGRAM_ID),
+      keyOrDefault(strategyState.strategy.tokenBTokenProgram, TOKEN_PROGRAM_ID),
       SYSVAR_INSTRUCTIONS_PUBKEY,
       strategyState.strategy.tickArrayLower,
       strategyState.strategy.tickArrayUpper,
@@ -2846,12 +2898,14 @@ export class Kamino {
     const [tokenAAta] = await getAssociatedTokenAddressAndData(
       this._connection,
       strategyState.strategy.tokenAMint,
-      owner
+      owner,
+      keyOrDefault(strategyState.strategy.tokenATokenProgram, TOKEN_PROGRAM_ID)
     );
     const [tokenBAta] = await getAssociatedTokenAddressAndData(
       this._connection,
       strategyState.strategy.tokenBMint,
-      owner
+      owner,
+      keyOrDefault(strategyState.strategy.tokenBTokenProgram, TOKEN_PROGRAM_ID)
     );
 
     const lamportsA = amountA.mul(new Decimal(10).pow(strategyState.strategy.tokenAMintDecimals.toString()));
@@ -2884,6 +2938,8 @@ export class Kamino {
       instructionSysvarAccount: SYSVAR_INSTRUCTIONS_PUBKEY,
       tickArrayLower: strategyState.strategy.tickArrayLower,
       tickArrayUpper: strategyState.strategy.tickArrayUpper,
+      tokenATokenProgram: keyOrDefault(strategyState.strategy.tokenATokenProgram, TOKEN_PROGRAM_ID),
+      tokenBTokenProgram: keyOrDefault(strategyState.strategy.tokenBTokenProgram, TOKEN_PROGRAM_ID),
     };
 
     return deposit(depositArgs, depositAccounts);
@@ -3078,7 +3134,13 @@ export class Kamino {
     if (initialUserTokenBalances?.a) {
       initialUserTokenABalance = initialUserTokenBalances.a;
     } else {
-      const [tokenAAta] = await getAssociatedTokenAddressAndData(this._connection, tokenAMint, owner);
+      const tokenATokenProgram = await this.getAccountOwner(tokenAMint);
+      const [tokenAAta] = await getAssociatedTokenAddressAndData(
+        this._connection,
+        tokenAMint,
+        owner,
+        keyOrDefault(tokenATokenProgram, TOKEN_PROGRAM_ID)
+      );
 
       let ataExists = await checkIfAccountExists(this._connection, tokenAAta);
       if (!ataExists) {
@@ -3091,7 +3153,13 @@ export class Kamino {
     if (initialUserTokenBalances?.b) {
       initialUserTokenBBalance = initialUserTokenBalances.b;
     } else {
-      const [tokenBAta] = await getAssociatedTokenAddressAndData(this._connection, tokenBMint, owner);
+      const tokenBTokenProgram = await this.getAccountOwner(tokenBMint);
+      const [tokenBAta] = await getAssociatedTokenAddressAndData(
+        this._connection,
+        tokenBMint,
+        owner,
+        keyOrDefault(tokenBTokenProgram, TOKEN_PROGRAM_ID)
+      );
 
       let ataExists = await checkIfAccountExists(this._connection, tokenBAta);
       if (!ataExists) {
@@ -3129,8 +3197,18 @@ export class Kamino {
     }
 
     const sharesAta = getAssociatedTokenAddress(strategyState.sharesMint, owner);
-    const tokenAAta = getAssociatedTokenAddress(strategyState.tokenAMint, owner);
-    const tokenBAta = getAssociatedTokenAddress(strategyState.tokenBMint, owner);
+    const tokenAAta = getAssociatedTokenAddress(
+      strategyState.tokenAMint,
+      owner,
+      true,
+      keyOrDefault(strategyState.tokenATokenProgram, TOKEN_PROGRAM_ID)
+    );
+    const tokenBAta = getAssociatedTokenAddress(
+      strategyState.tokenBMint,
+      owner,
+      true,
+      keyOrDefault(strategyState.tokenBTokenProgram, TOKEN_PROGRAM_ID)
+    );
 
     let tokenAAtaBalance = initialUserTokenAtaBalances.a;
     let tokenBAtaBalance = initialUserTokenAtaBalances.b;
@@ -3241,18 +3319,18 @@ export class Kamino {
       );
     }
 
-    const createAtaList = [strategyState.sharesMint];
+    const createAtaList: [PublicKey, PublicKey][] = [[strategyState.sharesMint, TOKEN_PROGRAM_ID]];
     if (!tokenAAtaBalance.greaterThan(0)) {
-      createAtaList.push(strategyState.tokenAMint);
+      createAtaList.push([strategyState.tokenAMint, keyOrDefault(strategyState.tokenATokenProgram, TOKEN_PROGRAM_ID)]);
     }
 
     if (!tokenBAtaBalance.greaterThan(0)) {
-      createAtaList.push(strategyState.tokenBMint);
+      createAtaList.push([strategyState.tokenBMint, keyOrDefault(strategyState.tokenBTokenProgram, TOKEN_PROGRAM_ID)]);
     }
 
     const createAtasIxnsPromise = getAtasWithCreateIxnsIfMissing(
       this._connection,
-      createAtaList.filter((mint) => !isSOLMint(mint)),
+      createAtaList.filter(([mint, _tokenProgram]) => !isSOLMint(mint)),
       owner
     );
 
@@ -3301,6 +3379,8 @@ export class Kamino {
       instructionSysvarAccount: SYSVAR_INSTRUCTIONS_PUBKEY,
       tickArrayLower: strategyWithAddress.strategy.tickArrayLower,
       tickArrayUpper: strategyWithAddress.strategy.tickArrayUpper,
+      tokenATokenProgram: keyOrDefault(strategyWithAddress.strategy.tokenATokenProgram, TOKEN_PROGRAM_ID),
+      tokenBTokenProgram: keyOrDefault(strategyWithAddress.strategy.tokenBTokenProgram, TOKEN_PROGRAM_ID),
     };
 
     let singleSidedDepositIx = singleTokenDepositWithMin(args, accounts);
@@ -3634,6 +3714,8 @@ export class Kamino {
       tokenAMint = meteoraPoolState.tokenXMint;
       tokenBMint = meteoraPoolState.tokenYMint;
     }
+    const tokenATokenProgram = await this.getAccountOwner(tokenAMint);
+    const tokenBTokenProgram = await this.getAccountOwner(tokenBMint);
 
     let config = await this.getGlobalConfigState(this._globalConfig);
     if (!config) {
@@ -3646,7 +3728,7 @@ export class Kamino {
     }
     const tokenBCollateralId = collateralInfos.findIndex((x) => x.mint.equals(tokenBMint));
     if (tokenBCollateralId === -1) {
-      throw Error(`Could not find token A (mint ${tokenAMint}) in collateral infos`);
+      throw Error(`Could not find token A (mint ${tokenBMint}) in collateral infos`);
     }
 
     const programAddresses = await this.getStrategyProgramAddresses(strategy, tokenAMint, tokenBMint);
@@ -3669,15 +3751,18 @@ export class Kamino {
       baseVaultAuthority: programAddresses.baseVaultAuthority,
       sharesMint: programAddresses.sharesMint,
       sharesMintAuthority: programAddresses.sharesMintAuthority,
-      scopePriceId: config.scopePriceId,
-      scopeProgramId: config.scopeProgramId,
       tokenInfos: config.tokenInfos,
       systemProgram: SystemProgram.programId,
       rent: SYSVAR_RENT_PUBKEY,
       tokenProgram: TOKEN_PROGRAM_ID,
+      tokenATokenProgram,
+      tokenBTokenProgram,
     };
 
-    return initializeStrategy(strategyArgs, strategyAccounts);
+    let ix = initializeStrategy(strategyArgs, strategyAccounts);
+    ix.keys.push({ pubkey: config.scopePriceId, isSigner: false, isWritable: false });
+    ix.keys.push({ pubkey: config.scopeProgramId, isSigner: false, isWritable: false });
+    return ix;
   };
 
   /**
@@ -3725,60 +3810,96 @@ export class Kamino {
       oldTickArrayLowerOrBaseVaultAuthority = strategyState.tickArrayLower;
       oldTickArrayUpperOrBaseVaultAuthority = strategyState.tickArrayUpper;
     }
-    let userTokenAAta = getAssociatedTokenAddress(strategyState.tokenAMint, strategyState.adminAuthority);
-    let userTokenBAta = getAssociatedTokenAddress(strategyState.tokenBMint, strategyState.adminAuthority);
+    let userTokenAAta = getAssociatedTokenAddress(
+      strategyState.tokenAMint,
+      strategyState.adminAuthority,
+      true,
+      keyOrDefault(strategyState.tokenATokenProgram, TOKEN_PROGRAM_ID)
+    );
+    let userTokenBAta = getAssociatedTokenAddress(
+      strategyState.tokenBMint,
+      strategyState.adminAuthority,
+      true,
+      keyOrDefault(strategyState.tokenBTokenProgram, TOKEN_PROGRAM_ID)
+    );
+    let rewardMints = Array(6).fill(strategyState.pool);
+    let rewardTokenPrograms = Array(6).fill(TOKEN_PROGRAM_ID);
     let reward0Vault = strategyState.baseVaultAuthority;
     let userReward0Ata = strategyState.baseVaultAuthority;
     if (isVaultInitialized(strategyState.reward0Vault, strategyState.reward0Decimals)) {
       reward0Vault = strategyState.reward0Vault;
+      rewardMints[0] = collInfos[strategyState.reward0CollateralId.toNumber()].mint;
+      rewardTokenPrograms[0] = await this.getAccountOwner(rewardMints[0]);
       userReward0Ata = getAssociatedTokenAddress(
-        collInfos[strategyState.reward0CollateralId.toNumber()].mint,
-        strategyState.adminAuthority
+        rewardMints[0],
+        strategyState.adminAuthority,
+        true,
+        rewardTokenPrograms[0]
       );
     }
     let reward1Vault = strategyState.baseVaultAuthority;
     let userReward1Ata = strategyState.baseVaultAuthority;
     if (isVaultInitialized(strategyState.reward1Vault, strategyState.reward1Decimals)) {
       reward1Vault = strategyState.reward1Vault;
+      rewardMints[1] = collInfos[strategyState.reward1CollateralId.toNumber()].mint;
+      rewardTokenPrograms[1] = await this.getAccountOwner(rewardMints[1]);
       userReward1Ata = getAssociatedTokenAddress(
-        collInfos[strategyState.reward1CollateralId.toNumber()].mint,
-        strategyState.adminAuthority
+        rewardMints[1],
+        strategyState.adminAuthority,
+        true,
+        rewardTokenPrograms[1]
       );
     }
     let reward2Vault = strategyState.baseVaultAuthority;
     let userReward2Ata = strategyState.baseVaultAuthority;
     if (isVaultInitialized(strategyState.reward2Vault, strategyState.reward2Decimals)) {
       reward2Vault = strategyState.reward2Vault;
+      rewardMints[2] = collInfos[strategyState.reward2CollateralId.toNumber()].mint;
+      rewardTokenPrograms[2] = await this.getAccountOwner(rewardMints[2]);
       userReward2Ata = getAssociatedTokenAddress(
-        collInfos[strategyState.reward2CollateralId.toNumber()].mint,
-        strategyState.adminAuthority
+        rewardMints[2],
+        strategyState.adminAuthority,
+        true,
+        rewardTokenPrograms[2]
       );
     }
     let kaminoReward0Vault = strategyState.baseVaultAuthority;
     let userKaminoReward0Ata = strategyState.baseVaultAuthority;
     if (isVaultInitialized(strategyState.kaminoRewards[0].rewardVault, strategyState.kaminoRewards[0].decimals)) {
       kaminoReward0Vault = strategyState.kaminoRewards[0].rewardVault;
-      userKaminoReward0Ata = getAssociatedTokenAddress(
-        strategyState.kaminoRewards[0].rewardMint,
-        strategyState.adminAuthority
+      rewardMints[3] = strategyState.kaminoRewards[0].rewardVault;
+      rewardTokenPrograms[3] = await this.getAccountOwner(rewardMints[3]);
+      userReward0Ata = getAssociatedTokenAddress(
+        rewardMints[3],
+        strategyState.adminAuthority,
+        true,
+        rewardTokenPrograms[3]
       );
     }
     let kaminoReward1Vault = strategyState.baseVaultAuthority;
     let userKaminoReward1Ata = strategyState.baseVaultAuthority;
     if (isVaultInitialized(strategyState.kaminoRewards[1].rewardVault, strategyState.kaminoRewards[1].decimals)) {
       kaminoReward1Vault = strategyState.kaminoRewards[1].rewardVault;
-      userKaminoReward1Ata = getAssociatedTokenAddress(
-        strategyState.kaminoRewards[1].rewardMint,
-        strategyState.adminAuthority
+      rewardMints[4] = strategyState.kaminoRewards[1].rewardVault;
+      rewardTokenPrograms[4] = await this.getAccountOwner(rewardMints[4]);
+      userReward1Ata = getAssociatedTokenAddress(
+        rewardMints[4],
+        strategyState.adminAuthority,
+        true,
+        rewardTokenPrograms[4]
       );
     }
     let kaminoReward2Vault = strategyState.baseVaultAuthority;
     let userKaminoReward2Ata = strategyState.baseVaultAuthority;
     if (isVaultInitialized(strategyState.kaminoRewards[2].rewardVault, strategyState.kaminoRewards[2].decimals)) {
       kaminoReward2Vault = strategyState.kaminoRewards[2].rewardVault;
-      userKaminoReward2Ata = getAssociatedTokenAddress(
-        strategyState.kaminoRewards[2].rewardMint,
-        strategyState.adminAuthority
+      rewardMints[5] = strategyState.kaminoRewards[2].rewardVault;
+      rewardTokenPrograms[5] = await this.getAccountOwner(rewardMints[5]);
+      userReward2Ata = getAssociatedTokenAddress(
+        rewardMints[5],
+        strategyState.adminAuthority,
+        true,
+        rewardTokenPrograms[5]
       );
     }
 
@@ -3812,9 +3933,20 @@ export class Kamino {
       oldTickArrayUpperOrBaseVaultAuthority,
       pool: strategyState.pool,
       eventAuthority,
+      tokenATokenProgram: keyOrDefault(strategyState.tokenATokenProgram, TOKEN_PROGRAM_ID),
+      tokenBTokenProgram: keyOrDefault(strategyState.tokenBTokenProgram, TOKEN_PROGRAM_ID),
+      tokenAMint: strategyState.tokenAMint,
+      tokenBMint: strategyState.tokenBMint,
     };
 
-    return closeStrategy(strategyAccounts);
+    let ix = closeStrategy(strategyAccounts);
+
+    for (let i = 0; i < 6; i++) {
+      ix.keys.push({ pubkey: rewardMints[i], isSigner: false, isWritable: false });
+      ix.keys.push({ pubkey: rewardTokenPrograms[i], isSigner: false, isWritable: false });
+    }
+
+    return ix;
   };
 
   getUserTopupVault = (user: PublicKey): PublicKey => {
@@ -3990,20 +4122,33 @@ export class Kamino {
         strategyState.reward0Decimals.toNumber() > 0 ? poolRewardVault0 : strategyState.baseVaultAuthority,
       poolRewardVault1:
         strategyState.reward1Decimals.toNumber() > 0 ? poolRewardVault1 : strategyState.baseVaultAuthority,
-      poolRewardVault2: strategyState.baseVaultAuthority,
+      poolRewardVault2:
+        strategyState.reward2Decimals.toNumber() > 0 ? poolRewardVault2 : strategyState.baseVaultAuthority,
       tickArrayLower: strategyState.tickArrayLower,
       tickArrayUpper: strategyState.tickArrayUpper,
       raydiumProtocolPositionOrBaseVaultAuthority: strategyState.raydiumProtocolPositionOrBaseVaultAuthority,
-      tokenProgram: TOKEN_PROGRAM_ID,
       poolProgram: programId,
       instructionSysvarAccount: SYSVAR_INSTRUCTIONS_PUBKEY,
-      reward0Mint: strategyState.reward0Decimals.toNumber() > 0 ? rewardMint0 : this._kaminoProgramId,
-      reward1Mint: strategyState.reward1Decimals.toNumber() > 0 ? rewardMint1 : this._kaminoProgramId,
-      reward2Mint: this._kaminoProgramId,
       eventAuthority,
+      tokenATokenProgram: keyOrDefault(strategyState.tokenATokenProgram, TOKEN_PROGRAM_ID),
+      tokenBTokenProgram: keyOrDefault(strategyState.tokenBTokenProgram, TOKEN_PROGRAM_ID),
+      memoProgram: MEMO_PROGRAM_ID,
     };
 
-    return collectFeesAndRewards(accounts);
+    let ixn = collectFeesAndRewards(accounts);
+    const pairs: [number, PublicKey][] = [
+      [strategyState.reward0Decimals.toNumber(), rewardMint0],
+      [strategyState.reward1Decimals.toNumber(), rewardMint1],
+      [strategyState.reward2Decimals.toNumber(), rewardMint2],
+    ];
+    for (const [decimals, mint] of pairs) {
+      if (decimals > 0) {
+        ixn.keys.push({ pubkey: mint, isSigner: false, isWritable: false });
+        let tokenProgram = await this.getAccountOwner(mint);
+        ixn.keys.push({ pubkey: tokenProgram, isSigner: false, isWritable: false });
+      }
+    }
+    return ixn;
   };
 
   /**
@@ -4217,6 +4362,8 @@ export class Kamino {
         strategyState.tokenBVault,
         strategyState.tokenAMint,
         strategyState.tokenBMint,
+        strategyState.tokenATokenProgram,
+        strategyState.tokenBTokenProgram,
         strategyState.position,
         strategyState.positionMint,
         strategyState.positionTokenAccount,
@@ -4251,6 +4398,8 @@ export class Kamino {
         strategyState.tokenBVault,
         strategyState.tokenAMint,
         strategyState.tokenBMint,
+        strategyState.tokenATokenProgram,
+        strategyState.tokenBTokenProgram,
         strategyState.tickArrayLower,
         strategyState.tickArrayUpper,
         strategyState.position,
@@ -4276,6 +4425,8 @@ export class Kamino {
         strategyState.tokenBVault,
         strategyState.tokenAMint,
         strategyState.tokenBMint,
+        strategyState.tokenATokenProgram,
+        strategyState.tokenBTokenProgram,
         strategyState.position,
         strategyState.positionMint,
         strategyState.positionTokenAccount,
@@ -4309,6 +4460,8 @@ export class Kamino {
     tokenBVault: PublicKey,
     tokenAMint: PublicKey,
     tokenBMint: PublicKey,
+    tokenATokenProgram: PublicKey,
+    tokenBTokenProgram: PublicKey,
     oldPositionOrBaseVaultAuthority: PublicKey,
     oldPositionMintOrBaseVaultAuthority: PublicKey,
     oldPositionTokenAccountOrBaseVaultAuthority: PublicKey,
@@ -4391,6 +4544,9 @@ export class Kamino {
       tokenBMint,
       eventAuthority,
       consensusAccount: CONSENSUS_ID,
+      tokenATokenProgram: keyOrDefault(tokenATokenProgram, TOKEN_PROGRAM_ID),
+      tokenBTokenProgram: keyOrDefault(tokenBTokenProgram, TOKEN_PROGRAM_ID),
+      memoProgram: MEMO_PROGRAM_ID,
     };
 
     let ixn = openLiquidityPosition(args, accounts);
@@ -4419,6 +4575,8 @@ export class Kamino {
     tokenBVault: PublicKey,
     tokenAMint: PublicKey,
     tokenBMint: PublicKey,
+    tokenATokenProgram: PublicKey,
+    tokenBTokenProgram: PublicKey,
     oldTickArrayLowerOrBaseVaultAuthority: PublicKey,
     oldTickArrayUpperOrBaseVaultAuthority: PublicKey,
     oldPositionOrBaseVaultAuthority: PublicKey,
@@ -4515,7 +4673,14 @@ export class Kamino {
       tokenBMint,
       eventAuthority,
       consensusAccount: CONSENSUS_ID,
+      tokenATokenProgram: keyOrDefault(tokenATokenProgram, TOKEN_PROGRAM_ID),
+      tokenBTokenProgram: keyOrDefault(tokenBTokenProgram, TOKEN_PROGRAM_ID),
+      memoProgram: MEMO_PROGRAM_ID,
     };
+    const [poolTickArrayBitmap, _poolTickArrayBitmapBump] = findProgramAddressSync(
+      [Buffer.from('pool_tick_array_bitmap_extension'), pool.toBuffer()],
+      RAYDIUM_PROGRAM_ID
+    );
 
     let ix = openLiquidityPosition(args, accounts);
 
@@ -4523,6 +4688,7 @@ export class Kamino {
       { pubkey: protocolPosition, isSigner: false, isWritable: true },
       { pubkey: oldProtocolPositionOrBaseVaultAuthority, isSigner: false, isWritable: true },
       { pubkey: METADATA_PROGRAM_ID, isSigner: false, isWritable: false },
+      { pubkey: poolTickArrayBitmap, isSigner: false, isWritable: true },
     ]);
     if (strategyRewardOVault) {
       ix.keys = ix.keys.concat([
@@ -4567,6 +4733,8 @@ export class Kamino {
     tokenBVault: PublicKey,
     tokenAMint: PublicKey,
     tokenBMint: PublicKey,
+    tokenATokenProgram: PublicKey,
+    tokenBTokenProgram: PublicKey,
     oldPositionOrBaseVaultAuthority: PublicKey,
     oldPositionMintOrBaseVaultAuthority: PublicKey,
     oldPositionTokenAccountOrBaseVaultAuthority: PublicKey,
@@ -4641,6 +4809,9 @@ export class Kamino {
       tokenBMint,
       eventAuthority,
       consensusAccount: CONSENSUS_ID,
+      tokenATokenProgram: keyOrDefault(tokenATokenProgram, TOKEN_PROGRAM_ID),
+      tokenBTokenProgram: keyOrDefault(tokenBTokenProgram, TOKEN_PROGRAM_ID),
+      memoProgram: MEMO_PROGRAM_ID,
     };
 
     let ixn = openLiquidityPosition(args, accounts);
@@ -4690,10 +4861,12 @@ export class Kamino {
       tokenBMint: strategyState.tokenBMint,
       scopePrices: strategyState.scopePrices,
       raydiumProtocolPositionOrBaseVaultAuthority: strategyState.raydiumProtocolPositionOrBaseVaultAuthority,
-      tokenProgram: TOKEN_PROGRAM_ID,
       poolProgram: programId,
       tokenInfos: globalConfig.tokenInfos,
       eventAuthority,
+      tokenATokenProgram: keyOrDefault(strategyState.tokenATokenProgram, TOKEN_PROGRAM_ID),
+      tokenBTokenProgram: keyOrDefault(strategyState.tokenBTokenProgram, TOKEN_PROGRAM_ID),
+      memoProgram: MEMO_PROGRAM_ID,
     };
 
     let executiveWithdrawIx = executiveWithdraw(args, accounts);
@@ -4780,7 +4953,6 @@ export class Kamino {
       payer,
       strategy: strategyWithAddress.address,
       globalConfig: strategyState.globalConfig,
-      tokenProgram: TOKEN_PROGRAM_ID,
       poolTokenVaultA: strategyState.poolTokenVaultA,
       poolTokenVaultB: strategyState.poolTokenVaultB,
       tickArrayLower: strategyState.tickArrayLower,
@@ -4793,6 +4965,9 @@ export class Kamino {
       tokenAMint: strategyState.tokenAMint,
       tokenBMint: strategyState.tokenBMint,
       eventAuthority,
+      tokenATokenProgram: keyOrDefault(strategyState.tokenATokenProgram, TOKEN_PROGRAM_ID),
+      tokenBTokenProgram: keyOrDefault(strategyState.tokenBTokenProgram, TOKEN_PROGRAM_ID),
+      memoProgram: MEMO_PROGRAM_ID,
     };
 
     return invest(accounts);
@@ -5091,6 +5266,8 @@ export class Kamino {
     } else {
       throw new Error(`Dex ${dex} is not supported`);
     }
+    const tokenATokenProgram = await this.getAccountOwner(tokenAMint);
+    const tokenBTokenProgram = await this.getAccountOwner(tokenBMint);
 
     let initStrategyIx: TransactionInstruction = await this.createStrategy(strategy, pool, strategyAdmin, dex);
 
@@ -5152,6 +5329,8 @@ export class Kamino {
         tokenBVault,
         tokenAMint,
         tokenBMint,
+        tokenATokenProgram,
+        tokenBTokenProgram,
         baseVaultAuthority,
         baseVaultAuthority,
         baseVaultAuthority,
@@ -5179,6 +5358,8 @@ export class Kamino {
         tokenBVault,
         tokenAMint,
         tokenBMint,
+        tokenATokenProgram,
+        tokenBTokenProgram,
         baseVaultAuthority,
         baseVaultAuthority,
         baseVaultAuthority,
@@ -5209,6 +5390,8 @@ export class Kamino {
         tokenBVault,
         tokenAMint,
         tokenBMint,
+        tokenATokenProgram,
+        tokenBTokenProgram,
         baseVaultAuthority,
         baseVaultAuthority,
         baseVaultAuthority,
@@ -7211,6 +7394,7 @@ export class Kamino {
             collateralToken: collateralId,
           };
 
+          let tokenProgram = await this.getAccountOwner(whirlpool.rewardInfos[i].mint);
           let accounts: UpdateRewardMappingAccounts = {
             payer: strategyOwner,
             globalConfig: strategyState.globalConfig,
@@ -7221,7 +7405,7 @@ export class Kamino {
             baseVaultAuthority: strategyState.baseVaultAuthority,
             systemProgram: SystemProgram.programId,
             rent: SYSVAR_RENT_PUBKEY,
-            tokenProgram: TOKEN_PROGRAM_ID,
+            tokenProgram,
             tokenInfos: globalConfig.tokenInfos,
           };
 
@@ -7248,6 +7432,7 @@ export class Kamino {
             collateralToken: collateralId,
           };
 
+          let tokenProgram = await this.getAccountOwner(poolState.rewardInfos[i].tokenMint);
           let accounts: UpdateRewardMappingAccounts = {
             payer: strategyOwner,
             globalConfig: strategyState.globalConfig,
@@ -7258,7 +7443,7 @@ export class Kamino {
             baseVaultAuthority: strategyState.baseVaultAuthority,
             systemProgram: SystemProgram.programId,
             rent: SYSVAR_RENT_PUBKEY,
-            tokenProgram: TOKEN_PROGRAM_ID,
+            tokenProgram,
             tokenInfos: globalConfig.tokenInfos,
           };
 
@@ -7285,6 +7470,7 @@ export class Kamino {
             collateralToken: collateralId,
           };
 
+          let tokenProgram = await this.getAccountOwner(poolState.rewardInfos[i].mint);
           let accounts: UpdateRewardMappingAccounts = {
             payer: strategyOwner,
             globalConfig: strategyState.globalConfig,
@@ -7295,7 +7481,7 @@ export class Kamino {
             baseVaultAuthority: strategyState.baseVaultAuthority,
             systemProgram: SystemProgram.programId,
             rent: SYSVAR_RENT_PUBKEY,
-            tokenProgram: TOKEN_PROGRAM_ID,
+            tokenProgram,
             tokenInfos: globalConfig.tokenInfos,
           };
 

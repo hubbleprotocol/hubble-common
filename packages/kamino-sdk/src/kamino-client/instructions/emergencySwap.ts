@@ -13,6 +13,8 @@ export interface EmergencySwapAccounts {
   adminAuthority: PublicKey
   strategy: PublicKey
   globalConfig: PublicKey
+  tokenAMint: PublicKey
+  tokenBMint: PublicKey
   tokenAVault: PublicKey
   tokenBVault: PublicKey
   baseVaultAuthority: PublicKey
@@ -30,7 +32,9 @@ export interface EmergencySwapAccounts {
   poolProgram: PublicKey
   scopePrices: PublicKey
   tokenInfos: PublicKey
-  tokenProgram: PublicKey
+  tokenATokenProgram: PublicKey
+  tokenBTokenProgram: PublicKey
+  memoProgram: PublicKey
 }
 
 export const layout = borsh.struct([
@@ -47,6 +51,8 @@ export function emergencySwap(
     { pubkey: accounts.adminAuthority, isSigner: true, isWritable: true },
     { pubkey: accounts.strategy, isSigner: false, isWritable: true },
     { pubkey: accounts.globalConfig, isSigner: false, isWritable: false },
+    { pubkey: accounts.tokenAMint, isSigner: false, isWritable: false },
+    { pubkey: accounts.tokenBMint, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenAVault, isSigner: false, isWritable: true },
     { pubkey: accounts.tokenBVault, isSigner: false, isWritable: true },
     { pubkey: accounts.baseVaultAuthority, isSigner: false, isWritable: true },
@@ -57,11 +63,13 @@ export function emergencySwap(
     { pubkey: accounts.tickArray0, isSigner: false, isWritable: true },
     { pubkey: accounts.tickArray1, isSigner: false, isWritable: true },
     { pubkey: accounts.tickArray2, isSigner: false, isWritable: true },
-    { pubkey: accounts.oracle, isSigner: false, isWritable: false },
+    { pubkey: accounts.oracle, isSigner: false, isWritable: true },
     { pubkey: accounts.poolProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.scopePrices, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenInfos, isSigner: false, isWritable: false },
-    { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
+    { pubkey: accounts.tokenATokenProgram, isSigner: false, isWritable: false },
+    { pubkey: accounts.tokenBTokenProgram, isSigner: false, isWritable: false },
+    { pubkey: accounts.memoProgram, isSigner: false, isWritable: false },
   ]
   const identifier = Buffer.from([73, 226, 248, 215, 5, 197, 211, 229])
   const buffer = Buffer.alloc(1000)

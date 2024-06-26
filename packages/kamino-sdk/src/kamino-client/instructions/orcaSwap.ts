@@ -14,13 +14,17 @@ export interface OrcaSwapArgs {
 
 export interface OrcaSwapAccounts {
   funder: PublicKey
-  tokenProgram: PublicKey
+  tokenATokenProgram: PublicKey
+  tokenBTokenProgram: PublicKey
+  memoProgram: PublicKey
   tokenAuthority: PublicKey
   whirlpool: PublicKey
   tokenOwnerAccountA: PublicKey
   tokenVaultA: PublicKey
   tokenOwnerAccountB: PublicKey
   tokenVaultB: PublicKey
+  tokenMintA: PublicKey
+  tokenMintB: PublicKey
   tickArray0: PublicKey
   tickArray1: PublicKey
   tickArray2: PublicKey
@@ -43,13 +47,17 @@ export function orcaSwap(
 ) {
   const keys: Array<AccountMeta> = [
     { pubkey: accounts.funder, isSigner: true, isWritable: true },
-    { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
+    { pubkey: accounts.tokenATokenProgram, isSigner: false, isWritable: false },
+    { pubkey: accounts.tokenBTokenProgram, isSigner: false, isWritable: false },
+    { pubkey: accounts.memoProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenAuthority, isSigner: false, isWritable: false },
     { pubkey: accounts.whirlpool, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenOwnerAccountA, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenVaultA, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenOwnerAccountB, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenVaultB, isSigner: false, isWritable: false },
+    { pubkey: accounts.tokenMintA, isSigner: false, isWritable: false },
+    { pubkey: accounts.tokenMintB, isSigner: false, isWritable: false },
     { pubkey: accounts.tickArray0, isSigner: false, isWritable: false },
     { pubkey: accounts.tickArray1, isSigner: false, isWritable: false },
     { pubkey: accounts.tickArray2, isSigner: false, isWritable: false },

@@ -34,7 +34,9 @@ export interface SwapUnevenVaultsAccounts {
   tokenInfos: PublicKey
   tickArrayLower: PublicKey
   tickArrayUpper: PublicKey
-  tokenProgram: PublicKey
+  tokenATokenProgram: PublicKey
+  tokenBTokenProgram: PublicKey
+  memoProgram: PublicKey
   instructionSysvarAccount: PublicKey
   consensusAccount: PublicKey
   eventAuthority: PublicKey
@@ -68,13 +70,15 @@ export function swapUnevenVaults(
     { pubkey: accounts.tickArray0, isSigner: false, isWritable: true },
     { pubkey: accounts.tickArray1, isSigner: false, isWritable: true },
     { pubkey: accounts.tickArray2, isSigner: false, isWritable: true },
-    { pubkey: accounts.oracle, isSigner: false, isWritable: false },
+    { pubkey: accounts.oracle, isSigner: false, isWritable: true },
     { pubkey: accounts.poolProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.scopePrices, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenInfos, isSigner: false, isWritable: false },
     { pubkey: accounts.tickArrayLower, isSigner: false, isWritable: false },
     { pubkey: accounts.tickArrayUpper, isSigner: false, isWritable: false },
-    { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
+    { pubkey: accounts.tokenATokenProgram, isSigner: false, isWritable: false },
+    { pubkey: accounts.tokenBTokenProgram, isSigner: false, isWritable: false },
+    { pubkey: accounts.memoProgram, isSigner: false, isWritable: false },
     {
       pubkey: accounts.instructionSysvarAccount,
       isSigner: false,

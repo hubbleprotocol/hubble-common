@@ -26,13 +26,16 @@ export interface SwapRewardsAccounts {
   treasuryFeeVaultAuthority: PublicKey
   tokenAMint: PublicKey
   tokenBMint: PublicKey
+  rewardMint: PublicKey
   userTokenAAta: PublicKey
   userTokenBAta: PublicKey
   userRewardTokenAccount: PublicKey
   scopePrices: PublicKey
   tokenInfos: PublicKey
   systemProgram: PublicKey
-  tokenProgram: PublicKey
+  tokenATokenProgram: PublicKey
+  tokenBTokenProgram: PublicKey
+  rewardTokenProgram: PublicKey
   instructionSysvarAccount: PublicKey
 }
 
@@ -75,6 +78,7 @@ export function swapRewards(
     },
     { pubkey: accounts.tokenAMint, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenBMint, isSigner: false, isWritable: false },
+    { pubkey: accounts.rewardMint, isSigner: false, isWritable: false },
     { pubkey: accounts.userTokenAAta, isSigner: false, isWritable: true },
     { pubkey: accounts.userTokenBAta, isSigner: false, isWritable: true },
     {
@@ -85,7 +89,9 @@ export function swapRewards(
     { pubkey: accounts.scopePrices, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenInfos, isSigner: false, isWritable: false },
     { pubkey: accounts.systemProgram, isSigner: false, isWritable: false },
-    { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
+    { pubkey: accounts.tokenATokenProgram, isSigner: false, isWritable: false },
+    { pubkey: accounts.tokenBTokenProgram, isSigner: false, isWritable: false },
+    { pubkey: accounts.rewardTokenProgram, isSigner: false, isWritable: false },
     {
       pubkey: accounts.instructionSysvarAccount,
       isSigner: false,
