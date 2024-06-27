@@ -265,12 +265,10 @@ import {
 import {
   checkIfAccountExists,
   createWsolAtaIfMissing,
-  decodeSerializedTransaction,
   getAtasWithCreateIxnsIfMissing,
   MAX_ACCOUNTS_PER_TRANSACTION,
   removeBudgetAndAtaIxns,
 } from './utils/transactions';
-import { RouteInfo } from '@jup-ag/core';
 import { SwapResponse } from '@jup-ag/api';
 import { StrategyPrices } from './models';
 import { getDefaultManualRebalanceFieldInfos, getManualRebalanceFieldInfos } from './rebalance_methods';
