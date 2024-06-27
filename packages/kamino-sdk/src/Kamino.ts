@@ -184,7 +184,6 @@ import {
   getPdaProtocolPositionAddress,
   i32ToBytes,
   LiquidityMath,
-  MEMO_PROGRAM_ID,
   SqrtPriceMath,
   TickMath,
   TickUtils,
@@ -225,6 +224,7 @@ import {
   LUT_OWNER_KEY,
   STAGING_GLOBAL_CONFIG,
   STAGING_KAMINO_PROGRAM_ID,
+  MEMO_PROGRAM_ID,
 } from './constants/pubkeys';
 import {
   AutodriftMethod,
