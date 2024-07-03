@@ -39,6 +39,8 @@ export interface CollectFeesAndRewardsAccounts {
   tokenATokenProgram: PublicKey
   tokenBTokenProgram: PublicKey
   memoProgram: PublicKey
+  tokenProgram: PublicKey
+  tokenProgram2022: PublicKey
   poolProgram: PublicKey
   instructionSysvarAccount: PublicKey
   eventAuthority: PublicKey
@@ -97,6 +99,8 @@ export function collectFeesAndRewards(
     { pubkey: accounts.tokenATokenProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenBTokenProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.memoProgram, isSigner: false, isWritable: false },
+    { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
+    { pubkey: accounts.tokenProgram2022, isSigner: false, isWritable: false },
     { pubkey: accounts.poolProgram, isSigner: false, isWritable: false },
     {
       pubkey: accounts.instructionSysvarAccount,

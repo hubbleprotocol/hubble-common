@@ -8,3 +8,4 @@ export const STAGING_KAMINO_PROGRAM_ID = new PublicKey('SKY3EZaE5p8iXG1ed4kiandK
 export const STAGING_GLOBAL_CONFIG = new PublicKey('7D9KE8xxqvsSsPbpTK9DbvkYaodda1wVevPvZJbLGJ71');
 export const CONSENSUS_ID = new PublicKey('9GJmEHGom9eWo4np4L5vC6b6ri1Df2xN8KFoWixvD1Bs');
 export const MEMO_PROGRAM_ID = new PublicKey('MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr');
+export const TOKEN_2022_PROGRAM_ID = new PublicKey('TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb');
