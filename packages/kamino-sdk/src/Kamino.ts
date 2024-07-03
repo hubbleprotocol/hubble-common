@@ -6001,6 +6001,7 @@ export class Kamino {
     let accountsToBeInserted: PublicKey[] = [
       address,
       strategyState.adminAuthority,
+      strategyState.globalConfig,
       strategyState.baseVaultAuthority,
       strategyState.pool,
       strategyState.tokenAMint,
@@ -6057,10 +6058,11 @@ export class Kamino {
     let [createLookupTableIx, lookupTable] = await this.getInitLookupTableIx(authority.publicKey, slot);
     let populateLookupTableIx = await this.getPopulateLookupTableIxs(authority.publicKey, lookupTable, strategy);
 
+    let strategyPk = strategy instanceof PublicKey ? strategy : strategy.address;
     let getUpdateStrategyLookupTableIx = await getUpdateStrategyConfigIx(
       authority.publicKey,
       this._globalConfig,
-      strategy instanceof PublicKey ? strategy : strategy.address,
+      strategyPk,
       new UpdateLookupTable(),
       new Decimal(0),
       lookupTable
@@ -6074,7 +6076,10 @@ export class Kamino {
     }
 
     const updateStrategyLookupTableTx = new Transaction().add(getUpdateStrategyLookupTableIx);
-    await sendTransactionWithLogs(this._connection, updateStrategyLookupTableTx, authority.publicKey, [authority]);
+    const sig = await sendTransactionWithLogs(this._connection, updateStrategyLookupTableTx, authority.publicKey, [
+      authority,
+    ]);
+    console.log('Updated strategy', strategyPk, 'lookup table', sig);
 
     return lookupTable;
   };

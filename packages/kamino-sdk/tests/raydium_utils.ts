@@ -14,6 +14,7 @@ export const OBSERVATION_STATE_LEN = 52121;
 export const AMM_CONFIG_SEED = Buffer.from(anchor.utils.bytes.utf8.encode('amm_config'));
 export const POOL_SEED = Buffer.from(anchor.utils.bytes.utf8.encode('pool'));
 export const POOL_VAULT_SEED = Buffer.from(anchor.utils.bytes.utf8.encode('pool_vault'));
+export const BITMAP_SEED = Buffer.from(anchor.utils.bytes.utf8.encode('pool_tick_array_bitmap_extension'));
 
 export async function initializeRaydiumPool(
   connection: Connection,
@@ -69,6 +70,7 @@ export async function initializeRaydiumPool(
   tokenMintB = tokens[1];
 
   const [poolAddress, _bump1] = await getPoolAddress(config, tokenMintA, tokenMintB, RAYDIUM_PROGRAM_ID);
+  let [bitmapPk, _] = await getBitmapAddress(poolAddress, RAYDIUM_PROGRAM_ID);
 
   const [tokenAVault, _bump2] = await getPoolVaultAddress(poolAddress, tokenMintA, RAYDIUM_PROGRAM_ID);
   const [tokenBVault, _bump3] = await getPoolVaultAddress(poolAddress, tokenMintB, RAYDIUM_PROGRAM_ID);
@@ -87,9 +89,11 @@ export async function initializeRaydiumPool(
       tokenVault0: tokenAVault,
       tokenVault1: tokenBVault,
       observationState: observation,
-      tokenProgram: TOKEN_PROGRAM_ID,
       systemProgram: anchor.web3.SystemProgram.programId,
       rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+      tickArrayBitmap: bitmapPk,
+      tokenProgram0: TOKEN_PROGRAM_ID,
+      tokenProgram1: TOKEN_PROGRAM_ID,
     };
 
     const tx = new Transaction();
@@ -112,6 +116,12 @@ export async function initializeRaydiumPool(
 export async function getAmmConfigAddress(index: number, programId: PublicKey): Promise<[PublicKey, number]> {
   const [address, bump] = await PublicKey.findProgramAddress([AMM_CONFIG_SEED, u16ToBytes(index)], programId);
   console.log('config address ', address.toString());
+  return [address, bump];
+}
+
+export async function getBitmapAddress(pool: PublicKey, programId: PublicKey): Promise<[PublicKey, number]> {
+  const [address, bump] = await PublicKey.findProgramAddress([BITMAP_SEED, pool.toBuffer()], programId);
+  console.log('bitmap address ', address.toString());
   return [address, bump];
 }
 
