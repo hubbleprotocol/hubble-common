@@ -48,7 +48,7 @@ export const createAtaIfMissingIx = async (
   owner: PublicKey,
   programId: PublicKey
 ): Promise<TransactionInstruction | undefined> => {
-  const ata = getAssociatedTokenAddress(mint, owner);
+  const ata = getAssociatedTokenAddress(mint, owner, true, programId);
   const doesAtaExist = Boolean(await checkIfAccountExists(connection, ata));
   const createIxn = !doesAtaExist
     ? createAssociatedTokenAccountInstruction(owner, ata, owner, mint, programId)
