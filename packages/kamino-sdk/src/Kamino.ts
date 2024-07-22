@@ -225,6 +225,7 @@ import {
   STAGING_GLOBAL_CONFIG,
   STAGING_KAMINO_PROGRAM_ID,
   MEMO_PROGRAM_ID,
+  TOKEN_2022_PROGRAM_ID,
 } from './constants/pubkeys';
 import {
   AutodriftMethod,
@@ -2582,6 +2583,7 @@ export class Kamino {
       treasuryFeeTokenAVault,
       treasuryFeeTokenBVault,
       tokenProgram: TOKEN_PROGRAM_ID,
+      tokenProgram2022: TOKEN_2022_PROGRAM_ID,
       positionTokenAccount: strategyState.strategy.positionTokenAccount,
       poolProgram: programId,
       instructionSysvarAccount: SYSVAR_INSTRUCTIONS_PUBKEY,
@@ -4131,6 +4133,8 @@ export class Kamino {
       tokenATokenProgram: keyOrDefault(strategyState.tokenATokenProgram, TOKEN_PROGRAM_ID),
       tokenBTokenProgram: keyOrDefault(strategyState.tokenBTokenProgram, TOKEN_PROGRAM_ID),
       memoProgram: MEMO_PROGRAM_ID,
+      tokenProgram: TOKEN_PROGRAM_ID,
+      tokenProgram2022: TOKEN_2022_PROGRAM_ID,
     };
 
     let ixn = collectFeesAndRewards(accounts);
@@ -4522,6 +4526,7 @@ export class Kamino {
       rent: SYSVAR_RENT_PUBKEY,
       system: SystemProgram.programId,
       tokenProgram: TOKEN_PROGRAM_ID,
+      tokenProgram2022: TOKEN_2022_PROGRAM_ID,
       associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
       poolProgram: WHIRLPOOL_PROGRAM_ID,
       oldPositionOrBaseVaultAuthority: isRebalancing ? oldPositionOrBaseVaultAuthority : baseVaultAuthority,
@@ -4651,6 +4656,7 @@ export class Kamino {
       rent: SYSVAR_RENT_PUBKEY,
       system: SystemProgram.programId,
       tokenProgram: TOKEN_PROGRAM_ID,
+      tokenProgram2022: TOKEN_2022_PROGRAM_ID,
       associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
       poolProgram: RAYDIUM_PROGRAM_ID,
       oldPositionOrBaseVaultAuthority: isRebalancing ? oldPositionOrBaseVaultAuthority : baseVaultAuthority,
@@ -4692,18 +4698,21 @@ export class Kamino {
       ix.keys = ix.keys.concat([
         { pubkey: poolState.rewardInfos[0].tokenVault, isSigner: false, isWritable: true },
         { pubkey: strategyRewardOVault, isSigner: false, isWritable: true },
+        { pubkey: poolState.rewardInfos[0].tokenMint, isSigner: false, isWritable: false },
       ]);
     }
     if (strategyReward1Vault) {
       ix.keys = ix.keys.concat([
         { pubkey: poolState.rewardInfos[1].tokenVault, isSigner: false, isWritable: true },
         { pubkey: strategyReward1Vault, isSigner: false, isWritable: true },
+        { pubkey: poolState.rewardInfos[1].tokenMint, isSigner: false, isWritable: false },
       ]);
     }
     if (strategyReward2Vault) {
       ix.keys = ix.keys.concat([
         { pubkey: poolState.rewardInfos[2].tokenVault, isSigner: false, isWritable: true },
         { pubkey: strategyReward2Vault, isSigner: false, isWritable: true },
+        { pubkey: poolState.rewardInfos[2].tokenMint, isSigner: false, isWritable: false },
       ]);
     }
     const accountIndex = ix.keys.findIndex((accs) => accs.pubkey.equals(positionMint));
@@ -4787,6 +4796,7 @@ export class Kamino {
       rent: SYSVAR_RENT_PUBKEY,
       system: SystemProgram.programId,
       tokenProgram: TOKEN_PROGRAM_ID,
+      tokenProgram2022: TOKEN_2022_PROGRAM_ID,
       associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
       poolProgram: WHIRLPOOL_PROGRAM_ID,
       oldPositionOrBaseVaultAuthority: isRebalancing ? oldPositionOrBaseVaultAuthority : baseVaultAuthority,
@@ -4865,6 +4875,8 @@ export class Kamino {
       tokenATokenProgram: keyOrDefault(strategyState.tokenATokenProgram, TOKEN_PROGRAM_ID),
       tokenBTokenProgram: keyOrDefault(strategyState.tokenBTokenProgram, TOKEN_PROGRAM_ID),
       memoProgram: MEMO_PROGRAM_ID,
+      tokenProgram: TOKEN_PROGRAM_ID,
+      tokenProgram2022: TOKEN_2022_PROGRAM_ID,
     };
 
     let executiveWithdrawIx = executiveWithdraw(args, accounts);
@@ -4966,6 +4978,8 @@ export class Kamino {
       tokenATokenProgram: keyOrDefault(strategyState.tokenATokenProgram, TOKEN_PROGRAM_ID),
       tokenBTokenProgram: keyOrDefault(strategyState.tokenBTokenProgram, TOKEN_PROGRAM_ID),
       memoProgram: MEMO_PROGRAM_ID,
+      tokenProgram: TOKEN_PROGRAM_ID,
+      tokenProgram2022: TOKEN_2022_PROGRAM_ID,
     };
 
     return invest(accounts);
@@ -5987,6 +6001,7 @@ export class Kamino {
     let accountsToBeInserted: PublicKey[] = [
       address,
       strategyState.adminAuthority,
+      strategyState.globalConfig,
       strategyState.baseVaultAuthority,
       strategyState.pool,
       strategyState.tokenAMint,
@@ -6043,10 +6058,11 @@ export class Kamino {
     let [createLookupTableIx, lookupTable] = await this.getInitLookupTableIx(authority.publicKey, slot);
     let populateLookupTableIx = await this.getPopulateLookupTableIxs(authority.publicKey, lookupTable, strategy);
 
+    let strategyPk = strategy instanceof PublicKey ? strategy : strategy.address;
     let getUpdateStrategyLookupTableIx = await getUpdateStrategyConfigIx(
       authority.publicKey,
       this._globalConfig,
-      strategy instanceof PublicKey ? strategy : strategy.address,
+      strategyPk,
       new UpdateLookupTable(),
       new Decimal(0),
       lookupTable
@@ -6060,7 +6076,10 @@ export class Kamino {
     }
 
     const updateStrategyLookupTableTx = new Transaction().add(getUpdateStrategyLookupTableIx);
-    await sendTransactionWithLogs(this._connection, updateStrategyLookupTableTx, authority.publicKey, [authority]);
+    const sig = await sendTransactionWithLogs(this._connection, updateStrategyLookupTableTx, authority.publicKey, [
+      authority,
+    ]);
+    console.log('Updated strategy', strategyPk, 'lookup table', sig);
 
     return lookupTable;
   };

@@ -30,6 +30,7 @@ export interface WithdrawAccounts {
   treasuryFeeTokenAVault: PublicKey
   treasuryFeeTokenBVault: PublicKey
   tokenProgram: PublicKey
+  tokenProgram2022: PublicKey
   tokenATokenProgram: PublicKey
   tokenBTokenProgram: PublicKey
   memoProgram: PublicKey
@@ -76,6 +77,7 @@ export function withdraw(
       isWritable: true,
     },
     { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
+    { pubkey: accounts.tokenProgram2022, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenATokenProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenBTokenProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.memoProgram, isSigner: false, isWritable: false },

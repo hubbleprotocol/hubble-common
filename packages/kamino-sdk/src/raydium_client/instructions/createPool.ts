@@ -1,6 +1,6 @@
 import { TransactionInstruction, PublicKey, AccountMeta } from '@solana/web3.js'; // eslint-disable-line @typescript-eslint/no-unused-vars
 import BN from 'bn.js'; // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as borsh from '@project-serum/borsh'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as borsh from '@coral-xyz/borsh'; // eslint-disable-line @typescript-eslint/no-unused-vars
 import * as types from '../types'; // eslint-disable-line @typescript-eslint/no-unused-vars
 import { PROGRAM_ID } from '../programId';
 
@@ -25,8 +25,12 @@ export interface CreatePoolAccounts {
   /** Token_1 vault for the pool */
   tokenVault1: PublicKey;
   observationState: PublicKey;
-  /** Spl token program */
-  tokenProgram: PublicKey;
+  /** Initialize an account to store if a tick array is initialized. */
+  tickArrayBitmap: PublicKey;
+  /** Spl token program or token program 2022 */
+  tokenProgram0: PublicKey;
+  /** Spl token program or token program 2022 */
+  tokenProgram1: PublicKey;
   /** To create a new program account */
   systemProgram: PublicKey;
   /** Sysvar for program account */
@@ -44,7 +48,7 @@ export const layout = borsh.struct([borsh.u128('sqrtPriceX64'), borsh.u64('openT
  * * `sqrt_price_x64` - the initial sqrt price (amount_token_1 / amount_token_0) of the pool as a Q64.64
  *
  */
-export function createPool(args: CreatePoolArgs, accounts: CreatePoolAccounts) {
+export function createPool(args: CreatePoolArgs, accounts: CreatePoolAccounts, programId: PublicKey = PROGRAM_ID) {
   const keys: Array<AccountMeta> = [
     { pubkey: accounts.poolCreator, isSigner: true, isWritable: true },
     { pubkey: accounts.ammConfig, isSigner: false, isWritable: false },
@@ -54,7 +58,9 @@ export function createPool(args: CreatePoolArgs, accounts: CreatePoolAccounts) {
     { pubkey: accounts.tokenVault0, isSigner: false, isWritable: true },
     { pubkey: accounts.tokenVault1, isSigner: false, isWritable: true },
     { pubkey: accounts.observationState, isSigner: false, isWritable: true },
-    { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
+    { pubkey: accounts.tickArrayBitmap, isSigner: false, isWritable: true },
+    { pubkey: accounts.tokenProgram0, isSigner: false, isWritable: false },
+    { pubkey: accounts.tokenProgram1, isSigner: false, isWritable: false },
     { pubkey: accounts.systemProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.rent, isSigner: false, isWritable: false },
   ];
@@ -68,6 +74,6 @@ export function createPool(args: CreatePoolArgs, accounts: CreatePoolAccounts) {
     buffer
   );
   const data = Buffer.concat([identifier, buffer]).slice(0, 8 + len);
-  const ix = new TransactionInstruction({ keys, programId: PROGRAM_ID, data });
+  const ix = new TransactionInstruction({ keys, programId, data });
   return ix;
 }

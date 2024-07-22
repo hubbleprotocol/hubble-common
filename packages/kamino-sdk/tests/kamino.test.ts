@@ -299,13 +299,13 @@ describe('Kamino SDK Tests', () => {
       new Decimal(1)
     );
 
+    await kamino.setupStrategyLookupTable(signer, newOrcaStrategy.publicKey);
+    await kamino.setupStrategyLookupTable(signer, newRaydiumStrategy.publicKey);
+
     await openPosition(kamino, signer, newOrcaStrategy.publicKey, new Decimal(0.97), new Decimal(1.03));
     console.log('orca position opened');
     await openPosition(kamino, signer, newRaydiumStrategy.publicKey, new Decimal(0.97), new Decimal(1.03));
     console.log('raydium position opened');
-
-    await kamino.setupStrategyLookupTable(signer, newOrcaStrategy.publicKey);
-    await kamino.setupStrategyLookupTable(signer, newRaydiumStrategy.publicKey);
   });
 
   it('should throw on invalid cluster', () => {
@@ -2128,19 +2128,20 @@ export async function openPosition(
   // Open position
   const positionMint = Keypair.generate();
   {
+    const strategyState = await kamino.getWhirlpoolStrategy(strategy);
     const openPositionIx = await kamino.openPosition(strategy, positionMint.publicKey, priceLower, priceUpper);
+    const increaseBudgetIx = createAddExtraComputeUnitsIx(1_400_000);
 
-    let tx = createTransactionWithExtraBudget(1000000);
-    tx.add(openPositionIx);
-    let res = await sendTransactionWithLogs(
-      kamino.getConnection(),
-      tx,
+    const openPositionTx = await kamino.getTransactionV2Message(
       owner.publicKey,
-      [owner, positionMint],
-      'confirmed',
-      true
+      [increaseBudgetIx, openPositionIx],
+      [strategyState!.strategyLookupTable]
     );
-    console.log('open ray position th hash', res);
+    let openPositionTxV0 = new VersionedTransaction(openPositionTx);
+    openPositionTxV0.sign([owner, positionMint]);
+
+    let myHash = await sendAndConfirmTransaction(kamino.getConnection(), openPositionTxV0);
+    console.log('open ray position th hash', myHash);
     console.log('new position has been opened', positionMint.publicKey.toString());
   }
 }
