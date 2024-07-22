@@ -2625,18 +2625,21 @@ export class Kamino {
         withdrawIx.keys = withdrawIx.keys.concat([
           { pubkey: poolState.rewardInfos[0].tokenVault, isSigner: false, isWritable: true },
           { pubkey: strategyState.strategy.reward0Vault, isSigner: false, isWritable: true },
+          { pubkey: poolState.rewardInfos[0].tokenMint, isSigner: false, isWritable: true },
         ]);
       }
       if (strategyState.strategy.reward1Decimals.toNumber() > 0) {
         withdrawIx.keys = withdrawIx.keys.concat([
           { pubkey: poolState.rewardInfos[1].tokenVault, isSigner: false, isWritable: true },
           { pubkey: strategyState.strategy.reward1Vault, isSigner: false, isWritable: true },
+          { pubkey: poolState.rewardInfos[1].tokenMint, isSigner: false, isWritable: true },
         ]);
       }
       if (strategyState.strategy.reward2Decimals.toNumber() > 0) {
         withdrawIx.keys = withdrawIx.keys.concat([
           { pubkey: poolState.rewardInfos[2].tokenVault, isSigner: false, isWritable: true },
           { pubkey: strategyState.strategy.reward2Vault, isSigner: false, isWritable: true },
+          { pubkey: poolState.rewardInfos[2].tokenMint, isSigner: false, isWritable: true },
         ]);
       }
     }
