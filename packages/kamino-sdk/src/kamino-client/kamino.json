@@ -744,6 +744,11 @@
           "isSigner": false
         },
         {
+          "name": "tokenProgram2022",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "tokenATokenProgram",
           "isMut": false,
           "isSigner": false
@@ -1262,6 +1267,16 @@
           "isSigner": false
         },
         {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram2022",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "position",
           "isMut": true,
           "isSigner": false
@@ -1452,6 +1467,11 @@
           "isSigner": false
         },
         {
+          "name": "tokenProgram2022",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "tokenATokenProgram",
           "isMut": false,
           "isSigner": false
@@ -1599,6 +1619,11 @@
         },
         {
           "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram2022",
           "isMut": false,
           "isSigner": false
         },
@@ -1751,6 +1776,16 @@
         },
         {
           "name": "memoProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram2022",
           "isMut": false,
           "isSigner": false
         },
@@ -1931,6 +1966,16 @@
         },
         {
           "name": "memoProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram2022",
           "isMut": false,
           "isSigner": false
         },
@@ -2238,6 +2283,16 @@
           "isSigner": false
         },
         {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram2022",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "instructionSysvarAccount",
           "isMut": false,
           "isSigner": false
@@ -2414,6 +2469,11 @@
         },
         {
           "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram2022",
           "isMut": false,
           "isSigner": false
         },
