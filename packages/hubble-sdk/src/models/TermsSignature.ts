@@ -1,6 +1,6 @@
 import { PublicKey, Connection, TransactionInstruction, AccountMeta } from '@solana/web3.js';
 import BN from 'bn.js'; // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as borsh from '@project-serum/borsh'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as borsh from '@coral-xyz/borsh'; // eslint-disable-line @typescript-eslint/no-unused-vars
 
 export interface TermsSignatureFields {
   signature: Array<number>;

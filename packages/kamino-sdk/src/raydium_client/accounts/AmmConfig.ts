@@ -1,22 +1,16 @@
 import { PublicKey, Connection } from '@solana/web3.js';
 import BN from 'bn.js'; // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as borsh from '@project-serum/borsh'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as borsh from '@coral-xyz/borsh'; // eslint-disable-line @typescript-eslint/no-unused-vars
 import * as types from '../types'; // eslint-disable-line @typescript-eslint/no-unused-vars
 import { PROGRAM_ID } from '../programId';
 
 export interface AmmConfigFields {
-  /** Bump to identify PDA */
   bump: number;
   index: number;
-  /** Address of the protocol owner */
   owner: PublicKey;
-  /** The protocol fee */
   protocolFeeRate: number;
-  /** The trade fee, denominated in hundredths of a bip (10^-6) */
   tradeFeeRate: number;
-  /** The tick spacing */
   tickSpacing: number;
-  /** The fund fee, denominated in hundredths of a bip (10^-6) */
   fundFeeRate: number;
   paddingU32: number;
   fundOwner: PublicKey;
@@ -24,38 +18,25 @@ export interface AmmConfigFields {
 }
 
 export interface AmmConfigJSON {
-  /** Bump to identify PDA */
   bump: number;
   index: number;
-  /** Address of the protocol owner */
   owner: string;
-  /** The protocol fee */
   protocolFeeRate: number;
-  /** The trade fee, denominated in hundredths of a bip (10^-6) */
   tradeFeeRate: number;
-  /** The tick spacing */
   tickSpacing: number;
-  /** The fund fee, denominated in hundredths of a bip (10^-6) */
   fundFeeRate: number;
   paddingU32: number;
   fundOwner: string;
   padding: Array<string>;
 }
 
-/** Holds the current owner of the factory */
 export class AmmConfig {
-  /** Bump to identify PDA */
   readonly bump: number;
   readonly index: number;
-  /** Address of the protocol owner */
   readonly owner: PublicKey;
-  /** The protocol fee */
   readonly protocolFeeRate: number;
-  /** The trade fee, denominated in hundredths of a bip (10^-6) */
   readonly tradeFeeRate: number;
-  /** The tick spacing */
   readonly tickSpacing: number;
-  /** The fund fee, denominated in hundredths of a bip (10^-6) */
   readonly fundFeeRate: number;
   readonly paddingU32: number;
   readonly fundOwner: PublicKey;
@@ -89,27 +70,31 @@ export class AmmConfig {
     this.padding = fields.padding;
   }
 
-  static async fetch(c: Connection, address: PublicKey): Promise<AmmConfig | null> {
+  static async fetch(c: Connection, address: PublicKey, programId: PublicKey = PROGRAM_ID): Promise<AmmConfig | null> {
     const info = await c.getAccountInfo(address);
 
     if (info === null) {
       return null;
     }
-    if (!info.owner.equals(PROGRAM_ID)) {
+    if (!info.owner.equals(programId)) {
       throw new Error("account doesn't belong to this program");
     }
 
     return this.decode(info.data);
   }
 
-  static async fetchMultiple(c: Connection, addresses: PublicKey[]): Promise<Array<AmmConfig | null>> {
+  static async fetchMultiple(
+    c: Connection,
+    addresses: PublicKey[],
+    programId: PublicKey = PROGRAM_ID
+  ): Promise<Array<AmmConfig | null>> {
     const infos = await c.getMultipleAccountsInfo(addresses);
 
     return infos.map((info) => {
       if (info === null) {
         return null;
       }
-      if (!info.owner.equals(PROGRAM_ID)) {
+      if (!info.owner.equals(programId)) {
         throw new Error("account doesn't belong to this program");
       }
 

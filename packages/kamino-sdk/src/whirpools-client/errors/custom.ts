@@ -40,6 +40,19 @@ export type CustomError =
   | TickArraySequenceInvalidIndex
   | AmountCalcOverflow
   | AmountRemainingOverflow
+  | InvalidIntermediaryMint
+  | DuplicateTwoHopPool
+  | InvalidBundleIndex
+  | BundledPositionAlreadyOpened
+  | BundledPositionAlreadyClosed
+  | PositionBundleNotDeletable
+  | UnsupportedTokenMint
+  | RemainingAccountsInvalidSlice
+  | RemainingAccountsInsufficient
+  | NoExtraAccountsForTransferHook
+  | IntermediateTokenAmountMismatch
+  | TransferFeeCalculationError
+  | RemainingAccountsDuplicatedAccountsType
 
 export class InvalidEnum extends Error {
   static readonly code = 6000
@@ -501,6 +514,149 @@ export class AmountRemainingOverflow extends Error {
   }
 }
 
+export class InvalidIntermediaryMint extends Error {
+  static readonly code = 6041
+  readonly code = 6041
+  readonly name = "InvalidIntermediaryMint"
+  readonly msg = "Invalid intermediary mint"
+
+  constructor(readonly logs?: string[]) {
+    super("6041: Invalid intermediary mint")
+  }
+}
+
+export class DuplicateTwoHopPool extends Error {
+  static readonly code = 6042
+  readonly code = 6042
+  readonly name = "DuplicateTwoHopPool"
+  readonly msg = "Duplicate two hop pool"
+
+  constructor(readonly logs?: string[]) {
+    super("6042: Duplicate two hop pool")
+  }
+}
+
+export class InvalidBundleIndex extends Error {
+  static readonly code = 6043
+  readonly code = 6043
+  readonly name = "InvalidBundleIndex"
+  readonly msg = "Bundle index is out of bounds"
+
+  constructor(readonly logs?: string[]) {
+    super("6043: Bundle index is out of bounds")
+  }
+}
+
+export class BundledPositionAlreadyOpened extends Error {
+  static readonly code = 6044
+  readonly code = 6044
+  readonly name = "BundledPositionAlreadyOpened"
+  readonly msg = "Position has already been opened"
+
+  constructor(readonly logs?: string[]) {
+    super("6044: Position has already been opened")
+  }
+}
+
+export class BundledPositionAlreadyClosed extends Error {
+  static readonly code = 6045
+  readonly code = 6045
+  readonly name = "BundledPositionAlreadyClosed"
+  readonly msg = "Position has already been closed"
+
+  constructor(readonly logs?: string[]) {
+    super("6045: Position has already been closed")
+  }
+}
+
+export class PositionBundleNotDeletable extends Error {
+  static readonly code = 6046
+  readonly code = 6046
+  readonly name = "PositionBundleNotDeletable"
+  readonly msg = "Unable to delete PositionBundle with open positions"
+
+  constructor(readonly logs?: string[]) {
+    super("6046: Unable to delete PositionBundle with open positions")
+  }
+}
+
+export class UnsupportedTokenMint extends Error {
+  static readonly code = 6047
+  readonly code = 6047
+  readonly name = "UnsupportedTokenMint"
+  readonly msg = "Token mint has unsupported attributes"
+
+  constructor(readonly logs?: string[]) {
+    super("6047: Token mint has unsupported attributes")
+  }
+}
+
+export class RemainingAccountsInvalidSlice extends Error {
+  static readonly code = 6048
+  readonly code = 6048
+  readonly name = "RemainingAccountsInvalidSlice"
+  readonly msg = "Invalid remaining accounts"
+
+  constructor(readonly logs?: string[]) {
+    super("6048: Invalid remaining accounts")
+  }
+}
+
+export class RemainingAccountsInsufficient extends Error {
+  static readonly code = 6049
+  readonly code = 6049
+  readonly name = "RemainingAccountsInsufficient"
+  readonly msg = "Insufficient remaining accounts"
+
+  constructor(readonly logs?: string[]) {
+    super("6049: Insufficient remaining accounts")
+  }
+}
+
+export class NoExtraAccountsForTransferHook extends Error {
+  static readonly code = 6050
+  readonly code = 6050
+  readonly name = "NoExtraAccountsForTransferHook"
+  readonly msg = "Unable to call transfer hook without extra accounts"
+
+  constructor(readonly logs?: string[]) {
+    super("6050: Unable to call transfer hook without extra accounts")
+  }
+}
+
+export class IntermediateTokenAmountMismatch extends Error {
+  static readonly code = 6051
+  readonly code = 6051
+  readonly name = "IntermediateTokenAmountMismatch"
+  readonly msg = "Output and input amount mismatch"
+
+  constructor(readonly logs?: string[]) {
+    super("6051: Output and input amount mismatch")
+  }
+}
+
+export class TransferFeeCalculationError extends Error {
+  static readonly code = 6052
+  readonly code = 6052
+  readonly name = "TransferFeeCalculationError"
+  readonly msg = "Transfer fee calculation failed"
+
+  constructor(readonly logs?: string[]) {
+    super("6052: Transfer fee calculation failed")
+  }
+}
+
+export class RemainingAccountsDuplicatedAccountsType extends Error {
+  static readonly code = 6053
+  readonly code = 6053
+  readonly name = "RemainingAccountsDuplicatedAccountsType"
+  readonly msg = "Same accounts type is provided more than once"
+
+  constructor(readonly logs?: string[]) {
+    super("6053: Same accounts type is provided more than once")
+  }
+}
+
 export function fromCode(code: number, logs?: string[]): CustomError | null {
   switch (code) {
     case 6000:
@@ -585,6 +741,32 @@ export function fromCode(code: number, logs?: string[]): CustomError | null {
       return new AmountCalcOverflow(logs)
     case 6040:
       return new AmountRemainingOverflow(logs)
+    case 6041:
+      return new InvalidIntermediaryMint(logs)
+    case 6042:
+      return new DuplicateTwoHopPool(logs)
+    case 6043:
+      return new InvalidBundleIndex(logs)
+    case 6044:
+      return new BundledPositionAlreadyOpened(logs)
+    case 6045:
+      return new BundledPositionAlreadyClosed(logs)
+    case 6046:
+      return new PositionBundleNotDeletable(logs)
+    case 6047:
+      return new UnsupportedTokenMint(logs)
+    case 6048:
+      return new RemainingAccountsInvalidSlice(logs)
+    case 6049:
+      return new RemainingAccountsInsufficient(logs)
+    case 6050:
+      return new NoExtraAccountsForTransferHook(logs)
+    case 6051:
+      return new IntermediateTokenAmountMismatch(logs)
+    case 6052:
+      return new TransferFeeCalculationError(logs)
+    case 6053:
+      return new RemainingAccountsDuplicatedAccountsType(logs)
   }
 
   return null

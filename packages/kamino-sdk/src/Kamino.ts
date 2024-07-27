@@ -16,14 +16,9 @@ import {
   Transaction,
   ParsedAccountData,
 } from '@solana/web3.js';
+import bs58 from 'bs58';
 import { setKaminoProgramId } from './kamino-client/programId';
-import {
-  GlobalConfig,
-  TermsSignature,
-  WhirlpoolStrategy,
-  WhirlpoolStrategyFields,
-  CollateralInfos,
-} from './kamino-client/accounts';
+import { GlobalConfig, TermsSignature, WhirlpoolStrategy, CollateralInfos } from './kamino-client/accounts';
 import Decimal from 'decimal.js';
 import {
   initializeTickArray,
@@ -106,7 +101,6 @@ import {
   ProfiledFunctionExecution,
   noopProfiledFunctionExecution,
   MaybeTokensBalances,
-  ProportionalMintingMethod,
   PerformanceFees,
   PriceReferenceType,
   InputRebalanceFieldInfo,
@@ -124,6 +118,7 @@ import {
   stripTwapZeros,
   getTokenNameFromCollateralInfo,
   keyOrDefault,
+  getMintDecimals,
 } from './utils';
 import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID, MintInfo, MintLayout, u64, Token } from '@solana/spl-token';
 import {
@@ -166,7 +161,7 @@ import {
 } from './kamino-client/instructions';
 import BN from 'bn.js';
 import StrategyWithAddress from './models/StrategyWithAddress';
-import { Idl, Program, Provider } from '@project-serum/anchor';
+import { Idl, Program, AnchorProvider } from '@coral-xyz/anchor';
 import { Rebalancing, Uninitialized } from './kamino-client/types/StrategyStatus';
 import { FRONTEND_KAMINO_STRATEGY_URL, METADATA_PROGRAM_ID, U64_MAX } from './constants';
 import {
@@ -199,25 +194,16 @@ import {
 import { signTerms, SignTermsAccounts, SignTermsArgs } from './kamino-client/instructions';
 import { Pool } from './services/RaydiumPoolsResponse';
 import {
-  UpdateDepositCap,
-  UpdateDepositCapIxn,
   UpdateWithdrawFee,
-  UpdateDepositFee,
   UpdateReward0Fee,
   UpdateReward1Fee,
   UpdateReward2Fee,
   UpdateCollectFeesFee,
   UpdateRebalanceType,
   UpdateLookupTable,
-  UpdateDepositMintingMethod,
   UpdateReferencePriceType,
 } from './kamino-client/types/StrategyConfigOption';
-import {
-  DefaultDepositCap,
-  DefaultDepositCapPerIx,
-  DefaultPerformanceFeeBps,
-  DefaultWithdrawFeeBps,
-} from './constants/DefaultStrategyConfig';
+import { DefaultPerformanceFeeBps } from './constants/DefaultStrategyConfig';
 import {
   ADDRESS_LUT_PROGRAM_ID,
   CONSENSUS_ID,
@@ -245,7 +231,6 @@ import {
   RebalanceMethod,
   TakeProfitMethod,
 } from './utils/CreationParameters';
-import { getMintDecimals } from '@project-serum/serum/lib/market';
 import { DOLAR_BASED, PROPORTION_BASED } from './constants/deposit_method';
 import { JupService } from './services/JupService';
 import {
@@ -348,7 +333,6 @@ import {
   getBinFromBinArray,
   getBinFromBinArrays,
   getBinIdFromPriceWithDecimals,
-  getPriceOfBinByBinId,
   getPriceOfBinByBinIdWithDecimals,
   MeteoraPosition,
 } from './utils/meteora';
@@ -356,7 +340,6 @@ import { BinArray, LbPair, PositionV2 } from './meteora_client/accounts';
 import LbPairWithAddress from './models/LbPairWithAddress';
 import { initializeBinArray, InitializeBinArrayAccounts, InitializeBinArrayArgs } from './meteora_client/instructions';
 import { PubkeyHashMap } from './utils/pubkey';
-import { findProgramAddressSync } from '@project-serum/anchor/dist/cjs/utils/pubkey';
 export const KAMINO_IDL = KaminoIdl;
 
 export class Kamino {
@@ -365,7 +348,7 @@ export class Kamino {
   readonly _config: HubbleConfig;
   private _globalConfig: PublicKey;
   private readonly _scope: Scope;
-  private readonly _provider: Provider;
+  private readonly _provider: AnchorProvider;
   private readonly _kaminoProgram: Program;
   private readonly _kaminoProgramId: PublicKey;
   private readonly _orcaService: OrcaService;
@@ -394,7 +377,7 @@ export class Kamino {
     this._connection = connection;
     this._config = getConfigByCluster(cluster);
 
-    this._provider = new Provider(connection, getReadOnlyWallet(), {
+    this._provider = new AnchorProvider(connection, getReadOnlyWallet(), {
       commitment: connection.commitment,
     });
     if (programId && programId.equals(STAGING_KAMINO_PROGRAM_ID)) {
@@ -1243,7 +1226,13 @@ export class Kamino {
   getAllStrategiesWithFilters = async (strategyFilters: StrategiesFilters): Promise<Array<StrategyWithAddress>> => {
     let filters: GetProgramAccountsFilter[] = [];
     filters.push({
-      dataSize: 4064,
+      dataSize: WhirlpoolStrategy.layout.span + 8,
+    });
+    filters.push({
+      memcmp: {
+        offset: 0,
+        bytes: bs58.encode(WhirlpoolStrategy.discriminator),
+      },
     });
 
     if (strategyFilters.owner) {
@@ -1282,10 +1271,14 @@ export class Kamino {
       });
     }
 
-    return (await this._kaminoProgram.account.whirlpoolStrategy.all(filters)).map((x) => {
+    return (
+      await this._connection.getProgramAccounts(this._kaminoProgramId, {
+        filters,
+      })
+    ).map((x) => {
       const res: StrategyWithAddress = {
-        strategy: new WhirlpoolStrategy(x.account as WhirlpoolStrategyFields),
-        address: x.publicKey,
+        strategy: WhirlpoolStrategy.decode(x.account.data),
+        address: x.pubkey,
       };
       return res;
     });
@@ -1302,14 +1295,25 @@ export class Kamino {
    * @param kTokenMint - mint address of the kToken
    */
   getStrategyByKTokenMint = async (kTokenMint: PublicKey): Promise<StrategyWithAddress | null> => {
-    const matchingStrategies = await this._kaminoProgram.account.whirlpoolStrategy.all([
-      {
-        memcmp: {
-          bytes: kTokenMint.toBase58(),
-          offset: 720,
+    const matchingStrategies = await this._connection.getProgramAccounts(this._kaminoProgram.programId, {
+      filters: [
+        {
+          dataSize: WhirlpoolStrategy.layout.span + 8,
         },
-      },
-    ]);
+        {
+          memcmp: {
+            offset: 0,
+            bytes: bs58.encode(WhirlpoolStrategy.discriminator),
+          },
+        },
+        {
+          memcmp: {
+            bytes: kTokenMint.toBase58(),
+            offset: 720,
+          },
+        },
+      ],
+    });
 
     if (matchingStrategies.length === 0) {
       return null;
@@ -1317,13 +1321,13 @@ export class Kamino {
     if (matchingStrategies.length > 1) {
       throw new Error(
         `Multiple strategies found for kToken mint: ${kTokenMint.toBase58()}. Strategies found: ${matchingStrategies.map(
-          (x) => x.publicKey.toBase58()
+          (x) => x.pubkey.toBase58()
         )}`
       );
     }
-    const decodedStrategy = new WhirlpoolStrategy(matchingStrategies[0].account as WhirlpoolStrategyFields);
+    const decodedStrategy = WhirlpoolStrategy.decode(matchingStrategies[0].account.data);
     return {
-      address: matchingStrategies[0].publicKey,
+      address: matchingStrategies[0].pubkey,
       strategy: decodedStrategy,
     };
   };
@@ -4684,7 +4688,7 @@ export class Kamino {
       tokenBTokenProgram: keyOrDefault(tokenBTokenProgram, TOKEN_PROGRAM_ID),
       memoProgram: MEMO_PROGRAM_ID,
     };
-    const [poolTickArrayBitmap, _poolTickArrayBitmapBump] = findProgramAddressSync(
+    const [poolTickArrayBitmap, _poolTickArrayBitmapBump] = PublicKey.findProgramAddressSync(
       [Buffer.from('pool_tick_array_bitmap_extension'), pool.toBuffer()],
       RAYDIUM_PROGRAM_ID
     );

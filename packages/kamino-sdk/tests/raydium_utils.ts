@@ -1,10 +1,10 @@
 import { PROGRAM_ID as RAYDIUM_PROGRAM_ID } from '../src/raydium_client/programId';
-import * as anchor from '@project-serum/anchor';
+import * as anchor from '@coral-xyz/anchor';
 import { PublicKey, Connection, SystemProgram, Transaction, Keypair } from '@solana/web3.js';
 import * as RaydiumInstructions from '../src/raydium_client/instructions';
 import { sendTransactionWithLogs, TOKEN_PROGRAM_ID } from '../src';
 import { accountExist, DeployedPool, getTickArrayPubkeysFromRange } from './utils';
-import { SqrtPriceMath, TickMath } from '@raydium-io/raydium-sdk';
+import { SqrtPriceMath } from '@raydium-io/raydium-sdk';
 import Decimal from 'decimal.js';
 import { PoolState } from '../src/raydium_client';
 import { i32ToBytes, TickUtils } from '@raydium-io/raydium-sdk';

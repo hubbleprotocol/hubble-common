@@ -1,79 +1,49 @@
 import { PublicKey, Connection } from '@solana/web3.js';
 import BN from 'bn.js'; // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as borsh from '@project-serum/borsh'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as borsh from '@coral-xyz/borsh'; // eslint-disable-line @typescript-eslint/no-unused-vars
 import * as types from '../types'; // eslint-disable-line @typescript-eslint/no-unused-vars
 import { PROGRAM_ID } from '../programId';
 
 export interface PersonalPositionStateFields {
-  /** Bump to identify PDA */
   bump: number;
-  /** Mint address of the tokenized position */
   nftMint: PublicKey;
-  /** The ID of the pool with which this token is connected */
   poolId: PublicKey;
-  /** The lower bound tick of the position */
   tickLowerIndex: number;
-  /** The upper bound tick of the position */
   tickUpperIndex: number;
-  /** The amount of liquidity owned by this position */
   liquidity: BN;
-  /** The token_0 fee growth of the aggregate position as of the last action on the individual position */
   feeGrowthInside0LastX64: BN;
-  /** The token_1 fee growth of the aggregate position as of the last action on the individual position */
   feeGrowthInside1LastX64: BN;
-  /** The fees owed to the position owner in token_0, as of the last computation */
   tokenFeesOwed0: BN;
-  /** The fees owed to the position owner in token_1, as of the last computation */
   tokenFeesOwed1: BN;
   rewardInfos: Array<types.PositionRewardInfoFields>;
   padding: Array<BN>;
 }
 
 export interface PersonalPositionStateJSON {
-  /** Bump to identify PDA */
   bump: number;
-  /** Mint address of the tokenized position */
   nftMint: string;
-  /** The ID of the pool with which this token is connected */
   poolId: string;
-  /** The lower bound tick of the position */
   tickLowerIndex: number;
-  /** The upper bound tick of the position */
   tickUpperIndex: number;
-  /** The amount of liquidity owned by this position */
   liquidity: string;
-  /** The token_0 fee growth of the aggregate position as of the last action on the individual position */
   feeGrowthInside0LastX64: string;
-  /** The token_1 fee growth of the aggregate position as of the last action on the individual position */
   feeGrowthInside1LastX64: string;
-  /** The fees owed to the position owner in token_0, as of the last computation */
   tokenFeesOwed0: string;
-  /** The fees owed to the position owner in token_1, as of the last computation */
   tokenFeesOwed1: string;
   rewardInfos: Array<types.PositionRewardInfoJSON>;
   padding: Array<string>;
 }
 
 export class PersonalPositionState {
-  /** Bump to identify PDA */
   readonly bump: number;
-  /** Mint address of the tokenized position */
   readonly nftMint: PublicKey;
-  /** The ID of the pool with which this token is connected */
   readonly poolId: PublicKey;
-  /** The lower bound tick of the position */
   readonly tickLowerIndex: number;
-  /** The upper bound tick of the position */
   readonly tickUpperIndex: number;
-  /** The amount of liquidity owned by this position */
   readonly liquidity: BN;
-  /** The token_0 fee growth of the aggregate position as of the last action on the individual position */
   readonly feeGrowthInside0LastX64: BN;
-  /** The token_1 fee growth of the aggregate position as of the last action on the individual position */
   readonly feeGrowthInside1LastX64: BN;
-  /** The fees owed to the position owner in token_0, as of the last computation */
   readonly tokenFeesOwed0: BN;
-  /** The fees owed to the position owner in token_1, as of the last computation */
   readonly tokenFeesOwed1: BN;
   readonly rewardInfos: Array<types.PositionRewardInfo>;
   readonly padding: Array<BN>;
@@ -110,28 +80,35 @@ export class PersonalPositionState {
     this.padding = fields.padding;
   }
 
-  static async fetch(c: Connection, address: PublicKey): Promise<PersonalPositionState | null> {
+  static async fetch(
+    c: Connection,
+    address: PublicKey,
+    programId: PublicKey = PROGRAM_ID
+  ): Promise<PersonalPositionState | null> {
     const info = await c.getAccountInfo(address);
 
     if (info === null) {
       return null;
     }
-
-    if (!info.owner.equals(PROGRAM_ID)) {
+    if (!info.owner.equals(programId)) {
       throw new Error("account doesn't belong to this program");
     }
 
     return this.decode(info.data);
   }
 
-  static async fetchMultiple(c: Connection, addresses: PublicKey[]): Promise<Array<PersonalPositionState | null>> {
+  static async fetchMultiple(
+    c: Connection,
+    addresses: PublicKey[],
+    programId: PublicKey = PROGRAM_ID
+  ): Promise<Array<PersonalPositionState | null>> {
     const infos = await c.getMultipleAccountsInfo(addresses);
 
     return infos.map((info) => {
       if (info === null) {
         return null;
       }
-      if (!info.owner.equals(PROGRAM_ID)) {
+      if (!info.owner.equals(programId)) {
         throw new Error("account doesn't belong to this program");
       }
 

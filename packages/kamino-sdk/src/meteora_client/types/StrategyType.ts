@@ -1,73 +1,211 @@
 import { PublicKey } from "@solana/web3.js" // eslint-disable-line @typescript-eslint/no-unused-vars
 import BN from "bn.js" // eslint-disable-line @typescript-eslint/no-unused-vars
 import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as borsh from "@project-serum/borsh"
+import * as borsh from "@coral-xyz/borsh"
 
-export interface SpotJSON {
-  kind: "Spot"
+export interface SpotOneSideJSON {
+  kind: "SpotOneSide"
 }
 
-export class Spot {
+export class SpotOneSide {
   static readonly discriminator = 0
-  static readonly kind = "Spot"
+  static readonly kind = "SpotOneSide"
   readonly discriminator = 0
-  readonly kind = "Spot"
+  readonly kind = "SpotOneSide"
 
-  toJSON(): SpotJSON {
+  toJSON(): SpotOneSideJSON {
     return {
-      kind: "Spot",
+      kind: "SpotOneSide",
     }
   }
 
   toEncodable() {
     return {
-      Spot: {},
+      SpotOneSide: {},
     }
   }
 }
 
-export interface CurveJSON {
-  kind: "Curve"
+export interface CurveOneSideJSON {
+  kind: "CurveOneSide"
 }
 
-export class Curve {
+export class CurveOneSide {
   static readonly discriminator = 1
-  static readonly kind = "Curve"
+  static readonly kind = "CurveOneSide"
   readonly discriminator = 1
-  readonly kind = "Curve"
+  readonly kind = "CurveOneSide"
 
-  toJSON(): CurveJSON {
+  toJSON(): CurveOneSideJSON {
     return {
-      kind: "Curve",
+      kind: "CurveOneSide",
     }
   }
 
   toEncodable() {
     return {
-      Curve: {},
+      CurveOneSide: {},
     }
   }
 }
 
-export interface BidAskJSON {
-  kind: "BidAsk"
+export interface BidAskOneSideJSON {
+  kind: "BidAskOneSide"
 }
 
-export class BidAsk {
+export class BidAskOneSide {
   static readonly discriminator = 2
-  static readonly kind = "BidAsk"
+  static readonly kind = "BidAskOneSide"
   readonly discriminator = 2
-  readonly kind = "BidAsk"
+  readonly kind = "BidAskOneSide"
 
-  toJSON(): BidAskJSON {
+  toJSON(): BidAskOneSideJSON {
     return {
-      kind: "BidAsk",
+      kind: "BidAskOneSide",
     }
   }
 
   toEncodable() {
     return {
-      BidAsk: {},
+      BidAskOneSide: {},
+    }
+  }
+}
+
+export interface SpotBalancedJSON {
+  kind: "SpotBalanced"
+}
+
+export class SpotBalanced {
+  static readonly discriminator = 3
+  static readonly kind = "SpotBalanced"
+  readonly discriminator = 3
+  readonly kind = "SpotBalanced"
+
+  toJSON(): SpotBalancedJSON {
+    return {
+      kind: "SpotBalanced",
+    }
+  }
+
+  toEncodable() {
+    return {
+      SpotBalanced: {},
+    }
+  }
+}
+
+export interface CurveBalancedJSON {
+  kind: "CurveBalanced"
+}
+
+export class CurveBalanced {
+  static readonly discriminator = 4
+  static readonly kind = "CurveBalanced"
+  readonly discriminator = 4
+  readonly kind = "CurveBalanced"
+
+  toJSON(): CurveBalancedJSON {
+    return {
+      kind: "CurveBalanced",
+    }
+  }
+
+  toEncodable() {
+    return {
+      CurveBalanced: {},
+    }
+  }
+}
+
+export interface BidAskBalancedJSON {
+  kind: "BidAskBalanced"
+}
+
+export class BidAskBalanced {
+  static readonly discriminator = 5
+  static readonly kind = "BidAskBalanced"
+  readonly discriminator = 5
+  readonly kind = "BidAskBalanced"
+
+  toJSON(): BidAskBalancedJSON {
+    return {
+      kind: "BidAskBalanced",
+    }
+  }
+
+  toEncodable() {
+    return {
+      BidAskBalanced: {},
+    }
+  }
+}
+
+export interface SpotImBalancedJSON {
+  kind: "SpotImBalanced"
+}
+
+export class SpotImBalanced {
+  static readonly discriminator = 6
+  static readonly kind = "SpotImBalanced"
+  readonly discriminator = 6
+  readonly kind = "SpotImBalanced"
+
+  toJSON(): SpotImBalancedJSON {
+    return {
+      kind: "SpotImBalanced",
+    }
+  }
+
+  toEncodable() {
+    return {
+      SpotImBalanced: {},
+    }
+  }
+}
+
+export interface CurveImBalancedJSON {
+  kind: "CurveImBalanced"
+}
+
+export class CurveImBalanced {
+  static readonly discriminator = 7
+  static readonly kind = "CurveImBalanced"
+  readonly discriminator = 7
+  readonly kind = "CurveImBalanced"
+
+  toJSON(): CurveImBalancedJSON {
+    return {
+      kind: "CurveImBalanced",
+    }
+  }
+
+  toEncodable() {
+    return {
+      CurveImBalanced: {},
+    }
+  }
+}
+
+export interface BidAskImBalancedJSON {
+  kind: "BidAskImBalanced"
+}
+
+export class BidAskImBalanced {
+  static readonly discriminator = 8
+  static readonly kind = "BidAskImBalanced"
+  readonly discriminator = 8
+  readonly kind = "BidAskImBalanced"
+
+  toJSON(): BidAskImBalancedJSON {
+    return {
+      kind: "BidAskImBalanced",
+    }
+  }
+
+  toEncodable() {
+    return {
+      BidAskImBalanced: {},
     }
   }
 }
@@ -78,14 +216,32 @@ export function fromDecoded(obj: any): types.StrategyTypeKind {
     throw new Error("Invalid enum object")
   }
 
-  if ("Spot" in obj) {
-    return new Spot()
+  if ("SpotOneSide" in obj) {
+    return new SpotOneSide()
   }
-  if ("Curve" in obj) {
-    return new Curve()
+  if ("CurveOneSide" in obj) {
+    return new CurveOneSide()
   }
-  if ("BidAsk" in obj) {
-    return new BidAsk()
+  if ("BidAskOneSide" in obj) {
+    return new BidAskOneSide()
+  }
+  if ("SpotBalanced" in obj) {
+    return new SpotBalanced()
+  }
+  if ("CurveBalanced" in obj) {
+    return new CurveBalanced()
+  }
+  if ("BidAskBalanced" in obj) {
+    return new BidAskBalanced()
+  }
+  if ("SpotImBalanced" in obj) {
+    return new SpotImBalanced()
+  }
+  if ("CurveImBalanced" in obj) {
+    return new CurveImBalanced()
+  }
+  if ("BidAskImBalanced" in obj) {
+    return new BidAskImBalanced()
   }
 
   throw new Error("Invalid enum object")
@@ -93,23 +249,47 @@ export function fromDecoded(obj: any): types.StrategyTypeKind {
 
 export function fromJSON(obj: types.StrategyTypeJSON): types.StrategyTypeKind {
   switch (obj.kind) {
-    case "Spot": {
-      return new Spot()
+    case "SpotOneSide": {
+      return new SpotOneSide()
     }
-    case "Curve": {
-      return new Curve()
+    case "CurveOneSide": {
+      return new CurveOneSide()
     }
-    case "BidAsk": {
-      return new BidAsk()
+    case "BidAskOneSide": {
+      return new BidAskOneSide()
+    }
+    case "SpotBalanced": {
+      return new SpotBalanced()
+    }
+    case "CurveBalanced": {
+      return new CurveBalanced()
+    }
+    case "BidAskBalanced": {
+      return new BidAskBalanced()
+    }
+    case "SpotImBalanced": {
+      return new SpotImBalanced()
+    }
+    case "CurveImBalanced": {
+      return new CurveImBalanced()
+    }
+    case "BidAskImBalanced": {
+      return new BidAskImBalanced()
     }
   }
 }
 
 export function layout(property?: string) {
   const ret = borsh.rustEnum([
-    borsh.struct([], "Spot"),
-    borsh.struct([], "Curve"),
-    borsh.struct([], "BidAsk"),
+    borsh.struct([], "SpotOneSide"),
+    borsh.struct([], "CurveOneSide"),
+    borsh.struct([], "BidAskOneSide"),
+    borsh.struct([], "SpotBalanced"),
+    borsh.struct([], "CurveBalanced"),
+    borsh.struct([], "BidAskBalanced"),
+    borsh.struct([], "SpotImBalanced"),
+    borsh.struct([], "CurveImBalanced"),
+    borsh.struct([], "BidAskImBalanced"),
   ])
   if (property !== undefined) {
     return ret.replicate(property)

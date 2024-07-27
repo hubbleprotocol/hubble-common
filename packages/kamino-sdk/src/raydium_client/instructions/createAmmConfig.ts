@@ -1,6 +1,6 @@
 import { TransactionInstruction, PublicKey, AccountMeta } from '@solana/web3.js'; // eslint-disable-line @typescript-eslint/no-unused-vars
 import BN from 'bn.js'; // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as borsh from '@project-serum/borsh'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as borsh from '@coral-xyz/borsh'; // eslint-disable-line @typescript-eslint/no-unused-vars
 import * as types from '../types'; // eslint-disable-line @typescript-eslint/no-unused-vars
 import { PROGRAM_ID } from '../programId';
 
@@ -13,9 +13,7 @@ export interface CreateAmmConfigArgs {
 }
 
 export interface CreateAmmConfigAccounts {
-  /** Address to be set as protocol owner. */
   owner: PublicKey;
-  /** Initialize config state account to store protocol owner address and fee rates. */
   ammConfig: PublicKey;
   systemProgram: PublicKey;
 }
@@ -28,18 +26,11 @@ export const layout = borsh.struct([
   borsh.u32('fundFeeRate'),
 ]);
 
-/**
- * # Arguments
- *
- * * `ctx`- The accounts needed by instruction.
- * * `index` - The index of amm config, there may be multiple config.
- * * `tick_spacing` - The tickspacing binding with config, cannot be changed.
- * * `trade_fee_rate` - Trade fee rate, can be changed.
- * * `protocol_fee_rate` - The rate of protocol fee within tarde fee.
- * * `fund_fee_rate` - The rate of fund fee within tarde fee.
- *
- */
-export function createAmmConfig(args: CreateAmmConfigArgs, accounts: CreateAmmConfigAccounts) {
+export function createAmmConfig(
+  args: CreateAmmConfigArgs,
+  accounts: CreateAmmConfigAccounts,
+  programId: PublicKey = PROGRAM_ID
+) {
   const keys: Array<AccountMeta> = [
     { pubkey: accounts.owner, isSigner: true, isWritable: true },
     { pubkey: accounts.ammConfig, isSigner: false, isWritable: true },
@@ -58,6 +49,6 @@ export function createAmmConfig(args: CreateAmmConfigArgs, accounts: CreateAmmCo
     buffer
   );
   const data = Buffer.concat([identifier, buffer]).slice(0, 8 + len);
-  const ix = new TransactionInstruction({ keys, programId: PROGRAM_ID, data });
+  const ix = new TransactionInstruction({ keys, programId, data });
   return ix;
 }

@@ -19,11 +19,11 @@ export type {
   StrategyParametersFields,
   StrategyParametersJSON,
 } from "./StrategyParameters"
-export { ParabolicParameter } from "./ParabolicParameter"
+export { LiquidityOneSideParameter } from "./LiquidityOneSideParameter"
 export type {
-  ParabolicParameterFields,
-  ParabolicParameterJSON,
-} from "./ParabolicParameter"
+  LiquidityOneSideParameterFields,
+  LiquidityOneSideParameterJSON,
+} from "./LiquidityOneSideParameter"
 export { BinLiquidityDistributionByWeight } from "./BinLiquidityDistributionByWeight"
 export type {
   BinLiquidityDistributionByWeightFields,
@@ -34,11 +34,16 @@ export type {
   LiquidityParameterByWeightFields,
   LiquidityParameterByWeightJSON,
 } from "./LiquidityParameterByWeight"
-export { LiquidityOneSideParameter } from "./LiquidityOneSideParameter"
+export { AddLiquiditySingleSidePreciseParameter } from "./AddLiquiditySingleSidePreciseParameter"
 export type {
-  LiquidityOneSideParameterFields,
-  LiquidityOneSideParameterJSON,
-} from "./LiquidityOneSideParameter"
+  AddLiquiditySingleSidePreciseParameterFields,
+  AddLiquiditySingleSidePreciseParameterJSON,
+} from "./AddLiquiditySingleSidePreciseParameter"
+export { CompressedBinDepositAmount } from "./CompressedBinDepositAmount"
+export type {
+  CompressedBinDepositAmountFields,
+  CompressedBinDepositAmountJSON,
+} from "./CompressedBinDepositAmount"
 export { BinLiquidityDistribution } from "./BinLiquidityDistribution"
 export type {
   BinLiquidityDistributionFields,
@@ -49,6 +54,11 @@ export type {
   LiquidityParameterFields,
   LiquidityParameterJSON,
 } from "./LiquidityParameter"
+export { InitPermissionPairIx } from "./InitPermissionPairIx"
+export type {
+  InitPermissionPairIxFields,
+  InitPermissionPairIxJSON,
+} from "./InitPermissionPairIx"
 export { InitPresetParametersIx } from "./InitPresetParametersIx"
 export type {
   InitPresetParametersIxFields,
@@ -86,13 +96,25 @@ export type { UserRewardInfoFields, UserRewardInfoJSON } from "./UserRewardInfo"
 export { StrategyType }
 
 export type StrategyTypeKind =
-  | StrategyType.Spot
-  | StrategyType.Curve
-  | StrategyType.BidAsk
+  | StrategyType.SpotOneSide
+  | StrategyType.CurveOneSide
+  | StrategyType.BidAskOneSide
+  | StrategyType.SpotBalanced
+  | StrategyType.CurveBalanced
+  | StrategyType.BidAskBalanced
+  | StrategyType.SpotImBalanced
+  | StrategyType.CurveImBalanced
+  | StrategyType.BidAskImBalanced
 export type StrategyTypeJSON =
-  | StrategyType.SpotJSON
-  | StrategyType.CurveJSON
-  | StrategyType.BidAskJSON
+  | StrategyType.SpotOneSideJSON
+  | StrategyType.CurveOneSideJSON
+  | StrategyType.BidAskOneSideJSON
+  | StrategyType.SpotBalancedJSON
+  | StrategyType.CurveBalancedJSON
+  | StrategyType.BidAskBalancedJSON
+  | StrategyType.SpotImBalancedJSON
+  | StrategyType.CurveImBalancedJSON
+  | StrategyType.BidAskImBalancedJSON
 
 export { Rounding }
 

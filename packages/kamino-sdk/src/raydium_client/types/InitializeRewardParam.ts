@@ -1,32 +1,23 @@
 import { PublicKey } from '@solana/web3.js'; // eslint-disable-line @typescript-eslint/no-unused-vars
 import BN from 'bn.js'; // eslint-disable-line @typescript-eslint/no-unused-vars
 import * as types from '../types'; // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as borsh from '@project-serum/borsh';
+import * as borsh from '@coral-xyz/borsh';
 
 export interface InitializeRewardParamFields {
-  /** Reward open time */
   openTime: BN;
-  /** Reward end time */
   endTime: BN;
-  /** Token reward per second are earned per unit of liquidity */
   emissionsPerSecondX64: BN;
 }
 
 export interface InitializeRewardParamJSON {
-  /** Reward open time */
   openTime: string;
-  /** Reward end time */
   endTime: string;
-  /** Token reward per second are earned per unit of liquidity */
   emissionsPerSecondX64: string;
 }
 
 export class InitializeRewardParam {
-  /** Reward open time */
   readonly openTime: BN;
-  /** Reward end time */
   readonly endTime: BN;
-  /** Token reward per second are earned per unit of liquidity */
   readonly emissionsPerSecondX64: BN;
 
   constructor(fields: InitializeRewardParamFields) {

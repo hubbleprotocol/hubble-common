@@ -1,7 +1,7 @@
 import { PublicKey, Connection, Transaction, TransactionInstruction, Keypair } from '@solana/web3.js';
 import { DeployedPool, range } from './utils';
 import * as WhirlpoolInstructions from '../src/whirpools-client/instructions';
-import * as anchor from '@project-serum/anchor';
+import * as anchor from '@coral-xyz/anchor';
 import { sendTransactionWithLogs, TOKEN_PROGRAM_ID } from '../src';
 import { PROGRAM_ID_CLI as WHIRLPOOL_PROGRAM_ID } from '../src/whirpools-client/programId';
 import { orderMints } from './raydium_utils';
@@ -79,18 +79,20 @@ export async function initializeWhirlpool(
     tickSize
   );
 
+  const [tokenBadgeA] = getTokenBadge(WHIRLPOOL_PROGRAM_ID, config.publicKey, tokenMintA);
+  const [tokenBadgeB] = getTokenBadge(WHIRLPOOL_PROGRAM_ID, config.publicKey, tokenMintB);
+
   {
     let tokenAVault = Keypair.generate();
     let tokenBVault = Keypair.generate();
 
     let initialPrice = 1.0;
-    let initialisePoolArgs: WhirlpoolInstructions.InitializePoolArgs = {
+    let initialisePoolArgs: WhirlpoolInstructions.InitializePoolV2Args = {
       tickSpacing: tickSize,
-      bumps: { whirlpoolBump: whirlpoolBump },
       initialSqrtPrice: new anchor.BN(priceToSqrtX64(new Decimal(initialPrice), 6, 6)),
     };
 
-    let initializePoolAccounts: WhirlpoolInstructions.InitializePoolAccounts = {
+    let initializePoolAccounts: WhirlpoolInstructions.InitializePoolV2Accounts = {
       whirlpoolsConfig: config.publicKey,
       tokenMintA: tokenMintA,
       tokenMintB: tokenMintB,
@@ -99,17 +101,20 @@ export async function initializeWhirlpool(
       tokenVaultA: tokenAVault.publicKey,
       tokenVaultB: tokenBVault.publicKey,
       feeTier: feeTierPk,
-      tokenProgram: TOKEN_PROGRAM_ID,
+      tokenBadgeA,
+      tokenBadgeB,
+      tokenProgramA: TOKEN_PROGRAM_ID,
+      tokenProgramB: TOKEN_PROGRAM_ID,
       systemProgram: anchor.web3.SystemProgram.programId,
       rent: anchor.web3.SYSVAR_RENT_PUBKEY,
     };
 
     const tx = new Transaction();
-    let initializeIx = WhirlpoolInstructions.initializePool(initialisePoolArgs, initializePoolAccounts);
+    let initializeIx = WhirlpoolInstructions.initializePoolV2(initialisePoolArgs, initializePoolAccounts);
     tx.add(initializeIx);
 
     let sig = await sendTransactionWithLogs(connection, tx, signer.publicKey, [signer, tokenAVault, tokenBVault]);
-    console.log('InitializePool:', sig);
+    console.log('InitializePoolV2:', sig);
   }
 
   {
@@ -185,7 +190,7 @@ export async function initTickArrayInstruction(
   startTick: number,
   programId: PublicKey
 ): Promise<TransactionInstruction> {
-  const [tickArrayPda, _tickArrayPdaBump] = await getTickArray(programId, whirlpool, startTick);
+  const [tickArrayPda, _tickArrayPdaBump] = getTickArray(programId, whirlpool, startTick);
 
   let initTickArrayArgs: WhirlpoolInstructions.InitializeTickArrayArgs = {
     startTickIndex: startTick,
@@ -199,13 +204,20 @@ export async function initTickArrayInstruction(
   return WhirlpoolInstructions.initializeTickArray(initTickArrayArgs, initTickArrayAccounts);
 }
 
-async function getTickArray(
-  programId: PublicKey,
-  whirlpoolAddress: PublicKey,
-  startTick: number
-): Promise<[anchor.web3.PublicKey, number]> {
-  return anchor.web3.PublicKey.findProgramAddress(
+function getTickArray(programId: PublicKey, whirlpoolAddress: PublicKey, startTick: number): [PublicKey, number] {
+  return anchor.web3.PublicKey.findProgramAddressSync(
     [Buffer.from('tick_array'), whirlpoolAddress.toBuffer(), Buffer.from(startTick.toString())],
+    programId
+  );
+}
+
+function getTokenBadge(
+  programId: PublicKey,
+  whirlpoolsConfigAddress: PublicKey,
+  tokenMintKey: PublicKey
+): [PublicKey, number] {
+  return PublicKey.findProgramAddressSync(
+    [Buffer.from('token_badge'), whirlpoolsConfigAddress.toBuffer(), tokenMintKey.toBuffer()],
     programId
   );
 }

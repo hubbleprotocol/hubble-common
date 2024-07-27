@@ -1,40 +1,41 @@
-import { TransactionInstruction, PublicKey, AccountMeta } from '@solana/web3.js'; // eslint-disable-line @typescript-eslint/no-unused-vars
-import BN from 'bn.js'; // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as borsh from '@project-serum/borsh'; // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as types from '../types'; // eslint-disable-line @typescript-eslint/no-unused-vars
-import { WHIRLPOOL_PROGRAM_ID } from '../programId';
+import { TransactionInstruction, PublicKey, AccountMeta } from "@solana/web3.js" // eslint-disable-line @typescript-eslint/no-unused-vars
+import BN from "bn.js" // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as borsh from "@coral-xyz/borsh" // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
+import { WHIRLPOOL_PROGRAM_ID } from "../programId"
 
 export interface OpenPositionWithMetadataArgs {
-  bumps: types.OpenPositionWithMetadataBumpsFields;
-  tickLowerIndex: number;
-  tickUpperIndex: number;
+  bumps: types.OpenPositionWithMetadataBumpsFields
+  tickLowerIndex: number
+  tickUpperIndex: number
 }
 
 export interface OpenPositionWithMetadataAccounts {
-  funder: PublicKey;
-  owner: PublicKey;
-  position: PublicKey;
-  positionMint: PublicKey;
-  positionMetadataAccount: PublicKey;
-  positionTokenAccount: PublicKey;
-  whirlpool: PublicKey;
-  tokenProgram: PublicKey;
-  systemProgram: PublicKey;
-  rent: PublicKey;
-  associatedTokenProgram: PublicKey;
-  metadataProgram: PublicKey;
-  metadataUpdateAuth: PublicKey;
+  funder: PublicKey
+  owner: PublicKey
+  position: PublicKey
+  positionMint: PublicKey
+  positionMetadataAccount: PublicKey
+  positionTokenAccount: PublicKey
+  whirlpool: PublicKey
+  tokenProgram: PublicKey
+  systemProgram: PublicKey
+  rent: PublicKey
+  associatedTokenProgram: PublicKey
+  metadataProgram: PublicKey
+  metadataUpdateAuth: PublicKey
 }
 
 export const layout = borsh.struct([
-  types.OpenPositionWithMetadataBumps.layout('bumps'),
-  borsh.i32('tickLowerIndex'),
-  borsh.i32('tickUpperIndex'),
-]);
+  types.OpenPositionWithMetadataBumps.layout("bumps"),
+  borsh.i32("tickLowerIndex"),
+  borsh.i32("tickUpperIndex"),
+])
 
 export function openPositionWithMetadata(
   args: OpenPositionWithMetadataArgs,
-  accounts: OpenPositionWithMetadataAccounts
+  accounts: OpenPositionWithMetadataAccounts,
+  programId: PublicKey = WHIRLPOOL_PROGRAM_ID
 ) {
   const keys: Array<AccountMeta> = [
     { pubkey: accounts.funder, isSigner: true, isWritable: true },
@@ -62,9 +63,9 @@ export function openPositionWithMetadata(
     },
     { pubkey: accounts.metadataProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.metadataUpdateAuth, isSigner: false, isWritable: false },
-  ];
-  const identifier = Buffer.from([242, 29, 134, 48, 58, 110, 14, 60]);
-  const buffer = Buffer.alloc(1000);
+  ]
+  const identifier = Buffer.from([242, 29, 134, 48, 58, 110, 14, 60])
+  const buffer = Buffer.alloc(1000)
   const len = layout.encode(
     {
       bumps: types.OpenPositionWithMetadataBumps.toEncodable(args.bumps),
@@ -72,8 +73,8 @@ export function openPositionWithMetadata(
       tickUpperIndex: args.tickUpperIndex,
     },
     buffer
-  );
-  const data = Buffer.concat([identifier, buffer]).slice(0, 8 + len);
-  const ix = new TransactionInstruction({ keys, programId: WHIRLPOOL_PROGRAM_ID, data });
-  return ix;
+  )
+  const data = Buffer.concat([identifier, buffer]).slice(0, 8 + len)
+  const ix = new TransactionInstruction({ keys, programId, data })
+  return ix
 }

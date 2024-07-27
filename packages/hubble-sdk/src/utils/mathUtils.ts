@@ -32,7 +32,7 @@ import {
   DECIMALS_KUSHUSDCORCA,
   DECIMALS_KUSDCUSDTORCA,
 } from '../constants';
-import { BN } from '@project-serum/anchor';
+import { BN } from '@coral-xyz/anchor';
 import Decimal from 'decimal.js';
 import StabilityPoolState from '../models/StabilityPoolState';
 import StabilityProviderState from '../models/StabilityProviderState';

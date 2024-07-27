@@ -43,7 +43,7 @@ import {
   TakeProfitMethod,
 } from '../src/utils/CreationParameters';
 import { priceToTickIndex } from '@orca-so/whirlpool-sdk';
-import { getMintDecimals } from '@project-serum/serum/lib/market';
+import { getMintDecimals } from '../src/utils';
 
 describe('Kamino strategy creation SDK Tests', () => {
   let connection: Connection;

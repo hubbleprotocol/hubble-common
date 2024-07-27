@@ -1,6 +1,6 @@
 import { TransactionInstruction, PublicKey, AccountMeta } from '@solana/web3.js'; // eslint-disable-line @typescript-eslint/no-unused-vars
 import BN from 'bn.js'; // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as borsh from '@project-serum/borsh'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as borsh from '@coral-xyz/borsh'; // eslint-disable-line @typescript-eslint/no-unused-vars
 import * as types from '../types'; // eslint-disable-line @typescript-eslint/no-unused-vars
 import { PROGRAM_ID } from '../programId';
 
@@ -9,23 +9,17 @@ export interface TransferRewardOwnerArgs {
 }
 
 export interface TransferRewardOwnerAccounts {
-  /** Address to be set as operation account owner. */
   authority: PublicKey;
   poolState: PublicKey;
 }
 
 export const layout = borsh.struct([borsh.publicKey('newOwner')]);
 
-/**
- * Transfer reward owner
- *
- * # Arguments
- *
- * * `ctx`- The context of accounts
- * * `new_owner`- new owner pubkey
- *
- */
-export function transferRewardOwner(args: TransferRewardOwnerArgs, accounts: TransferRewardOwnerAccounts) {
+export function transferRewardOwner(
+  args: TransferRewardOwnerArgs,
+  accounts: TransferRewardOwnerAccounts,
+  programId: PublicKey = PROGRAM_ID
+) {
   const keys: Array<AccountMeta> = [
     { pubkey: accounts.authority, isSigner: true, isWritable: false },
     { pubkey: accounts.poolState, isSigner: false, isWritable: true },
@@ -39,6 +33,6 @@ export function transferRewardOwner(args: TransferRewardOwnerArgs, accounts: Tra
     buffer
   );
   const data = Buffer.concat([identifier, buffer]).slice(0, 8 + len);
-  const ix = new TransactionInstruction({ keys, programId: PROGRAM_ID, data });
+  const ix = new TransactionInstruction({ keys, programId, data });
   return ix;
 }

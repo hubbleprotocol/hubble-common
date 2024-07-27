@@ -1,10 +1,10 @@
 import { Connection, Keypair, LAMPORTS_PER_SOL, PublicKey, sendAndConfirmTransaction } from '@solana/web3.js';
-import * as anchor from '@project-serum/anchor';
+import * as anchor from '@coral-xyz/anchor';
 import { StrategyConfigOptionKind, UpdateCollateralInfoModeKind } from '../src/kamino-client/types';
 import * as Instructions from '../src/kamino-client/instructions';
 import { Transaction, TransactionInstruction } from '@solana/web3.js';
 import { Token } from '@solana/spl-token';
-import { getMintDecimals } from '@project-serum/serum/lib/market';
+import { getMintDecimals } from '../src/utils';
 
 import Decimal from 'decimal.js';
 import { CollateralInfos, GlobalConfig, WhirlpoolStrategy } from '../src/kamino-client/accounts';
@@ -23,7 +23,6 @@ import {
 } from '../src';
 import { getTickArrayPubkeysFromRangeRaydium } from './raydium_utils';
 import { getTickArrayPubkeysFromRangeOrca } from './orca_utils';
-import { TokenInstructions } from '@project-serum/serum';
 import { collateralTokenToNumber, CollateralToken } from './token_utils';
 import { checkIfAccountExists } from '../src/utils/transactions';
 import { FullBPS } from '../src/utils/CreationParameters';
@@ -170,7 +169,7 @@ export async function createUser(
   user?: Keypair
 ): Promise<User> {
   let wallet = new anchor.Wallet(signer);
-  const provider = new anchor.Provider(connection, wallet, anchor.Provider.defaultOptions());
+  const provider = new anchor.AnchorProvider(connection, wallet, anchor.AnchorProvider.defaultOptions());
   if (!user) {
     user = new anchor.web3.Keypair();
   }
@@ -304,7 +303,7 @@ export async function setupAta(
     const ix = await createAtaInstruction(user.publicKey, tokenMintAddress, ata);
     const tx = new Transaction().add(ix);
     let wallet = new anchor.Wallet(payer);
-    const provider = new anchor.Provider(connection, wallet, anchor.Provider.defaultOptions());
+    const provider = new anchor.AnchorProvider(connection, wallet, anchor.AnchorProvider.defaultOptions());
     let res = await provider.connection.sendTransaction(tx, [user]);
     console.log(`setup ATA=${ata.toString()} for ${tokenMintAddress.toString()} tx hash ${res}`);
   }
@@ -379,11 +378,7 @@ async function createMintInstructions(
       lamports: await connection.getMinimumBalanceForRentExemption(82),
       programId: TOKEN_PROGRAM_ID,
     }),
-    TokenInstructions.initializeMint({
-      mint,
-      decimals,
-      mintAuthority: signer.publicKey,
-    }),
+    Token.createInitMintInstruction(TOKEN_PROGRAM_ID, mint, decimals, signer.publicKey, null),
   ];
 }
 

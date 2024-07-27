@@ -10,44 +10,23 @@ export interface CreatePoolArgs {
 }
 
 export interface CreatePoolAccounts {
-  /** Address paying to create the pool. Can be anyone */
   poolCreator: PublicKey;
-  /** Which config the pool belongs to. */
   ammConfig: PublicKey;
-  /** Initialize an account to store the pool state */
   poolState: PublicKey;
-  /** Token_0 mint, the key must grater then token_1 mint. */
   tokenMint0: PublicKey;
-  /** Token_1 mint */
   tokenMint1: PublicKey;
-  /** Token_0 vault for the pool */
   tokenVault0: PublicKey;
-  /** Token_1 vault for the pool */
   tokenVault1: PublicKey;
   observationState: PublicKey;
-  /** Initialize an account to store if a tick array is initialized. */
   tickArrayBitmap: PublicKey;
-  /** Spl token program or token program 2022 */
   tokenProgram0: PublicKey;
-  /** Spl token program or token program 2022 */
   tokenProgram1: PublicKey;
-  /** To create a new program account */
   systemProgram: PublicKey;
-  /** Sysvar for program account */
   rent: PublicKey;
 }
 
 export const layout = borsh.struct([borsh.u128('sqrtPriceX64'), borsh.u64('openTime')]);
 
-/**
- * Creates a pool for the given token pair and the initial price
- *
- * # Arguments
- *
- * * `ctx`- The context of accounts
- * * `sqrt_price_x64` - the initial sqrt price (amount_token_1 / amount_token_0) of the pool as a Q64.64
- *
- */
 export function createPool(args: CreatePoolArgs, accounts: CreatePoolAccounts, programId: PublicKey = PROGRAM_ID) {
   const keys: Array<AccountMeta> = [
     { pubkey: accounts.poolCreator, isSigner: true, isWritable: true },

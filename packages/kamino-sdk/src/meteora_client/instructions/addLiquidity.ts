@@ -1,6 +1,6 @@
 import { TransactionInstruction, PublicKey, AccountMeta } from "@solana/web3.js" // eslint-disable-line @typescript-eslint/no-unused-vars
 import BN from "bn.js" // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as borsh from "@project-serum/borsh" // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as borsh from "@coral-xyz/borsh" // eslint-disable-line @typescript-eslint/no-unused-vars
 import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
 import { PROGRAM_ID } from "../programId"
 
@@ -20,7 +20,7 @@ export interface AddLiquidityAccounts {
   tokenYMint: PublicKey
   binArrayLower: PublicKey
   binArrayUpper: PublicKey
-  owner: PublicKey
+  sender: PublicKey
   tokenXProgram: PublicKey
   tokenYProgram: PublicKey
   eventAuthority: PublicKey
@@ -33,7 +33,8 @@ export const layout = borsh.struct([
 
 export function addLiquidity(
   args: AddLiquidityArgs,
-  accounts: AddLiquidityAccounts
+  accounts: AddLiquidityAccounts,
+  programId: PublicKey = PROGRAM_ID
 ) {
   const keys: Array<AccountMeta> = [
     { pubkey: accounts.position, isSigner: false, isWritable: true },
@@ -51,7 +52,7 @@ export function addLiquidity(
     { pubkey: accounts.tokenYMint, isSigner: false, isWritable: false },
     { pubkey: accounts.binArrayLower, isSigner: false, isWritable: true },
     { pubkey: accounts.binArrayUpper, isSigner: false, isWritable: true },
-    { pubkey: accounts.owner, isSigner: true, isWritable: false },
+    { pubkey: accounts.sender, isSigner: true, isWritable: false },
     { pubkey: accounts.tokenXProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenYProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.eventAuthority, isSigner: false, isWritable: false },
@@ -68,6 +69,6 @@ export function addLiquidity(
     buffer
   )
   const data = Buffer.concat([identifier, buffer]).slice(0, 8 + len)
-  const ix = new TransactionInstruction({ keys, programId: PROGRAM_ID, data })
+  const ix = new TransactionInstruction({ keys, programId, data })
   return ix
 }

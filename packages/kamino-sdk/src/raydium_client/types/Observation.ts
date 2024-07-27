@@ -1,39 +1,26 @@
 import { PublicKey } from '@solana/web3.js'; // eslint-disable-line @typescript-eslint/no-unused-vars
 import BN from 'bn.js'; // eslint-disable-line @typescript-eslint/no-unused-vars
 import * as types from '../types'; // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as borsh from '@project-serum/borsh';
+import * as borsh from '@coral-xyz/borsh';
 
 export interface ObservationFields {
-  /** The block timestamp of the observation */
   blockTimestamp: number;
-  /** the price of the observation timestamp, Q64.64 */
   sqrtPriceX64: BN;
-  /** the cumulative of price during the duration time, Q64.64 */
   cumulativeTimePriceX64: BN;
-  /** padding for feature update */
   padding: BN;
 }
 
 export interface ObservationJSON {
-  /** The block timestamp of the observation */
   blockTimestamp: number;
-  /** the price of the observation timestamp, Q64.64 */
   sqrtPriceX64: string;
-  /** the cumulative of price during the duration time, Q64.64 */
   cumulativeTimePriceX64: string;
-  /** padding for feature update */
   padding: string;
 }
 
-/** The element of observations in ObservationState */
 export class Observation {
-  /** The block timestamp of the observation */
   readonly blockTimestamp: number;
-  /** the price of the observation timestamp, Q64.64 */
   readonly sqrtPriceX64: BN;
-  /** the cumulative of price during the duration time, Q64.64 */
   readonly cumulativeTimePriceX64: BN;
-  /** padding for feature update */
   readonly padding: BN;
 
   constructor(fields: ObservationFields) {

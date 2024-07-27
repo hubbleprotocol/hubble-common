@@ -1,12 +1,13 @@
 import { TransactionInstruction, PublicKey, AccountMeta } from "@solana/web3.js" // eslint-disable-line @typescript-eslint/no-unused-vars
 import BN from "bn.js" // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as borsh from "@project-serum/borsh" // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as borsh from "@coral-xyz/borsh" // eslint-disable-line @typescript-eslint/no-unused-vars
 import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
 import { PROGRAM_ID } from "../programId"
 
 export interface FundRewardArgs {
   rewardIndex: BN
   amount: BN
+  carryForward: boolean
 }
 
 export interface FundRewardAccounts {
@@ -24,9 +25,14 @@ export interface FundRewardAccounts {
 export const layout = borsh.struct([
   borsh.u64("rewardIndex"),
   borsh.u64("amount"),
+  borsh.bool("carryForward"),
 ])
 
-export function fundReward(args: FundRewardArgs, accounts: FundRewardAccounts) {
+export function fundReward(
+  args: FundRewardArgs,
+  accounts: FundRewardAccounts,
+  programId: PublicKey = PROGRAM_ID
+) {
   const keys: Array<AccountMeta> = [
     { pubkey: accounts.lbPair, isSigner: false, isWritable: true },
     { pubkey: accounts.rewardVault, isSigner: false, isWritable: true },
@@ -44,10 +50,11 @@ export function fundReward(args: FundRewardArgs, accounts: FundRewardAccounts) {
     {
       rewardIndex: args.rewardIndex,
       amount: args.amount,
+      carryForward: args.carryForward,
     },
     buffer
   )
   const data = Buffer.concat([identifier, buffer]).slice(0, 8 + len)
-  const ix = new TransactionInstruction({ keys, programId: PROGRAM_ID, data })
+  const ix = new TransactionInstruction({ keys, programId, data })
   return ix
 }

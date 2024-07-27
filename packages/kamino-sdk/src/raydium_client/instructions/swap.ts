@@ -1,6 +1,6 @@
 import { TransactionInstruction, PublicKey, AccountMeta } from '@solana/web3.js'; // eslint-disable-line @typescript-eslint/no-unused-vars
 import BN from 'bn.js'; // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as borsh from '@project-serum/borsh'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as borsh from '@coral-xyz/borsh'; // eslint-disable-line @typescript-eslint/no-unused-vars
 import * as types from '../types'; // eslint-disable-line @typescript-eslint/no-unused-vars
 import { PROGRAM_ID } from '../programId';
 
@@ -12,23 +12,14 @@ export interface SwapArgs {
 }
 
 export interface SwapAccounts {
-  /** The user performing the swap */
   payer: PublicKey;
-  /** The factory state to read protocol fees */
   ammConfig: PublicKey;
-  /** The program account of the pool in which the swap will be performed */
   poolState: PublicKey;
-  /** The user token account for input token */
   inputTokenAccount: PublicKey;
-  /** The user token account for output token */
   outputTokenAccount: PublicKey;
-  /** The vault token account for input token */
   inputVault: PublicKey;
-  /** The vault token account for output token */
   outputVault: PublicKey;
-  /** The program account for the most recent oracle observation */
   observationState: PublicKey;
-  /** SPL program for token transfers */
   tokenProgram: PublicKey;
   tickArray: PublicKey;
 }
@@ -40,19 +31,7 @@ export const layout = borsh.struct([
   borsh.bool('isBaseInput'),
 ]);
 
-/**
- * Swaps one token for as much as possible of another token across a single pool
- *
- * # Arguments
- *
- * * `ctx` - The context of accounts
- * * `amount` - Arranged in pairs with other_amount_threshold. (amount_in, amount_out_minimum) or (amount_out, amount_in_maximum)
- * * `other_amount_threshold` - For slippage check
- * * `sqrt_price_limit` - The Q64.64 sqrt price √P limit. If zero for one, the price cannot
- * * `is_base_input` - swap base input or swap base output
- *
- */
-export function swap(args: SwapArgs, accounts: SwapAccounts) {
+export function swap(args: SwapArgs, accounts: SwapAccounts, programId: PublicKey = PROGRAM_ID) {
   const keys: Array<AccountMeta> = [
     { pubkey: accounts.payer, isSigner: true, isWritable: false },
     { pubkey: accounts.ammConfig, isSigner: false, isWritable: false },
@@ -77,6 +56,6 @@ export function swap(args: SwapArgs, accounts: SwapAccounts) {
     buffer
   );
   const data = Buffer.concat([identifier, buffer]).slice(0, 8 + len);
-  const ix = new TransactionInstruction({ keys, programId: PROGRAM_ID, data });
+  const ix = new TransactionInstruction({ keys, programId, data });
   return ix;
 }

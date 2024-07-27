@@ -5,11 +5,11 @@ import {
   aprToApy,
   GenericPoolInfo,
   getMeteoraPriceLowerUpper,
+  getMintDecimals,
   getStrategyPriceRangeMeteora,
   LiquidityDistribution,
   ZERO,
 } from '../utils';
-import { getMintDecimals } from '@project-serum/serum/lib/market';
 import { KaminoPrices } from '../models';
 import { LbPair, PositionV2 } from '../meteora_client/accounts';
 import { WhirlpoolAprApy } from './WhirlpoolAprApy';

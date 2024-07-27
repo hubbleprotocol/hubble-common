@@ -11,13 +11,13 @@ import {
   TransactionInstruction,
   TransactionSignature,
 } from '@solana/web3.js';
-import { struct, u32, u8 } from '@project-serum/borsh';
 import { sleep } from './utils';
 import { WhirlpoolStrategy } from '../kamino-client/accounts';
 import { tickIndexToPrice } from '@orca-so/whirlpool-sdk';
 import Decimal from 'decimal.js';
 import { CollateralInfo } from '../kamino-client/types';
 import { getPriceOfBinByBinIdWithDecimals } from './meteora';
+import { MintInfo, MintLayout, u64 } from '@solana/spl-token';
 
 export const ASSOCIATED_TOKEN_PROGRAM_ID = new PublicKey('ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL');
 export const TOKEN_PROGRAM_ID = new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA');
@@ -205,6 +205,40 @@ export function getTokenNameFromCollateralInfo(collateralInfo: CollateralInfo) {
 export const isSOLMint = (mint: PublicKey): boolean => {
   return SOL_MINTS.filter((m) => m.equals(mint)).length > 0;
 };
+
+export async function getMintDecimals(connection: Connection, mint: PublicKey): Promise<number> {
+  if (isSOLMint(mint)) {
+    return DECIMALS_SOL;
+  }
+  const acc = await connection.getAccountInfo(mint);
+  if (!acc) {
+    throw new Error(`Mint ${mint.toBase58()} not found`);
+  }
+  const mintInfo = decodeMint(acc);
+  return mintInfo.decimals;
+}
+
+export function decodeMint(acc: AccountInfo<Buffer>): MintInfo {
+  const data = Buffer.from(acc.data);
+  const mintInfo = MintLayout.decode(data);
+
+  if (mintInfo.mintAuthorityOption === 0) {
+    mintInfo.mintAuthority = null;
+  } else {
+    mintInfo.mintAuthority = new PublicKey(mintInfo.mintAuthority);
+  }
+
+  mintInfo.supply = u64.fromBuffer(mintInfo.supply);
+  mintInfo.isInitialized = mintInfo.isInitialized != 0;
+
+  if (mintInfo.freezeAuthorityOption === 0) {
+    mintInfo.freezeAuthority = null;
+  } else {
+    mintInfo.freezeAuthority = new PublicKey(mintInfo.freezeAuthority);
+  }
+
+  return mintInfo;
+}
 
 export function removeBudgetAndAtaIxns(ixns: TransactionInstruction[], mints: PublicKey[]): TransactionInstruction[] {
   return ixns.filter((ixn) => {

@@ -1,18 +1,12 @@
 import { PublicKey } from '@solana/web3.js'; // eslint-disable-line @typescript-eslint/no-unused-vars
 import BN from 'bn.js'; // eslint-disable-line @typescript-eslint/no-unused-vars
 import * as types from '../types'; // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as borsh from '@project-serum/borsh';
+import * as borsh from '@coral-xyz/borsh';
 
 export interface TickStateFields {
   tick: number;
-  /** Amount of net liquidity added (subtracted) when tick is crossed from left to right (right to left) */
   liquidityNet: BN;
-  /** The total position liquidity that references this tick */
   liquidityGross: BN;
-  /**
-   * Fee growth per unit of liquidity on the _other_ side of this tick (relative to the current tick)
-   * only has relative meaning, not absolute — the value depends on when the tick is initialized
-   */
   feeGrowthOutside0X64: BN;
   feeGrowthOutside1X64: BN;
   rewardGrowthsOutsideX64: Array<BN>;
@@ -21,14 +15,8 @@ export interface TickStateFields {
 
 export interface TickStateJSON {
   tick: number;
-  /** Amount of net liquidity added (subtracted) when tick is crossed from left to right (right to left) */
   liquidityNet: string;
-  /** The total position liquidity that references this tick */
   liquidityGross: string;
-  /**
-   * Fee growth per unit of liquidity on the _other_ side of this tick (relative to the current tick)
-   * only has relative meaning, not absolute — the value depends on when the tick is initialized
-   */
   feeGrowthOutside0X64: string;
   feeGrowthOutside1X64: string;
   rewardGrowthsOutsideX64: Array<string>;
@@ -37,14 +25,8 @@ export interface TickStateJSON {
 
 export class TickState {
   readonly tick: number;
-  /** Amount of net liquidity added (subtracted) when tick is crossed from left to right (right to left) */
   readonly liquidityNet: BN;
-  /** The total position liquidity that references this tick */
   readonly liquidityGross: BN;
-  /**
-   * Fee growth per unit of liquidity on the _other_ side of this tick (relative to the current tick)
-   * only has relative meaning, not absolute — the value depends on when the tick is initialized
-   */
   readonly feeGrowthOutside0X64: BN;
   readonly feeGrowthOutside1X64: BN;
   readonly rewardGrowthsOutsideX64: Array<BN>;

@@ -1,9 +1,9 @@
 import { PublicKey } from '@solana/web3.js';
 import Decimal from 'decimal.js';
 import { U64_MAX } from '../constants/numericalValues';
-import { BinArray, LbPair, PositionV2 } from '../meteora_client/accounts';
+import { BinArray } from '../meteora_client/accounts';
 import { Bin } from '../meteora_client/types';
-import { BN } from '@project-serum/anchor';
+import { BN } from '@coral-xyz/anchor';
 
 const BASIS_POINT_MAX = 10000;
 const MAX_BIN_ARRAY_SIZE = 70;

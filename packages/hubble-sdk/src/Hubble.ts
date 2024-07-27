@@ -3,7 +3,7 @@ import { Connection, PublicKey, SYSVAR_RENT_PUBKEY, SystemProgram, TransactionIn
 import StakingPoolState from './models/StakingPoolState';
 import StabilityPoolState from './models/StabilityPoolState';
 import BorrowingMarketState from './models/BorrowingMarketState';
-import { Idl, Program, Provider } from '@project-serum/anchor';
+import { Idl, Program, AnchorProvider } from '@coral-xyz/anchor';
 import { BORROWING_IDL } from '@hubbleprotocol/hubble-idl';
 import {
   calculatePendingGains,
@@ -30,13 +30,12 @@ import {
 } from './constants';
 import Decimal from 'decimal.js';
 import UserMetadataWithJson from './models/UserMetadataWithJson';
-import { StreamflowSolana, Types } from '@streamflow/stream';
+import { StreamflowSolana, StreamType, StreamDirection, ICluster } from '@streamflow/stream';
 import StabilityProviderStateWithJson from './models/StabilityProviderStateWithJson';
 import { HbbVault, HubblePrices, MintToPriceMap, PsmReserve, UsdhVault } from './models';
 import GlobalConfig from './models/GlobalConfig';
 import { SwapInfo } from './models/SwapInfo';
 import { signTerms, SignTermsAccounts, SignTermsArgs, TermsSignature } from './models/TermsSignature';
-import { ICluster } from '@streamflow/stream/dist/common/types';
 import { OraclePrices, Scope } from '@hubbleprotocol/scope-sdk';
 
 export class Hubble {
@@ -44,7 +43,7 @@ export class Hubble {
   private readonly _connection: Connection;
   private readonly _scope: Scope;
   readonly _config: HubbleConfig;
-  private readonly _provider: Provider;
+  private readonly _provider: AnchorProvider;
   private _borrowingProgram: Program;
 
   /**
@@ -61,7 +60,7 @@ export class Hubble {
     if (borrowingProgramId) {
       this._config.borrowing.programId = new PublicKey(borrowingProgramId);
     }
-    this._provider = new Provider(connection, getReadOnlyWallet(), {
+    this._provider = new AnchorProvider(connection, getReadOnlyWallet(), {
       commitment: connection.commitment,
     });
     this._borrowingProgram = new Program(BORROWING_IDL as Idl, this._config.borrowing.programId, this._provider);
@@ -541,8 +540,8 @@ export class Hubble {
         const client = new StreamflowSolana.SolanaStreamClient(this._connection.rpcEndpoint, ICluster.Mainnet);
         const streams = await client.get({
           address: STREAMFLOW_HBB_CONTRACT,
-          type: Types.StreamType.All,
-          direction: Types.StreamDirection.All,
+          type: StreamType.All,
+          direction: StreamDirection.All,
         });
         let notWithdrawnTokens = new Decimal(0);
         for (let [pubkey, stream] of streams) {

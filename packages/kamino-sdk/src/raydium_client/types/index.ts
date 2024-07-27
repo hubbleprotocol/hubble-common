@@ -34,7 +34,6 @@ export type PoolStatusBitFlagJSON = PoolStatusBitFlag.EnableJSON | PoolStatusBit
 
 export { RewardState };
 
-/** State of reward */
 export type RewardStateKind =
   | RewardState.Uninitialized
   | RewardState.Initialized

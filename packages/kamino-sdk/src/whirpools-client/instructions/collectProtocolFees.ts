@@ -1,21 +1,24 @@
-import { TransactionInstruction, PublicKey, AccountMeta } from '@solana/web3.js'; // eslint-disable-line @typescript-eslint/no-unused-vars
-import BN from 'bn.js'; // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as borsh from '@project-serum/borsh'; // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as types from '../types'; // eslint-disable-line @typescript-eslint/no-unused-vars
-import { WHIRLPOOL_PROGRAM_ID } from '../programId';
+import { TransactionInstruction, PublicKey, AccountMeta } from "@solana/web3.js" // eslint-disable-line @typescript-eslint/no-unused-vars
+import BN from "bn.js" // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as borsh from "@coral-xyz/borsh" // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
+import { WHIRLPOOL_PROGRAM_ID } from "../programId"
 
 export interface CollectProtocolFeesAccounts {
-  whirlpoolsConfig: PublicKey;
-  whirlpool: PublicKey;
-  collectProtocolFeesAuthority: PublicKey;
-  tokenVaultA: PublicKey;
-  tokenVaultB: PublicKey;
-  tokenDestinationA: PublicKey;
-  tokenDestinationB: PublicKey;
-  tokenProgram: PublicKey;
+  whirlpoolsConfig: PublicKey
+  whirlpool: PublicKey
+  collectProtocolFeesAuthority: PublicKey
+  tokenVaultA: PublicKey
+  tokenVaultB: PublicKey
+  tokenDestinationA: PublicKey
+  tokenDestinationB: PublicKey
+  tokenProgram: PublicKey
 }
 
-export function collectProtocolFees(accounts: CollectProtocolFeesAccounts) {
+export function collectProtocolFees(
+  accounts: CollectProtocolFeesAccounts,
+  programId: PublicKey = WHIRLPOOL_PROGRAM_ID
+) {
   const keys: Array<AccountMeta> = [
     { pubkey: accounts.whirlpoolsConfig, isSigner: false, isWritable: false },
     { pubkey: accounts.whirlpool, isSigner: false, isWritable: true },
@@ -29,9 +32,9 @@ export function collectProtocolFees(accounts: CollectProtocolFeesAccounts) {
     { pubkey: accounts.tokenDestinationA, isSigner: false, isWritable: true },
     { pubkey: accounts.tokenDestinationB, isSigner: false, isWritable: true },
     { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
-  ];
-  const identifier = Buffer.from([22, 67, 23, 98, 150, 178, 70, 220]);
-  const data = identifier;
-  const ix = new TransactionInstruction({ keys, programId: WHIRLPOOL_PROGRAM_ID, data });
-  return ix;
+  ]
+  const identifier = Buffer.from([22, 67, 23, 98, 150, 178, 70, 220])
+  const data = identifier
+  const ix = new TransactionInstruction({ keys, programId, data })
+  return ix
 }

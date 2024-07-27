@@ -52,6 +52,16 @@ export type {
   InitializePositionPdaArgs,
   InitializePositionPdaAccounts,
 } from "./initializePositionPda"
+export { initializePositionByOperator } from "./initializePositionByOperator"
+export type {
+  InitializePositionByOperatorArgs,
+  InitializePositionByOperatorAccounts,
+} from "./initializePositionByOperator"
+export { updatePositionOperator } from "./updatePositionOperator"
+export type {
+  UpdatePositionOperatorArgs,
+  UpdatePositionOperatorAccounts,
+} from "./updatePositionOperator"
 export { swap } from "./swap"
 export type { SwapArgs, SwapAccounts } from "./swap"
 export { withdrawProtocolFee } from "./withdrawProtocolFee"
@@ -116,3 +126,40 @@ export { migrateBinArray } from "./migrateBinArray"
 export type { MigrateBinArrayAccounts } from "./migrateBinArray"
 export { updateFeesAndRewards } from "./updateFeesAndRewards"
 export type { UpdateFeesAndRewardsAccounts } from "./updateFeesAndRewards"
+export { withdrawIneligibleReward } from "./withdrawIneligibleReward"
+export type {
+  WithdrawIneligibleRewardArgs,
+  WithdrawIneligibleRewardAccounts,
+} from "./withdrawIneligibleReward"
+export { setActivationSlot } from "./setActivationSlot"
+export type {
+  SetActivationSlotArgs,
+  SetActivationSlotAccounts,
+} from "./setActivationSlot"
+export { setLockReleaseSlot } from "./setLockReleaseSlot"
+export type {
+  SetLockReleaseSlotArgs,
+  SetLockReleaseSlotAccounts,
+} from "./setLockReleaseSlot"
+export { removeLiquidityByRange } from "./removeLiquidityByRange"
+export type {
+  RemoveLiquidityByRangeArgs,
+  RemoveLiquidityByRangeAccounts,
+} from "./removeLiquidityByRange"
+export { addLiquidityOneSidePrecise } from "./addLiquidityOneSidePrecise"
+export type {
+  AddLiquidityOneSidePreciseArgs,
+  AddLiquidityOneSidePreciseAccounts,
+} from "./addLiquidityOneSidePrecise"
+export { goToABin } from "./goToABin"
+export type { GoToABinArgs, GoToABinAccounts } from "./goToABin"
+export { setPreActivationSlotDuration } from "./setPreActivationSlotDuration"
+export type {
+  SetPreActivationSlotDurationArgs,
+  SetPreActivationSlotDurationAccounts,
+} from "./setPreActivationSlotDuration"
+export { setPreActivationSwapAddress } from "./setPreActivationSwapAddress"
+export type {
+  SetPreActivationSwapAddressArgs,
+  SetPreActivationSwapAddressAccounts,
+} from "./setPreActivationSwapAddress"

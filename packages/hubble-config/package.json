@@ -25,7 +25,7 @@
     "url": "https://github.com/hubbleprotocol/hubble-common/issues"
   },
   "homepage": "https://github.com/hubbleprotocol/hubble-common/blob/master/packages/hubble-config",
-  "peerDependencies": {
+  "dependencies": {
     "@solana/web3.js": "^1.78.4"
   },
   "publishConfig": {

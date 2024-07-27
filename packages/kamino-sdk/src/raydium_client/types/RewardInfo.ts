@@ -1,89 +1,47 @@
 import { PublicKey } from '@solana/web3.js'; // eslint-disable-line @typescript-eslint/no-unused-vars
 import BN from 'bn.js'; // eslint-disable-line @typescript-eslint/no-unused-vars
 import * as types from '../types'; // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as borsh from '@project-serum/borsh';
+import * as borsh from '@coral-xyz/borsh';
 
 export interface RewardInfoFields {
-  /** Reward state */
   rewardState: number;
-  /** Reward open time */
   openTime: BN;
-  /** Reward end time */
   endTime: BN;
-  /** Reward last update time */
   lastUpdateTime: BN;
-  /** Q64.64 number indicates how many tokens per second are earned per unit of liquidity. */
   emissionsPerSecondX64: BN;
-  /** The total amount of reward emissioned */
   rewardTotalEmissioned: BN;
-  /** The total amount of claimed reward */
   rewardClaimed: BN;
-  /** Reward token mint. */
   tokenMint: PublicKey;
-  /** Reward vault token account. */
   tokenVault: PublicKey;
-  /** The owner that has permission to set reward param */
   authority: PublicKey;
-  /**
-   * Q64.64 number that tracks the total tokens earned per unit of liquidity since the reward
-   * emissions were turned on.
-   */
   rewardGrowthGlobalX64: BN;
 }
 
 export interface RewardInfoJSON {
-  /** Reward state */
   rewardState: number;
-  /** Reward open time */
   openTime: string;
-  /** Reward end time */
   endTime: string;
-  /** Reward last update time */
   lastUpdateTime: string;
-  /** Q64.64 number indicates how many tokens per second are earned per unit of liquidity. */
   emissionsPerSecondX64: string;
-  /** The total amount of reward emissioned */
   rewardTotalEmissioned: string;
-  /** The total amount of claimed reward */
   rewardClaimed: string;
-  /** Reward token mint. */
   tokenMint: string;
-  /** Reward vault token account. */
   tokenVault: string;
-  /** The owner that has permission to set reward param */
   authority: string;
-  /**
-   * Q64.64 number that tracks the total tokens earned per unit of liquidity since the reward
-   * emissions were turned on.
-   */
   rewardGrowthGlobalX64: string;
 }
 
 export class RewardInfo {
-  /** Reward state */
   readonly rewardState: number;
-  /** Reward open time */
   readonly openTime: BN;
-  /** Reward end time */
   readonly endTime: BN;
-  /** Reward last update time */
   readonly lastUpdateTime: BN;
-  /** Q64.64 number indicates how many tokens per second are earned per unit of liquidity. */
   readonly emissionsPerSecondX64: BN;
-  /** The total amount of reward emissioned */
   readonly rewardTotalEmissioned: BN;
-  /** The total amount of claimed reward */
   readonly rewardClaimed: BN;
-  /** Reward token mint. */
   readonly tokenMint: PublicKey;
-  /** Reward vault token account. */
   readonly tokenVault: PublicKey;
-  /** The owner that has permission to set reward param */
   readonly authority: PublicKey;
-  /**
-   * Q64.64 number that tracks the total tokens earned per unit of liquidity since the reward
-   * emissions were turned on.
-   */
   readonly rewardGrowthGlobalX64: BN;
 
   constructor(fields: RewardInfoFields) {

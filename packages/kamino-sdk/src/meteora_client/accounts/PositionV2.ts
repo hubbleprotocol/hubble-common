@@ -1,6 +1,6 @@
 import { PublicKey, Connection } from "@solana/web3.js"
 import BN from "bn.js" // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as borsh from "@project-serum/borsh" // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as borsh from "@coral-xyz/borsh" // eslint-disable-line @typescript-eslint/no-unused-vars
 import * as types from "../types" // eslint-disable-line @typescript-eslint/no-unused-vars
 import { PROGRAM_ID } from "../programId"
 
@@ -27,6 +27,14 @@ export interface PositionV2Fields {
   totalClaimedFeeYAmount: BN
   /** Total claimed rewards */
   totalClaimedRewards: Array<BN>
+  /** Operator of position */
+  operator: PublicKey
+  /** Slot which the locked liquidity can be withdraw */
+  lockReleaseSlot: BN
+  /** Is the position subjected to liquidity locking for the launch pool. */
+  subjectedToBootstrapLiquidityLocking: number
+  /** Address is able to claim fee in this position, only valid for bootstrap_liquidity_position */
+  feeOwner: PublicKey
   /** Reserved space for future use */
   reserved: Array<number>
 }
@@ -54,6 +62,14 @@ export interface PositionV2JSON {
   totalClaimedFeeYAmount: string
   /** Total claimed rewards */
   totalClaimedRewards: Array<string>
+  /** Operator of position */
+  operator: string
+  /** Slot which the locked liquidity can be withdraw */
+  lockReleaseSlot: string
+  /** Is the position subjected to liquidity locking for the launch pool. */
+  subjectedToBootstrapLiquidityLocking: number
+  /** Address is able to claim fee in this position, only valid for bootstrap_liquidity_position */
+  feeOwner: string
   /** Reserved space for future use */
   reserved: Array<number>
 }
@@ -81,6 +97,14 @@ export class PositionV2 {
   readonly totalClaimedFeeYAmount: BN
   /** Total claimed rewards */
   readonly totalClaimedRewards: Array<BN>
+  /** Operator of position */
+  readonly operator: PublicKey
+  /** Slot which the locked liquidity can be withdraw */
+  readonly lockReleaseSlot: BN
+  /** Is the position subjected to liquidity locking for the launch pool. */
+  readonly subjectedToBootstrapLiquidityLocking: number
+  /** Address is able to claim fee in this position, only valid for bootstrap_liquidity_position */
+  readonly feeOwner: PublicKey
   /** Reserved space for future use */
   readonly reserved: Array<number>
 
@@ -100,7 +124,11 @@ export class PositionV2 {
     borsh.u64("totalClaimedFeeXAmount"),
     borsh.u64("totalClaimedFeeYAmount"),
     borsh.array(borsh.u64(), 2, "totalClaimedRewards"),
-    borsh.array(borsh.u8(), 160, "reserved"),
+    borsh.publicKey("operator"),
+    borsh.u64("lockReleaseSlot"),
+    borsh.u8("subjectedToBootstrapLiquidityLocking"),
+    borsh.publicKey("feeOwner"),
+    borsh.array(borsh.u8(), 87, "reserved"),
   ])
 
   constructor(fields: PositionV2Fields) {
@@ -119,19 +147,25 @@ export class PositionV2 {
     this.totalClaimedFeeXAmount = fields.totalClaimedFeeXAmount
     this.totalClaimedFeeYAmount = fields.totalClaimedFeeYAmount
     this.totalClaimedRewards = fields.totalClaimedRewards
+    this.operator = fields.operator
+    this.lockReleaseSlot = fields.lockReleaseSlot
+    this.subjectedToBootstrapLiquidityLocking =
+      fields.subjectedToBootstrapLiquidityLocking
+    this.feeOwner = fields.feeOwner
     this.reserved = fields.reserved
   }
 
   static async fetch(
     c: Connection,
-    address: PublicKey
+    address: PublicKey,
+    programId: PublicKey = PROGRAM_ID
   ): Promise<PositionV2 | null> {
     const info = await c.getAccountInfo(address)
 
     if (info === null) {
       return null
     }
-    if (!info.owner.equals(PROGRAM_ID)) {
+    if (!info.owner.equals(programId)) {
       throw new Error("account doesn't belong to this program")
     }
 
@@ -140,7 +174,8 @@ export class PositionV2 {
 
   static async fetchMultiple(
     c: Connection,
-    addresses: PublicKey[]
+    addresses: PublicKey[],
+    programId: PublicKey = PROGRAM_ID
   ): Promise<Array<PositionV2 | null>> {
     const infos = await c.getMultipleAccountsInfo(addresses)
 
@@ -148,7 +183,7 @@ export class PositionV2 {
       if (info === null) {
         return null
       }
-      if (!info.owner.equals(PROGRAM_ID)) {
+      if (!info.owner.equals(programId)) {
         throw new Error("account doesn't belong to this program")
       }
 
@@ -183,6 +218,11 @@ export class PositionV2 {
       totalClaimedFeeXAmount: dec.totalClaimedFeeXAmount,
       totalClaimedFeeYAmount: dec.totalClaimedFeeYAmount,
       totalClaimedRewards: dec.totalClaimedRewards,
+      operator: dec.operator,
+      lockReleaseSlot: dec.lockReleaseSlot,
+      subjectedToBootstrapLiquidityLocking:
+        dec.subjectedToBootstrapLiquidityLocking,
+      feeOwner: dec.feeOwner,
       reserved: dec.reserved,
     })
   }
@@ -202,6 +242,11 @@ export class PositionV2 {
       totalClaimedRewards: this.totalClaimedRewards.map((item) =>
         item.toString()
       ),
+      operator: this.operator.toString(),
+      lockReleaseSlot: this.lockReleaseSlot.toString(),
+      subjectedToBootstrapLiquidityLocking:
+        this.subjectedToBootstrapLiquidityLocking,
+      feeOwner: this.feeOwner.toString(),
       reserved: this.reserved,
     }
   }
@@ -221,6 +266,11 @@ export class PositionV2 {
       totalClaimedFeeXAmount: new BN(obj.totalClaimedFeeXAmount),
       totalClaimedFeeYAmount: new BN(obj.totalClaimedFeeYAmount),
       totalClaimedRewards: obj.totalClaimedRewards.map((item) => new BN(item)),
+      operator: new PublicKey(obj.operator),
+      lockReleaseSlot: new BN(obj.lockReleaseSlot),
+      subjectedToBootstrapLiquidityLocking:
+        obj.subjectedToBootstrapLiquidityLocking,
+      feeOwner: new PublicKey(obj.feeOwner),
       reserved: obj.reserved,
     })
   }

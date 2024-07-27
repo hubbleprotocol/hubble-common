@@ -62,9 +62,9 @@ import {
 import { expect } from 'chai';
 import { WHIRLPOOL_PROGRAM_ID } from '../src/whirpools-client/programId';
 import * as ed25519 from 'tweetnacl-ts';
-import { Provider } from '@project-serum/anchor';
+import { AnchorProvider } from '@coral-xyz/anchor';
 import { createWsolAtaIfMissing } from '../src/utils/transactions';
-import { getMintDecimals } from '@project-serum/serum/lib/market';
+import { getMintDecimals } from '../src/utils';
 
 export const LOCAL_RAYDIUM_PROGRAM_ID = new PublicKey('devi51mZmdwUJGU9hjN27vEz64Gps7uUefqxg27EAtH');
 export const USDH_SCOPE_CHAIN_ID = BigInt(12);
@@ -1465,7 +1465,7 @@ describe('Kamino SDK Tests', () => {
 
     await solAirdrop(
       connection,
-      new Provider(connection, getReadOnlyWallet(), {
+      new AnchorProvider(connection, getReadOnlyWallet(), {
         commitment: connection.commitment,
       }),
       owner.publicKey,

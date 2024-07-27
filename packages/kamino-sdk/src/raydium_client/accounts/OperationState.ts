@@ -1,34 +1,24 @@
 import { PublicKey, Connection } from '@solana/web3.js';
 import BN from 'bn.js'; // eslint-disable-line @typescript-eslint/no-unused-vars
-import * as borsh from '@project-serum/borsh'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import * as borsh from '@coral-xyz/borsh'; // eslint-disable-line @typescript-eslint/no-unused-vars
 import * as types from '../types'; // eslint-disable-line @typescript-eslint/no-unused-vars
 import { PROGRAM_ID } from '../programId';
 
 export interface OperationStateFields {
-  /** Bump to identify PDA */
   bump: number;
-  /** Address of the operation owner */
   operationOwners: Array<PublicKey>;
-  /** The mint address of whitelist to emmit reward */
   whitelistMints: Array<PublicKey>;
 }
 
 export interface OperationStateJSON {
-  /** Bump to identify PDA */
   bump: number;
-  /** Address of the operation owner */
   operationOwners: Array<string>;
-  /** The mint address of whitelist to emmit reward */
   whitelistMints: Array<string>;
 }
 
-/** Holds the current owner of the factory */
 export class OperationState {
-  /** Bump to identify PDA */
   readonly bump: number;
-  /** Address of the operation owner */
   readonly operationOwners: Array<PublicKey>;
-  /** The mint address of whitelist to emmit reward */
   readonly whitelistMints: Array<PublicKey>;
 
   static readonly discriminator = Buffer.from([19, 236, 58, 237, 81, 222, 183, 252]);
@@ -45,27 +35,35 @@ export class OperationState {
     this.whitelistMints = fields.whitelistMints;
   }
 
-  static async fetch(c: Connection, address: PublicKey): Promise<OperationState | null> {
+  static async fetch(
+    c: Connection,
+    address: PublicKey,
+    programId: PublicKey = PROGRAM_ID
+  ): Promise<OperationState | null> {
     const info = await c.getAccountInfo(address);
 
     if (info === null) {
       return null;
     }
-    if (!info.owner.equals(PROGRAM_ID)) {
+    if (!info.owner.equals(programId)) {
       throw new Error("account doesn't belong to this program");
     }
 
     return this.decode(info.data);
   }
 
-  static async fetchMultiple(c: Connection, addresses: PublicKey[]): Promise<Array<OperationState | null>> {
+  static async fetchMultiple(
+    c: Connection,
+    addresses: PublicKey[],
+    programId: PublicKey = PROGRAM_ID
+  ): Promise<Array<OperationState | null>> {
     const infos = await c.getMultipleAccountsInfo(addresses);
 
     return infos.map((info) => {
       if (info === null) {
         return null;
       }
-      if (!info.owner.equals(PROGRAM_ID)) {
+      if (!info.owner.equals(programId)) {
         throw new Error("account doesn't belong to this program");
       }
 

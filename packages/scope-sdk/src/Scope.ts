@@ -13,7 +13,7 @@ import { Configuration, OracleMappings, OraclePrices } from './accounts';
 import { OracleType, OracleTypeKind, Price } from './types';
 import { U16_MAX } from './constants';
 import * as ScopeIx from './instructions';
-import { Provider, Wallet } from '@project-serum/anchor';
+import { AnchorProvider, Wallet } from '@coral-xyz/anchor';
 import {
   getConfigurationPda,
   ORACLE_MAPPINGS_LEN,
@@ -285,10 +285,10 @@ export class Scope {
       },
       this._config.scope.programId
     );
-    const provider = new Provider(this._connection, new Wallet(admin), {
+    const provider = new AnchorProvider(this._connection, new Wallet(admin), {
       commitment: this._connection.commitment,
     });
-    const sig = await provider.send(
+    const sig = await provider.sendAndConfirm(
       new Transaction().add(
         ...[createOraclePricesIx, createOracleMappingsIx, createOracleTwapsIx, createTokenMetadatasIx, initScopeIx]
       ),
@@ -345,10 +345,10 @@ export class Scope {
       },
       this._config.scope.programId
     );
-    const provider = new Provider(this._connection, new Wallet(admin), {
+    const provider = new AnchorProvider(this._connection, new Wallet(admin), {
       commitment: this._connection.commitment,
     });
-    return provider.send(new Transaction().add(updateIx), [admin]);
+    return provider.sendAndConfirm(new Transaction().add(updateIx), [admin]);
   }
 
   async refreshPriceList(payer: Keypair, feed: FeedParam, tokens: number[]) {
@@ -365,7 +365,7 @@ export class Scope {
       },
       this._config.scope.programId
     );
-    const provider = new Provider(this._connection, new Wallet(payer), {
+    const provider = new AnchorProvider(this._connection, new Wallet(payer), {
       commitment: this._connection.commitment,
     });
     const mappings = await this.getOracleMappings(feed);
@@ -380,7 +380,7 @@ export class Scope {
         ))
       );
     }
-    return provider.send(new Transaction().add(refreshIx), [payer]);
+    return provider.sendAndConfirm(new Transaction().add(refreshIx), [payer]);
   }
 
   async refreshPriceListIx(feed: FeedParam, tokens: number[]) {

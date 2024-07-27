@@ -3,7 +3,7 @@
  * Added roundUp flag to accurately estimate token holdings for deposits
  */
 import { tickIndexToSqrtPriceX64 } from "@orca-so/whirlpool-client-sdk";
-import { BN } from "@project-serum/anchor";
+import { BN } from "@coral-xyz/anchor";
 import { u64 } from "@solana/spl-token";
 import { PublicKey } from "@solana/web3.js";
 import { Percentage, ZERO } from "@orca-so/sdk";
