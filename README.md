@@ -13,7 +13,11 @@ Hubble common NPM packages.
 | `@hubbleprotocol/hubble-sdk`    | Hubble Protocol client SDK         | [README](./packages/hubble-sdk/README.md)    | [![npm](https://img.shields.io/npm/v/@hubbleprotocol/hubble-sdk)](https://www.npmjs.com/package/@hubbleprotocol/hubble-sdk)       |
 | `@hubbleprotocol/hubble-db`     | Hubble Protocol database schema    | [README](./packages/hubble-db/README.md)     | [![npm](https://img.shields.io/npm/v/@hubbleprotocol/hubble-db)](https://www.npmjs.com/package/@hubbleprotocol/hubble-db)         |
 | `@hubbleprotocol/scope-sdk`     | Scope Oracle SDK                   | [README](./packages/scope-sdk/README.md)     | [![npm](https://img.shields.io/npm/v/@hubbleprotocol/scope-sdk)](https://www.npmjs.com/package/@hubbleprotocol/scope-sdk)         |
-| `@hubbleprotocol/kamino-sdk`    | Kamino SDK                         | [README](./packages/kamino-sdk/README.md)    | [![npm](https://img.shields.io/npm/v/@hubbleprotocol/kamino-sdk)](https://www.npmjs.com/package/@hubbleprotocol/kamino-sdk)       |
+
+### Deprecated Packages
+| Package                         | Description                        | Comments                                                                                    | Version                                                                                                                           |
+|---------------------------------|------------------------------------|---------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
+| `@hubbleprotocol/kamino-sdk`    | Kamino SDK                         | Moved to: `@kamino-finance/kliquidity-sdk` https://github.com/Kamino-Finance/kliquidity-sdk | [![npm](https://img.shields.io/npm/v/@hubbleprotocol/kamino-sdk)](https://www.npmjs.com/package/@hubbleprotocol/kamino-sdk)       |
 
 
 ## Deployment
@@ -31,10 +35,10 @@ Pull requests are welcome. For major changes, please open an issue first to disc
 - `git clone git@github.com:hubbleprotocol/hubble-common.git`
 - `cd hubble-common/`
 - `npm install`
-- `cd packages/kamino-sdk/`
+- `cd packages/scope-sdk/`
 - `npm install`
 - `cd ../../`
-- `npx ts-mocha packages/kamino-sdk/tests/calculateAmounts.test.ts`
+- `npx ts-mocha packages/scope-sdk/tests/sdk.test.ts`
 - Put in your RPC (see below)
 
 ## Create a free mainnet RPC:
