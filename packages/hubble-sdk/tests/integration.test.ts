@@ -1,10 +1,10 @@
 import { SolanaCluster } from '@hubbleprotocol/hubble-config';
-import { clusterApiUrl, Connection, Keypair, Transaction } from '@solana/web3.js';
+import { Connection, Keypair, Transaction } from '@solana/web3.js';
 import * as ed25519 from 'tweetnacl-ts';
 import Hubble from '../src/Hubble';
 import { sendTransactionWithLogs, solAirdrop } from './utils';
 import { getReadOnlyWallet } from '../src';
-import { Provider } from '@project-serum/anchor';
+import { AnchorProvider } from '@coral-xyz/anchor';
 import Decimal from 'decimal.js';
 
 describe('Hubble SDK Tests', () => {
@@ -23,7 +23,7 @@ describe('Hubble SDK Tests', () => {
 
     await solAirdrop(
       connection,
-      new Provider(connection, getReadOnlyWallet(), {
+      new AnchorProvider(connection, getReadOnlyWallet(), {
         commitment: connection.commitment,
       }),
       owner.publicKey,

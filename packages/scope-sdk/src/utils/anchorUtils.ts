@@ -1,5 +1,5 @@
 import { Keypair } from '@solana/web3.js';
-import { Wallet } from '@project-serum/anchor';
+import { Wallet } from '@coral-xyz/anchor';
 
 /**
  * Get a read-only wallet for Anchor provider

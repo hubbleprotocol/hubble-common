@@ -1,11 +1,11 @@
-import { Idl, Program, Provider, Wallet } from '@project-serum/anchor';
+import { Idl, Program, AnchorProvider, Wallet } from '@coral-xyz/anchor';
 import { Connection, ConnectionConfig, Keypair, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { sleep } from './utils';
 import idl from '../../../hubble-idl/src/scope.json';
 import { PROGRAM_ID } from '../../src/programId';
 
 export type Env = {
-  provider: Provider;
+  provider: AnchorProvider;
   program: Program;
   admin: Keypair;
   wallet: Wallet;
@@ -28,12 +28,12 @@ export async function initEnv(): Promise<Env> {
   await sleep(2000);
 
   const wallet = new Wallet(admin);
-  const provider = new Provider(connection, wallet, {
+  const provider = new AnchorProvider(connection, wallet, {
     preflightCommitment: 'processed',
   });
 
   return {
-    provider: new Provider(connection, wallet, {
+    provider: new AnchorProvider(connection, wallet, {
       preflightCommitment: 'processed',
     }),
     program: new Program(idl as Idl, PROGRAM_ID, provider),
