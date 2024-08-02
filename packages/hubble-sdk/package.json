@@ -3,7 +3,7 @@
   "description": "Hubble Protocol client SDK",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "version": "5.0.20",
+  "version": "6.0.0",
   "scripts": {
     "build": "tsc",
     "build:watch": "tsc -w"
@@ -37,9 +37,9 @@
   "dependencies": {
     "@coral-xyz/anchor": "^0.29.0",
     "@coral-xyz/borsh": "^0.30.1",
-    "@hubbleprotocol/hubble-config": "^5.0.0",
-    "@hubbleprotocol/hubble-idl": "^5.0.16",
-    "@hubbleprotocol/scope-sdk": "^5.0.20",
+    "@hubbleprotocol/hubble-config": "^6.0.0",
+    "@hubbleprotocol/hubble-idl": "^6.0.0",
+    "@hubbleprotocol/scope-sdk": "^6.0.0",
     "@solana/web3.js": "^1.78.4",
     "@streamflow/stream": "6.3.8",
     "bn.js": "^5.2.1",
