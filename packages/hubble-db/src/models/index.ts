@@ -74,6 +74,7 @@ export * from './accounting';
 export * from './RecentSlotEntity';
 export * from './EpochEntity';
 export * from './StakingYieldEntity';
+export * from './HubbleInstructionEntity';
 
 export const CLUSTER_TABLE: string = 'cluster';
 export const COLLATERAL_TABLE: string = 'collateral';
@@ -155,6 +156,7 @@ export const ACCOUNTING_BALANCE_TABLE = 'accounting_balance';
 export const RECENT_SLOT_TABLE = 'recent_slot';
 export const STAKING_YIELD_TABLE = 'staking_yield';
 export const EPOCH_TABLE = 'epoch';
+export const HUBBLE_INSTRUCTION_TABLE = 'hubble_instruction';
 
 export type RESAMPLE_FREQUENCY = 'hour' | 'day';
 export const HOURLY_FREQUENCY = 'hour';
