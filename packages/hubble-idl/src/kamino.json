@@ -3385,6 +3385,22 @@
           }
         }
       ]
+    },
+    {
+      "name": "updateStrategyAdmin",
+      "accounts": [
+        {
+          "name": "pendingAdmin",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "strategy",
+          "isMut": true,
+          "isSigner": false
+        }
+      ],
+      "args": []
     }
   ],
   "accounts": [
@@ -4404,6 +4420,10 @@
             "type": "publicKey"
           },
           {
+            "name": "pendingAdmin",
+            "type": "publicKey"
+          },
+          {
             "name": "padding3",
             "type": "u64"
           },
@@ -4412,7 +4432,7 @@
             "type": {
               "array": [
                 "u128",
-                15
+                13
               ]
             }
           },
@@ -5730,6 +5750,9 @@
           },
           {
             "name": "UpdateSwapUnevenAuthority"
+          },
+          {
+            "name": "UpdatePendingStrategyAdmin"
           }
         ]
       }
