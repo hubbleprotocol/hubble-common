@@ -3,7 +3,7 @@
   "description": "Scope Oracle SDK",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "version": "6.0.0",
+  "version": "7.0.0",
   "scripts": {
     "build": "tsc",
     "build:watch": "tsc -w",
@@ -29,7 +29,7 @@
   "homepage": "https://github.com/hubbleprotocol/hubble-common/blob/master/packages/scope-sdk",
   "dependencies": {
     "@coral-xyz/anchor": "^0.29.0",
-    "@hubbleprotocol/hubble-config": "^6.0.0",
+    "@hubbleprotocol/hubble-config": "^7.0.0",
     "@solana/buffer-layout": "^4.0.1",
     "@solana/web3.js": "^1.78.4",
     "bn.js": "^5.2.1",
