@@ -4,7 +4,7 @@ import StakingPoolState from './models/StakingPoolState';
 import StabilityPoolState from './models/StabilityPoolState';
 import BorrowingMarketState from './models/BorrowingMarketState';
 import { Idl, Program, AnchorProvider } from '@coral-xyz/anchor';
-import { BORROWING_IDL } from '@hubbleprotocol/hubble-idl';
+import BorrowingIdl from './borrowing.json';
 import {
   calculatePendingGains,
   calculateStabilityProvided,
@@ -63,7 +63,7 @@ export class Hubble {
     this._provider = new AnchorProvider(connection, getReadOnlyWallet(), {
       commitment: connection.commitment,
     });
-    this._borrowingProgram = new Program(BORROWING_IDL as Idl, this._config.borrowing.programId, this._provider);
+    this._borrowingProgram = new Program(BorrowingIdl as Idl, this._config.borrowing.programId, this._provider);
   }
 
   /**
