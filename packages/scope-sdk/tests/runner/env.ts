@@ -1,7 +1,7 @@
 import { Idl, Program, AnchorProvider, Wallet } from '@coral-xyz/anchor';
 import { Connection, ConnectionConfig, Keypair, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { sleep } from './utils';
-import idl from '../../../hubble-idl/src/scope.json';
+import idl from '../../src/scope.json';
 import { PROGRAM_ID } from '../../src/programId';
 
 export type Env = {
