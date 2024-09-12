@@ -5,9 +5,3 @@ dist
 kamino-client
 whirpools-client
 meteora_client
-packages/scope-sdk/src/@codegen
-packages/scope-sdk/src/accounts
-packages/scope-sdk/src/instructions
-packages/scope-sdk/src/errors
-packages/scope-sdk/src/types
-packages/scope-sdk/src/programId.ts

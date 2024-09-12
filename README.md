@@ -9,15 +9,14 @@ Hubble common NPM packages.
 | Package                         | Description                        | Docs                                         | Version                                                                                                                           |
 |---------------------------------|------------------------------------|----------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
 | `@hubbleprotocol/hubble-config` | Hubble Solana config (public keys) | [README](./packages/hubble-config/README.md) | [![npm](https://img.shields.io/npm/v/@hubbleprotocol/hubble-config)](https://www.npmjs.com/package/@hubbleprotocol/hubble-config) |
-| `@hubbleprotocol/hubble-idl`    | Hubble IDL for Anchor              | [README](./packages/hubble-idl/README.md)    | [![npm](https://img.shields.io/npm/v/@hubbleprotocol/hubble-idl)](https://www.npmjs.com/package/@hubbleprotocol/hubble-idl)       |
 | `@hubbleprotocol/hubble-sdk`    | Hubble Protocol client SDK         | [README](./packages/hubble-sdk/README.md)    | [![npm](https://img.shields.io/npm/v/@hubbleprotocol/hubble-sdk)](https://www.npmjs.com/package/@hubbleprotocol/hubble-sdk)       |
 | `@hubbleprotocol/hubble-db`     | Hubble Protocol database schema    | [README](./packages/hubble-db/README.md)     | [![npm](https://img.shields.io/npm/v/@hubbleprotocol/hubble-db)](https://www.npmjs.com/package/@hubbleprotocol/hubble-db)         |
-| `@hubbleprotocol/scope-sdk`     | Scope Oracle SDK                   | [README](./packages/scope-sdk/README.md)     | [![npm](https://img.shields.io/npm/v/@hubbleprotocol/scope-sdk)](https://www.npmjs.com/package/@hubbleprotocol/scope-sdk)         |
 
 ### Deprecated Packages
-| Package                         | Description                        | Comments                                                                                    | Version                                                                                                                           |
-|---------------------------------|------------------------------------|---------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
-| `@hubbleprotocol/kamino-sdk`    | Kamino SDK                         | Moved to: `@kamino-finance/kliquidity-sdk` https://github.com/Kamino-Finance/kliquidity-sdk | [![npm](https://img.shields.io/npm/v/@hubbleprotocol/kamino-sdk)](https://www.npmjs.com/package/@hubbleprotocol/kamino-sdk)       |
+| Package                      | Description | Comments                                                                                    | Version                                                                                                                     |
+|------------------------------|-------------|---------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------|
+| `@hubbleprotocol/kamino-sdk` | Kamino SDK  | Moved to: `@kamino-finance/kliquidity-sdk` https://github.com/Kamino-Finance/kliquidity-sdk | [![npm](https://img.shields.io/npm/v/@hubbleprotocol/kamino-sdk)](https://www.npmjs.com/package/@hubbleprotocol/kamino-sdk) |
+| `@hubbleprotocol/scope-sdk`  | Scope SDK   | Moved to: `@kamino-finance/scope-sdk` https://github.com/Kamino-Finance/scope-sdk           | [![npm](https://img.shields.io/npm/v/@kamino-finance/scope-sdk)](https://www.npmjs.com/package/@kamino=finance/scope-sdk)   |
 
 
 ## Deployment
@@ -35,10 +34,6 @@ Pull requests are welcome. For major changes, please open an issue first to disc
 - `git clone git@github.com:hubbleprotocol/hubble-common.git`
 - `cd hubble-common/`
 - `npm install`
-- `cd packages/scope-sdk/`
-- `npm install`
-- `cd ../../`
-- `npx ts-mocha packages/scope-sdk/tests/sdk.test.ts`
 - Put in your RPC (see below)
 
 ## Create a free mainnet RPC:
