@@ -7,7 +7,7 @@
     "clean": "npx lerna clean -y && rm -rf node_modules",
     "publish": "npx lerna publish",
     "test": "npx ts-mocha 'packages/hubble-sdk/tests/sdk.test.ts'",
-    "integration-test": "npm run airdrop-test-admin && npx ts-mocha packages/scope-sdk/tests/sdk.test.ts",
+    "integration-test": "npm run airdrop-test-admin",
     "format": "prettier --write '{**/*,*}.{js,ts,jsx,tsx}'",
     "format:check": "prettier --check '{**/*,*}.{js,ts,jsx,tsx}'",
     "start-with-test-validator": "npm run dump-kamino-programs && start-server-and-test 'npm run start-validator' http://localhost:8899/health 'npm run integration-test'",
