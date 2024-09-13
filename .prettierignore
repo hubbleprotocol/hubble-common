@@ -1,7 +1,2 @@
 node_modules
 dist
-
-# auto-generated rpc clients
-kamino-client
-whirpools-client
-meteora_client
