@@ -3,7 +3,7 @@
   "description": "Hubble Protocol client SDK",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "version": "7.0.0",
+  "version": "8.0.0",
   "scripts": {
     "build": "tsc",
     "build:watch": "tsc -w"
@@ -37,7 +37,7 @@
   "dependencies": {
     "@coral-xyz/anchor": "^0.29.0",
     "@coral-xyz/borsh": "^0.30.1",
-    "@hubbleprotocol/hubble-config": "^7.0.0",
+    "@hubbleprotocol/hubble-config": "^8.0.0",
     "@hubbleprotocol/scope-sdk": "^7.0.0",
     "@solana/web3.js": "^1.78.4",
     "@streamflow/stream": "6.3.8",
