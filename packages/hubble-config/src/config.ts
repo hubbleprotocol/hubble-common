@@ -1,6 +1,5 @@
 import { HubbleConfig, SolanaCluster } from './index';
 import { HUBBLE_CONFIGS } from './constants/configs';
-import { PublicKey } from '@solana/web3.js';
 
 /**
  * Get Hubble configuration for specific Solana cluster.
@@ -19,13 +18,4 @@ export const getConfigByCluster = (cluster: SolanaCluster): HubbleConfig => {
  */
 export const getAllConfigs = (): HubbleConfig[] => {
   return HUBBLE_CONFIGS;
-};
-
-/**
- * Get collateral mint from Kamino config
- * @param address
- * @param config
- */
-export const getCollateralMintByAddress = (address: PublicKey, config: HubbleConfig) => {
-  return config.kamino.mints.find((x) => x.address.toBase58() === address.toBase58());
 };

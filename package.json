@@ -7,13 +7,8 @@
     "clean": "npx lerna clean -y && rm -rf node_modules",
     "publish": "npx lerna publish",
     "test": "npx ts-mocha 'packages/hubble-sdk/tests/sdk.test.ts'",
-    "integration-test": "npm run airdrop-test-admin",
     "format": "prettier --write '{**/*,*}.{js,ts,jsx,tsx}'",
-    "format:check": "prettier --check '{**/*,*}.{js,ts,jsx,tsx}'",
-    "start-with-test-validator": "npm run dump-kamino-programs && start-server-and-test 'npm run start-validator' http://localhost:8899/health 'npm run integration-test'",
-    "start-validator": "npm run dump-kamino-programs && solana-test-validator -u m ---bpf-program whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3uctyCc deps/whirlpool.so --bpf-program devi51mZmdwUJGU9hjN27vEz64Gps7uUefqxg27EAtH deps/raydium.so --bpf-program metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s deps/metaplex.so --clone 3NJYftD5sjVfxSnUdZ1wVML8f3aC6mp1CXCL6L7TnU8C --clone GKnHiWh3RRrE1zsNzWxRkomymHc374TvJPSTv2wPeYdB --account Gnt27xtC473ZT2Mw5u8wZ68Z3gULkSTb5DuxJy7eJotD deps/Gnt27xtC473ZT2Mw5u8wZ68Z3gULkSTb5DuxJy7eJotD.json --bpf-program  E6qbhrt4pFmCotNUSSEh6E5cRQCEJpMcd79Z56EG9KY deps/kamino.so --bpf-program HFn8GnPADiny6XqUoWE8uRPPxb29ikn4yTuPa9MF2fWJ deps/scope.so --clone GThUX1Atko4tqhN2NaiTazWSeFWMuiUvfFnyJyUghFMJ --reset --quiet",
-    "airdrop-test-admin": "solana airdrop 100 2KE5D8LPdhMhr2vaaXZByMPCbXTjr8MtWUggnzoMN3ji -u l",
-    "dump-kamino-programs": "mkdir -p deps && solana program dump E6qbhrt4pFmCotNUSSEh6E5cRQCEJpMcd79Z56EG9KY -u d deps/kamino.so && solana program dump -u m whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3uctyCc deps/whirlpool.so && solana program dump -u m metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s deps/metaplex.so && solana program dump -u m HFn8GnPADiny6XqUoWE8uRPPxb29ikn4yTuPa9MF2fWJ deps/scope.so"
+    "format:check": "prettier --check '{**/*,*}.{js,ts,jsx,tsx}'"
   },
   "devDependencies": {
     "@types/bn.js": "^5.1.5",
