@@ -38,7 +38,7 @@
     "@coral-xyz/anchor": "^0.29.0",
     "@coral-xyz/borsh": "^0.30.1",
     "@hubbleprotocol/hubble-config": "^8.0.0",
-    "@hubbleprotocol/scope-sdk": "^7.0.0",
+    "@kamino-finance/scope-sdk": "^8.0.2",
     "@solana/web3.js": "^1.78.4",
     "@streamflow/stream": "6.3.8",
     "bn.js": "^5.2.1",
