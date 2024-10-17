@@ -113,8 +113,8 @@ export const ExtraCollateralMap: ExtraCollateralToken[] = [
     id: 8,
     name: 'STSOL',
     mint: '7dHbWXmci3dT8UFYWYZweBLXgycu7Y3iL6trKn1Y7ARj',
-    scopePriceChain: [76, 0, 65535, 65535],
-    scopeTwapChain: [61, 65535, 65535, 65535],
+    scopePriceChain: [0, 65535, 65535, 65535],
+    scopeTwapChain: [52, 65535, 65535, 65535],
   },
   {
     id: 9,

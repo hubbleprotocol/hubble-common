@@ -36,7 +36,7 @@ import { HbbVault, HubblePrices, MintToPriceMap, PsmReserve, UsdhVault } from '.
 import GlobalConfig from './models/GlobalConfig';
 import { SwapInfo } from './models/SwapInfo';
 import { signTerms, SignTermsAccounts, SignTermsArgs, TermsSignature } from './models/TermsSignature';
-import { OraclePrices, Scope } from '@hubbleprotocol/scope-sdk';
+import { OraclePrices, Scope } from '@kamino-finance/scope-sdk';
 
 export class Hubble {
   private readonly _cluster: SolanaCluster;
