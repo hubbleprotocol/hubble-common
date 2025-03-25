@@ -7,7 +7,7 @@ The Hubble SDK is a TypeScript client SDK for easy access to [Hubble Protocol](h
 [![npm](https://img.shields.io/npm/v/@hubbleprotocol/hubble-sdk)](https://www.npmjs.com/package/@hubbleprotocol/hubble-sdk)
 
 ```shell
-npm install @hubbleprotocol/hubble-sdk
+npm install @hubbleprotocol/hubble-sdk 
 ```
 
 ## Usage
