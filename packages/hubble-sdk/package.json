@@ -31,7 +31,7 @@
   },
   "overrides": {
     "@streamflow/stream": {
-      "@solana/web3.js": "^1.78.4"
+      "@solana/web3.js": "1.95.8"
     }
   },
   "dependencies": {
@@ -39,7 +39,7 @@
     "@coral-xyz/borsh": "^0.30.1",
     "@hubbleprotocol/hubble-config": "^8.0.0",
     "@kamino-finance/scope-sdk": "^8.0.2",
-    "@solana/web3.js": "^1.78.4",
+    "@solana/web3.js": "1.95.8",
     "@streamflow/stream": "6.3.8",
     "bn.js": "^5.2.1",
     "decimal.js": "^10.3.1"
